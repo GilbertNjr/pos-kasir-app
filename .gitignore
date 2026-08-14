@@ -1,0 +1,26 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build artifacts
+dist/
+build/
+out/
+.vite/
+
+# Environment Variables & Secrets
+.env
+.env.local
+.env.*.local
+*.pem
+credentials.json
+service-account.json
+
+# IDE / OS Files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Antigravity artifacts
+.gemini/

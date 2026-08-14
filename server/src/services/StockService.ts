@@ -1,0 +1,120 @@
+import { StockRepository } from '../repositories/StockRepository';
+import { ProductRepository } from '../repositories/ProductRepository';
+import { StockEntity, ProductEntity } from '../types/domain';
+
+export interface StockWithProductDetails extends StockEntity {
+  product_name: string;
+  business_unit: string;
+  manage_stock: boolean;
+}
+
+export class StockService {
+  private stockRepository: StockRepository;
+  private productRepository: ProductRepository;
+
+  constructor(stockRepository: StockRepository, productRepository: ProductRepository) {
+    this.stockRepository = stockRepository;
+    this.productRepository = productRepository;
+  }
+
+  async getAllStocksWithProducts(): Promise<StockWithProductDetails[]> {
+    const products = await this.productRepository.findAll();
+    const stocks = await this.stockRepository.findAll();
+
+    const stockMap = new Map<string, StockEntity>();
+    for (const stock of stocks) {
+      stockMap.set(stock.product_id, stock);
+    }
+
+    const result: StockWithProductDetails[] = [];
+
+    for (const prod of products) {
+      if (prod.manage_stock) {
+        let stock = stockMap.get(prod.product_id);
+        if (!stock) {
+          // Buat entri stok default 0 jika belum ada
+          stock = await this.stockRepository.create({
+            stock_id: `stk-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            product_id: prod.product_id,
+            current_stock: 0,
+            last_updated: new Date().toISOString(),
+          });
+        }
+
+        result.push({
+          ...stock,
+          product_name: prod.product_name,
+          business_unit: prod.business_unit,
+          manage_stock: prod.manage_stock,
+        });
+      }
+    }
+
+    return result;
+  }
+
+  async deductStock(product_id: string, qty: number): Promise<StockEntity | null> {
+    const product = await this.productRepository.findById(product_id);
+    if (!product || !product.manage_stock) {
+      // Jasa atau item tanpa kelola stok tidak mengurangi stok
+      return null;
+    }
+
+    let stock = await this.stockRepository.findByProductId(product_id);
+    if (!stock) {
+      stock = await this.stockRepository.create({
+        stock_id: `stk-${Date.now()}`,
+        product_id,
+        current_stock: 0,
+        last_updated: new Date().toISOString(),
+      });
+    }
+
+    const newStockAmount = Math.max(0, stock.current_stock - qty);
+    return this.stockRepository.update(stock.stock_id, {
+      current_stock: newStockAmount,
+    });
+  }
+
+  async restoreStock(product_id: string, qty: number): Promise<StockEntity | null> {
+    const product = await this.productRepository.findById(product_id);
+    if (!product || !product.manage_stock) {
+      return null;
+    }
+
+    let stock = await this.stockRepository.findByProductId(product_id);
+    if (!stock) return null;
+
+    const newStockAmount = stock.current_stock + qty;
+    return this.stockRepository.update(stock.stock_id, {
+      current_stock: newStockAmount,
+    });
+  }
+
+  async updateStockQuantity(product_id: string, newQuantity: number): Promise<StockEntity> {
+    if (newQuantity < 0) {
+      throw new Error('Jumlah stok tidak boleh kurang dari 0.');
+    }
+
+    const product = await this.productRepository.findById(product_id);
+    if (!product || !product.manage_stock) {
+      throw new Error('Item ini tidak dikonfigurasi untuk mengelola stok fisik.');
+    }
+
+    let stock = await this.stockRepository.findByProductId(product_id);
+    if (!stock) {
+      return this.stockRepository.create({
+        stock_id: `stk-${Date.now()}`,
+        product_id,
+        current_stock: newQuantity,
+        last_updated: new Date().toISOString(),
+      });
+    }
+
+    const updated = await this.stockRepository.update(stock.stock_id, {
+      current_stock: newQuantity,
+    });
+
+    return updated!;
+  }
+}

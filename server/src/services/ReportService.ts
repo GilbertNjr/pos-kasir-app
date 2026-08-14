@@ -1,0 +1,204 @@
+import { TransactionRepository } from '../repositories/TransactionRepository';
+import { TransactionItemRepository } from '../repositories/TransactionItemRepository';
+import { ProductRepository } from '../repositories/ProductRepository';
+import { UserRepository } from '../repositories/UserRepository';
+import { ExpenseRepository } from '../repositories/ExpenseRepository';
+import { TransactionEntity, PaymentMethod, BusinessUnit } from '../types/domain';
+
+export interface SalesReportFilterDTO {
+  period_type?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
+  start_date?: string;
+  end_date?: string;
+  user_id?: string;
+  shift_id?: string;
+  business_unit?: BusinessUnit | 'ALL';
+  payment_method?: PaymentMethod | 'ALL';
+}
+
+export interface EmployeePerformanceSummary {
+  user_id: string;
+  username: string;
+  full_name: string;
+  role: string;
+  transaction_count: number;
+  total_sales: number;
+  cash_sales: number;
+  qris_sales: number;
+  transfer_sales: number;
+  recorded_expenses_amount: number;
+}
+
+export interface SalesReportResult {
+  summary: {
+    total_transactions: number;
+    total_gross_sales: number;
+    total_discounts: number;
+    total_net_sales: number;
+    cash_sales: number;
+    qris_sales: number;
+    transfer_sales: number;
+  };
+  transactions: TransactionEntity[];
+  employee_performance: EmployeePerformanceSummary[];
+}
+
+export class ReportService {
+  private transactionRepository: TransactionRepository;
+  private itemRepository: TransactionItemRepository;
+  private productRepository: ProductRepository;
+  private userRepository: UserRepository;
+  private expenseRepository: ExpenseRepository;
+
+  constructor(
+    transactionRepository: TransactionRepository,
+    itemRepository: TransactionItemRepository,
+    productRepository: ProductRepository,
+    userRepository: UserRepository,
+    expenseRepository: ExpenseRepository
+  ) {
+    this.transactionRepository = transactionRepository;
+    this.itemRepository = itemRepository;
+    this.productRepository = productRepository;
+    this.userRepository = userRepository;
+    this.expenseRepository = expenseRepository;
+  }
+
+  async generateSalesReport(filter: SalesReportFilterDTO): Promise<SalesReportResult> {
+    const allTransactions = await this.transactionRepository.findAll();
+    const completedTx = allTransactions.filter((t) => t.status === 'COMPLETED');
+    const allUsers = await this.userRepository.findAll();
+    const allExpenses = await this.expenseRepository.findAll();
+    const allItems = await this.itemRepository.findAll();
+    const allProducts = await this.productRepository.findAll();
+
+    const productUnitMap = new Map<string, BusinessUnit>();
+    for (const p of allProducts) {
+      productUnitMap.set(p.product_id, p.business_unit);
+    }
+
+    const txItemUnitMap = new Map<string, Set<BusinessUnit>>();
+    for (const item of allItems) {
+      const unit = productUnitMap.get(item.product_id);
+      if (unit) {
+        if (!txItemUnitMap.has(item.transaction_id)) {
+          txItemUnitMap.set(item.transaction_id, new Set());
+        }
+        txItemUnitMap.get(item.transaction_id)!.add(unit);
+      }
+    }
+
+    // Filter berdasarkan rentang waktu / tanggal
+    const now = new Date();
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
+
+    if (filter.period_type === 'DAILY') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    } else if (filter.period_type === 'WEEKLY') {
+      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      endDate = now;
+    } else if (filter.period_type === 'MONTHLY') {
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+      endDate = now;
+    } else if (filter.period_type === 'YEARLY') {
+      startDate = new Date(now.getFullYear(), 0, 1);
+      endDate = now;
+    } else if (filter.period_type === 'CUSTOM' && filter.start_date && filter.end_date) {
+      startDate = new Date(filter.start_date);
+      endDate = new Date(filter.end_date);
+    }
+
+    const filteredTransactions = completedTx.filter((tx) => {
+      const txTime = new Date(tx.transaction_time);
+
+      if (startDate && txTime < startDate) return false;
+      if (endDate && txTime > endDate) return false;
+      if (filter.user_id && tx.created_by_user_id !== filter.user_id) return false;
+      if (filter.shift_id && tx.shift_id !== filter.shift_id) return false;
+      if (filter.payment_method && filter.payment_method !== 'ALL' && tx.payment_method !== filter.payment_method) {
+        return false;
+      }
+
+      if (filter.business_unit && filter.business_unit !== 'ALL') {
+        const units = txItemUnitMap.get(tx.transaction_id);
+        if (!units || !units.has(filter.business_unit)) {
+          return false;
+        }
+      }
+
+      return true;
+    });
+
+    // Summary calculations
+    let total_gross_sales = 0;
+    let total_discounts = 0;
+    let total_net_sales = 0;
+    let cash_sales = 0;
+    let qris_sales = 0;
+    let transfer_sales = 0;
+
+    for (const tx of filteredTransactions) {
+      total_gross_sales += tx.subtotal_amount;
+      total_discounts += tx.discount_amount;
+      total_net_sales += tx.final_total;
+
+      if (tx.payment_method === 'CASH') cash_sales += tx.final_total;
+      else if (tx.payment_method === 'QRIS') qris_sales += tx.final_total;
+      else if (tx.payment_method === 'TRANSFER') transfer_sales += tx.final_total;
+    }
+
+    // Performa Kasir / Karyawan
+    const empMap = new Map<string, EmployeePerformanceSummary>();
+    for (const u of allUsers) {
+      empMap.set(u.user_id, {
+        user_id: u.user_id,
+        username: u.username,
+        full_name: u.full_name,
+        role: u.role,
+        transaction_count: 0,
+        total_sales: 0,
+        cash_sales: 0,
+        qris_sales: 0,
+        transfer_sales: 0,
+        recorded_expenses_amount: 0,
+      });
+    }
+
+    for (const tx of filteredTransactions) {
+      const emp = empMap.get(tx.created_by_user_id);
+      if (emp) {
+        emp.transaction_count += 1;
+        emp.total_sales += tx.final_total;
+        if (tx.payment_method === 'CASH') emp.cash_sales += tx.final_total;
+        else if (tx.payment_method === 'QRIS') emp.qris_sales += tx.final_total;
+        else if (tx.payment_method === 'TRANSFER') emp.transfer_sales += tx.final_total;
+      }
+    }
+
+    for (const exp of allExpenses) {
+      const emp = empMap.get(exp.recorded_by_user_id);
+      if (emp) {
+        emp.recorded_expenses_amount += exp.amount;
+      }
+    }
+
+    const employee_performance = Array.from(empMap.values()).filter(
+      (e) => e.transaction_count > 0 || e.recorded_expenses_amount > 0
+    );
+
+    return {
+      summary: {
+        total_transactions: filteredTransactions.length,
+        total_gross_sales,
+        total_discounts,
+        total_net_sales,
+        cash_sales,
+        qris_sales,
+        transfer_sales,
+      },
+      transactions: filteredTransactions,
+      employee_performance,
+    };
+  }
+}
