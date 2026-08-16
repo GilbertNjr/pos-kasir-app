@@ -61,8 +61,14 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+import { runMigrations } from './database/migrate';
+
 // Start Server if not imported as module
 if (require.main === module) {
+  runMigrations()
+    .then(() => console.log('[Database] PostgreSQL schema & seed ready.'))
+    .catch((err) => console.warn('[Database Migration Warning]:', err.message));
+
   app.listen(PORT, () => {
     console.log(`[POS Server] Server running on http://localhost:${PORT}`);
   });
