@@ -1,16 +1,14 @@
 import { Router } from 'express';
-import { ShiftRepository } from '../repositories/ShiftRepository';
-import { ShiftUserRepository } from '../repositories/ShiftUserRepository';
-import { ShiftCapitalContributionRepository } from '../repositories/ShiftCapitalContributionRepository';
+import {
+  shiftRepository,
+  shiftUserRepository,
+  shiftCapitalContributionRepository as capitalRepository,
+} from '../repositories/sharedRepositories';
 import { ShiftService } from '../services/ShiftService';
 import { ShiftController } from '../controllers/ShiftController';
 import { authMiddleware } from '../middlewares/AuthMiddleware';
 
 const router = Router();
-
-const shiftRepository = new ShiftRepository();
-const shiftUserRepository = new ShiftUserRepository();
-const capitalRepository = new ShiftCapitalContributionRepository();
 
 const shiftService = new ShiftService(shiftRepository, shiftUserRepository, capitalRepository);
 const shiftController = new ShiftController(shiftService);

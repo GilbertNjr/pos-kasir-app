@@ -1,43 +1,117 @@
 import { IRepository } from './interfaces/IRepository';
 import { StockEntity } from '../types/domain';
+import { pool } from '../database/db';
 
 export class StockRepository implements IRepository<StockEntity> {
-  private stocks: StockEntity[] = [
-    // Seed data stok awal untuk produk fisik bawaan
-    { stock_id: 'stk-1', product_id: 'prod-1', current_stock: 100, last_updated: new Date().toISOString() }, // Pulpen Gel Black 0.5mm
-    { stock_id: 'stk-2', product_id: 'prod-2', current_stock: 50, last_updated: new Date().toISOString() },  // Buku Tulis Sidu 38 Lembar
-    { stock_id: 'stk-3', product_id: 'prod-5', current_stock: 40, last_updated: new Date().toISOString() },  // Seblak Spesial Komplit
-    { stock_id: 'stk-4', product_id: 'prod-6', current_stock: 80, last_updated: new Date().toISOString() },  // Es Teh Manis Jumbo
-  ];
+  private inMemoryStocks: StockEntity[] = [];
 
   async findAll(): Promise<StockEntity[]> {
-    return [...this.stocks];
+    try {
+      const res = await pool.query(
+        `SELECT stock_id, product_id, current_stock::float, last_updated::text 
+         FROM stocks 
+         ORDER BY last_updated DESC`
+      );
+      if (res.rows.length > 0) {
+        this.inMemoryStocks = res.rows;
+        return res.rows;
+      }
+      return [...this.inMemoryStocks];
+    } catch (err) {
+      console.warn('[StockRepository] Database fetch fallback to memory:', (err as Error).message);
+      return [...this.inMemoryStocks];
+    }
   }
 
   async findById(stock_id: string): Promise<StockEntity | null> {
-    const stock = this.stocks.find((s) => s.stock_id === stock_id);
-    return stock ? { ...stock } : null;
+    try {
+      const res = await pool.query(
+        `SELECT stock_id, product_id, current_stock::float, last_updated::text 
+         FROM stocks 
+         WHERE stock_id = $1`,
+        [stock_id]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+      const mem = this.inMemoryStocks.find((s) => s.stock_id === stock_id);
+      return mem ? { ...mem } : null;
+    } catch {
+      const mem = this.inMemoryStocks.find((s) => s.stock_id === stock_id);
+      return mem ? { ...mem } : null;
+    }
   }
 
   async findByProductId(product_id: string): Promise<StockEntity | null> {
-    const stock = this.stocks.find((s) => s.product_id === product_id);
-    return stock ? { ...stock } : null;
+    try {
+      const res = await pool.query(
+        `SELECT stock_id, product_id, current_stock::float, last_updated::text 
+         FROM stocks 
+         WHERE product_id = $1`,
+        [product_id]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+      const mem = this.inMemoryStocks.find((s) => s.product_id === product_id);
+      return mem ? { ...mem } : null;
+    } catch {
+      const mem = this.inMemoryStocks.find((s) => s.product_id === product_id);
+      return mem ? { ...mem } : null;
+    }
   }
 
   async findWhere(predicate: (item: StockEntity) => boolean): Promise<StockEntity[]> {
-    return this.stocks.filter(predicate);
+    const all = await this.findAll();
+    return all.filter(predicate);
   }
 
   async create(stock: StockEntity): Promise<StockEntity> {
-    this.stocks.push(stock);
-    return { ...stock };
+    try {
+      const res = await pool.query(
+        `INSERT INTO stocks (stock_id, product_id, current_stock, last_updated)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (product_id) DO UPDATE 
+         SET current_stock = EXCLUDED.current_stock, last_updated = EXCLUDED.last_updated
+         RETURNING stock_id, product_id, current_stock::float, last_updated::text`,
+        [stock.stock_id, stock.product_id, stock.current_stock, stock.last_updated || new Date().toISOString()]
+      );
+      const created = res.rows[0];
+      const memIdx = this.inMemoryStocks.findIndex((s) => s.product_id === stock.product_id);
+      if (memIdx !== -1) this.inMemoryStocks[memIdx] = created;
+      else this.inMemoryStocks.push(created);
+      return created;
+    } catch (err) {
+      console.warn('[StockRepository] Database insert fallback to memory:', (err as Error).message);
+      this.inMemoryStocks.push(stock);
+      return { ...stock };
+    }
   }
 
   async update(stock_id: string, item: Partial<StockEntity>): Promise<StockEntity | null> {
-    const index = this.stocks.findIndex((s) => s.stock_id === stock_id);
-    if (index === -1) return null;
+    try {
+      const fields: string[] = [];
+      const values: any[] = [];
+      let idx = 1;
 
-    this.stocks[index] = { ...this.stocks[index], ...item, last_updated: new Date().toISOString() };
-    return { ...this.stocks[index] };
+      if (item.current_stock !== undefined) { fields.push(`current_stock = $${idx++}`); values.push(item.current_stock); }
+      fields.push(`last_updated = CURRENT_TIMESTAMP`);
+
+      values.push(stock_id);
+      const queryStr = `UPDATE stocks SET ${fields.join(', ')} WHERE stock_id = $${idx} 
+                        RETURNING stock_id, product_id, current_stock::float, last_updated::text`;
+      const res = await pool.query(queryStr, values);
+
+      if (res.rows.length > 0) {
+        const updated = res.rows[0];
+        const memIdx = this.inMemoryStocks.findIndex((s) => s.stock_id === stock_id);
+        if (memIdx !== -1) this.inMemoryStocks[memIdx] = updated;
+        return updated;
+      }
+    } catch (err) {
+      console.warn('[StockRepository] Database update fallback to memory:', (err as Error).message);
+    }
+
+    const index = this.inMemoryStocks.findIndex((s) => s.stock_id === stock_id);
+    if (index === -1) return null;
+    this.inMemoryStocks[index] = { ...this.inMemoryStocks[index], ...item, last_updated: new Date().toISOString() };
+    return { ...this.inMemoryStocks[index] };
   }
 }
+

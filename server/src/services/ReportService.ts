@@ -183,6 +183,29 @@ export class ReportService {
       }
     }
 
+    const productMap = new Map<string, any>();
+    for (const p of allProducts) {
+      productMap.set(p.product_id, p);
+    }
+
+    const itemsByTxMap = new Map<string, any[]>();
+    for (const item of allItems) {
+      const prod = productMap.get(item.product_id);
+      const enrichedItem = {
+        ...item,
+        product_name: prod ? prod.product_name : 'Produk',
+      };
+      if (!itemsByTxMap.has(item.transaction_id)) {
+        itemsByTxMap.set(item.transaction_id, []);
+      }
+      itemsByTxMap.get(item.transaction_id)!.push(enrichedItem);
+    }
+
+    const enrichedTransactions = filteredTransactions.map((tx) => ({
+      ...tx,
+      items: itemsByTxMap.get(tx.transaction_id) || [],
+    }));
+
     const employee_performance = Array.from(empMap.values()).filter(
       (e) => e.transaction_count > 0 || e.recorded_expenses_amount > 0
     );
@@ -197,7 +220,7 @@ export class ReportService {
         qris_sales,
         transfer_sales,
       },
-      transactions: filteredTransactions,
+      transactions: enrichedTransactions,
       employee_performance,
     };
   }

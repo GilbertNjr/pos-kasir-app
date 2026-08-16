@@ -1,256 +1,795 @@
-import React, { useState, useEffect } from 'react';
-import { DollarSign, Award, RefreshCw, ShieldAlert, PieChart, ArrowDownRight, LayoutDashboard } from 'lucide-react';
-import { apiService } from '../services/api';
-import { User } from '../types';
-import { formatRupiah } from '../utils/formatters';
+import React, { useState } from 'react';
+import {
+  TrendingUp,
+  DollarSign,
+  ShoppingBag,
+  Package,
+  Layers,
+  Users,
+  RefreshCw,
+  Clock,
+  AlertCircle,
+  Lightbulb,
+  ArrowUpRight,
+  FileText,
+  Settings,
+  Zap,
+  Headphones,
+  Sparkles,
+  CheckCircle2,
+  Inbox,
+  PackageX,
+} from 'lucide-react';
+import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
+import { PeriodFilterBar } from '../components/dashboard/PeriodFilterBar';
+import { RevenuePerformanceChart } from '../components/dashboard/RevenuePerformanceChart';
+import { EmployeePerformanceModal, EmployeeSummary } from '../components/dashboard/EmployeePerformanceModal';
+import { CategoryDonutChartCard } from '../components/dashboard/CategoryDonutChartCard';
+import { PeriodSummaryCard } from '../components/dashboard/PeriodSummaryCard';
+import { DashboardSkeleton } from '../components/dashboard/DashboardSkeleton';
+import { DashboardErrorState } from '../components/dashboard/DashboardErrorState';
+import { useDashboard } from '../hooks/useDashboard';
+import { getCashierColor } from '../components/common/CashierBadge';
 
 interface OwnerDashboardPageProps {
-  currentUser: User;
+  onTriggerToast?: (type: 'success' | 'danger' | 'info' | 'warning', title: string, message: string) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
-export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ currentUser }) => {
-  const [metrics, setMetrics] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTriggerToast, onNavigateTab }) => {
+  const { filter, setFilter, data: metrics, loading, error, isSseConnected, lastUpdated, refresh } = useDashboard({
+    period_type: 'DAILY',
+  });
 
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      const data = await apiService.getDashboardMetrics();
-      setMetrics(data);
-    } catch (err: any) {
-      setError(err.message || 'Gagal memuat metrik dashboard owner');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [selectedEmployee, setSelectedEmployee] = useState<EmployeeSummary | null>(null);
 
-  useEffect(() => {
-    if (currentUser.role === 'OWNER') {
-      loadDashboardData();
-    }
-  }, [currentUser.role]);
-
-  if (currentUser.role !== 'OWNER') {
-    return (
-      <div style={{ textAlign: 'center', padding: '4rem 2rem', color: 'var(--text-muted)' }}>
-        <ShieldAlert size={48} color="var(--danger)" style={{ marginBottom: '1rem' }} />
-        <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Akses Dibatasi (Owner Only)</h3>
-        <p style={{ maxWidth: '480px', margin: '0 auto', fontSize: '0.875rem' }}>
-          Halaman Dashboard Eksekutif Analitik Omzet & Keuntungan hanya dapat diakses oleh akun dengan role <strong>OWNER</strong>.
-        </p>
-      </div>
-    );
+  if (loading && !metrics) {
+    return <DashboardSkeleton />;
   }
 
-  const totalUnitRevenue = (metrics?.revenue_by_unit?.FC_PRINT ?? 0) + (metrics?.revenue_by_unit?.FNB ?? 0);
+  if (error && !metrics) {
+    return <DashboardErrorState message={error} onRetry={refresh} />;
+  }
+
+  const kpi = metrics?.kpi || {
+    total_omzet: 0,
+    total_expenses: 0,
+    total_transactions_count: 0,
+    total_items_sold: 0,
+    average_order_value: 0,
+  };
+
+  const activeCashiersCount = metrics?.employee_performance?.filter((emp: EmployeeSummary) => emp.is_active_in_shift)?.length || 0;
+  const totalCashiersCount = metrics?.employee_performance?.length || 0;
+
+  // Maximum items sold for relative progress bar calculation
+  const maxTopQty = Math.max(...(metrics?.top_selling_products?.map((p: any) => p.qty_sold) || [1]), 1);
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h2 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <LayoutDashboard color="var(--primary-500)" />
-            Dashboard Eksekutif Owner Usaha
-          </h2>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-            Pantau pertumbuhan omzet, analisis keuntungan, dan performa perputaran produk secara real-time
-          </p>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', paddingBottom: '3.5rem' }}>
+      {/* 1. HERO HEADER ULTRA MODERN EXECUTIVE BANNER - DYNAMIC OWNER THEME PALETTE */}
+      <div
+        style={{
+          position: 'relative',
+          overflow: 'hidden',
+          background: 'linear-gradient(135deg, var(--sidebar-bg, #1c140e) 0%, var(--color-primary-dark, #92400e) 55%, var(--color-primary, #b45309) 100%)',
+          borderRadius: '28px',
+          padding: '2.25rem 2.5rem',
+          color: '#ffffff',
+          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+          border: '1px solid rgba(255, 255, 255, 0.18)',
+        }}
+      >
+        {/* Glow Radial Accents */}
+        <div
+          style={{
+            position: 'absolute',
+            top: '-80px',
+            right: '-60px',
+            width: '280px',
+            height: '280px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, var(--color-primary, #d97706) 0%, rgba(0, 0, 0, 0) 70%)',
+            opacity: 0.4,
+            pointerEvents: 'none',
+          }}
+        />
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '-60px',
+            left: '30%',
+            width: '200px',
+            height: '200px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, var(--color-primary-dark, #b45309) 0%, rgba(0, 0, 0, 0) 70%)',
+            opacity: 0.3,
+            pointerEvents: 'none',
+          }}
+        />
 
-        <button onClick={loadDashboardData} disabled={loading} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.875rem', padding: '0.5rem 1rem' }}>
-          <RefreshCw size={16} className={loading ? 'spinning' : ''} />
-          {loading ? 'Memuat...' : 'Perbarui Analitik'}
-        </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', zIndex: 2, position: 'relative' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.35rem 0.85rem',
+                  borderRadius: '20px',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  backdropFilter: 'blur(4px)',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  color: '#ffffff',
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  letterSpacing: '0.04em',
+                }}
+              >
+                <Zap size={14} color="#ffffff" /> EXECUTIVE DASHBOARD OWNER v3.5
+              </span>
+
+              {/* Realtime Pulse Indicator */}
+              <div
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  padding: '0.35rem 0.85rem',
+                  borderRadius: '20px',
+                  background: isSseConnected ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)',
+                  backdropFilter: 'blur(4px)',
+                  border: `1px solid ${isSseConnected ? 'rgba(52, 211, 153, 0.5)' : 'rgba(248, 113, 113, 0.5)'}`,
+                  fontSize: '0.78rem',
+                  fontWeight: 800,
+                  color: isSseConnected ? '#6ee7b7' : '#fca5a5',
+                }}
+              >
+                <span
+                  style={{
+                    width: '8px',
+                    height: '8px',
+                    borderRadius: '50%',
+                    background: isSseConnected ? '#10b981' : '#ef4444',
+                    boxShadow: isSseConnected ? '0 0 12px #34d399' : 'none',
+                  }}
+                />
+                {isSseConnected ? 'SINKRONISASI REALTIME AKTIF' : 'TERPUTUS'}
+              </div>
+            </div>
+
+            <h1 style={{ fontSize: '2.1rem', fontWeight: 900, margin: 0, letterSpacing: '-0.03em', color: '#ffffff' }}>
+              Pusat Analitik & Kendali Usaha 🏪
+            </h1>
+            <p style={{ fontSize: '0.925rem', color: 'rgba(255, 255, 255, 0.88)', margin: '0.4rem 0 0 0', maxWidth: '680px', lineHeight: 1.5 }}>
+              Pantau performa penjualan, omzet harian/bulanan, perputaran stok barang FC/Print & F&B, serta aktivitas shift kasir secara real-time.
+            </p>
+          </div>
+
+          {/* Right Header Controls */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
+            <div
+              style={{
+                fontSize: '0.8rem',
+                color: '#ffffff',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                background: 'rgba(255, 255, 255, 0.12)',
+                backdropFilter: 'blur(4px)',
+                padding: '0.6rem 1rem',
+                borderRadius: '14px',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+              }}
+            >
+              <Clock size={16} color="#ffffff" />
+              <span>Pembaruan: <strong style={{ color: '#ffffff' }}>{lastUpdated ? formatWaktuIndo(lastUpdated) : '-'}</strong></span>
+            </div>
+
+            <button
+              onClick={() => {
+                refresh();
+                if (onTriggerToast) onTriggerToast('success', 'Sinkronisasi Berhasil', 'Data analitik owner telah diperbarui.');
+              }}
+              style={{
+                padding: '0.65rem 1.35rem',
+                borderRadius: '14px',
+                border: '1px solid rgba(255, 255, 255, 0.35)',
+                background: 'var(--primary-gradient, linear-gradient(135deg, #b45309 0%, #d97706 100%))',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 8px 20px rgba(0, 0, 0, 0.25)',
+                transition: 'all 0.2s ease',
+              }}
+            >
+              <RefreshCw size={16} className={loading ? 'spinning' : ''} /> Segarkan Data
+            </button>
+          </div>
+        </div>
       </div>
 
-      {error && (
-        <div style={{ padding: '0.75rem 1rem', background: 'rgba(239,68,68,0.1)', color: 'var(--danger)', borderRadius: 'var(--radius-md)', marginBottom: '1rem', fontSize: '0.875rem' }}>
-          {error}
+      {/* 2. QUICK ACTION SHORTCUT CARDS */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.15rem' }}>
+        <div
+          onClick={() => onNavigateTab && onNavigateTab('STOCKS')}
+          style={{
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '20px',
+            padding: '1.35rem',
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+            <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(37,99,235,0.12)' }}>
+              <Package size={22} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '0.975rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>Kelola Stok Barang</h3>
+              <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>Restock & Penyesuaian</p>
+            </div>
+          </div>
+          <ArrowUpRight size={19} color="#94a3b8" />
+        </div>
+
+        <div
+          onClick={() => onNavigateTab && onNavigateTab('TRANSAKSI')}
+          style={{
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '20px',
+            padding: '1.35rem',
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+            <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(5,150,105,0.12)' }}>
+              <ShoppingBag size={22} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '0.975rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>Register POS</h3>
+              <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>Checkout & Transaksi</p>
+            </div>
+          </div>
+          <ArrowUpRight size={19} color="#94a3b8" />
+        </div>
+
+        <div
+          onClick={() => onNavigateTab && onNavigateTab('REPORTS')}
+          style={{
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '20px',
+            padding: '1.35rem',
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+            <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(217,119,6,0.12)' }}>
+              <FileText size={22} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '0.975rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>Laporan PDF</h3>
+              <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>Ekspor Omzet Penjualan</p>
+            </div>
+          </div>
+          <ArrowUpRight size={19} color="#94a3b8" />
+        </div>
+
+        <div
+          onClick={() => onNavigateTab && onNavigateTab('BACKUP')}
+          style={{
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '20px',
+            padding: '1.35rem',
+            cursor: 'pointer',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.03)',
+            transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+            <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#f3e8ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(124,58,237,0.12)' }}>
+              <Settings size={22} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '0.975rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>Sync & Backup</h3>
+              <p style={{ fontSize: '0.76rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>Google Sheets Cloud</p>
+            </div>
+          </div>
+          <ArrowUpRight size={19} color="#94a3b8" />
+        </div>
+      </div>
+
+      {/* 3. UNIFIED PERIOD FILTER BAR */}
+      <PeriodFilterBar currentFilter={filter} onFilterChange={setFilter} />
+
+      {/* 4. EXECUTIVE FINANCIAL KPI METRICS (5 CARDS) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem' }}>
+        {/* KPI 1: Total Omzet */}
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(37,99,235,0.06)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #3b82f6, #1d4ed8)' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TOTAL OMZET</span>
+            <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(37,99,235,0.12)' }}>
+              <TrendingUp size={21} />
+            </div>
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#1d4ed8', letterSpacing: '-0.03em' }}>
+            {formatRupiah(kpi.total_omzet)}
+          </div>
+          <div style={{ fontSize: '0.78rem', color: kpi.total_omzet > 0 ? '#047857' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_omzet > 0 ? '#ecfdf5' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_omzet > 0 ? '#a7f3d0' : '#e2e8f0'}` }}>
+            <span>{kpi.total_omzet > 0 ? '▲ Omzet Terisi Periode Ini' : '● Rp 0 (Belum ada omzet)'}</span>
+          </div>
+        </div>
+
+        {/* KPI 2: Total Pengeluaran Kas */}
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(239,68,68,0.06)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #f87171, #ef4444)' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>PENGELUARAN KAS</span>
+            <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(239,68,68,0.12)' }}>
+              <DollarSign size={21} />
+            </div>
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#ef4444', letterSpacing: '-0.03em' }}>
+            {formatRupiah(kpi.total_expenses)}
+          </div>
+          <div style={{ fontSize: '0.78rem', color: kpi.total_expenses > 0 ? '#dc2626' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_expenses > 0 ? '#fef2f2' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_expenses > 0 ? '#fecaca' : '#e2e8f0'}` }}>
+            <span>{kpi.total_expenses > 0 ? '▼ Pengeluaran Kas Dicatat' : '● Rp 0 (Nol pengeluaran)'}</span>
+          </div>
+        </div>
+
+        {/* KPI 3: Total Transaksi Nota */}
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(16,185,129,0.06)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #34d399, #10b981)' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TOTAL TRANSAKSI</span>
+            <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(16,185,129,0.12)' }}>
+              <ShoppingBag size={21} />
+            </div>
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
+            {kpi.total_transactions_count} <span style={{ fontSize: '1.05rem', color: '#94a3b8', fontWeight: 700 }}>Nota</span>
+          </div>
+          <div style={{ fontSize: '0.78rem', color: kpi.total_transactions_count > 0 ? '#047857' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_transactions_count > 0 ? '#ecfdf5' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_transactions_count > 0 ? '#a7f3d0' : '#e2e8f0'}` }}>
+            <span>{kpi.total_transactions_count > 0 ? `▲ ${kpi.total_transactions_count} Nota terbit hari ini` : '● 0 Nota (Belum ada transaksi)'}</span>
+          </div>
+        </div>
+
+        {/* KPI 4: Total Qty Unit Terjual */}
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(245,158,11,0.06)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #fbbf24, #f59e0b)' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>ITEM TERJUAL</span>
+            <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(245,158,11,0.12)' }}>
+              <Package size={21} />
+            </div>
+          </div>
+          <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
+            {kpi.total_items_sold} <span style={{ fontSize: '1.05rem', color: '#94a3b8', fontWeight: 700 }}>Unit</span>
+          </div>
+          <div style={{ fontSize: '0.78rem', color: kpi.total_items_sold > 0 ? '#b45309' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_items_sold > 0 ? '#fffbeb' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_items_sold > 0 ? '#fde68a' : '#e2e8f0'}` }}>
+            <span>{kpi.total_items_sold > 0 ? `▲ ${kpi.total_items_sold} Unit terjual hari ini` : '● 0 Unit (Nol item terjual)'}</span>
+          </div>
+        </div>
+
+        {/* KPI 5: Kasir Aktif */}
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(244,63,94,0.08)', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #fb7185, #e11d48)' }} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>KASIR AKTIF</span>
+            <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#ffe4e6', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(225,29,72,0.12)' }}>
+              <Headphones size={21} />
+            </div>
+          </div>
+          <div style={{ fontSize: '1.85rem', fontWeight: 900, color: '#e11d48', letterSpacing: '-0.03em' }}>
+            {activeCashiersCount} <span style={{ fontSize: '1.1rem', color: '#94a3b8', fontWeight: 700 }}>/ {totalCashiersCount || (activeCashiersCount > 0 ? activeCashiersCount : 0)}</span>
+          </div>
+          <div style={{ fontSize: '0.78rem', color: activeCashiersCount > 0 ? '#be123c' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: activeCashiersCount > 0 ? '#ffe4e6' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${activeCashiersCount > 0 ? '#fecdd3' : '#e2e8f0'}` }}>
+            <span>{activeCashiersCount > 0 ? `● ${activeCashiersCount} Shift Kasir Berjalan` : '○ 0 Shift Kasir Aktif'}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* 5. OPERATIONAL ALERTS NOTICE */}
+      {metrics?.alerts && (metrics.alerts.unresolved_shift_variances > 0 || metrics.alerts.low_stock_products_count > 0) && (
+        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '20px', padding: '1.25rem 1.5rem', color: '#92400e', display: 'flex', alignItems: 'center', gap: '1.15rem', boxShadow: '0 4px 14px rgba(245,158,11,0.08)' }}>
+          <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <AlertCircle size={24} color="#d97706" />
+          </div>
+          <div style={{ fontSize: '0.88rem', lineHeight: 1.45 }}>
+            <strong style={{ color: '#b45309', fontWeight: 900 }}>PERHATIAN OPERASIONAL TOKO:</strong> Terdeteksi <strong>{metrics.alerts.unresolved_shift_variances} sesi shift</strong> dengan selisih kas yang belum terselesaikan. Harap periksa di menu laporan shift kasir.
+          </div>
         </div>
       )}
 
-      {loading && !metrics ? (
-        <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-muted)' }}>Memuat metrik analitik keuangan...</div>
-      ) : metrics ? (
-        <>
-          {/* Row 1: Cards Omzet Waktu & Est Keuntungan */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-            <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Omzet Hari Ini</div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--success)' }}>{formatRupiah(metrics.omzet_today)}</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Hari ini</p>
-            </div>
+      {/* 6. REVENUE PERFORMANCE CHART */}
+      <div style={{ minHeight: '350px' }}>
+        <RevenuePerformanceChart data={metrics?.revenue_chart || []} periodType={filter.period_type} />
+      </div>
 
-            <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Omzet 7 Hari Terakhir</div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--primary-600)' }}>{formatRupiah(metrics.omzet_this_week)}</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Performa Mingguan</p>
-            </div>
+      {/* 7. DIAGRAM KATEGORI PRODUK TERLARIS & RINGKASAN PERIODE */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.6rem' }}>
+        {/* Card 1: Kategori Produk Terlaris (Donut Chart SVG & Legend) */}
+        <CategoryDonutChartCard categories={metrics?.category_distribution} />
 
-            <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <div style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>Omzet Bulan Ini</div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--accent-fc)' }}>{formatRupiah(metrics.omzet_this_month)}</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>Akumulasi Bulanan</p>
-            </div>
+        {/* Card 2: Ringkasan Periode Ini (Metrik Persentase Panah Hijau/Merah) */}
+        <PeriodSummaryCard
+          kpi={kpi}
+          activeCashiersCount={activeCashiersCount}
+          totalCashiersCount={totalCashiersCount}
+          periodType={filter.period_type}
+          onNavigateTab={onNavigateTab}
+        />
+      </div>
 
-            <div style={{ background: 'linear-gradient(135deg, var(--primary-600), var(--primary-700))', color: '#fff', padding: '1.25rem', borderRadius: 'var(--radius-lg)' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem', opacity: 0.85 }}>Est. Keuntungan Bersih</div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 700 }}>{formatRupiah(metrics.net_profit_estimate)}</h3>
-              <p style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.25rem' }}>Total Omzet - Total Pengeluaran Kas</p>
-            </div>
+      {/* 8. TOP PRODUCTS & LOW SELLING PRODUCTS */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.6rem' }}>
+        {/* Top Selling Products Card */}
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', padding: '1.6rem', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', margin: 0 }}>
+              <Layers size={20} color="#047857" />
+              Produk Terlaris (Top 5 Qty)
+            </h3>
+            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, background: '#f1f5f9', padding: '0.25rem 0.65rem', borderRadius: '10px' }}>
+              Volume Penjualan
+            </span>
           </div>
 
-          {/* Row 2: Breakdown Bidang Usaha FC vs FNB & Payment Methods */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
-            {/* Visual Proporsi Bidang Usaha */}
-            <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <PieChart size={18} color="var(--primary-500)" />
-                Kontribusi Bidang Usaha (FC/Print vs FNB)
-              </h3>
-
-              {totalUnitRevenue > 0 ? (
-                <>
-                  <div style={{ height: '24px', borderRadius: '12px', overflow: 'hidden', display: 'flex', marginBottom: '1rem', background: 'var(--bg-main)' }}>
-                    <div
-                      style={{
-                        width: `${((metrics.revenue_by_unit.FC_PRINT / totalUnitRevenue) * 100).toFixed(1)}%`,
-                        background: 'var(--accent-fc)',
-                        transition: 'width 0.5s ease',
-                      }}
-                    />
-                    <div
-                      style={{
-                        width: `${((metrics.revenue_by_unit.FNB / totalUnitRevenue) * 100).toFixed(1)}%`,
-                        background: 'var(--primary-500)',
-                        transition: 'width 0.5s ease',
-                      }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--accent-fc)', fontWeight: 600 }}>🖨️ FC / PRINTING</div>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: '0.2rem' }}>{formatRupiah(metrics.revenue_by_unit.FC_PRINT)}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        {((metrics.revenue_by_unit.FC_PRINT / totalUnitRevenue) * 100).toFixed(1)}% total
-                      </div>
-                    </div>
-
-                    <div style={{ padding: '0.75rem', borderRadius: 'var(--radius-md)', background: 'rgba(37,99,235,0.08)', border: '1px solid rgba(37,99,235,0.2)' }}>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--primary-600)', fontWeight: 600 }}>🍜 FOOD & BEVERAGE</div>
-                      <div style={{ fontSize: '1.1rem', fontWeight: 700, marginTop: '0.2rem' }}>{formatRupiah(metrics.revenue_by_unit.FNB)}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        {((metrics.revenue_by_unit.FNB / totalUnitRevenue) * 100).toFixed(1)}% total
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>Belum ada data omzet bidang usaha.</div>
-              )}
-            </div>
-
-            {/* Rekap Metode Bayar Overall */}
-            <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <DollarSign size={18} color="var(--success)" />
-                Rekapitalisasi Akumulasi Metode Pembayaran
-              </h3>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.85rem', background: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
-                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>💵 Cash / Tunai Laci</span>
-                  <span style={{ fontWeight: 700, color: 'var(--success)' }}>{formatRupiah(metrics.revenue_by_method.CASH)}</span>
+          {(() => {
+            const activeTopProducts = (metrics?.top_selling_products || []).filter((p: any) => (p.qty_sold || 0) > 0);
+            if (activeTopProducts.length === 0) {
+              return (
+                <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#94a3b8' }}>
+                  <Inbox size={32} color="#cbd5e1" style={{ marginBottom: '0.5rem' }} />
+                  <div style={{ fontWeight: 800, color: '#64748b', fontSize: '0.9rem' }}>Belum Ada Produk Terjual</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Data produk terlaris akan muncul secara otomatis saat terjadi transaksi.</div>
                 </div>
+              );
+            }
+            return (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <th style={{ padding: '0.75rem 0.25rem' }}>#</th>
+                      <th style={{ padding: '0.75rem 0.5rem' }}>Produk / Jasa</th>
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Qty</th>
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Omzet</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {activeTopProducts.map((p: any, idx: number) => {
+                      const rank = idx + 1;
+                      const pct = Math.round((p.qty_sold / (maxTopQty || 1)) * 100);
+                      const isGold = rank === 1;
+                      const isSilver = rank === 2;
+                      const isBronze = rank === 3;
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.85rem', background: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
-                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>📱 QRIS Non-Tunai</span>
-                  <span style={{ fontWeight: 700, color: 'var(--primary-600)' }}>{formatRupiah(metrics.revenue_by_method.QRIS)}</span>
-                </div>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.6rem 0.85rem', background: 'var(--bg-main)', borderRadius: 'var(--radius-md)' }}>
-                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>🏦 Transfer Bank Direct</span>
-                  <span style={{ fontWeight: 700, color: 'var(--accent-fc)' }}>{formatRupiah(metrics.revenue_by_method.TRANSFER)}</span>
-                </div>
+                      return (
+                        <tr key={p.product_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '0.85rem 0.25rem' }}>
+                            <span
+                              style={{
+                                width: '26px',
+                                height: '26px',
+                                borderRadius: '50%',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '0.75rem',
+                                fontWeight: 900,
+                                background: isGold ? '#fef3c7' : isSilver ? '#f1f5f9' : isBronze ? '#fff7ed' : '#f8fafc',
+                                color: isGold ? '#b45309' : isSilver ? '#475569' : isBronze ? '#c2410c' : '#64748b',
+                                border: `1px solid ${isGold ? '#fde68a' : isSilver ? '#cbd5e1' : isBronze ? '#ffedd5' : '#e2e8f0'}`,
+                              }}
+                            >
+                              {rank}
+                            </span>
+                          </td>
+                          <td style={{ padding: '0.85rem 0.5rem' }}>
+                            <div style={{ fontWeight: 800, color: '#0f172a' }}>{p.product_name}</div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                              <span style={{
+                                fontSize: '0.65rem',
+                                fontWeight: 800,
+                                padding: '0.15rem 0.5rem',
+                                borderRadius: '6px',
+                                background: p.business_unit === 'FC_PRINT' ? '#eff6ff' : '#ecfdf5',
+                                color: p.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#047857',
+                              }}>
+                                {p.business_unit}
+                              </span>
+                              <div style={{ width: '80px', height: '5px', borderRadius: '3px', background: '#e2e8f0', overflow: 'hidden' }}>
+                                <div style={{ width: `${pct}%`, height: '100%', background: isGold ? '#f59e0b' : '#2563eb', borderRadius: '3px' }} />
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ padding: '0.85rem 0.5rem', textAlign: 'center', fontWeight: 900, color: '#0f172a' }}>
+                            {p.qty_sold} {p.unit || 'pcs'}
+                          </td>
+                          <td style={{ padding: '0.85rem 0.5rem', textAlign: 'right', fontWeight: 900, color: '#047857' }}>
+                            {formatRupiah(p.total_revenue)}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
-            </div>
+            );
+          })()}
+        </div>
+
+        {/* Low Selling Products Card (Slow Moving) */}
+        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', padding: '1.6rem', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', margin: 0 }}>
+              <AlertCircle size={20} color="#ef4444" />
+              Produk Penjualan Rendah (Slow Moving)
+            </h3>
+            <span style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: 700, background: '#fef2f2', padding: '0.25rem 0.65rem', borderRadius: '10px' }}>
+              Perhatian Stok
+            </span>
           </div>
 
-          {/* Row 3: Analisis Perputaran Produk (Top Selling & Slow Moving) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
-            {/* Top Selling Products */}
-            <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--success)' }}>
-                <Award size={20} />
-                Top 5 Produk Terlaris (Fast-Moving)
-              </h3>
-
-              {metrics.top_selling_products.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Belum ada data produk terjual.</div>
-              ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+          {(() => {
+            const hasTotalSales = (kpi?.total_items_sold || 0) > 0;
+            const slowMovingList = metrics?.slow_moving_products || [];
+            if (!hasTotalSales || slowMovingList.length === 0) {
+              return (
+                <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#94a3b8' }}>
+                  <PackageX size={32} color="#cbd5e1" style={{ marginBottom: '0.5rem' }} />
+                  <div style={{ fontWeight: 800, color: '#64748b', fontSize: '0.9rem' }}>Belum Ada Perputaran Stok</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Lakukan transaksi penjualan terlebih dahulu untuk menganalisis produk slow moving.</div>
+                </div>
+              );
+            }
+            return (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                      <th style={{ padding: '0.4rem', textAlign: 'left' }}>#</th>
-                      <th style={{ padding: '0.4rem', textAlign: 'left' }}>Produk</th>
-                      <th style={{ padding: '0.4rem', textAlign: 'center' }}>Terjual</th>
-                      <th style={{ padding: '0.4rem', textAlign: 'right' }}>Total Omzet</th>
+                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                      <th style={{ padding: '0.75rem 0.5rem' }}>Produk / Jasa</th>
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Qty Terjual</th>
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Status Perputaran</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {metrics.top_selling_products.map((prod: any, idx: number) => (
-                      <tr key={prod.product_id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '0.5rem', fontWeight: 700, color: 'var(--primary-600)' }}>#{idx + 1}</td>
-                        <td style={{ padding: '0.5rem', fontWeight: 600 }}>{prod.product_name}</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'center', fontWeight: 700 }}>{prod.qty_sold} pcs</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 700, color: 'var(--success)' }}>{formatRupiah(prod.total_revenue)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-
-            {/* Slow Moving Products */}
-            <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-fc)' }}>
-                <ArrowDownRight size={20} />
-                Top 5 Produk Penjualan Rendah (Slow-Moving)
-              </h3>
-
-              {metrics.slow_moving_products.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Belum ada data analisis slow-moving.</div>
-              ) : (
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
-                      <th style={{ padding: '0.4rem', textAlign: 'left' }}>Produk</th>
-                      <th style={{ padding: '0.4rem', textAlign: 'center' }}>Bidang</th>
-                      <th style={{ padding: '0.4rem', textAlign: 'center' }}>Terjual</th>
-                      <th style={{ padding: '0.4rem', textAlign: 'right' }}>Total Omzet</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {metrics.slow_moving_products.map((prod: any) => (
-                      <tr key={prod.product_id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '0.5rem', fontWeight: 600 }}>{prod.product_name}</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                          <span className={prod.business_unit === 'FC_PRINT' ? 'badge badge-fc' : 'badge badge-fnb'}>{prod.business_unit}</span>
+                    {slowMovingList.map((p: any) => (
+                      <tr key={p.product_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '0.85rem 0.5rem' }}>
+                          <div style={{ fontWeight: 800, color: '#0f172a' }}>{p.product_name}</div>
+                          <span style={{
+                            fontSize: '0.65rem',
+                            fontWeight: 800,
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: '6px',
+                            background: p.business_unit === 'FC_PRINT' ? '#eff6ff' : '#ecfdf5',
+                            color: p.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#047857',
+                          }}>
+                            {p.business_unit}
+                          </span>
                         </td>
-                        <td style={{ padding: '0.5rem', textAlign: 'center', fontWeight: 700, color: 'var(--danger)' }}>{prod.qty_sold} pcs</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 600 }}>{formatRupiah(prod.total_revenue)}</td>
+                        <td style={{ padding: '0.85rem 0.5rem', textAlign: 'center', fontWeight: 900, color: '#ef4444' }}>
+                          {p.qty_sold} {p.unit || 'pcs'}
+                        </td>
+                        <td style={{ padding: '0.85rem 0.5rem', textAlign: 'right', fontSize: '0.78rem', color: '#64748b', fontWeight: 700 }}>
+                          {p.qty_sold === 0 ? (
+                            <span style={{ color: '#dc2626', background: '#fef2f2', padding: '0.2rem 0.55rem', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                              ⚠️ Nol Penjualan
+                            </span>
+                          ) : (
+                            <span style={{ color: '#d97706', background: '#fffbeb', padding: '0.2rem 0.55rem', borderRadius: '8px', border: '1px solid #fde68a' }}>
+                              🐢 Slow Moving
+                            </span>
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+            );
+          })()}
+        </div>
+      </div>
+
+      {/* 9. KASIR & PEGAWAI PERFORMANCE PERMANENT SECTION */}
+      <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', padding: '1.75rem', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)' }}>
+        {(() => {
+          const employeeList = (metrics?.employee_performance || []).filter((emp: EmployeeSummary) => emp.role !== 'OWNER');
+          return (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.35rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', margin: 0 }}>
+                    <Users size={22} color="#4f46e5" />
+                    Performa & Aktivitas Kasir / Pegawai
+                  </h3>
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.2rem 0 0 0' }}>
+                    Klik kartu kasir di bawah ini untuk melihat rincian detail nota & pengeluaran kas per karyawan
+                  </p>
+                </div>
+                <span style={{ fontSize: '0.78rem', color: '#4f46e5', fontWeight: 800, background: '#eef2ff', padding: '0.3rem 0.75rem', borderRadius: '12px', border: '1px solid #c7d2fe' }}>
+                  {employeeList.length} Karyawan Terdaftar
+                </span>
+              </div>
+
+              {employeeList.length === 0 ? (
+                <div style={{ padding: '2rem 1rem', textAlign: 'center', color: '#94a3b8' }}>
+                  <Users size={32} color="#cbd5e1" style={{ marginBottom: '0.5rem' }} />
+                  <div style={{ fontWeight: 800, color: '#64748b', fontSize: '0.9rem' }}>Belum Ada Karyawan Terdaftar</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Tambahkan akun karyawan di menu Manajemen Pengguna.</div>
+                </div>
+              ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.15rem' }}>
+                  {employeeList.map((emp: EmployeeSummary) => {
+                    const cashierColor = getCashierColor(emp.full_name || emp.username);
+                    return (
+                      <div
+                        key={emp.user_id}
+                        onClick={() => setSelectedEmployee(emp)}
+                        style={{
+                          padding: '1.25rem',
+                          border: `1px solid ${cashierColor.border}`,
+                          borderRadius: '20px',
+                          background: cashierColor.bg,
+                          cursor: 'pointer',
+                          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                          boxShadow: `0 6px 18px ${cashierColor.bg}`,
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div
+                              style={{
+                                width: '42px',
+                                height: '42px',
+                                borderRadius: '50%',
+                                background: cashierColor.avatarBg,
+                                color: cashierColor.avatarText,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontWeight: 900,
+                                fontSize: '1.05rem',
+                                boxShadow: `0 4px 10px ${cashierColor.border}`,
+                              }}
+                            >
+                              {emp.full_name.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <h4 style={{ fontSize: '0.975rem', fontWeight: 900, margin: 0, color: cashierColor.text }}>{emp.full_name}</h4>
+                              <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700 }}>Role: {emp.role}</span>
+                            </div>
+                          </div>
+
+                          {emp.is_active_in_shift && (
+                            <span style={{ padding: '0.25rem 0.65rem', borderRadius: '12px', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', fontSize: '0.7rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> Shift Aktif
+                            </span>
+                          )}
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginTop: '0.95rem', borderTop: `1px dashed ${cashierColor.border}`, paddingTop: '0.75rem' }}>
+                          <span style={{ color: '#64748b', fontWeight: 700 }}>{emp.transaction_count} Nota Transaksi</span>
+                          <span style={{ fontWeight: 900, color: cashierColor.text }}>{formatRupiah(emp.total_sales)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               )}
-            </div>
+            </>
+          );
+        })()}
+      </div>
+
+      {/* 10. REKOMENDASI INSIGHTS BISNIS OTOMATIS (REALTIME DYNAMIC STOK & OPERASIONAL) */}
+      <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', padding: '1.75rem', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Lightbulb size={22} color="#d97706" />
           </div>
-        </>
-      ) : null}
+          <div>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+              Rekomendasi Insights Bisnis Otomatis
+            </h3>
+            <p style={{ fontSize: '0.825rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
+              Analisis cerdas pola penjualan & peluang peningkatan margin omzet toko
+            </p>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {metrics?.business_insights?.map((item: any, idx: number) => {
+            const isPositive = item.type === 'POSITIVE';
+            const isWarning = item.type === 'WARNING';
+            const isTip = item.type === 'TIP';
+
+            const borderLeftColor = isPositive ? '#10b981' : isWarning ? '#f59e0b' : isTip ? '#8b5cf6' : '#3b82f6';
+            const itemBgColor = isPositive ? '#f0fdf4' : isWarning ? '#fffbeb' : isTip ? '#f5f3ff' : '#f0f6ff';
+
+            return (
+              <div
+                key={idx}
+                style={{
+                  padding: '1.25rem 1.5rem',
+                  borderRadius: '18px',
+                  background: itemBgColor,
+                  borderLeft: `4px solid ${borderLeftColor}`,
+                  borderTop: '1px solid rgba(0,0,0,0.02)',
+                  borderRight: '1px solid rgba(0,0,0,0.02)',
+                  borderBottom: '1px solid rgba(0,0,0,0.02)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.35rem',
+                }}
+              >
+                <div style={{ fontWeight: 900, fontSize: '0.975rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  {isPositive && <CheckCircle2 size={18} color="#10b981" />}
+                  {isWarning && <AlertCircle size={18} color="#f59e0b" />}
+                  {isTip && <Sparkles size={18} color="#8b5cf6" />}
+                  {!isPositive && !isWarning && !isTip && <Lightbulb size={18} color="#3b82f6" />}
+                  {item.title}
+                </div>
+                <div style={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.55 }}>{item.message}</div>
+
+                {item.action_recommendation && (
+                  <div
+                    style={{
+                      marginTop: '0.5rem',
+                      padding: '0.6rem 0.85rem',
+                      borderRadius: '12px',
+                      background: '#ffffff',
+                      border: `1px solid ${borderLeftColor}30`,
+                      fontSize: '0.78rem',
+                      color: '#0f172a',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem',
+                    }}
+                  >
+                    <span style={{ color: borderLeftColor }}>💡</span>
+                    <span><strong>Saran AI:</strong> {item.action_recommendation}</span>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Modal Detail Performa Kasir */}
+      <EmployeePerformanceModal employee={selectedEmployee} onClose={() => setSelectedEmployee(null)} />
     </div>
   );
 };

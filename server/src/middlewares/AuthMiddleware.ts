@@ -6,7 +6,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'pos-kasir-super-secret-jwt-key-202
 export interface AuthenticatedUserPayload {
   user_id: string;
   username: string;
-  role: 'OWNER' | 'KARYAWAN';
+  role: 'OWNER' | 'PENANGGUNG_JAWAB' | 'KARYAWAN';
+  is_pj?: boolean;
+  permissions?: string[];
 }
 
 export interface AuthenticatedRequest extends Request {

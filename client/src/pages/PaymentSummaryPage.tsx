@@ -3,6 +3,7 @@ import { Banknote, QrCode, ArrowRightLeft, TrendingUp, RefreshCw } from 'lucide-
 import { apiService, PaymentSummaryData } from '../services/api';
 import { Shift } from '../types';
 import { formatRupiah } from '../utils/formatters';
+import { PaymentMethodBadge } from '../components/common/PaymentMethodBadge';
 
 interface PaymentSummaryPageProps {
   activeShift: Shift | null;
@@ -82,45 +83,45 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
             </div>
 
             {/* CASH */}
-            <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--success)', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: 600 }}>
+            <div style={{ background: '#ecfdf5', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid #a7f3d0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#047857', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: 800 }}>
                 <Banknote size={18} />
-                CASH / Tunai
+                CASH / TUNAI (HIJAU)
               </div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 700 }}>{formatRupiah(summary.cash.amount)}</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{summary.cash.count} transaksi</p>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#047857' }}>{formatRupiah(summary.cash.amount)}</h3>
+              <p style={{ fontSize: '0.75rem', color: '#065f46', marginTop: '0.25rem', fontWeight: 600 }}>{summary.cash.count} transaksi</p>
               {summary.total_revenue > 0 && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--success)', fontWeight: 600, marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: '#047857', fontWeight: 800, marginTop: '0.25rem' }}>
                   {((summary.cash.amount / summary.total_revenue) * 100).toFixed(1)}% dari total
                 </div>
               )}
             </div>
 
             {/* QRIS */}
-            <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--primary-500)', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: 600 }}>
+            <div style={{ background: '#eff6ff', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid #bfdbfe' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#1d4ed8', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: 800 }}>
                 <QrCode size={18} />
-                QRIS Non-Tunai
+                QRIS NON-TUNAI (BIRU)
               </div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 700 }}>{formatRupiah(summary.qris.amount)}</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{summary.qris.count} transaksi</p>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1d4ed8' }}>{formatRupiah(summary.qris.amount)}</h3>
+              <p style={{ fontSize: '0.75rem', color: '#1e40af', marginTop: '0.25rem', fontWeight: 600 }}>{summary.qris.count} transaksi</p>
               {summary.total_revenue > 0 && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--primary-600)', fontWeight: 600, marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 800, marginTop: '0.25rem' }}>
                   {((summary.qris.amount / summary.total_revenue) * 100).toFixed(1)}% dari total
                 </div>
               )}
             </div>
 
             {/* TRANSFER */}
-            <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-fc)', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: 600 }}>
+            <div style={{ background: '#fffbeb', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid #fde68a' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#b45309', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: 800 }}>
                 <ArrowRightLeft size={18} />
-                Transfer Bank
+                TRANSFER BANK (KUNING)
               </div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 700 }}>{formatRupiah(summary.transfer.amount)}</h3>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem' }}>{summary.transfer.count} transaksi</p>
+              <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#b45309' }}>{formatRupiah(summary.transfer.amount)}</h3>
+              <p style={{ fontSize: '0.75rem', color: '#92400e', marginTop: '0.25rem', fontWeight: 600 }}>{summary.transfer.count} transaksi</p>
               {summary.total_revenue > 0 && (
-                <div style={{ fontSize: '0.75rem', color: 'var(--accent-fc)', fontWeight: 600, marginTop: '0.25rem' }}>
+                <div style={{ fontSize: '0.75rem', color: '#b45309', fontWeight: 800, marginTop: '0.25rem' }}>
                   {((summary.transfer.amount / summary.total_revenue) * 100).toFixed(1)}% dari total
                 </div>
               )}
@@ -130,13 +131,13 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
           {/* Visual Proportional Bar */}
           {summary.total_revenue > 0 && (
             <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', marginBottom: '2rem' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Proporsi Omzet per Metode Bayar</h3>
-              <div style={{ height: '24px', borderRadius: '12px', overflow: 'hidden', display: 'flex', marginBottom: '0.75rem', background: 'var(--bg-main)' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '1rem', fontWeight: 800 }}>Proporsi Omzet per Metode Bayar</h3>
+              <div style={{ height: '24px', borderRadius: '12px', overflow: 'hidden', display: 'flex', marginBottom: '0.75rem', background: '#f1f5f9' }}>
                 {summary.cash.amount > 0 && (
                   <div
                     style={{
                       width: `${(summary.cash.amount / summary.total_revenue) * 100}%`,
-                      background: 'var(--success)',
+                      background: '#10b981',
                       transition: 'width 0.5s ease',
                     }}
                   />
@@ -145,7 +146,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
                   <div
                     style={{
                       width: `${(summary.qris.amount / summary.total_revenue) * 100}%`,
-                      background: 'var(--primary-500)',
+                      background: '#3b82f6',
                       transition: 'width 0.5s ease',
                     }}
                   />
@@ -154,24 +155,24 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
                   <div
                     style={{
                       width: `${(summary.transfer.amount / summary.total_revenue) * 100}%`,
-                      background: 'var(--accent-fc)',
+                      background: '#f59e0b',
                       transition: 'width 0.5s ease',
                     }}
                   />
                 )}
               </div>
-              <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem' }}>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--success)' }} />
-                  CASH
+              <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', fontWeight: 700 }}>
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#047857' }}>
+                  <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: '#10b981' }} />
+                  CASH / TUNAI (HIJAU)
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--primary-500)' }} />
-                  QRIS
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#1d4ed8' }}>
+                  <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: '#3b82f6' }} />
+                  QRIS (BIRU)
                 </span>
-                <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: 'var(--accent-fc)' }} />
-                  Transfer
+                <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#b45309' }}>
+                  <span style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', background: '#f59e0b' }} />
+                  TRANSFER (KUNING)
                 </span>
               </div>
             </div>
@@ -180,7 +181,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
           {/* Tabel Riwayat Transaksi Shift */}
           {transactions.length > 0 && (
             <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-              <h3 style={{ fontSize: '1rem', marginBottom: '1rem' }}>Riwayat Transaksi Shift Ini ({transactions.length} Transaksi)</h3>
+              <h3 style={{ fontSize: '1rem', marginBottom: '1rem', fontWeight: 800 }}>Riwayat Transaksi Shift Ini ({transactions.length} Transaksi)</h3>
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
@@ -198,28 +199,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
                         <td style={{ padding: '0.5rem', fontWeight: 600, fontFamily: 'monospace' }}>{tx.transaction_number}</td>
                         <td style={{ padding: '0.5rem', color: 'var(--text-secondary)' }}>{tx.created_by_user_id}</td>
                         <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                          <span
-                            style={{
-                              padding: '0.2rem 0.5rem',
-                              borderRadius: '999px',
-                              fontSize: '0.75rem',
-                              fontWeight: 700,
-                              background:
-                                tx.payment_method === 'CASH'
-                                  ? 'rgba(16,185,129,0.15)'
-                                  : tx.payment_method === 'QRIS'
-                                  ? 'rgba(37,99,235,0.15)'
-                                  : 'rgba(245,158,11,0.15)',
-                              color:
-                                tx.payment_method === 'CASH'
-                                  ? 'var(--success)'
-                                  : tx.payment_method === 'QRIS'
-                                  ? 'var(--primary-600)'
-                                  : 'var(--accent-fc)',
-                            }}
-                          >
-                            {tx.payment_method}
-                          </span>
+                          <PaymentMethodBadge method={tx.payment_method} size="sm" />
                         </td>
                         <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 700 }}>{formatRupiah(tx.final_total)}</td>
                         <td style={{ padding: '0.5rem', textAlign: 'center', color: 'var(--success)', fontSize: '0.8rem', fontWeight: 600 }}>

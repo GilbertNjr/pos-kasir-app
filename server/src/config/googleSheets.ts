@@ -21,6 +21,7 @@ export class GoogleSheetsClient {
   }
 
   private init() {
+    dotenv.config({ override: true });
     const spreadsheetId = process.env.GOOGLE_SHEET_ID;
     const clientEmail = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
     let privateKey = process.env.GOOGLE_PRIVATE_KEY;
@@ -51,6 +52,9 @@ export class GoogleSheetsClient {
   }
 
   public isReady(): boolean {
+    if (!this.isConfigured) {
+      this.init();
+    }
     return this.isConfigured && !!this.sheetsApi;
   }
 

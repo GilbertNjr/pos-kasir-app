@@ -64,7 +64,7 @@ export class TransactionService {
     let calculatedDiscount = 0;
     const itemEntities: TransactionItemEntity[] = [];
 
-    // 2. Iterasi & Validasi Setiap Item Keranjang Belanja
+    // 2. Iterasi & Validasi Setiap Item Keranjang Belanja dengan Presisi Currency Math.round
     for (const itemDto of dto.items) {
       const product = await this.productRepository.findById(itemDto.product_id);
       if (!product || !product.is_active) {
@@ -75,11 +75,11 @@ export class TransactionService {
         throw new Error(`Jumlah kuantitas (qty) untuk ${product.product_name} harus minimal 1.`);
       }
 
-      const unitPrice = product.selling_price;
-      const itemDiscount = itemDto.discount_amount ?? 0;
-      const subtotal = unitPrice * itemDto.qty - itemDiscount;
+      const unitPrice = Math.round(product.selling_price);
+      const itemDiscount = Math.round(itemDto.discount_amount ?? 0);
+      const itemSubtotal = Math.round(unitPrice * itemDto.qty - itemDiscount);
 
-      calculatedSubtotal += unitPrice * itemDto.qty;
+      calculatedSubtotal += Math.round(unitPrice * itemDto.qty);
       calculatedDiscount += itemDiscount;
 
       itemEntities.push({
@@ -88,19 +88,19 @@ export class TransactionService {
         product_id: product.product_id,
         unit_price: unitPrice,
         qty: itemDto.qty,
-        subtotal,
+        subtotal: itemSubtotal,
         discount_amount: itemDiscount,
       });
     }
 
-    const finalTotal = calculatedSubtotal - calculatedDiscount;
-    const cashTendered = dto.payment_method === 'CASH' ? Number(dto.cash_tendered ?? finalTotal) : finalTotal;
+    const finalTotal = Math.round(calculatedSubtotal - calculatedDiscount);
+    const cashTendered = dto.payment_method === 'CASH' ? Math.round(Number(dto.cash_tendered ?? finalTotal)) : finalTotal;
 
     if (dto.payment_method === 'CASH' && cashTendered < finalTotal) {
       throw new Error(`Uang tunai yang diserahkan (Rp ${cashTendered.toLocaleString()}) kurang dari total tagihan (Rp ${finalTotal.toLocaleString()}).`);
     }
 
-    const changeDue = dto.payment_method === 'CASH' ? cashTendered - finalTotal : 0;
+    const changeDue = dto.payment_method === 'CASH' ? Math.round(cashTendered - finalTotal) : 0;
 
     // 3. Buat Header Entitas Transaksi
     const newTransaction: TransactionEntity = {
@@ -130,14 +130,15 @@ export class TransactionService {
     const shiftUpdates: Partial<ShiftEntity> = {};
 
     if (dto.payment_method === 'CASH') {
-      const updatedNetCashSales = activeShift.net_cash_sales + finalTotal;
+      const updatedNetCashSales = Math.round(activeShift.net_cash_sales + finalTotal);
       shiftUpdates.net_cash_sales = updatedNetCashSales;
-      shiftUpdates.theoretical_cash =
-        activeShift.total_initial_cash + updatedNetCashSales - activeShift.total_cash_expenses;
+      shiftUpdates.theoretical_cash = Math.round(
+        activeShift.total_initial_cash + updatedNetCashSales - activeShift.total_cash_expenses
+      );
     } else if (dto.payment_method === 'QRIS') {
-      shiftUpdates.total_qris_sales = (activeShift.total_qris_sales ?? 0) + finalTotal;
+      shiftUpdates.total_qris_sales = Math.round((activeShift.total_qris_sales ?? 0) + finalTotal);
     } else if (dto.payment_method === 'TRANSFER') {
-      shiftUpdates.total_transfer_sales = (activeShift.total_transfer_sales ?? 0) + finalTotal;
+      shiftUpdates.total_transfer_sales = Math.round((activeShift.total_transfer_sales ?? 0) + finalTotal);
     }
 
     await this.shiftRepository.update(activeShift.shift_id, shiftUpdates);
@@ -185,6 +186,22 @@ export class TransactionService {
     }
 
     return summary;
+  }
+
+  async cancelTransaction(transaction_id: string): Promise<TransactionEntity> {
+    const tx = await this.transactionRepository.findById(transaction_id);
+    if (!tx) throw new Error('Transaksi tidak ditemukan.');
+    if (tx.status === 'CANCELLED') throw new Error('Transaksi ini sudah dibatalkan sebelumnya.');
+
+    const updatedTx = await this.transactionRepository.update(transaction_id, { status: 'CANCELLED' });
+
+    const items = await this.itemRepository.findByTransactionId(transaction_id);
+    if (this.stockService && items) {
+      for (const item of items) {
+        await this.stockService.restoreStock(item.product_id, item.qty);
+      }
+    }
+    return updatedTx!;
   }
 }
 

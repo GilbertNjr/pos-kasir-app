@@ -1,36 +1,103 @@
 import { IRepository } from './interfaces/IRepository';
 import { TransactionItemEntity } from '../types/domain';
+import { pool } from '../database/db';
 
 export class TransactionItemRepository implements IRepository<TransactionItemEntity> {
-  private items: TransactionItemEntity[] = [];
+  private inMemoryItems: TransactionItemEntity[] = [];
 
   async findAll(): Promise<TransactionItemEntity[]> {
-    return [...this.items];
+    try {
+      const res = await pool.query(
+        `SELECT item_id as transaction_item_id, transaction_id, product_id, 
+                unit_price::float, quantity::float as qty, subtotal::float, discount_amount::float
+         FROM transaction_items`
+      );
+      if (res.rows.length > 0) {
+        this.inMemoryItems = res.rows;
+        return res.rows;
+      }
+      return [...this.inMemoryItems];
+    } catch (err) {
+      console.warn('[TransactionItemRepository] Database fetch fallback to memory:', (err as Error).message);
+      return [...this.inMemoryItems];
+    }
   }
 
   async findById(transaction_item_id: string): Promise<TransactionItemEntity | null> {
-    const item = this.items.find((i) => i.transaction_item_id === transaction_item_id);
-    return item ? { ...item } : null;
+    try {
+      const res = await pool.query(
+        `SELECT item_id as transaction_item_id, transaction_id, product_id, 
+                unit_price::float, quantity::float as qty, subtotal::float, discount_amount::float
+         FROM transaction_items
+         WHERE item_id = $1`,
+        [transaction_item_id]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+      const mem = this.inMemoryItems.find((i) => i.transaction_item_id === transaction_item_id);
+      return mem ? { ...mem } : null;
+    } catch {
+      const mem = this.inMemoryItems.find((i) => i.transaction_item_id === transaction_item_id);
+      return mem ? { ...mem } : null;
+    }
   }
 
   async findByTransactionId(transaction_id: string): Promise<TransactionItemEntity[]> {
-    return this.items.filter((i) => i.transaction_id === transaction_id);
+    try {
+      const res = await pool.query(
+        `SELECT item_id as transaction_item_id, transaction_id, product_id, 
+                unit_price::float, quantity::float as qty, subtotal::float, discount_amount::float
+         FROM transaction_items
+         WHERE transaction_id = $1`,
+        [transaction_id]
+      );
+      if (res.rows.length > 0) return res.rows;
+      return this.inMemoryItems.filter((i) => i.transaction_id === transaction_id);
+    } catch {
+      return this.inMemoryItems.filter((i) => i.transaction_id === transaction_id);
+    }
   }
 
   async findWhere(predicate: (item: TransactionItemEntity) => boolean): Promise<TransactionItemEntity[]> {
-    return this.items.filter(predicate);
+    const all = await this.findAll();
+    return all.filter(predicate);
   }
 
   async create(item: TransactionItemEntity): Promise<TransactionItemEntity> {
-    this.items.push(item);
-    return { ...item };
+    try {
+      const res = await pool.query(
+        `INSERT INTO transaction_items 
+         (item_id, transaction_id, product_id, product_name_snapshot, unit_name_snapshot, unit_price, quantity, discount_amount, subtotal)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         RETURNING item_id as transaction_item_id, transaction_id, product_id, 
+                   unit_price::float, quantity::float as qty, subtotal::float, discount_amount::float`,
+        [
+          item.transaction_item_id,
+          item.transaction_id,
+          item.product_id,
+          'Produk POS',
+          'PCS',
+          item.unit_price,
+          item.qty,
+          item.discount_amount || 0,
+          item.subtotal,
+        ]
+      );
+      const created = res.rows[0];
+      this.inMemoryItems.push(created);
+      return created;
+    } catch (err) {
+      console.warn('[TransactionItemRepository] Database insert fallback to memory:', (err as Error).message);
+      this.inMemoryItems.push(item);
+      return { ...item };
+    }
   }
 
   async update(transaction_item_id: string, item: Partial<TransactionItemEntity>): Promise<TransactionItemEntity | null> {
-    const index = this.items.findIndex((i) => i.transaction_item_id === transaction_item_id);
+    const index = this.inMemoryItems.findIndex((i) => i.transaction_item_id === transaction_item_id);
     if (index === -1) return null;
 
-    this.items[index] = { ...this.items[index], ...item };
-    return { ...this.items[index] };
+    this.inMemoryItems[index] = { ...this.inMemoryItems[index], ...item };
+    return { ...this.inMemoryItems[index] };
   }
 }
+

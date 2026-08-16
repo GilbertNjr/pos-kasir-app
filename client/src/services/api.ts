@@ -1,4 +1,4 @@
-import { User, Category, Product, BusinessUnit, Shift, ShiftCapitalContribution, Transaction, TransactionItem, PaymentMethod, Expense } from '../types';
+import { User, UserStatus, Category, Product, BusinessUnit, Shift, ShiftCapitalContribution, Transaction, TransactionItem, PaymentMethod, Expense } from '../types';
 
 const API_BASE = '/api';
 
@@ -10,6 +10,8 @@ export interface LoginResponseData {
 export interface ActiveShiftDetailsData {
   shift: Shift;
   contributions: ShiftCapitalContribution[];
+  capital_contributions?: ShiftCapitalContribution[];
+  shift_users?: any[];
   usersCount: number;
 }
 
@@ -36,6 +38,12 @@ export interface PaymentSummaryData {
   cash: PaymentMethodStats;
   qris: PaymentMethodStats;
   transfer: PaymentMethodStats;
+}
+
+export interface DashboardFilterParams {
+  period_type?: string;
+  start_date?: string;
+  end_date?: string;
 }
 
 export const apiService = {
@@ -93,6 +101,45 @@ export const apiService = {
     return result.data;
   },
 
+  async changePassword(currentPassword: string, newPassword: string): Promise<string> {
+    const token = this.getToken();
+    if (!token) throw new Error('Tidak ada sesi login');
+
+    const response = await fetch(`${API_BASE}/auth/change-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Gagal mengubah password');
+    return result.message || 'Password berhasil diperbarui';
+  },
+
+  async recoverPassword(username: string, recoveryPin: string, newPassword: string): Promise<string> {
+    const response = await fetch(`${API_BASE}/auth/recover-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, recoveryPin, newPassword }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Gagal memulihkan password');
+    return result.message || 'Password berhasil dipulihkan';
+  },
+
+  handleResponseError(response: Response, result: any, fallbackMessage: string): never {
+    if (response.status === 401) {
+      this.clearAuth();
+      window.dispatchEvent(new Event('pos_auth_expired'));
+      throw new Error('Sesi otentikasi Anda telah berakhir (kadaluwarsa). Silakan login kembali.');
+    }
+    throw new Error(result?.error || fallbackMessage);
+  },
+
   async getUsers(): Promise<User[]> {
     const token = this.getToken();
     if (!token) throw new Error('Tidak ada sesi login');
@@ -101,8 +148,115 @@ export const apiService = {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Gagal mengambil daftar pengguna');
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal mengambil daftar pengguna');
+    return result.data;
+  },
+
+  async createUser(userData: Partial<User> & { password?: string }): Promise<User> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/auth/users`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(userData),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal menambahkan pegawai');
+    return result.data;
+  },
+
+  async updateUser(userId: string, userData: Partial<User> & { password?: string }): Promise<User> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/auth/users/${userId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(userData),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal memperbarui data pegawai');
+    return result.data;
+  },
+
+  async toggleUserStatus(userId: string, status: UserStatus): Promise<User> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/auth/users/${userId}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ status }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal mengubah status pegawai');
+    return result.data;
+  },
+
+  async deleteUser(userId: string): Promise<boolean> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/auth/users/${userId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal menghapus pegawai');
+    return true;
+  },
+
+  async activateAccount(activation_code: string, username: string, password: string): Promise<User> {
+    const response = await fetch(`${API_BASE}/auth/activate`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ activation_code, username, password }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result?.error || 'Gagal melakukan aktivasi akun');
+    return result.data;
+  },
+
+  async generateActivationCode(userId: string): Promise<{ user_id: string; activation_code: string }> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/auth/users/${userId}/activation-code`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal menerbitkan kode aktivasi baru');
+    return result.data;
+  },
+
+  async assignEmployeeToPJ(supervisor_user_id: string, employee_user_id: string): Promise<any> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/auth/users/assign-pj`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ supervisor_user_id, employee_user_id }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal menugaskan pegawai ke PJ');
     return result.data;
   },
 
@@ -145,6 +299,22 @@ export const apiService = {
 
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Gagal membuat produk baru');
+    return result.data;
+  },
+
+  async updateProduct(productId: string, productData: Partial<Product>): Promise<Product> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/products/${productId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(productData),
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Gagal memperbarui produk');
     return result.data;
   },
 
@@ -273,6 +443,18 @@ export const apiService = {
     return result.data;
   },
 
+  async cancelTransaction(transactionId: string): Promise<any> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/transactions/${transactionId}/cancel`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Gagal membatalkan transaksi');
+    return result.data;
+  },
+
   /* EXPENSE API SERVICES */
   async createExpense(category: string, description: string, amount: number): Promise<Expense> {
     const token = this.getToken();
@@ -332,9 +514,19 @@ export const apiService = {
   },
 
   /* DASHBOARD OWNER API SERVICES */
-  async getDashboardMetrics(): Promise<any> {
+  async getDashboardMetrics(params?: DashboardFilterParams): Promise<any> {
     const token = this.getToken();
-    const response = await fetch(`${API_BASE}/dashboard/metrics`, {
+    let url = `${API_BASE}/dashboard/metrics`;
+    if (params) {
+      const query = new URLSearchParams();
+      if (params.period_type) query.append('period_type', params.period_type);
+      if (params.start_date) query.append('start_date', params.start_date);
+      if (params.end_date) query.append('end_date', params.end_date);
+      const qStr = query.toString();
+      if (qStr) url += `?${qStr}`;
+    }
+
+    const response = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` },
     });
 
@@ -363,8 +555,8 @@ export const apiService = {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Gagal membuat backup snapshot');
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal membuat backup snapshot');
     return result.data;
   },
 
@@ -374,8 +566,8 @@ export const apiService = {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Gagal mengambil riwayat backup');
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal mengambil riwayat backup');
     return result.data;
   },
 
@@ -390,8 +582,8 @@ export const apiService = {
       body: JSON.stringify({ snapshot_data: snapshotData }),
     });
 
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Gagal merestore data snapshot');
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal merestore data snapshot');
     return result.data;
   },
 
@@ -402,8 +594,8 @@ export const apiService = {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Gagal mengambil audit log sistem');
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal mengambil audit log sistem');
     return result.data;
   },
 
@@ -414,8 +606,8 @@ export const apiService = {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Gagal mengambil status Google Sheets');
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal mengambil status Google Sheets');
     return result.data;
   },
 
@@ -426,8 +618,50 @@ export const apiService = {
       headers: { Authorization: `Bearer ${token}` },
     });
 
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Gagal menyinkronkan data ke Google Sheets');
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal menyinkronkan data ke Google Sheets');
+    return result.data;
+  },
+
+  /* SYSTEM SETTINGS API SERVICES */
+  async getSettings(): Promise<any> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/settings`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const text = await response.text();
+    let result: any;
+    try {
+      result = JSON.parse(text);
+    } catch {
+      throw new Error(`Gagal memuat pengaturan. Server merespons (HTTP ${response.status}): ${text.substring(0, 100)}`);
+    }
+
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal mengambil pengaturan sistem');
+    return result.data;
+  },
+
+  async updateSettings(settingsData: any): Promise<any> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/settings`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(settingsData),
+    });
+
+    const text = await response.text();
+    let result: any;
+    try {
+      result = JSON.parse(text);
+    } catch {
+      throw new Error(`Gagal menyimpan pengaturan. Server merespons (HTTP ${response.status}): ${text.substring(0, 100)}`);
+    }
+
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal memperbarui pengaturan sistem');
     return result.data;
   },
 };

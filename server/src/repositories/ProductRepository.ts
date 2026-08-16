@@ -1,66 +1,143 @@
 import { IRepository } from './interfaces/IRepository';
 import { BusinessUnit } from '../types/domain';
+import { pool } from '../database/db';
 
 export interface ProductEntity {
   product_id: string;
   category_id: string;
+  unit_id?: string;
   product_name: string;
+  sku?: string;
+  type?: 'PRODUCT' | 'SERVICE';
   business_unit: BusinessUnit;
   selling_price: number;
+  cost_price?: number;
   manage_stock: boolean;
+  image_url?: string;
   is_active: boolean;
 }
 
 export class ProductRepository implements IRepository<ProductEntity> {
-  private products: ProductEntity[] = [];
-
-  constructor() {
-    this.seedProducts();
-  }
-
-  private seedProducts() {
-    this.products = [
-      // FC_PRINT Barang Fisik (manage_stock = true)
-      { product_id: 'prd-fc-001', category_id: 'cat-fc-001', product_name: 'Pulpen Standard Hitam', business_unit: 'FC_PRINT', selling_price: 3000, manage_stock: true, is_active: true },
-      { product_id: 'prd-fc-002', category_id: 'cat-fc-001', product_name: 'Buku Tulis Sidu 38 Lembar', business_unit: 'FC_PRINT', selling_price: 4500, manage_stock: true, is_active: true },
-      { product_id: 'prd-fc-003', category_id: 'cat-fc-001', product_name: 'Map Kertas Stopmap', business_unit: 'FC_PRINT', selling_price: 2000, manage_stock: true, is_active: true },
-
-      // FC_PRINT Jasa & Cetak (manage_stock = false)
-      { product_id: 'prd-fc-004', category_id: 'cat-fc-002', product_name: 'Fotokopi A4 70gr (per Lembar)', business_unit: 'FC_PRINT', selling_price: 350, manage_stock: false, is_active: true },
-      { product_id: 'prd-fc-005', category_id: 'cat-fc-003', product_name: 'Print Dokumen Warna A4', business_unit: 'FC_PRINT', selling_price: 1000, manage_stock: false, is_active: true },
-      { product_id: 'prd-fc-006', category_id: 'cat-fc-004', product_name: 'Jasa Ketik Dokumen (per Halaman)', business_unit: 'FC_PRINT', selling_price: 5000, manage_stock: false, is_active: true },
-
-      // FNB Barang Fisik (manage_stock = true)
-      { product_id: 'prd-fnb-001', category_id: 'cat-fnb-002', product_name: 'Es Teh Manis Jumbo', business_unit: 'FNB', selling_price: 5000, manage_stock: true, is_active: true },
-      { product_id: 'prd-fnb-002', category_id: 'cat-fnb-003', product_name: 'Seblak Spesial Komplit', business_unit: 'FNB', selling_price: 12000, manage_stock: true, is_active: true },
-      { product_id: 'prd-fnb-003', category_id: 'cat-fnb-003', product_name: 'Gorengan Bakwan / Tahu (3 Pcs)', business_unit: 'FNB', selling_price: 5000, manage_stock: true, is_active: true },
-      { product_id: 'prd-fnb-004', category_id: 'cat-fnb-004', product_name: 'Es Krim Cone Vanilla', business_unit: 'FNB', selling_price: 8000, manage_stock: true, is_active: true },
-    ];
-  }
+  private inMemoryProducts: ProductEntity[] = [];
 
   async findAll(): Promise<ProductEntity[]> {
-    return [...this.products];
+    try {
+      const res = await pool.query(
+        `SELECT product_id, category_id, unit_id, product_name, sku, type, business_unit, 
+                selling_price::float, cost_price::float, manage_stock, image_url, is_active 
+         FROM products 
+         ORDER BY product_name ASC`
+      );
+      if (res.rows.length > 0) {
+        this.inMemoryProducts = res.rows;
+        return res.rows;
+      }
+      return [...this.inMemoryProducts];
+    } catch (err) {
+      console.warn('[ProductRepository] Database fetch fallback to memory:', (err as Error).message);
+      return [...this.inMemoryProducts];
+    }
   }
 
   async findById(product_id: string): Promise<ProductEntity | null> {
-    const prd = this.products.find((p) => p.product_id === product_id);
-    return prd ? { ...prd } : null;
+    try {
+      const res = await pool.query(
+        `SELECT product_id, category_id, unit_id, product_name, sku, type, business_unit, 
+                selling_price::float, cost_price::float, manage_stock, image_url, is_active 
+         FROM products 
+         WHERE product_id = $1`,
+        [product_id]
+      );
+      if (res.rows.length > 0) return res.rows[0];
+      const mem = this.inMemoryProducts.find((p) => p.product_id === product_id);
+      return mem ? { ...mem } : null;
+    } catch {
+      const mem = this.inMemoryProducts.find((p) => p.product_id === product_id);
+      return mem ? { ...mem } : null;
+    }
   }
 
   async findWhere(predicate: (item: ProductEntity) => boolean): Promise<ProductEntity[]> {
-    return this.products.filter(predicate);
+    const all = await this.findAll();
+    return all.filter(predicate);
   }
 
   async create(product: ProductEntity): Promise<ProductEntity> {
-    this.products.push(product);
-    return { ...product };
+    try {
+      const unitId = product.unit_id || 'unit-pcs';
+      const res = await pool.query(
+        `INSERT INTO products 
+         (product_id, category_id, unit_id, product_name, sku, type, business_unit, selling_price, cost_price, manage_stock, image_url, is_active)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         RETURNING product_id, category_id, unit_id, product_name, sku, type, business_unit, 
+                   selling_price::float, cost_price::float, manage_stock, image_url, is_active`,
+        [
+          product.product_id,
+          product.category_id,
+          unitId,
+          product.product_name,
+          product.sku || null,
+          product.type || 'PRODUCT',
+          product.business_unit,
+          product.selling_price,
+          product.cost_price || 0,
+          product.manage_stock ?? false,
+          product.image_url || null,
+          product.is_active ?? true,
+        ]
+      );
+      const created = res.rows[0];
+      this.inMemoryProducts.push(created);
+      return created;
+    } catch (err) {
+      console.warn('[ProductRepository] Database insert fallback to memory:', (err as Error).message);
+      this.inMemoryProducts.push(product);
+      return { ...product };
+    }
   }
 
   async update(product_id: string, item: Partial<ProductEntity>): Promise<ProductEntity | null> {
-    const index = this.products.findIndex((p) => p.product_id === product_id);
-    if (index === -1) return null;
+    try {
+      const fields: string[] = [];
+      const values: any[] = [];
+      let idx = 1;
 
-    this.products[index] = { ...this.products[index], ...item };
-    return { ...this.products[index] };
+      if (item.category_id !== undefined) { fields.push(`category_id = $${idx++}`); values.push(item.category_id); }
+      if (item.unit_id !== undefined) { fields.push(`unit_id = $${idx++}`); values.push(item.unit_id); }
+      if (item.product_name !== undefined) { fields.push(`product_name = $${idx++}`); values.push(item.product_name); }
+      if (item.sku !== undefined) { fields.push(`sku = $${idx++}`); values.push(item.sku); }
+      if (item.type !== undefined) { fields.push(`type = $${idx++}`); values.push(item.type); }
+      if (item.business_unit !== undefined) { fields.push(`business_unit = $${idx++}`); values.push(item.business_unit); }
+      if (item.selling_price !== undefined) { fields.push(`selling_price = $${idx++}`); values.push(item.selling_price); }
+      if (item.cost_price !== undefined) { fields.push(`cost_price = $${idx++}`); values.push(item.cost_price); }
+      if (item.manage_stock !== undefined) { fields.push(`manage_stock = $${idx++}`); values.push(item.manage_stock); }
+      if (item.image_url !== undefined) { fields.push(`image_url = $${idx++}`); values.push(item.image_url); }
+      if (item.is_active !== undefined) { fields.push(`is_active = $${idx++}`); values.push(item.is_active); }
+
+      fields.push(`updated_at = CURRENT_TIMESTAMP`);
+
+      if (fields.length === 1) return this.findById(product_id);
+
+      values.push(product_id);
+      const queryStr = `UPDATE products SET ${fields.join(', ')} WHERE product_id = $${idx} 
+                        RETURNING product_id, category_id, unit_id, product_name, sku, type, business_unit, 
+                                  selling_price::float, cost_price::float, manage_stock, image_url, is_active`;
+      const res = await pool.query(queryStr, values);
+
+      if (res.rows.length > 0) {
+        const updated = res.rows[0];
+        const memIdx = this.inMemoryProducts.findIndex((p) => p.product_id === product_id);
+        if (memIdx !== -1) this.inMemoryProducts[memIdx] = updated;
+        return updated;
+      }
+    } catch (err) {
+      console.warn('[ProductRepository] Database update fallback to memory:', (err as Error).message);
+    }
+
+    const index = this.inMemoryProducts.findIndex((p) => p.product_id === product_id);
+    if (index === -1) return null;
+    this.inMemoryProducts[index] = { ...this.inMemoryProducts[index], ...item };
+    return { ...this.inMemoryProducts[index] };
   }
 }
+

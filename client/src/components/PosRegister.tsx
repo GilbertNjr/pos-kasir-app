@@ -29,6 +29,26 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   // Struk Digital Modal State
   const [lastReceipt, setLastReceipt] = useState<CreateTransactionResultData | null>(null);
 
+  // Store Preferences Logic State
+  const [storePreferences, setStorePreferences] = useState<{
+    show_zero_stock?: boolean;
+    low_stock_alert?: boolean;
+    auto_print_receipt?: boolean;
+    fast_cashier_mode?: boolean;
+    total_rounding?: boolean;
+  }>({});
+
+  useEffect(() => {
+    apiService
+      .getSettings()
+      .then((s) => {
+        if (s?.store_preferences) {
+          setStorePreferences(s.store_preferences);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const loadProducts = async () => {
     try {
       setLoading(true);
@@ -79,7 +99,9 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     setCart([]);
   };
 
-  const totalAmount = cart.reduce((sum, item) => sum + item.product.selling_price * item.qty, 0);
+  // Logika Preferensi Toko: Total Rounding (Pembulatan Ke Rp 100 Terdekat)
+  const rawTotal = cart.reduce((sum, item) => sum + item.product.selling_price * item.qty, 0);
+  const totalAmount = storePreferences.total_rounding ? Math.round(rawTotal / 100) * 100 : rawTotal;
 
   useEffect(() => {
     if (cashTendered < totalAmount) {
@@ -110,6 +132,14 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       const result = await apiService.createTransaction(paymentMethod, itemsDto, cashTendered);
       setLastReceipt(result);
       clearCart();
+
+      // Logika Preferensi Toko: Auto Print Receipt
+      if (storePreferences.auto_print_receipt) {
+        setTimeout(() => {
+          window.print();
+        }, 400);
+      }
+
       if (onTransactionComplete) onTransactionComplete();
     } catch (err: any) {
       setError(err.message || 'Gagal memproses checkout');
@@ -118,9 +148,15 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     }
   };
 
-  const filteredProducts = products.filter((p) =>
-    p.product_name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Logika Preferensi Toko: Show Zero Stock Filtering
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = p.product_name.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!matchesSearch) return false;
+    if (storePreferences.show_zero_stock === false && p.manage_stock && p.stock === 0) {
+      return false;
+    }
+    return true;
+  });
 
   return (
     <div>
@@ -318,19 +354,83 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               <span style={{ color: 'var(--primary-600)' }}>{formatRupiah(totalAmount)}</span>
             </div>
 
-            <div style={{ marginBottom: '0.75rem' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem' }}>
-                Metode Pembayaran:
+            <div style={{ marginBottom: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-secondary)' }}>
+                Pilih Metode Pembayaran:
               </label>
-              <select
-                value={paymentMethod}
-                onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
-                style={{ width: '100%', padding: '0.45rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '0.85rem' }}
-              >
-                <option value="CASH">CASH / Uang Tunai</option>
-                <option value="QRIS">QRIS Non-Tunai</option>
-                <option value="TRANSFER">Transfer Bank</option>
-              </select>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+                {/* CASH */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('CASH')}
+                  style={{
+                    padding: '0.5rem 0.25rem',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    border: paymentMethod === 'CASH' ? '2px solid #047857' : '1px solid #a7f3d0',
+                    background: paymentMethod === 'CASH' ? '#ecfdf5' : '#f0fdf4',
+                    color: '#047857',
+                    boxShadow: paymentMethod === 'CASH' ? '0 0 0 2px rgba(4,120,87,0.2)' : 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                  }}
+                >
+                  <span style={{ fontSize: '0.68rem', opacity: 0.8 }}>HIJAU</span>
+                  💵 TUNAI / CASH
+                </button>
+
+                {/* QRIS */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('QRIS')}
+                  style={{
+                    padding: '0.5rem 0.25rem',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    border: paymentMethod === 'QRIS' ? '2px solid #1d4ed8' : '1px solid #bfdbfe',
+                    background: paymentMethod === 'QRIS' ? '#eff6ff' : '#f8fafc',
+                    color: '#1d4ed8',
+                    boxShadow: paymentMethod === 'QRIS' ? '0 0 0 2px rgba(29,78,216,0.2)' : 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                  }}
+                >
+                  <span style={{ fontSize: '0.68rem', opacity: 0.8 }}>BIRU</span>
+                  📱 QRIS
+                </button>
+
+                {/* TRANSFER */}
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod('TRANSFER')}
+                  style={{
+                    padding: '0.5rem 0.25rem',
+                    borderRadius: '8px',
+                    fontSize: '0.78rem',
+                    fontWeight: 800,
+                    border: paymentMethod === 'TRANSFER' ? '2px solid #b45309' : '1px solid #fde68a',
+                    background: paymentMethod === 'TRANSFER' ? '#fffbeb' : '#fffdf5',
+                    color: '#b45309',
+                    boxShadow: paymentMethod === 'TRANSFER' ? '0 0 0 2px rgba(180,83,9,0.2)' : 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '0.2rem',
+                  }}
+                >
+                  <span style={{ fontSize: '0.68rem', opacity: 0.8 }}>KUNING</span>
+                  🏦 TRANSFER
+                </button>
+              </div>
             </div>
 
             {paymentMethod === 'CASH' && (

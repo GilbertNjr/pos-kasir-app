@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { ShiftService } from '../services/ShiftService';
 import { AuthenticatedRequest } from '../middlewares/AuthMiddleware';
+import { sseManager } from '../utils/sseManager';
 
 export class ShiftController {
   private shiftService: ShiftService;
@@ -26,6 +27,17 @@ export class ShiftController {
       const initialCashNum = Number(initial_cash ?? 0);
 
       const result = await this.shiftService.openShift(req.user.user_id, initialCashNum);
+
+      // Broadcast Realtime SSE Event to all connected Dashboards (including Owner Dashboard)
+      sseManager.broadcast('SHIFT_OPENED', {
+        shift_id: result.shift.shift_id,
+        opened_by_user_id: req.user.user_id,
+        user_name: req.user.username,
+        role: req.user.role,
+        initial_cash: initialCashNum,
+        timestamp: new Date().toISOString(),
+      });
+
       return res.status(201).json({
         message: 'Shift berhasil dibuka. Anda adalah Penanggung Jawab Shift ini.',
         data: result,
@@ -62,6 +74,12 @@ export class ShiftController {
         req.user.role,
         Number(actual_physical_cash)
       );
+
+      // Broadcast SSE event
+      sseManager.broadcast('SHIFT_CLOSED', {
+        shift_id: closedShift.shift_id,
+        timestamp: new Date().toISOString(),
+      });
 
       return res.status(200).json({
         message: 'Shift berhasil ditutup dan rekonsiliasi kas telah dilakukan',

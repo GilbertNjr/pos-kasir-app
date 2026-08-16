@@ -1,14 +1,39 @@
 /* Domain Types matching DATABASE.md v0.2.0 - Frontend Client */
 
-export type UserRole = 'OWNER' | 'KARYAWAN';
-export type UserStatus = 'ACTIVE' | 'INACTIVE';
+export type UserRole = 'OWNER' | 'PENANGGUNG_JAWAB' | 'KARYAWAN';
+export type UserStatus = 'PENDING_ACTIVATION' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 
 export interface User {
   user_id: string;
   username: string;
   full_name: string;
   role: UserRole;
+  phone?: string;
+  is_pj?: boolean;
+  shift?: string;
   status: UserStatus;
+  avatar_url?: string;
+  last_login?: string;
+  invited_by_user_id?: string;
+  created_at: string;
+  permissions?: string[];
+  assigned_employees?: User[];
+  supervisor?: User;
+}
+
+export interface ActivationToken {
+  token_id: string;
+  user_id: string;
+  activation_code_display: string;
+  status: 'PENDING' | 'USED' | 'EXPIRED';
+  expires_at: string;
+}
+
+export interface EmployeeAssignment {
+  assignment_id: string;
+  supervisor_user_id: string;
+  employee_user_id: string;
+  status: 'ACTIVE' | 'INACTIVE';
   created_at: string;
 }
 
@@ -28,6 +53,7 @@ export interface Product {
   business_unit: BusinessUnit;
   selling_price: number;
   manage_stock: boolean;
+  stock?: number;
   is_active: boolean;
 }
 

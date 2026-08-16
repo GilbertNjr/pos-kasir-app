@@ -147,7 +147,7 @@ export class ShiftService {
   async closeShift(
     shift_id: string,
     executor_user_id: string,
-    executor_role: 'OWNER' | 'KARYAWAN',
+    executor_role: string,
     actualPhysicalCash: number
   ): Promise<ShiftEntity> {
     const shift = await this.shiftRepository.findById(shift_id);

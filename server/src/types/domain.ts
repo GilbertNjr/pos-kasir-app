@@ -1,7 +1,7 @@
 /* Backend Domain Interfaces matching DATABASE.md v0.2.0 */
 
-export type UserRole = 'OWNER' | 'KARYAWAN';
-export type UserStatus = 'ACTIVE' | 'INACTIVE';
+export type UserRole = 'OWNER' | 'PENANGGUNG_JAWAB' | 'KARYAWAN';
+export type UserStatus = 'PENDING_ACTIVATION' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
 
 export interface UserEntity {
   user_id: string;
@@ -9,8 +9,50 @@ export interface UserEntity {
   password_hash: string;
   full_name: string;
   role: UserRole;
+  phone?: string;
+  is_pj?: boolean;
+  shift?: string;
   status: UserStatus;
+  avatar_url?: string;
+  last_login?: string;
+  invited_by_user_id?: string;
   created_at: string;
+  updated_at?: string;
+}
+
+export interface RoleEntity {
+  role_id: string;
+  role_name: UserRole;
+  description?: string;
+  created_at?: string;
+}
+
+export interface PermissionEntity {
+  permission_id: string;
+  permission_code: string;
+  permission_name: string;
+  module: string;
+  created_at?: string;
+}
+
+export interface ActivationTokenEntity {
+  token_id: string;
+  user_id: string;
+  token_hash: string;
+  activation_code_display: string;
+  status: 'PENDING' | 'USED' | 'EXPIRED';
+  expires_at: string;
+  used_at?: string;
+  created_at: string;
+}
+
+export interface EmployeeAssignmentEntity {
+  assignment_id: string;
+  supervisor_user_id: string;
+  employee_user_id: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  created_at: string;
+  updated_at?: string;
 }
 
 export type ShiftStatus = 'ACTIVE' | 'CLOSED';

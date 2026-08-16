@@ -39,4 +39,18 @@ export class ProductService {
 
     return this.productRepository.create(newProduct);
   }
+
+  async updateProduct(product_id: string, data: Partial<ProductEntity>): Promise<ProductEntity> {
+    const existing = await this.productRepository.findById(product_id);
+    if (!existing) {
+      throw new Error('Produk tidak ditemukan.');
+    }
+
+    if (data.selling_price !== undefined && data.selling_price <= 0) {
+      throw new Error('Harga jual produk harus lebih besar dari Rp 0.');
+    }
+
+    const updated = await this.productRepository.update(product_id, data);
+    return updated!;
+  }
 }

@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { TransactionService } from '../services/TransactionService';
 import { AuthenticatedRequest } from '../middlewares/AuthMiddleware';
+import { sseManager } from '../utils/sseManager';
 
 export class TransactionController {
   private transactionService: TransactionService;
@@ -19,6 +20,15 @@ export class TransactionController {
         payment_method: payment_method || 'CASH',
         items: items || [],
         cash_tendered: cash_tendered ? Number(cash_tendered) : undefined,
+      });
+
+      // Broadcast SSE Realtime Signal
+      sseManager.broadcast('TRANSACTION_CREATED', {
+        transaction_id: result.transaction.transaction_id,
+        transaction_number: result.transaction.transaction_number,
+        final_total: result.transaction.final_total,
+        created_by_user_id: result.transaction.created_by_user_id,
+        timestamp: new Date().toISOString(),
       });
 
       return res.status(201).json({
@@ -54,6 +64,16 @@ export class TransactionController {
       return res.status(200).json({ data: summary });
     } catch (error: any) {
       return res.status(500).json({ error: error.message || 'Gagal mengambil rekap pembayaran' });
+    }
+  };
+
+  public cancelTransaction = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+      const result = await this.transactionService.cancelTransaction(id);
+      return res.status(200).json({ message: 'Transaksi berhasil dibatalkan', data: result });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message || 'Gagal membatalkan transaksi' });
     }
   };
 }

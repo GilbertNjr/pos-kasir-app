@@ -9,9 +9,16 @@ export class DashboardController {
     this.dashboardService = dashboardService;
   }
 
-  public getDashboardMetrics = async (_req: AuthenticatedRequest, res: Response) => {
+  public getDashboardMetrics = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const metrics = await this.dashboardService.getDashboardMetrics();
+      const { period_type, start_date, end_date } = req.query;
+
+      const metrics = await this.dashboardService.getDashboardMetrics({
+        period_type: period_type as any,
+        start_date: start_date as string,
+        end_date: end_date as string,
+      });
+
       return res.status(200).json({
         message: 'Data dashboard analitik owner berhasil dimuat',
         data: metrics,
