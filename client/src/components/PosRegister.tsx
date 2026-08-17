@@ -215,16 +215,14 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       setLastReceipt(result);
       clearCart();
 
-      // Logika Preferensi Toko: Auto Print Receipt
-      if (storePreferences.auto_print_receipt) {
-        setTimeout(() => {
-          window.print();
-        }, 400);
-      }
-
       if (onTransactionComplete) onTransactionComplete();
+
+      // Langsung pemicu tampilan print dialog browser (seperti gambar ke-2)
+      setTimeout(() => {
+        window.print();
+      }, 350);
     } catch (err: any) {
-      setError(err.message || 'Gagal memproses checkout');
+      setError(err.message || 'Gagal memproses transaksi');
     } finally {
       setSubmitLoading(false);
     }
@@ -310,93 +308,129 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               </button>
             </div>
 
-            <div style={{ position: 'relative', flex: 1, minWidth: '160px', maxWidth: '240px' }}>
-              <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            {/* Search Input */}
+            <div style={{ position: 'relative', width: '220px' }}>
+              <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
                 type="text"
-                placeholder="Cari item..."
+                placeholder="Cari produk..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '0.4rem 0.6rem 0.4rem 2.2rem',
+                  padding: '0.4rem 0.75rem 0.4rem 2.25rem',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border-color)',
-                  fontSize: '0.825rem',
+                  fontSize: '0.85rem',
                   background: '#ffffff',
                 }}
               />
             </div>
           </div>
 
+          {/* Product Grid Cards */}
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>Memuat produk POS...</div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem', maxHeight: '520px', overflowY: 'auto', paddingRight: '0.25rem' }}>
-              {filteredProducts.map((p) => {
-                const isOutOfStock = p.manage_stock && (p.stock ?? 0) <= 0;
-                return (
-                  <div
-                    key={p.product_id}
-                    onClick={() => addToCart(p)}
-                    style={{
-                      background: isOutOfStock ? '#fef2f2' : '#ffffff',
-                      border: isOutOfStock ? '1px solid #fecaca' : '1px solid var(--border-color)',
-                      borderRadius: 'var(--radius-md)',
-                      padding: '0.85rem',
-                      cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                      opacity: isOutOfStock ? 0.75 : 1,
-                      transition: 'all 0.15s ease',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      justifyContent: 'space-between',
-                      boxShadow: 'var(--shadow-sm)',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isOutOfStock) e.currentTarget.style.borderColor = '#5b21b6';
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isOutOfStock) e.currentTarget.style.borderColor = 'var(--border-color)';
-                    }}
-                  >
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                        <span className={p.business_unit === 'FC_PRINT' ? 'badge badge-fc' : 'badge badge-fnb'} style={{ fontSize: '0.65rem' }}>
-                          {p.business_unit}
-                        </span>
-                        {p.manage_stock ? (
-                          <span style={{ fontSize: '0.68rem', fontWeight: 800, color: (p.stock ?? 0) === 0 ? '#dc2626' : (p.stock ?? 0) <= 5 ? '#d97706' : '#059669' }}>
-                            {(p.stock ?? 0) === 0 ? '🔴 Habis' : `📦 ${(p.stock ?? 0)} Pcs`}
-                          </span>
-                        ) : (
-                          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748b' }}>⚡ Jasa</span>
-                        )}
-                      </div>
-                      <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: isOutOfStock ? '#991b1b' : '#0f172a', lineHeight: 1.25, marginBottom: '0.5rem' }}>
-                        {p.product_name}
-                      </h4>
-                    </div>
-                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: isOutOfStock ? '#991b1b' : '#4f46e5' }}>
-                      {formatRupiah(p.selling_price)}
-                    </div>
-                  </div>
-                );
-              })}
+            <div style={{ textAlign: 'center', padding: '3rem 1rem', color: '#64748b', fontWeight: 600 }}>
+              Memuat katalog produk...
             </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.85rem' }}>
+              {filteredProducts.map((p) => {
+              const isOutOfStock = p.manage_stock && p.stock === 0;
+
+              return (
+                <div
+                  key={p.product_id}
+                  onClick={() => !isOutOfStock && addToCart(p)}
+                  className="card-glass"
+                  style={{
+                    padding: '0.85rem',
+                    borderRadius: 'var(--radius-md)',
+                    background: isOutOfStock ? '#f8fafc' : '#ffffff',
+                    border: '1px solid var(--border-color)',
+                    cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                    opacity: isOutOfStock ? 0.6 : 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    position: 'relative',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {p.manage_stock && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: '0.5rem',
+                        right: '0.5rem',
+                        fontSize: '0.68rem',
+                        fontWeight: 800,
+                        padding: '0.15rem 0.4rem',
+                        borderRadius: '4px',
+                        background: (p.stock ?? 0) <= 5 ? '#fef2f2' : '#f0fdf4',
+                        color: (p.stock ?? 0) <= 5 ? '#dc2626' : '#16a34a',
+                        border: `1px solid ${(p.stock ?? 0) <= 5 ? '#fecaca' : '#bbf7d0'}`,
+                      }}
+                    >
+                      Stok: {p.stock}
+                    </span>
+                  )}
+
+                  <div style={{ marginBottom: '0.5rem', paddingTop: '0.2rem' }}>
+                    <span
+                      className={p.business_unit === 'FC_PRINT' ? 'badge badge-fc' : 'badge badge-fnb'}
+                      style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px', display: 'inline-block', marginBottom: '0.35rem' }}
+                    >
+                      {p.business_unit === 'FC_PRINT' ? 'FC/Print' : 'F&B'}
+                    </span>
+                    <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      {p.product_name}
+                    </h4>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '0.5rem' }}>
+                    <div>
+                      <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--primary-600)' }}>{formatRupiah(p.selling_price)}</div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={isOutOfStock}
+                      style={{
+                        width: '26px',
+                        height: '26px',
+                        borderRadius: '50%',
+                        background: isOutOfStock ? '#cbd5e1' : 'var(--primary-600)',
+                        color: '#ffffff',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      <Plus size={16} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
           )}
         </div>
 
-        {/* Right Column: Shopping Cart Drawer & Checkout Panel */}
-        <div style={{ background: '#ffffff', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: '100%', minWidth: 0, boxShadow: 'var(--shadow-sm)' }}>
+        {/* Right Column: Cart & Checkout Panel */}
+        <div className="card-glass" style={{ padding: '1.25rem', background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.65rem' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#0f172a' }}>
-                <ShoppingCart size={20} color="#5b21b6" />
-                Keranjang Kasir ({cart.length})
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
+                <ShoppingCart size={18} color="var(--primary-600)" /> Keranjang Order
               </h3>
               {cart.length > 0 && (
-                <button onClick={clearCart} style={{ color: '#991b1b', background: '#fee2e2', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
-                  Bersihkan
+                <button
+                  onClick={clearCart}
+                  style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+                >
+                  <Trash2 size={14} /> Kosongkan
                 </button>
               )}
             </div>
@@ -466,7 +500,6 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 Pilih Metode Pembayaran:
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
-                {/* CASH */}
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('CASH')}
@@ -490,7 +523,6 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                   💵 TUNAI / CASH
                 </button>
 
-                {/* QRIS */}
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('QRIS')}
@@ -514,7 +546,6 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                   📱 QRIS
                 </button>
 
-                {/* TRANSFER */}
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('TRANSFER')}
@@ -540,10 +571,11 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               </div>
             </div>
 
+            {/* Input Nominal Bayar Tunai & Kembalian */}
             {paymentMethod === 'CASH' && (
               <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem', color: '#4b5563' }}>
-                  Uang Diserahkan Pembeli (Rp):
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.35rem', color: '#4b5563' }}>
+                  Nominal Uang Tunai Diterima (Rp):
                 </label>
                 <input
                   type="number"
@@ -574,60 +606,70 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
       {/* Struk Digital Modal */}
       {lastReceipt && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
-          <div className="card-glass" style={{ width: '100%', maxWidth: '400px', padding: '1.75rem', background: '#fff', color: '#1e293b', borderRadius: 'var(--radius-lg)' }}>
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '1rem' }}>
+          <div className="printable-receipt-modal" style={{ width: '100%', maxWidth: '380px', padding: '1.75rem', background: '#ffffff', color: '#1e293b', borderRadius: '18px', boxShadow: '0 20px 40px rgba(0,0,0,0.25)', border: '1px solid #cbd5e1' }}>
             <div style={{ textAlign: 'center', borderBottom: '1px dashed #cbd5e1', paddingBottom: '1rem', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 700 }}>STRUK POS KASIR</h3>
-              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Usaha Campuran FC/Printing & FNB</p>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                No: <strong>{lastReceipt.transaction.transaction_number}</strong> | {formatWaktuIndo(lastReceipt.transaction.transaction_time)}
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', letterSpacing: '0.02em', margin: 0 }}>STRUK POS KASIR</h3>
+              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.2rem 0 0 0', fontWeight: 600 }}>Usaha Campuran FC/Printing & FNB</p>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem', fontWeight: 600 }}>
+                No: <strong style={{ color: '#0f172a' }}>{lastReceipt.transaction.transaction_number}</strong> | {formatWaktuIndo(lastReceipt.transaction.transaction_time)}
               </div>
             </div>
 
             <div style={{ marginBottom: '1rem', fontSize: '0.85rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', color: '#64748b' }}>
-                <span>Kasir: {currentUser.username}</span>
-                <span>Shift ID: #{lastReceipt.transaction.shift_id.slice(-6)}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', color: '#475569', fontSize: '0.8rem', fontWeight: 700 }}>
+                <span>👤 Kasir: {currentUser.full_name || currentUser.username}</span>
+                <span>⏰ {currentUser.shift || 'Shift Pagi'}</span>
               </div>
 
-              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.5rem', marginTop: '0.5rem' }}>
-                {lastReceipt.items.map((item) => (
-                  <div key={item.transaction_item_id} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                    <span>{item.qty}x Product #{item.product_id.slice(-6)}</span>
-                    <span style={{ fontWeight: 600 }}>{formatRupiah(item.subtotal)}</span>
-                  </div>
-                ))}
+              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
+                {lastReceipt.items.map((item) => {
+                  const productObj = products.find((p) => p.product_id === item.product_id);
+                  const productName = productObj ? productObj.product_name : `Product #${item.product_id.slice(-6)}`;
+
+                  return (
+                    <div key={item.transaction_item_id} style={{ marginBottom: '0.65rem', borderBottom: '1px dashed #f1f5f9', paddingBottom: '0.4rem' }}>
+                      <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.85rem' }}>
+                        {productName}
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#64748b', marginTop: '0.15rem' }}>
+                        <span>{item.qty} x {formatRupiah(item.unit_price)}</span>
+                        <strong style={{ color: '#0f172a', fontSize: '0.85rem' }}>{formatRupiah(item.subtotal)}</strong>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
-            <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '0.75rem', marginBottom: '1.25rem', fontSize: '0.9rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.1rem', marginBottom: '0.35rem' }}>
+            <div style={{ borderTop: '2px dashed #cbd5e1', paddingTop: '0.75rem', marginBottom: '1.25rem', fontSize: '0.9rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, fontSize: '1.15rem', marginBottom: '0.35rem', color: '#0f172a' }}>
                 <span>TOTAL:</span>
-                <span style={{ color: 'var(--primary-600)' }}>{formatRupiah(lastReceipt.transaction.final_total)}</span>
+                <span style={{ color: '#047857' }}>{formatRupiah(lastReceipt.transaction.final_total)}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#475569', fontWeight: 700 }}>
                 <span>Metode Bayar:</span>
                 <span>{lastReceipt.transaction.payment_method}</span>
               </div>
               {lastReceipt.transaction.payment_method === 'CASH' && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--success)', fontWeight: 600 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#059669', fontWeight: 800, marginTop: '0.2rem' }}>
                   <span>Kembalian:</span>
                   <span>{formatRupiah(lastReceipt.change_due)}</span>
                 </div>
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div className="no-print" style={{ display: 'flex', gap: '0.5rem' }}>
               <button
                 onClick={() => setLastReceipt(null)}
-                style={{ flex: 1, padding: '0.5rem', borderRadius: 'var(--radius-md)', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#334155' }}
+                style={{ flex: 1, padding: '0.65rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#334155', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
               >
                 Tutup Struk
               </button>
               <button
                 onClick={() => window.print()}
                 className="btn-primary"
-                style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem' }}
+                style={{ flex: 1, padding: '0.65rem', fontSize: '0.85rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', background: '#0f172a', border: 'none', borderRadius: '10px', color: '#fff', cursor: 'pointer' }}
               >
                 <Printer size={16} /> Cetak Struk PDF
               </button>
