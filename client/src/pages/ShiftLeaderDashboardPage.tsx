@@ -122,7 +122,11 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
 
   const shift = shiftData?.shift;
   const isShiftActive = shift?.shift_status === 'ACTIVE';
-  const isShiftLeader = shift?.shift_leader_user_id === currentUser.user_id || currentUser.role === 'OWNER';
+  const isShiftLeader =
+    shift?.shift_leader_user_id === currentUser.user_id ||
+    currentUser.role === 'PENANGGUNG_JAWAB' ||
+    Boolean(currentUser.is_pj) ||
+    currentUser.role === 'OWNER';
   const totalSalesRevenue = transactions.reduce((acc, curr) => acc + (curr.status === 'COMPLETED' ? curr.final_total : 0), 0);
 
   // Determine Active User IDs Set dynamically

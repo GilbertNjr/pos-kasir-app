@@ -280,7 +280,10 @@ export const App: React.FC = () => {
   // ==========================================
   // 2. WORKSPACE PENANGGUNG JAWAB & KARYAWAN
   // ==========================================
-  const isShiftLeader = activeShiftData?.shift?.shift_leader_user_id === currentUser.user_id;
+  const isShiftLeader =
+    currentUser.role === 'PENANGGUNG_JAWAB' ||
+    Boolean(currentUser.is_pj) ||
+    activeShiftData?.shift?.shift_leader_user_id === currentUser.user_id;
 
   return (
     <CashierLayout
