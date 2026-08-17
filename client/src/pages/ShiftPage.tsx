@@ -30,6 +30,21 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
   // Status Setelah Tutup Shift (Rincian Return Capital)
   const [closedShiftResult, setClosedShiftResult] = useState<ActiveShiftDetailsData | null>(null);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
+
+  useEffect(() => {
+    apiService.getUsers().then((res) => {
+      if (Array.isArray(res)) setAllUsers(res);
+    }).catch(() => {});
+  }, []);
+
+  const getUserDisplayName = (userId?: string) => {
+    if (!userId) return '-';
+    if (userId === currentUser.user_id) return `${currentUser.full_name} (Saya)`;
+    const found = allUsers.find((u) => u.user_id === userId);
+    if (found) return found.full_name;
+    return userId;
+  };
 
   const loadShift = async () => {
     try {
@@ -186,11 +201,11 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             {contributions.length === 0 ? (
               <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Belum ada setoran modal awal pada shift ini.</p>
             ) : (
-              <div style={{ overflowX: 'auto', marginBottom: '1.25rem' }}>
+              <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #cbd5e1', color: '#4b5563' }}>
-                      <th style={{ padding: '0.5rem', textAlign: 'left' }}>User ID</th>
+                      <th style={{ padding: '0.5rem', textAlign: 'left' }}>Nama Pegawai</th>
                       <th style={{ padding: '0.5rem', textAlign: 'right' }}>Nominal Setoran</th>
                       <th style={{ padding: '0.5rem', textAlign: 'center' }}>Status</th>
                     </tr>
@@ -198,7 +213,9 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   <tbody>
                     {contributions.map((c) => (
                       <tr key={c.contribution_id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                        <td style={{ padding: '0.5rem', fontWeight: 700, color: '#0f172a' }}>{c.user_id}</td>
+                        <td style={{ padding: '0.5rem', fontWeight: 700, color: '#0f172a' }}>
+                          {getUserDisplayName(c.user_id)}
+                        </td>
                         <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800, color: '#4f46e5' }}>
                           {formatRupiah(c.amount)}
                         </td>
@@ -215,7 +232,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             {/* Form Input Modal Tambahan */}
             <form onSubmit={handleAddCapital} style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '1rem' }}>
               <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem', color: '#0f172a' }}>
-                Tambah Setoran Modal Saya ({currentUser.username}):
+                Tambah Setoran Modal Saya ({currentUser.full_name}):
               </label>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
                 <input
@@ -262,7 +279,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 <span style={{ background: '#7e22ce', color: '#ffffff', padding: '0.15rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 900 }}>
                   ⭐ PJ SHIFT
                 </span>
-                Penanggung Jawab: <strong style={{ color: '#6b21a8' }}>{shift.shift_leader_user_id}</strong>
+                Penanggung Jawab: <strong style={{ color: '#6b21a8' }}>{getUserDisplayName(shift.shift_leader_user_id)}</strong>
               </p>
               <p style={{ fontSize: '0.75rem', color: isPJ ? '#6b21a8' : '#64748b', fontWeight: 600, margin: 0 }}>
                 {isPJ ? '✅ Anda bertugas sebagai Penanggung Jawab Shift ini (Supervisor Terminal).' : isOwner ? '👑 Anda dapat melakukan override closing sebagai Owner.' : '⚠️ Hanya Penanggung Jawab Shift yang diizinkan menutup & merekonsiliasi kas.'}
@@ -279,20 +296,22 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                     type="number"
                     value={physicalCash}
                     onChange={(e) => setPhysicalCash(e.target.value === '' ? '' : Number(e.target.value))}
-                    style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '1.1rem', fontWeight: 800 }}
+                    style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}
                     min={0}
+                    step={1000}
                     required
                   />
                 </div>
 
-                <div style={{ padding: '0.75rem', background: '#f8fafc', borderRadius: '10px', marginBottom: '1.25rem', fontSize: '0.85rem', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
-                    <span>Kas Teoritis System:</span>
+                {/* Ringkasan Kas Teoritis */}
+                <div style={{ background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '10px', marginBottom: '1rem', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                    <span style={{ color: '#4b5563', fontWeight: 600 }}>Kas Teoritis System:</span>
                     <strong style={{ color: '#4f46e5' }}>{formatRupiah(shift.theoretical_cash)}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Proyeksi Selisih Kas:</span>
-                    <strong style={{ color: (Number(physicalCash) || 0) - shift.theoretical_cash >= 0 ? '#16a34a' : '#dc2626' }}>
+                    <span style={{ color: '#4b5563', fontWeight: 600 }}>Proyeksi Selisih Kas:</span>
+                    <strong style={{ color: ((Number(physicalCash) || 0) - shift.theoretical_cash) === 0 ? '#16a34a' : ((Number(physicalCash) || 0) - shift.theoretical_cash) > 0 ? '#2563eb' : '#dc2626' }}>
                       {formatRupiah((Number(physicalCash) || 0) - shift.theoretical_cash)}
                     </strong>
                   </div>
@@ -326,7 +345,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             ) : (
               <div style={{ padding: '1rem', background: 'rgba(239,68,68,0.1)', color: 'var(--danger)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <ShieldAlert size={20} />
-                <span>Tombol closing dikunci. Hanya Penanggung Jawab Shift ({shift.shift_leader_user_id}) yang dapat mengeksekusi rekonsiliasi kas.</span>
+                <span>Tombol closing dikunci. Hanya Penanggung Jawab Shift ({getUserDisplayName(shift.shift_leader_user_id)}) yang dapat mengeksekusi rekonsiliasi kas.</span>
               </div>
             )}
           </div>
@@ -371,7 +390,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid #cbd5e1', color: '#4b5563' }}>
-                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>User Penyetor</th>
+                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Nama Pegawai Penyetor</th>
                   <th style={{ padding: '0.5rem', textAlign: 'right' }}>Nominal Modal Wajib Dikembalikan</th>
                   <th style={{ padding: '0.5rem', textAlign: 'center' }}>Status Modal</th>
                   <th style={{ padding: '0.5rem', textAlign: 'center' }}>Aksi</th>
@@ -380,7 +399,9 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               <tbody>
                 {closedShiftResult.contributions.map((c) => (
                   <tr key={c.contribution_id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ padding: '0.5rem', fontWeight: 700, color: '#0f172a' }}>{c.user_id}</td>
+                    <td style={{ padding: '0.5rem', fontWeight: 700, color: '#0f172a' }}>
+                      {getUserDisplayName(c.user_id)}
+                    </td>
                     <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800, color: '#4f46e5' }}>
                       {formatRupiah(c.amount)}
                     </td>
