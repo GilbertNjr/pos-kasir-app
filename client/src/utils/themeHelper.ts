@@ -86,6 +86,17 @@ export const THEME_PALETTES: Record<string, ThemePalette> = {
   },
 };
 
+function isDarkColor(hexColor: string): boolean {
+  if (!hexColor) return false;
+  const hex = hexColor.replace('#', '');
+  if (hex.length !== 6) return false;
+  const r = parseInt(hex.substring(0, 2), 16);
+  const g = parseInt(hex.substring(2, 4), 16);
+  const b = parseInt(hex.substring(4, 6), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq < 140;
+}
+
 export const applyGlobalTheme = (
   colorKeyOrHex: string,
   customSidebarBg?: string,
@@ -121,12 +132,20 @@ export const applyGlobalTheme = (
     palette.dashboardBg = customDashboardBg;
   }
 
+  const isDarkSidebar = isDarkColor(palette.sidebarBg);
+  const sidebarText = isDarkSidebar ? '#f8fafc' : '#0f172a';
+  const sidebarSubtext = isDarkSidebar ? '#94a3b8' : '#64748b';
+  const sidebarMutedText = isDarkSidebar ? '#cbd5e1' : '#475569';
+
   const root = document.documentElement;
   root.style.setProperty('--color-primary', palette.primaryHex);
   root.style.setProperty('--color-primary-dark', palette.secondaryHex);
   root.style.setProperty('--primary-gradient', palette.gradient);
   root.style.setProperty('--sidebar-bg', palette.sidebarBg);
   root.style.setProperty('--sidebar-border', palette.sidebarBorder);
+  root.style.setProperty('--sidebar-text', sidebarText);
+  root.style.setProperty('--sidebar-subtext', sidebarSubtext);
+  root.style.setProperty('--sidebar-muted-text', sidebarMutedText);
   root.style.setProperty('--accent-bg', palette.accentBg);
   root.style.setProperty('--accent-text', palette.accentText);
   root.style.setProperty('--dashboard-bg', palette.dashboardBg);

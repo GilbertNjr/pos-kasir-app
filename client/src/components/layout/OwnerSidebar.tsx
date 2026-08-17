@@ -103,7 +103,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 letterSpacing: '-0.02em',
                 margin: 0,
                 lineHeight: 1.3,
-                color: '#0f172a',
+                color: 'var(--sidebar-text, #0f172a)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -114,7 +114,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
             <span
               style={{
                 fontSize: '0.75rem',
-                color: '#64748b',
+                color: 'var(--sidebar-subtext, #64748b)',
                 fontWeight: 700,
                 lineHeight: 1.3,
                 marginTop: '0.15rem',
@@ -132,7 +132,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
         {isOpenMobile && (
           <button
             onClick={onCloseMobile}
-            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '0.35rem', flexShrink: 0 }}
+            style={{ background: 'none', border: 'none', color: 'var(--sidebar-subtext, #64748b)', cursor: 'pointer', padding: '0.35rem', flexShrink: 0 }}
           >
             <X size={20} />
           </button>
@@ -160,8 +160,8 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 padding: '0.75rem 1rem',
                 borderRadius: '10px',
                 border: 'none',
-                background: isActive ? '#ddd6fe' : 'transparent',
-                color: isActive ? '#5b21b6' : '#4b5563',
+                background: isActive ? 'var(--sidebar-active-bg, #ddd6fe)' : 'transparent',
+                color: isActive ? 'var(--sidebar-active-text, #5b21b6)' : 'var(--sidebar-muted-text, #4b5563)',
                 fontWeight: isActive ? 800 : 600,
                 fontSize: '0.875rem',
                 cursor: 'pointer',
@@ -169,7 +169,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 transition: 'all 0.15s ease',
               }}
             >
-              <Icon size={18} color={isActive ? '#5b21b6' : '#6b7280'} />
+              <Icon size={18} color={isActive ? 'var(--sidebar-active-text, #5b21b6)' : 'var(--sidebar-subtext, #6b7280)'} />
               <span>{item.label}</span>
             </button>
           );
@@ -177,7 +177,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
       </nav>
 
       {/* User Profile & Logout Bottom Section */}
-      <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--sidebar-border, #e5e7eb)', background: '#f9fafb' }}>
+      <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--sidebar-border, #e5e7eb)', background: 'transparent' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
             <div
@@ -203,8 +203,8 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
               )}
             </div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser.full_name}</div>
-              <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Role: {currentUser.role}</div>
+              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--sidebar-text, #0f172a)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser.full_name}</div>
+              <div style={{ fontSize: '0.7rem', color: 'var(--sidebar-subtext, #6b7280)' }}>Role: {currentUser.role}</div>
             </div>
           </div>
         </div>

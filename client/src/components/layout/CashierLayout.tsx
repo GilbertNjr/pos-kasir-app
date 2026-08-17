@@ -91,7 +91,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               style={{
                 fontSize: '1.05rem',
                 fontWeight: 800,
-                color: '#0f172a',
+                color: 'var(--sidebar-text, #0f172a)',
                 margin: 0,
                 lineHeight: 1.3,
                 letterSpacing: '-0.02em',
@@ -105,7 +105,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             <span
               style={{
                 fontSize: '0.75rem',
-                color: '#64748b',
+                color: 'var(--sidebar-subtext, #64748b)',
                 fontWeight: 700,
                 lineHeight: 1.3,
                 marginTop: '0.15rem',
@@ -356,7 +356,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
       </div>
 
       {/* Sidebar Footer (Fixed at Bottom, Never Shrinks) */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #e5e7eb', background: '#f9fafb', padding: '1rem', flexShrink: 0 }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid var(--sidebar-border, #e5e7eb)', background: 'transparent', padding: '1rem', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.25rem' }}>
           <div style={{ position: 'relative', width: '38px', height: '38px', flexShrink: 0 }}>
             <div
@@ -402,7 +402,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             )}
           </div>
           <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--sidebar-text, #0f172a)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
               {currentUser.full_name}
             </div>
             <div
