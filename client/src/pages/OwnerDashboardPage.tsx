@@ -166,7 +166,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
       </div>
 
       {/* 2. QUICK ACTION SHORTCUT CARDS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.15rem' }}>
+      <div className="responsive-shortcut-grid">
         <div
           onClick={() => onNavigateTab && onNavigateTab('STOCKS')}
           style={{

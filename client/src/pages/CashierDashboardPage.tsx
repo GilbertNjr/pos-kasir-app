@@ -205,127 +205,135 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
       </div>
 
       {/* 2. REKAP KINERJA INDIVIDU KASIR */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-        <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+      <div className="responsive-kpi-grid">
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Transaksi Diproses Saya</span>
             <div style={{ padding: '0.4rem', borderRadius: '8px', background: '#e0e7ff', color: '#4338ca' }}><Receipt size={18} /></div>
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>{myTransactions.length} Transaksi</div>
+          <div className="kpi-value" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#0f172a' }}>{myTransactions.length} Transaksi</div>
           <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Sesi shift aktif saat ini</span>
         </div>
 
-        <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Total Omzet Saya</span>
             <div style={{ padding: '0.4rem', borderRadius: '8px', background: '#dcfce7', color: '#15803d' }}><TrendingUp size={18} /></div>
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#15803d' }}>{formatRupiah(myTotalRevenue)}</div>
+          <div className="kpi-value" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#15803d' }}>{formatRupiah(myTotalRevenue)}</div>
           <span style={{ fontSize: '0.75rem', color: '#16a34a' }}>Omzet dari penjualan saya</span>
         </div>
 
-        <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <span style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748b' }}>Modal Awal Disetor Saya</span>
             <div style={{ padding: '0.4rem', borderRadius: '8px', background: '#fef3c7', color: '#b45309' }}><DollarSign size={18} /></div>
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#b45309' }}>{formatRupiah(myContribution)}</div>
+          <div className="kpi-value" style={{ fontSize: '1.4rem', fontWeight: 800, color: '#b45309' }}>{formatRupiah(myContribution)}</div>
           <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Kontribusi modal kasir</span>
         </div>
       </div>
 
-      {/* 3. TOMBOL AKSI CEPAT KASIR */}
-      <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-        <h3 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0 0 1rem 0', color: '#0f172a' }}>Navigasi Cepat Kasir</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+      {/* 3. TOMBOL AKSI CEPAT KASIR (2-COLUMN GRID ON MOBILE, COMPACT & ACCESSIBLE) */}
+      <div style={{ background: '#ffffff', padding: '1.25rem 1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+        <h3 style={{ fontSize: '1.05rem', fontWeight: 800, margin: '0 0 1rem 0', color: '#0f172a' }}>Navigasi Cepat Kasir</h3>
+        <div className="responsive-shortcut-grid">
           <button
             onClick={() => onNavigateTab('POS')}
+            className="responsive-shortcut-card"
             style={{
               padding: '1rem',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
+              borderRadius: '16px',
+              border: '1px solid #cbd5e1',
               background: '#f8fafc',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.5rem',
               cursor: 'pointer',
               textAlign: 'left',
-              transition: 'all 0.2s',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.02)',
             }}
           >
-            <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#10b981', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#10b981', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(16,185,129,0.3)' }}>
               <ShoppingCart size={20} />
             </div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>Kasir Register</div>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Proses transaksi pelanggan baru</span>
+            <div className="shortcut-title" style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>Kasir Register</div>
+            <span className="shortcut-desc" style={{ fontSize: '0.75rem', color: '#64748b' }}>Proses transaksi pelanggan baru</span>
           </button>
 
           {shift?.shift_status === 'ACTIVE' && (
             <button
               onClick={() => setShowCapitalModal(true)}
+              className="responsive-shortcut-card"
               style={{
                 padding: '1rem',
-                borderRadius: '12px',
-                border: '1px solid #e2e8f0',
+                borderRadius: '16px',
+                border: '1px solid #cbd5e1',
                 background: '#f8fafc',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '0.5rem',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'all 0.2s',
+                transition: 'all 0.2s ease',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.02)',
               }}
             >
-              <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#f59e0b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#f59e0b', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(245,158,11,0.3)' }}>
                 <PlusCircle size={20} />
               </div>
-              <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>Setor Modal Awal</div>
-              <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Input modal laci kasir</span>
+              <div className="shortcut-title" style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>Setor Modal Awal</div>
+              <span className="shortcut-desc" style={{ fontSize: '0.75rem', color: '#64748b' }}>Input modal laci kasir</span>
             </button>
           )}
 
           <button
             onClick={() => onNavigateTab('EXPENSES')}
+            className="responsive-shortcut-card"
             style={{
               padding: '1rem',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
+              borderRadius: '16px',
+              border: '1px solid #cbd5e1',
               background: '#f8fafc',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.5rem',
               cursor: 'pointer',
               textAlign: 'left',
-              transition: 'all 0.2s',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.02)',
             }}
           >
-            <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#ef4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#ef4444', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(239,68,68,0.3)' }}>
               <Receipt size={20} />
             </div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>Catat Pengeluaran</div>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Input pengeluaran dari laci kas</span>
+            <div className="shortcut-title" style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>Catat Pengeluaran</div>
+            <span className="shortcut-desc" style={{ fontSize: '0.75rem', color: '#64748b' }}>Input pengeluaran dari laci kas</span>
           </button>
 
           <button
             onClick={() => onNavigateTab('PAYMENT')}
+            className="responsive-shortcut-card"
             style={{
               padding: '1rem',
-              borderRadius: '12px',
-              border: '1px solid #e2e8f0',
+              borderRadius: '16px',
+              border: '1px solid #cbd5e1',
               background: '#f8fafc',
               display: 'flex',
               flexDirection: 'column',
               gap: '0.5rem',
               cursor: 'pointer',
               textAlign: 'left',
-              transition: 'all 0.2s',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 5px rgba(0,0,0,0.02)',
             }}
           >
-            <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#6366f1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#6366f1', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 8px rgba(99,102,241,0.3)' }}>
               <CreditCard size={20} />
             </div>
-            <div style={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>Rekap Pembayaran</div>
-            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Rekap transaksi tunai & QRIS</span>
+            <div className="shortcut-title" style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>Rekap Pembayaran</div>
+            <span className="shortcut-desc" style={{ fontSize: '0.75rem', color: '#64748b' }}>Rekap transaksi tunai & QRIS</span>
           </button>
         </div>
       </div>

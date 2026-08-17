@@ -427,11 +427,36 @@ html, body {
     height: 34px !important;
   }
 
+  /* Allow 2-column layout for shortcut navigation cards on mobile */
+  .responsive-shortcut-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+  .responsive-shortcut-card {
+    padding: 0.85rem 0.75rem !important;
+    border-radius: 14px !important;
+    gap: 0.4rem !important;
+  }
+  .responsive-shortcut-card .shortcut-title {
+    font-size: 0.825rem !important;
+  }
+  .responsive-shortcut-card .shortcut-desc {
+    font-size: 0.7rem !important;
+    line-height: 1.2 !important;
+  }
+
   /* Force 1 column layout for wider single-item cards on small mobile screens */
   div[style*="gridTemplateColumns: repeat(auto-fit, minmax(280px, 1fr))"],
   div[style*="gridTemplateColumns: repeat(auto-fit, minmax(300px, 1fr))"] {
     grid-template-columns: 1fr !important;
   }
+}
+
+/* RESPONSIVE SHORTCUT CARDS ENGINE */
+.responsive-shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
 }
 
 /* RESPONSIVE TOOLBAR ENGINE (Mobile Grid/Stack, Desktop Horizontal Row) */
