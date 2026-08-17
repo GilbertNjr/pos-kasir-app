@@ -45,15 +45,39 @@ export class UserRepository implements IRepository<UserEntity> {
   }
 
   async findAll(): Promise<UserEntity[]> {
+    let dbUsers: UserEntity[] = [];
     try {
       const res = await pool.query('SELECT * FROM users ORDER BY created_at ASC');
       if (res.rows && res.rows.length > 0) {
-        return res.rows.map((row) => this.mapRowToEntity(row));
+        dbUsers = res.rows.map((row) => this.mapRowToEntity(row));
       }
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      console.warn('[UserRepository.findAll Notice] Database query fallback:', err.message);
     }
-    return [...UserRepository.inMemoryUsers];
+
+    // Load file cache if memory is empty
+    if (UserRepository.inMemoryUsers.length === 0) {
+      UserRepository.inMemoryUsers = FileStorageAdapter.readData<UserEntity>('users.json', []);
+    }
+
+    // Seamlessly merge PostgreSQL DB users with In-Memory & FileStorage users
+    const userMap = new Map<string, UserEntity>();
+    
+    // 1. Populate from inMemoryUsers (contains locally created & cached users)
+    UserRepository.inMemoryUsers.forEach((u) => {
+      if (u && u.user_id) userMap.set(u.user_id, u);
+    });
+
+    // 2. Augment / overwrite with DB users from PostgreSQL
+    dbUsers.forEach((u) => {
+      if (u && u.user_id) userMap.set(u.user_id, u);
+    });
+
+    const combined = Array.from(userMap.values());
+    UserRepository.inMemoryUsers = combined;
+    this.saveFileCache();
+
+    return combined;
   }
 
   async findById(user_id: string): Promise<UserEntity | null> {
@@ -88,6 +112,7 @@ export class UserRepository implements IRepository<UserEntity> {
   }
 
   async create(user: UserEntity): Promise<UserEntity> {
+    let createdEntity: UserEntity = { ...user };
     try {
       const query = `
         INSERT INTO users (
@@ -104,7 +129,7 @@ export class UserRepository implements IRepository<UserEntity> {
         user.phone || '',
         Boolean(user.is_pj),
         user.shift || 'Pagi (08:00 - 16:00)',
-        user.status,
+        user.status || 'ACTIVE',
         user.avatar_url || '',
         user.last_login || null,
         user.invited_by_user_id || null,
@@ -112,20 +137,57 @@ export class UserRepository implements IRepository<UserEntity> {
       ];
       const res = await pool.query(query, values);
       if (res.rows && res.rows.length > 0) {
-        const created = this.mapRowToEntity(res.rows[0]);
-        UserRepository.inMemoryUsers.push(created);
-        this.saveFileCache();
-        return created;
+        createdEntity = this.mapRowToEntity(res.rows[0]);
       }
-    } catch {
-      // Fallback in memory
+    } catch (dbErr: any) {
+      console.warn('[UserRepository.create Notice] Database insert fallback:', dbErr.message);
+      // Fallback if status enum constraint in PostgreSQL rejected PENDING_ACTIVATION
+      if (dbErr.message && dbErr.message.includes('user_status_enum') && user.status === 'PENDING_ACTIVATION') {
+        try {
+          const fallbackQuery = `
+            INSERT INTO users (
+              user_id, username, password_hash, full_name, role, phone, is_pj, shift, status, avatar_url, last_login, invited_by_user_id, created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'ACTIVE', $10, $11, $12, $13, NOW())
+            RETURNING *;
+          `;
+          const valuesFallback = [
+            user.user_id,
+            user.username,
+            user.password_hash,
+            user.full_name,
+            user.role,
+            user.phone || '',
+            Boolean(user.is_pj),
+            user.shift || 'Pagi (08:00 - 16:00)',
+            user.avatar_url || '',
+            user.last_login || null,
+            user.invited_by_user_id || null,
+            user.created_at || new Date().toISOString(),
+          ];
+          const res2 = await pool.query(fallbackQuery, valuesFallback);
+          if (res2.rows && res2.rows.length > 0) {
+            createdEntity = this.mapRowToEntity(res2.rows[0]);
+          }
+        } catch (retryErr: any) {
+          console.warn('[UserRepository.create Warning] Retry insert failed:', retryErr.message);
+        }
+      }
     }
-    UserRepository.inMemoryUsers.push(user);
+
+    // Always update inMemoryUsers and persist to users.json file cache
+    const existingIdx = UserRepository.inMemoryUsers.findIndex((u) => u.user_id === createdEntity.user_id);
+    if (existingIdx !== -1) {
+      UserRepository.inMemoryUsers[existingIdx] = createdEntity;
+    } else {
+      UserRepository.inMemoryUsers.push(createdEntity);
+    }
     this.saveFileCache();
-    return { ...user };
+
+    return createdEntity;
   }
 
   async update(user_id: string, item: Partial<UserEntity>): Promise<UserEntity | null> {
+    let updatedEntity: UserEntity | null = null;
     try {
       const fields: string[] = [];
       const values: any[] = [];
@@ -145,29 +207,35 @@ export class UserRepository implements IRepository<UserEntity> {
         const query = `UPDATE users SET ${fields.join(', ')} WHERE user_id = $${index} RETURNING *`;
         const res = await pool.query(query, values);
         if (res.rows && res.rows.length > 0) {
-          const updated = this.mapRowToEntity(res.rows[0]);
-          const memIdx = UserRepository.inMemoryUsers.findIndex((u) => u.user_id === user_id);
-          if (memIdx !== -1) UserRepository.inMemoryUsers[memIdx] = updated;
-          this.saveFileCache();
-          return updated;
+          updatedEntity = this.mapRowToEntity(res.rows[0]);
         }
       }
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      console.warn('[UserRepository.update Notice] Database update fallback:', err.message);
     }
 
     const memIdx = UserRepository.inMemoryUsers.findIndex((u) => u.user_id === user_id);
-    if (memIdx === -1) return null;
-    UserRepository.inMemoryUsers[memIdx] = { ...UserRepository.inMemoryUsers[memIdx], ...item };
-    this.saveFileCache();
-    return { ...UserRepository.inMemoryUsers[memIdx] };
+    if (memIdx !== -1) {
+      UserRepository.inMemoryUsers[memIdx] = {
+        ...UserRepository.inMemoryUsers[memIdx],
+        ...item,
+        ...(updatedEntity || {}),
+      };
+      this.saveFileCache();
+      return { ...UserRepository.inMemoryUsers[memIdx] };
+    } else if (updatedEntity) {
+      UserRepository.inMemoryUsers.push(updatedEntity);
+      this.saveFileCache();
+      return updatedEntity;
+    }
+    return null;
   }
 
   async delete(user_id: string): Promise<boolean> {
     try {
       await pool.query('DELETE FROM users WHERE user_id = $1', [user_id]);
-    } catch {
-      // Fallback
+    } catch (err: any) {
+      console.warn('[UserRepository.delete Notice] Database delete fallback:', err.message);
     }
     const memIdx = UserRepository.inMemoryUsers.findIndex((u) => u.user_id === user_id);
     if (memIdx !== -1) {
