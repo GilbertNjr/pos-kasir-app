@@ -803,7 +803,257 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         </p>
       </div>
 
-      {/* UNIFIED SINGLE-ROW CONTROL CARD BAR: Sub-Tabs & Export Actions */}
+      {error && (
+        <div style={{ padding: '0.75rem 1rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '12px', marginBottom: '1rem', fontSize: '0.875rem', fontWeight: 600 }}>
+          {error}
+        </div>
+      )}
+
+      {/* Form Bar Filter Laporan */}
+      <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', marginBottom: '1.5rem' }}>
+        <form onSubmit={handleApplyFilter} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', alignItems: 'end' }}>
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Periode Waktu:</label>
+            <select
+              value={periodType}
+              onChange={(e) => setPeriodType(e.target.value)}
+              style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
+            >
+              <option value="DAILY">Harian (Hari Ini)</option>
+              <option value="WEEKLY">Mingguan (7 Hari Terakhir)</option>
+              <option value="MONTHLY">Bulanan (Bulan Ini)</option>
+              <option value="YEARLY">Tahunan (Tahun Ini)</option>
+              <option value="CUSTOM">Rentang Tanggal Custom</option>
+            </select>
+          </div>
+
+          {periodType === 'CUSTOM' && (
+            <>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Dari Tanggal:</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Sampai Tanggal:</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
+                />
+              </div>
+            </>
+          )}
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Filter Kasir / Pengguna:</label>
+            <select
+              value={selectedUser}
+              onChange={(e) => setSelectedUser(e.target.value)}
+              style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
+            >
+              <option value="">Semua Kasir & Owner</option>
+              {usersList.map((u) => (
+                <option key={u.user_id} value={u.user_id}>
+                  {u.full_name} ({u.role})
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Bidang Usaha:</label>
+            <select
+              value={selectedBusinessUnit}
+              onChange={(e) => setSelectedBusinessUnit(e.target.value)}
+              style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
+            >
+              <option value="ALL">Semua Bidang Usaha</option>
+              <option value="FC_PRINT">Fotokopi & Printing</option>
+              <option value="FNB">Food & Beverage (FNB)</option>
+            </select>
+          </div>
+
+          <div>
+            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Metode Bayar:</label>
+            <select
+              value={selectedPaymentMethod}
+              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+              style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
+            >
+              <option value="ALL">Semua Metode</option>
+              <option value="CASH">CASH / Tunai</option>
+              <option value="QRIS">QRIS Non-Tunai</option>
+              <option value="TRANSFER">Transfer Bank</option>
+            </select>
+          </div>
+
+          <div>
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '0.6rem',
+                fontSize: '0.85rem',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                background: '#2563eb',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '10px',
+                cursor: 'pointer',
+              }}
+            >
+              <Filter size={16} />
+              {loading ? 'Proses...' : 'Terapkan Filter'}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      {/* Summary Financial Cards: 5 Cards (Omzet Total, Transaksi, Tunai (Hijau), QRIS (Biru), Transfer (Kuning)) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
+        {/* Card 1: Total Omzet Penjualan */}
+        <div
+          style={{
+            background: 'var(--primary-gradient, linear-gradient(135deg, #1e293b 0%, #0f172a 100%))',
+            color: '#ffffff',
+            padding: '1.25rem',
+            borderRadius: '20px',
+            border: '1px solid #334155',
+            boxShadow: '0 4px 16px rgba(15, 23, 42, 0.2)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <TrendingUp size={15} color="#38bdf8" />
+              Total Omzet Penjualan
+            </div>
+            <h3 style={{ fontSize: '1.45rem', fontWeight: 900, margin: 0, color: '#ffffff' }}>{formatRupiah(summary?.total_net_sales || summary?.total_gross_sales || 0)}</h3>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: '0.75rem', fontWeight: 600 }}>
+            {summary?.total_transactions || 0} Transaksi Selesai
+          </div>
+        </div>
+
+        {/* Card 2: Jumlah Transaksi */}
+        <div
+          style={{
+            background: '#ffffff',
+            padding: '1.25rem',
+            borderRadius: '20px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <ShoppingBag size={15} color="#6366f1" />
+              Total Transaksi
+            </div>
+            <h3 style={{ fontSize: '1.45rem', fontWeight: 900, margin: 0, color: '#0f172a' }}>{summary?.total_transactions || 0} Transaksi</h3>
+          </div>
+          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.75rem', fontWeight: 600 }}>
+            Nota Terfilter
+          </div>
+        </div>
+
+        {/* Card 3: Tunai / Cash (HIJAU) */}
+        <div
+          style={{
+            background: '#ecfdf5',
+            border: '1px solid #a7f3d0',
+            padding: '1.25rem',
+            borderRadius: '20px',
+            boxShadow: '0 4px 16px rgba(16, 185, 129, 0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#047857', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <Banknote size={16} color="#059669" />
+              Pembayaran Tunai
+            </div>
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#065f46' }}>{formatRupiah(totalCash)}</h3>
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#047857', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span style={{ padding: '0.15rem 0.45rem', background: '#10b981', color: '#fff', borderRadius: '6px', fontSize: '0.65rem' }}>TUNAI</span>
+            <span>Uang Fisik Kasir</span>
+          </div>
+        </div>
+
+        {/* Card 4: QRIS Non-Tunai (BIRU) */}
+        <div
+          style={{
+            background: '#eff6ff',
+            border: '1px solid #bfdbfe',
+            padding: '1.25rem',
+            borderRadius: '20px',
+            boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1d4ed8', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <QrCode size={16} color="#2563eb" />
+              QRIS Non-Tunai
+            </div>
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#1e40af' }}>{formatRupiah(totalQris)}</h3>
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1d4ed8', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span style={{ padding: '0.15rem 0.45rem', background: '#2563eb', color: '#fff', borderRadius: '6px', fontSize: '0.65rem' }}>QRIS</span>
+            <span>Scan Kode E-Wallet/Bank</span>
+          </div>
+        </div>
+
+        {/* Card 5: Transfer Bank (KUNING) */}
+        <div
+          style={{
+            background: '#fffbeb',
+            border: '1px solid #fde68a',
+            padding: '1.25rem',
+            borderRadius: '20px',
+            boxShadow: '0 4px 16px rgba(245, 158, 11, 0.08)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#b45309', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <CreditCard size={16} color="#d97706" />
+              Transfer Bank
+            </div>
+            <h3 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#92400e' }}>{formatRupiah(totalTransfer)}</h3>
+          </div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b45309', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span style={{ padding: '0.15rem 0.45rem', background: '#f59e0b', color: '#fff', borderRadius: '6px', fontSize: '0.65rem' }}>TRANSFER</span>
+            <span>Direct Bank Rekening</span>
+          </div>
+        </div>
+      </div>
+
+      {/* UNIFIED SINGLE-ROW CONTROL CARD BAR: Sub-Tabs & Export Actions (POSITIONED BELOW THE 5 CARDS GRID) */}
       <div
         style={{
           background: '#ffffff',
@@ -1154,137 +1404,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontWeight: 600 }}>Mengkalkulasi data laporan...</div>
       ) : summary ? (
         <>
-          {/* Summary Financial Cards: 5 Cards (Omzet Total, Transaksi, Tunai (Hijau), QRIS (Biru), Transfer (Kuning)) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
-            {/* Card 1: Total Omzet Penjualan */}
-            <div
-              style={{
-                background: 'var(--primary-gradient, linear-gradient(135deg, #1e293b 0%, #0f172a 100%))',
-                color: '#ffffff',
-                padding: '1.25rem',
-                borderRadius: '20px',
-                border: '1px solid #334155',
-                boxShadow: '0 4px 16px rgba(15, 23, 42, 0.2)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <TrendingUp size={15} color="#38bdf8" />
-                  Total Omzet Penjualan
-                </div>
-                <h3 style={{ fontSize: '1.45rem', fontWeight: 900, margin: 0, color: '#ffffff' }}>{formatRupiah(summary.total_net_sales || summary.total_gross_sales)}</h3>
-              </div>
-              <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: '0.75rem', fontWeight: 600 }}>
-                {summary.total_transactions} Transaksi Selesai
-              </div>
-            </div>
-
-            {/* Card 2: Jumlah Transaksi */}
-            <div
-              style={{
-                background: '#ffffff',
-                padding: '1.25rem',
-                borderRadius: '20px',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <ShoppingBag size={15} color="#6366f1" />
-                  Total Transaksi
-                </div>
-                <h3 style={{ fontSize: '1.45rem', fontWeight: 900, margin: 0, color: '#0f172a' }}>{summary.total_transactions} Transaksi</h3>
-              </div>
-              <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.75rem', fontWeight: 600 }}>
-                Nota Terfilter
-              </div>
-            </div>
-
-            {/* Card 3: Tunai / Cash (HIJAU) */}
-            <div
-              style={{
-                background: '#ecfdf5',
-                border: '1px solid #a7f3d0',
-                padding: '1.25rem',
-                borderRadius: '20px',
-                boxShadow: '0 4px 16px rgba(16, 185, 129, 0.08)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#047857', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <Banknote size={16} color="#059669" />
-                  Pembayaran Tunai
-                </div>
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#065f46' }}>{formatRupiah(totalCash)}</h3>
-              </div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#047857', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <span style={{ padding: '0.15rem 0.45rem', background: '#10b981', color: '#fff', borderRadius: '6px', fontSize: '0.65rem' }}>TUNAI</span>
-                <span>Uang Fisik Kasir</span>
-              </div>
-            </div>
-
-            {/* Card 4: QRIS Non-Tunai (BIRU) */}
-            <div
-              style={{
-                background: '#eff6ff',
-                border: '1px solid #bfdbfe',
-                padding: '1.25rem',
-                borderRadius: '20px',
-                boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1d4ed8', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <QrCode size={16} color="#2563eb" />
-                  QRIS Non-Tunai
-                </div>
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#1e40af' }}>{formatRupiah(totalQris)}</h3>
-              </div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1d4ed8', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <span style={{ padding: '0.15rem 0.45rem', background: '#2563eb', color: '#fff', borderRadius: '6px', fontSize: '0.65rem' }}>QRIS</span>
-                <span>Scan Kode E-Wallet/Bank</span>
-              </div>
-            </div>
-
-            {/* Card 5: Transfer Bank (KUNING) */}
-            <div
-              style={{
-                background: '#fffbeb',
-                border: '1px solid #fde68a',
-                padding: '1.25rem',
-                borderRadius: '20px',
-                boxShadow: '0 4px 16px rgba(245, 158, 11, 0.08)',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-              }}
-            >
-              <div>
-                <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#b45309', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <CreditCard size={16} color="#d97706" />
-                  Transfer Bank
-                </div>
-                <h3 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#92400e' }}>{formatRupiah(totalTransfer)}</h3>
-              </div>
-              <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b45309', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <span style={{ padding: '0.15rem 0.45rem', background: '#f59e0b', color: '#fff', borderRadius: '6px', fontSize: '0.65rem' }}>TRANSFER</span>
-                <span>Direct Bank Rekening</span>
-              </div>
-            </div>
-          </div>
+          {/* Tabel Performa Kasir / Karyawan (Section 19) */}
 
           {/* Tabel Performa Kasir / Karyawan (Section 19) */}
           {reportData.employee_performance && reportData.employee_performance.length > 0 && (
