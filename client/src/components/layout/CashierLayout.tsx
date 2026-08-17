@@ -11,6 +11,7 @@ import {
   Package,
   Menu,
   X,
+  Crown,
 } from 'lucide-react';
 import { NotificationPopover } from '../common/NotificationPopover';
 import { User } from '../../types';
@@ -364,20 +365,48 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
                 width: '38px',
                 height: '38px',
                 borderRadius: '50%',
-                background: isShiftLeader ? '#f3e8ff' : '#e0f2fe',
-                color: isShiftLeader ? '#6b21a8' : '#0369a1',
+                background: currentUser.role === 'OWNER'
+                  ? 'linear-gradient(135deg, #fbbf24 0%, #d97706 50%, #b45309 100%)'
+                  : isShiftLeader ? '#f3e8ff' : '#e0f2fe',
+                color: currentUser.role === 'OWNER' ? '#ffffff' : isShiftLeader ? '#6b21a8' : '#0369a1',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 900,
                 fontSize: '0.875rem',
-                border: isShiftLeader ? '2px solid #9333ea' : '2px solid #38bdf8',
-                boxShadow: isShiftLeader ? '0 0 8px rgba(147, 51, 234, 0.35)' : 'none',
+                border: currentUser.role === 'OWNER'
+                  ? '2px solid #fef08a'
+                  : isShiftLeader ? '2px solid #9333ea' : '2px solid #38bdf8',
+                boxShadow: currentUser.role === 'OWNER'
+                  ? '0 0 10px rgba(245, 158, 11, 0.45)'
+                  : isShiftLeader ? '0 0 8px rgba(147, 51, 234, 0.35)' : 'none',
               }}
             >
               {currentUser.full_name.charAt(0).toUpperCase()}
             </div>
-            {isShiftLeader && (
+            {currentUser.role === 'OWNER' ? (
+              <span
+                title="Pemilik Toko Utama"
+                style={{
+                  position: 'absolute',
+                  bottom: '-2px',
+                  right: '-2px',
+                  background: 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)',
+                  color: '#ffffff',
+                  fontSize: '0.55rem',
+                  borderRadius: '50%',
+                  width: '15px',
+                  height: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1.5px solid #ffffff',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                }}
+              >
+                👑
+              </span>
+            ) : isShiftLeader && (
               <span
                 title="Penanggung Jawab Shift"
                 style={{
@@ -405,18 +434,42 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--sidebar-text, #0f172a)', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
               {currentUser.full_name}
             </div>
-            <div
-              style={{
-                fontSize: '0.7rem',
-                color: isShiftLeader ? '#7e22ce' : '#0369a1',
-                fontWeight: 800,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.25rem',
-              }}
-            >
-              {isShiftLeader ? '⭐ Penanggung Jawab' : '👤 Kasir Operasional'}
-            </div>
+            {currentUser.role === 'OWNER' ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.2rem', marginTop: '0.15rem' }}>
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    padding: '0.15rem 0.5rem',
+                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 50%, #b45309 100%)',
+                    color: '#ffffff',
+                    fontSize: '0.625rem',
+                    fontWeight: 900,
+                    letterSpacing: '0.04em',
+                    boxShadow: '0 2px 6px rgba(245, 158, 11, 0.35)',
+                    border: '1px solid #fef08a',
+                    lineHeight: 1.2,
+                  }}
+                >
+                  <Crown size={10} color="#ffffff" /> PEMILIK TOKO
+                </span>
+              </div>
+            ) : (
+              <div
+                style={{
+                  fontSize: '0.7rem',
+                  color: isShiftLeader ? '#7e22ce' : '#0369a1',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                }}
+              >
+                {isShiftLeader ? '⭐ Penanggung Jawab' : '👤 Kasir Operasional'}
+              </div>
+            )}
           </div>
         </div>
 

@@ -11,6 +11,8 @@ import {
   Settings,
   LogOut,
   X,
+  Crown,
+  Sparkles,
 } from 'lucide-react';
 import { User } from '../../types';
 
@@ -77,14 +79,15 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
               width: '42px',
               height: '42px',
               borderRadius: '12px',
-              background: '#0f172a',
+              background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 50%, #b45309 100%)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontWeight: 800,
+              fontWeight: 900,
               fontSize: '1.2rem',
               color: '#ffffff',
-              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+              boxShadow: '0 4px 14px rgba(245, 158, 11, 0.4)',
+              border: '1px solid #fef08a',
               overflow: 'hidden',
               flexShrink: 0,
             }}
@@ -111,21 +114,27 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
             >
               {storeName || 'Pos Kasir'}
             </h2>
-            <span
-              style={{
-                fontSize: '0.75rem',
-                color: 'var(--sidebar-subtext, #64748b)',
-                fontWeight: 700,
-                lineHeight: 1.3,
-                marginTop: '0.15rem',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: 'block',
-              }}
-            >
-              Owner / Pemilik Toko
-            </span>
+            <div style={{ marginTop: '0.2rem', display: 'flex', alignItems: 'center' }}>
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: '12px',
+                  background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 50%, #b45309 100%)',
+                  color: '#ffffff',
+                  fontSize: '0.65rem',
+                  fontWeight: 900,
+                  letterSpacing: '0.04em',
+                  boxShadow: '0 2px 6px rgba(245, 158, 11, 0.35)',
+                  border: '1px solid #fef08a',
+                  lineHeight: 1.2,
+                }}
+              >
+                <Crown size={10} color="#ffffff" /> PEMILIK TOKO
+              </span>
+            </div>
           </div>
         </div>
 
@@ -180,31 +189,90 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
       <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--sidebar-border, #e5e7eb)', background: 'transparent' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '50%',
-                background: '#0f172a',
-                color: '#fff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                overflow: 'hidden',
-                flexShrink: 0,
-              }}
-            >
-              {logoUrl ? (
-                <img src={logoUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-              ) : (
-                currentUser.full_name.charAt(0).toUpperCase()
+            <div style={{ position: 'relative', width: '40px', height: '40px', flexShrink: 0 }}>
+              <div
+                style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  background: currentUser.role === 'OWNER'
+                    ? 'linear-gradient(135deg, #fbbf24 0%, #d97706 50%, #b45309 100%)'
+                    : '#0f172a',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontWeight: 900,
+                  fontSize: '0.9rem',
+                  overflow: 'hidden',
+                  border: currentUser.role === 'OWNER' ? '2px solid #fef08a' : '2px solid #cbd5e1',
+                  boxShadow: currentUser.role === 'OWNER' ? '0 0 12px rgba(245, 158, 11, 0.45)' : 'none',
+                }}
+              >
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  currentUser.full_name.charAt(0).toUpperCase()
+                )}
+              </div>
+              {currentUser.role === 'OWNER' && (
+                <span
+                  title="Pemilik Toko Utama (Owner)"
+                  style={{
+                    position: 'absolute',
+                    bottom: '-2px',
+                    right: '-2px',
+                    background: 'linear-gradient(135deg, #f59e0b 0%, #b45309 100%)',
+                    color: '#ffffff',
+                    fontSize: '0.55rem',
+                    borderRadius: '50%',
+                    width: '16px',
+                    height: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1.5px solid #ffffff',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.3)',
+                  }}
+                >
+                  👑
+                </span>
               )}
             </div>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: 'var(--sidebar-text, #0f172a)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser.full_name}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--sidebar-subtext, #6b7280)' }}>Role: {currentUser.role}</div>
+            <div style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--sidebar-text, #0f172a)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {currentUser.full_name}
+              </div>
+              {currentUser.role === 'OWNER' ? (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span
+                    style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '0.3rem',
+                      padding: '0.22rem 0.65rem',
+                      borderRadius: '20px',
+                      background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 50%, #b45309 100%)',
+                      color: '#ffffff',
+                      fontSize: '0.675rem',
+                      fontWeight: 900,
+                      letterSpacing: '0.06em',
+                      boxShadow: '0 3px 10px rgba(245, 158, 11, 0.45)',
+                      border: '1px solid #fef08a',
+                      textTransform: 'uppercase',
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    <Crown size={12} color="#ffffff" style={{ filter: 'drop-shadow(0 1px 1px rgba(0,0,0,0.3))' }} />
+                    <span>PEMILIK TOKO</span>
+                    <Sparkles size={10} color="#fef08a" />
+                  </span>
+                </div>
+              ) : (
+                <div style={{ fontSize: '0.7rem', color: 'var(--sidebar-subtext, #6b7280)' }}>
+                  Role: {currentUser.role}
+                </div>
+              )}
             </div>
           </div>
         </div>
