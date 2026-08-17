@@ -165,6 +165,30 @@ export class UserRepository implements IRepository<UserEntity> {
   }
 
   private mapRowToEntity(row: any): UserEntity {
+    let formattedLastLogin = '-';
+    if (row.last_login && row.last_login !== '-') {
+      const parsedDate = new Date(row.last_login);
+      if (!isNaN(parsedDate.getTime())) {
+        formattedLastLogin = parsedDate.toLocaleDateString('id-ID', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+      } else {
+        formattedLastLogin = String(row.last_login);
+      }
+    }
+
+    let createdAtIso = new Date().toISOString();
+    if (row.created_at) {
+      const parsedCreated = new Date(row.created_at);
+      if (!isNaN(parsedCreated.getTime())) {
+        createdAtIso = parsedCreated.toISOString();
+      }
+    }
+
     return {
       user_id: row.user_id,
       username: row.username,
@@ -176,9 +200,9 @@ export class UserRepository implements IRepository<UserEntity> {
       shift: row.shift || 'Pagi (08:00 - 16:00)',
       status: row.status,
       avatar_url: row.avatar_url || row.photo_url || '',
-      last_login: row.last_login ? new Date(row.last_login).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '-',
+      last_login: formattedLastLogin,
       invited_by_user_id: row.invited_by_user_id || undefined,
-      created_at: row.created_at ? new Date(row.created_at).toISOString() : new Date().toISOString(),
+      created_at: createdAtIso,
     };
   }
 }

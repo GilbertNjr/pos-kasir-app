@@ -171,8 +171,11 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
     return formData.shift_mode;
   };
 
+  // Exclude OWNER from Employee Management page & metrics
+  const employeeUsers = users.filter((u) => u.role !== 'OWNER');
+
   // Filter Logic
-  const filteredUsers = users.filter((u) => {
+  const filteredUsers = employeeUsers.filter((u) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       u.full_name.toLowerCase().includes(q) ||
@@ -201,12 +204,12 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
     return matchesSearch && matchesRole && matchesStatus && matchesShift;
   });
 
-  // Calculate Metrics from Users Dataset
-  const totalPegawaiCount = users.length;
-  const pjCount = users.filter((u) => u.is_pj && u.status === 'ACTIVE').length;
-  const kasirCount = users.filter((u) => !u.is_pj && u.status === 'ACTIVE').length;
-  const activeCount = users.filter((u) => u.status === 'ACTIVE').length;
-  const inactiveCount = users.filter((u) => u.status === 'INACTIVE').length;
+  // Calculate Metrics from Employee Dataset (excluding OWNER)
+  const totalPegawaiCount = employeeUsers.length;
+  const pjCount = employeeUsers.filter((u) => u.is_pj && u.status === 'ACTIVE').length;
+  const kasirCount = employeeUsers.filter((u) => !u.is_pj && u.status === 'ACTIVE').length;
+  const activeCount = employeeUsers.filter((u) => u.status === 'ACTIVE').length;
+  const inactiveCount = employeeUsers.filter((u) => u.status === 'INACTIVE').length;
 
   // Pagination Calculations
   const totalPages = Math.ceil(filteredUsers.length / rowsPerPage) || 1;

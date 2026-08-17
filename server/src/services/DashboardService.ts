@@ -272,11 +272,10 @@ export class DashboardService {
 
     const empMap = new Map<string, EmployeeDashboardSummary>();
     
-    // Include all registered users except OWNER if other users exist, or include all users if only OWNER exists
+    // Always exclude OWNER from cashier & employee metrics
     const nonOwnerUsers = allUsers.filter((u) => u.role !== 'OWNER');
-    const targetUsersList = nonOwnerUsers.length > 0 ? nonOwnerUsers : allUsers;
 
-    for (const u of targetUsersList) {
+    for (const u of nonOwnerUsers) {
       const uIdLower = u.user_id.toLowerCase();
       const uNameLower = u.username.toLowerCase();
       const uFullNameLower = u.full_name.toLowerCase();

@@ -216,6 +216,9 @@ export class AuthController {
       }
 
       const updatedUser = await this.userRepository.update(id, updates);
+      if (updatedUser) {
+        sseManager.broadcast('USER_UPDATED', { action: 'UPDATED', user: updatedUser });
+      }
       return res.status(200).json({
         message: 'Data pegawai berhasil diperbarui',
         data: updatedUser ? this.authService.sanitizeUser(updatedUser) : null,
@@ -234,6 +237,8 @@ export class AuthController {
       if (!updatedUser) {
         return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
       }
+
+      sseManager.broadcast('USER_UPDATED', { action: 'TOGGLED', user: updatedUser });
 
       return res.status(200).json({
         message: `Status pegawai diperbarui menjadi ${status}`,
@@ -257,6 +262,8 @@ export class AuthController {
       }
 
       await this.userRepository.delete(id);
+      sseManager.broadcast('USER_UPDATED', { action: 'DELETED', user_id: id });
+
       return res.status(200).json({
         message: `Akun pegawai ${user.full_name} (${user.username}) berhasil dihapus.`,
         data: { user_id: id },
