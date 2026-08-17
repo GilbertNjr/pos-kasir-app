@@ -26,16 +26,14 @@ export class ProductRepository implements IRepository<ProductEntity> {
         `SELECT product_id, category_id, unit_id, product_name, sku, type, business_unit, 
                 selling_price::float, cost_price::float, manage_stock, image_url, is_active 
          FROM products 
+         WHERE is_active = true
          ORDER BY product_name ASC`
       );
-      if (res.rows.length > 0) {
-        this.inMemoryProducts = res.rows;
-        return res.rows;
-      }
-      return [...this.inMemoryProducts];
+      this.inMemoryProducts = res.rows;
+      return res.rows;
     } catch (err) {
       console.warn('[ProductRepository] Database fetch fallback to memory:', (err as Error).message);
-      return [...this.inMemoryProducts];
+      return this.inMemoryProducts.filter((p) => p.is_active);
     }
   }
 
@@ -142,13 +140,18 @@ export class ProductRepository implements IRepository<ProductEntity> {
 
   async delete(product_id: string): Promise<boolean> {
     try {
+      // 1. Set is_active = false first in database
+      await pool.query('UPDATE products SET is_active = false WHERE product_id = $1', [product_id]);
+
+      // 2. Clear stock and relational tables
       await pool.query('DELETE FROM stock_balances WHERE product_id = $1', [product_id]);
       await pool.query('DELETE FROM stock_movements WHERE product_id = $1', [product_id]);
-      await pool.query('DELETE FROM transaction_items WHERE product_id = $1', [product_id]);
       await pool.query('DELETE FROM stocks WHERE product_id = $1', [product_id]);
+
+      // 3. Try hard delete product row
       await pool.query('DELETE FROM products WHERE product_id = $1', [product_id]);
     } catch (err) {
-      console.warn('[ProductRepository] Database delete fallback to memory:', (err as Error).message);
+      console.warn('[ProductRepository] Database delete notice:', (err as Error).message);
     }
     this.inMemoryProducts = this.inMemoryProducts.filter((p) => p.product_id !== product_id);
     return true;

@@ -8,6 +8,7 @@ export interface EmployeeSummary {
   username: string;
   full_name: string;
   role: string;
+  is_pj?: boolean;
   transaction_count: number;
   total_sales: number;
   is_active_in_shift: boolean;
@@ -22,6 +23,12 @@ export const EmployeePerformanceModal: React.FC<EmployeePerformanceModalProps> =
   if (!employee) return null;
 
   const color = getCashierColor(employee.full_name || employee.username);
+
+  const getRoleLabel = () => {
+    if (employee.role === 'OWNER') return 'Owner';
+    if (employee.is_pj || employee.role === 'PENANGGUNG_JAWAB') return 'Penanggung Jawab (PJ)';
+    return 'Kasir Operasional';
+  };
 
   return (
     <div
@@ -55,7 +62,7 @@ export const EmployeePerformanceModal: React.FC<EmployeePerformanceModalProps> =
             </div>
             <div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{employee.full_name}</h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0 }}>@{employee.username} • Role: <strong>{employee.role}</strong></p>
+              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0 }}>@{employee.username} • Role: <strong>{getRoleLabel()}</strong></p>
             </div>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>

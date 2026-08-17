@@ -97,16 +97,10 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       setLoading(true);
       const data = await apiService.getUsers();
       if (Array.isArray(data)) {
-        setUsers((prev) => {
-          const map = new Map<string, UserType>();
-          data.forEach((u) => map.set(u.user_id, u));
-          prev.forEach((u) => {
-            if (!map.has(u.user_id)) {
-              map.set(u.user_id, u);
-            }
-          });
-          return Array.from(map.values());
-        });
+        const activeOnly = data.filter(
+          (u: UserType) => u.status !== 'DELETED' && !u.username?.startsWith('deleted_')
+        );
+        setUsers(activeOnly);
       }
     } catch (err: any) {
       console.error('Gagal memuat pengguna:', err);
@@ -117,6 +111,22 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
 
   useEffect(() => {
     loadUsers();
+
+    // Real-time SSE listener for user updates & deletions
+    let sse: EventSource | null = null;
+    try {
+      sse = new EventSource('/api/events');
+      const handleSync = () => {
+        loadUsers();
+      };
+      sse.addEventListener('USER_UPDATED', handleSync);
+    } catch {
+      // Fallback
+    }
+
+    return () => {
+      if (sse) sse.close();
+    };
   }, []);
 
   // Action Loading Modal State (for full form submission)
@@ -131,15 +141,14 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
   const handleGenerateActivationCode = async (user: UserType) => {
     try {
       setLoadingCodeId(user.user_id);
-      const res = await apiService.generateActivationCode(user.user_id);
-      setGeneratedCode({ username: user.username || user.full_name, code: res.activation_code });
+      const result = await apiService.generateActivationCode(user.user_id);
       if (onTriggerToast) {
-        onTriggerToast('success', 'Kode Aktivasi Diterbitkan', `Kode aktivasi untuk ${user.full_name}: ${res.activation_code}`);
+        onTriggerToast('success', 'Kode Diterbitkan', `Kode aktivasi baru untuk ${user.full_name}: ${result.activation_code}`);
       }
-      loadUsers();
+      await loadUsers();
     } catch (err: any) {
       if (onTriggerToast) {
-        onTriggerToast('danger', 'Gagal', err.message || 'Gagal menerbitkan kode aktivasi.');
+        onTriggerToast('danger', 'Gagal Terbitkan Kode', err.message || 'Terjadi kesalahan sistem.');
       }
     } finally {
       setLoadingCodeId(null);
@@ -196,8 +205,10 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
     return formData.shift_mode;
   };
 
-  // Exclude OWNER from Employee Management page & metrics
-  const employeeUsers = users.filter((u) => u.role !== 'OWNER');
+  // Exclude OWNER & deleted users from Employee Management page & metrics
+  const employeeUsers = users.filter(
+    (u) => u.role !== 'OWNER' && u.status !== 'DELETED' && !u.username.startsWith('deleted_')
+  );
 
   // Filter Logic
   const filteredUsers = employeeUsers.filter((u) => {
@@ -347,21 +358,28 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
   // Delete User Handler
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
+    const deletedId = userToDelete.user_id;
+    const deletedName = userToDelete.full_name;
+    const deletedUsername = userToDelete.username;
     try {
       setDeleteLoading(true);
-      await apiService.deleteUser(userToDelete.user_id);
-      if (onTriggerToast) {
-        onTriggerToast('success', 'Pegawai Dihapus', `Akun pegawai ${userToDelete.full_name} (@${userToDelete.username}) berhasil dihapus.`);
-      }
+      
+      // Update UI state immediately for responsive feedback
+      setUsers((prev) => prev.filter((u) => u.user_id !== deletedId));
       setIsDeleteModalOpen(false);
       setUserToDelete(null);
-      loadUsers();
+
+      await apiService.deleteUser(deletedId);
+      if (onTriggerToast) {
+        onTriggerToast('success', 'Pegawai Dihapus', `Akun pegawai ${deletedName} (@${deletedUsername}) berhasil dihapus.`);
+      }
+      await loadUsers();
     } catch (err: any) {
       setIsDeleteModalOpen(false);
       setUserToDelete(null);
-      loadUsers();
+      await loadUsers();
       if (onTriggerToast) {
-        onTriggerToast('info', 'Data Diperbarui', err.message || 'Data pegawai telah diperbarui dari server.');
+        onTriggerToast('danger', 'Gagal Menghapus', err.message || 'Terjadi kesalahan sistem.');
       }
     } finally {
       setDeleteLoading(false);
@@ -1817,7 +1835,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                       </strong>
                     </div>
                     <p style={{ fontSize: '0.73rem', color: '#64748b', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
-                      Supervisor shift: Berwenang buka/tutup shift, rekonsiliasi laci kas, & mengawasi kasir.
+                      Supervisor shift: Berwenang membuka shift, mengawasi transaksi, & memantau kasir.
                     </p>
                   </div>
                 </div>
@@ -2209,7 +2227,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                       </strong>
                     </div>
                     <p style={{ fontSize: '0.73rem', color: '#64748b', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
-                      Supervisor shift: Berwenang buka/tutup shift, rekonsiliasi laci kas, & mengawasi kasir.
+                      Supervisor shift: Berwenang membuka shift, mengawasi transaksi, & memantau kasir.
                     </p>
                   </div>
                 </div>

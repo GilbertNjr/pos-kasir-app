@@ -7,5 +7,42 @@
     "status": "PENDING",
     "expires_at": "2026-08-24T06:53:23.864Z",
     "created_at": "2026-08-17T06:53:23.866Z"
+  },
+  {
+    "token_id": "tok-msxedgef",
+    "user_id": "usr-msxedevz",
+    "token_hash": "$2b$10$pONUxRFIhr5/Bseeniy9EOsa2E0Vba6aU1IDQB2qQu0RjAk6vZ4ui",
+    "activation_code_display": "4VY-JEQ",
+    "status": "USED",
+    "expires_at": "2026-08-24T15:37:21.734Z",
+    "created_at": "2026-08-17T15:37:21.735Z",
+    "used_at": "2026-08-17T15:42:17.325Z"
+  },
+  {
+    "token_id": "tok-msxetbfc",
+    "user_id": "usr-msxetb0j",
+    "token_hash": "$2b$10$AMTSpJPwkfoMc5sfGgQ0dOs3tlmuI.wqsHtxAjUUnPlwgGygeaSRG",
+    "activation_code_display": "89Z-UGH",
+    "status": "PENDING",
+    "expires_at": "2026-08-24T15:49:41.784Z",
+    "created_at": "2026-08-17T15:49:41.784Z"
+  },
+  {
+    "token_id": "tok-msxf7vdm",
+    "user_id": "usr-msxf7uzw",
+    "token_hash": "$2b$10$cPTXfv.qnBofqujz2NHRI./a6H0sbFcbu1xhDaH63a/RYMB6HuqfS",
+    "activation_code_display": "47F-HHG",
+    "status": "PENDING",
+    "expires_at": "2026-08-24T16:01:00.825Z",
+    "created_at": "2026-08-17T16:01:00.826Z"
+  },
+  {
+    "token_id": "tok-msxf9np4",
+    "user_id": "usr-msxf9nc3",
+    "token_hash": "$2b$10$gbwO9hE0EayDDvWeAnaMeOa2mrkPo5XET2GYsT8jb4DFydP3aOHRa",
+    "activation_code_display": "LVF-ZR9",
+    "status": "PENDING",
+    "expires_at": "2026-08-24T16:02:24.184Z",
+    "created_at": "2026-08-17T16:02:24.184Z"
   }
 ]

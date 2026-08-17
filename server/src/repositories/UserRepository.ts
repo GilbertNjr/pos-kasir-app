@@ -46,38 +46,37 @@ export class UserRepository implements IRepository<UserEntity> {
 
   async findAll(): Promise<UserEntity[]> {
     let dbUsers: UserEntity[] = [];
+    let dbSuccess = false;
     try {
-      const res = await pool.query('SELECT * FROM users ORDER BY created_at ASC');
-      if (res.rows && res.rows.length > 0) {
+      const res = await pool.query(
+        "SELECT * FROM users WHERE status != 'DELETED' AND (username IS NULL OR username NOT LIKE 'deleted_%') ORDER BY created_at ASC"
+      );
+      if (res.rows && Array.isArray(res.rows)) {
         dbUsers = res.rows.map((row) => this.mapRowToEntity(row));
+        dbSuccess = true;
       }
     } catch (err: any) {
       console.warn('[UserRepository.findAll Notice] Database query fallback:', err.message);
     }
 
-    // Load file cache if memory is empty
+    if (dbSuccess && dbUsers.length > 0) {
+      UserRepository.inMemoryUsers = dbUsers.filter(
+        (u) => u && u.status !== 'DELETED' && !u.username.startsWith('deleted_')
+      );
+      this.saveFileCache();
+      return UserRepository.inMemoryUsers;
+    }
+
+    // Fallback if memory is loaded from file
     if (UserRepository.inMemoryUsers.length === 0) {
       UserRepository.inMemoryUsers = FileStorageAdapter.readData<UserEntity>('users.json', []);
     }
 
-    // Seamlessly merge PostgreSQL DB users with In-Memory & FileStorage users
-    const userMap = new Map<string, UserEntity>();
-    
-    // 1. Populate from inMemoryUsers (contains locally created & cached users)
-    UserRepository.inMemoryUsers.forEach((u) => {
-      if (u && u.user_id) userMap.set(u.user_id, u);
-    });
+    UserRepository.inMemoryUsers = UserRepository.inMemoryUsers.filter(
+      (u) => u && u.status !== 'DELETED' && !u.username.startsWith('deleted_')
+    );
 
-    // 2. Augment / overwrite with DB users from PostgreSQL
-    dbUsers.forEach((u) => {
-      if (u && u.user_id) userMap.set(u.user_id, u);
-    });
-
-    const combined = Array.from(userMap.values());
-    UserRepository.inMemoryUsers = combined;
-    this.saveFileCache();
-
-    return combined;
+    return UserRepository.inMemoryUsers;
   }
 
   async findById(user_id: string): Promise<UserEntity | null> {
@@ -113,6 +112,11 @@ export class UserRepository implements IRepository<UserEntity> {
 
   async create(user: UserEntity): Promise<UserEntity> {
     let createdEntity: UserEntity = { ...user };
+    const validLastLogin =
+      user.last_login && user.last_login !== '-' && !isNaN(new Date(user.last_login).getTime())
+        ? new Date(user.last_login).toISOString()
+        : null;
+
     try {
       const query = `
         INSERT INTO users (
@@ -131,7 +135,7 @@ export class UserRepository implements IRepository<UserEntity> {
         user.shift || 'Pagi (08:00 - 16:00)',
         user.status || 'ACTIVE',
         user.avatar_url || '',
-        user.last_login || null,
+        validLastLogin,
         user.invited_by_user_id || null,
         user.created_at || new Date().toISOString(),
       ];
@@ -141,7 +145,6 @@ export class UserRepository implements IRepository<UserEntity> {
       }
     } catch (dbErr: any) {
       console.warn('[UserRepository.create Notice] Database insert fallback:', dbErr.message);
-      // Fallback if status enum constraint in PostgreSQL rejected PENDING_ACTIVATION
       if (dbErr.message && dbErr.message.includes('user_status_enum') && user.status === 'PENDING_ACTIVATION') {
         try {
           const fallbackQuery = `
@@ -160,7 +163,7 @@ export class UserRepository implements IRepository<UserEntity> {
             Boolean(user.is_pj),
             user.shift || 'Pagi (08:00 - 16:00)',
             user.avatar_url || '',
-            user.last_login || null,
+            validLastLogin,
             user.invited_by_user_id || null,
             user.created_at || new Date().toISOString(),
           ];
@@ -174,7 +177,6 @@ export class UserRepository implements IRepository<UserEntity> {
       }
     }
 
-    // Always update inMemoryUsers and persist to users.json file cache
     const existingIdx = UserRepository.inMemoryUsers.findIndex((u) => u.user_id === createdEntity.user_id);
     if (existingIdx !== -1) {
       UserRepository.inMemoryUsers[existingIdx] = createdEntity;
@@ -196,7 +198,14 @@ export class UserRepository implements IRepository<UserEntity> {
       for (const [key, value] of Object.entries(item)) {
         if (value !== undefined) {
           fields.push(`${key} = $${index}`);
-          values.push(value);
+          let valToPush: any = value;
+          if (key === 'last_login') {
+            valToPush =
+              value && value !== '-' && !isNaN(new Date(value as string).getTime())
+                ? new Date(value as string).toISOString()
+                : null;
+          }
+          values.push(valToPush);
           index++;
         }
       }
@@ -233,15 +242,25 @@ export class UserRepository implements IRepository<UserEntity> {
 
   async delete(user_id: string): Promise<boolean> {
     try {
+      await pool.query('DELETE FROM user_activation_codes WHERE user_id = $1', [user_id]);
+      await pool.query('DELETE FROM employee_assignments WHERE supervisor_user_id = $1 OR employee_user_id = $1', [user_id, user_id]);
+      await pool.query('DELETE FROM shift_users WHERE user_id = $1', [user_id]);
       await pool.query('DELETE FROM users WHERE user_id = $1', [user_id]);
     } catch (err: any) {
-      console.warn('[UserRepository.delete Notice] Database delete fallback:', err.message);
+      console.warn('[UserRepository.delete Notice] Database delete attempt:', err.message);
+      try {
+        await pool.query(
+          "UPDATE users SET status = 'DELETED', username = $1 WHERE user_id = $2",
+          [`deleted_${Date.now()}_${user_id}`, user_id]
+        );
+      } catch {
+        // Fallback
+      }
     }
-    const memIdx = UserRepository.inMemoryUsers.findIndex((u) => u.user_id === user_id);
-    if (memIdx !== -1) {
-      UserRepository.inMemoryUsers.splice(memIdx, 1);
-      this.saveFileCache();
-    }
+    UserRepository.inMemoryUsers = UserRepository.inMemoryUsers.filter(
+      (u) => u && u.user_id !== user_id && u.status !== 'DELETED' && !u.username.startsWith('deleted_')
+    );
+    this.saveFileCache();
     return true;
   }
 

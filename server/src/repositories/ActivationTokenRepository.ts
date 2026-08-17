@@ -42,10 +42,12 @@ export class ActivationTokenRepository {
   }
 
   async findByCodeDisplay(code: string): Promise<ActivationTokenEntity | null> {
-    const rawFormatted = code.trim().toUpperCase();
+    if (!code) return null;
     const cleanCode = code.replace(/[\s\-]/g, '').toUpperCase();
+    const rawFormatted = code.trim().toUpperCase();
+
     try {
-      // Try exact or space/hyphen normalized query first
+      // Try exact or space/hyphen normalized query first in PostgreSQL DB
       const res = await pool.query(
         "SELECT * FROM activation_tokens WHERE UPPER(REPLACE(REPLACE(activation_code_display, ' ', ''), '-', '')) = $1 ORDER BY created_at DESC LIMIT 1",
         [cleanCode]
@@ -57,7 +59,14 @@ export class ActivationTokenRepository {
       // Fallback
     }
 
-    const mem = ActivationTokenRepository.inMemoryTokens
+    // Load/refresh latest tokens from JSON file storage if DB has 0 rows or fails
+    const fileTokens = FileStorageAdapter.readData<ActivationTokenEntity>(
+      'activation_tokens.json',
+      ActivationTokenRepository.inMemoryTokens
+    );
+    ActivationTokenRepository.inMemoryTokens = fileTokens;
+
+    const mem = fileTokens
       .filter((t) => {
         const tClean = t.activation_code_display.replace(/[\s\-]/g, '').toUpperCase();
         return tClean === cleanCode || t.activation_code_display.toUpperCase() === rawFormatted;

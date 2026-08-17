@@ -71,6 +71,10 @@ export class TransactionController {
     try {
       const { id } = req.params;
       const result = await this.transactionService.cancelTransaction(id);
+      sseManager.broadcast('TRANSACTION_CANCELLED', {
+        transaction_id: id,
+        timestamp: new Date().toISOString(),
+      });
       return res.status(200).json({ message: 'Transaksi berhasil dibatalkan', data: result });
     } catch (error: any) {
       return res.status(400).json({ error: error.message || 'Gagal membatalkan transaksi' });

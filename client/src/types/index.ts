@@ -1,7 +1,7 @@
 /* Domain Types matching DATABASE.md v0.2.0 - Frontend Client */
 
 export type UserRole = 'OWNER' | 'PENANGGUNG_JAWAB' | 'KARYAWAN';
-export type UserStatus = 'PENDING_ACTIVATION' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+export type UserStatus = 'PENDING_ACTIVATION' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DELETED';
 
 export interface User {
   user_id: string;

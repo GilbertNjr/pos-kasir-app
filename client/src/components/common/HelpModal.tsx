@@ -69,8 +69,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
         'Klik tombol "Buka Shift" saat masuk kerja.',
         'Masukkan nominal modal awal kasir (cash drawer).',
         'Lakukan transaksi selama shift aktif.',
-        'Saat pergantian jam kerja, klik "Tutup Shift", masukkan total uang fisik di laci.',
-        'Sistem akan otomatis menghitung selisih dan mencetak ringkasan laporan shift.',
+        'Sistem akan otomatis mencatat ringkasan laporan sesi shift secara real-time.',
       ],
     },
     {

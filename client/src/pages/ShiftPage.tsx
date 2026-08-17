@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, DollarSign, Lock, CheckCircle2, ShieldAlert, RotateCcw, PlayCircle } from 'lucide-react';
+import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
@@ -23,10 +23,6 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   // Form State Setor Modal Tambahan
   const [addCapitalAmount, setAddCapitalAmount] = useState<number | string>(50000);
   const [capitalLoading, setCapitalLoading] = useState(false);
-
-  // Form State Tutup Shift & Rekonsiliasi
-  const [physicalCash, setPhysicalCash] = useState<number | string>(0);
-  const [closeLoading, setCloseLoading] = useState(false);
 
   // Status Setelah Tutup Shift (Rincian Return Capital)
   const [closedShiftResult, setClosedShiftResult] = useState<ActiveShiftDetailsData | null>(null);
@@ -53,7 +49,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       const data = await apiService.getActiveShift();
       setActiveShiftData(data);
       if (data?.shift) {
-        setPhysicalCash(data.shift.theoretical_cash);
+        // Active shift loaded
       }
     } catch (err: any) {
       setError(err.message || 'Gagal memuat status shift');
@@ -98,25 +94,6 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     }
   };
 
-  const handleCloseShift = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeShiftData) return;
-    try {
-      setCloseLoading(true);
-      setError(null);
-      await apiService.closeShift(activeShiftData.shift.shift_id, Number(physicalCash));
-
-      // Ambil snapshot data terakhir untuk tampilan Rincian Pengembalian Modal
-      setClosedShiftResult({ ...activeShiftData });
-      setActiveShiftData(null);
-      if (onShiftStatusChange) onShiftStatusChange();
-    } catch (err: any) {
-      setError(err.message || 'Gagal menutup shift');
-    } finally {
-      setCloseLoading(false);
-    }
-  };
-
   const handleReturnCapital = async (contributionId: string) => {
     try {
       await apiService.returnCapitalContribution(contributionId);
@@ -138,8 +115,6 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   // TAMPILAN 1: Sesi Shift Aktif Berjalan (Shared Cash Drawer & Closing Panel)
   if (activeShiftData && activeShiftData.shift.shift_status === 'ACTIVE') {
     const { shift, contributions } = activeShiftData;
-    const isPJ = shift.shift_leader_user_id === currentUser.user_id;
-    const canClose = true; // Seluruh kasir / karyawan & PJ berwenang menutup shift
 
     return (
       <div>
@@ -264,89 +239,6 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 </button>
               </div>
             </form>
-          </div>
-
-          {/* Panel Right: Rekonsiliasi & Closing Shift (PJ Shift / Owner Only) */}
-          <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a' }}>
-              <Lock size={20} color="#dc2626" />
-              Tutup Shift & Rekonsiliasi Kas Bersama
-            </h3>
-
-            <div style={{ marginBottom: '1rem', padding: '0.85rem', background: isPJ ? '#faf5ff' : '#f8fafc', borderRadius: '12px', fontSize: '0.85rem', border: isPJ ? '1px solid #d8b4fe' : '1px solid #e2e8f0' }}>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#0f172a', marginBottom: '0.25rem', fontWeight: 800 }}>
-                <span style={{ background: '#7e22ce', color: '#ffffff', padding: '0.15rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 900 }}>
-                  ⭐ PJ SHIFT
-                </span>
-                Penanggung Jawab: <strong style={{ color: '#6b21a8' }}>{getUserDisplayName(shift.shift_leader_user_id)}</strong>
-              </p>
-              <p style={{ fontSize: '0.75rem', color: '#6b21a8', fontWeight: 600, margin: 0 }}>
-                ✅ Seluruh staf kasir (PJ, Karyawan, & Owner) berwenang untuk menyetor modal dan menutup shift kasir.
-              </p>
-            </div>
-
-            {canClose ? (
-              <form onSubmit={handleCloseShift}>
-                <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, marginBottom: '0.35rem', color: '#0f172a' }}>
-                    Hitung Uang Fisik Aktual di Laci Kas (Rp):
-                  </label>
-                  <input
-                    type="number"
-                    value={physicalCash}
-                    onChange={(e) => setPhysicalCash(e.target.value === '' ? '' : Number(e.target.value))}
-                    style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '1.1rem', fontWeight: 800, color: '#0f172a' }}
-                    min={0}
-                    step={1000}
-                    required
-                  />
-                </div>
-
-                {/* Ringkasan Kas Teoritis */}
-                <div style={{ background: '#f8fafc', padding: '0.75rem 1rem', borderRadius: '10px', marginBottom: '1rem', border: '1px solid #e2e8f0', fontSize: '0.85rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
-                    <span style={{ color: '#4b5563', fontWeight: 600 }}>Kas Teoritis System:</span>
-                    <strong style={{ color: '#4f46e5' }}>{formatRupiah(shift.theoretical_cash)}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#4b5563', fontWeight: 600 }}>Proyeksi Selisih Kas:</span>
-                    <strong style={{ color: ((Number(physicalCash) || 0) - shift.theoretical_cash) === 0 ? '#16a34a' : ((Number(physicalCash) || 0) - shift.theoretical_cash) > 0 ? '#2563eb' : '#dc2626' }}>
-                      {formatRupiah((Number(physicalCash) || 0) - shift.theoretical_cash)}
-                    </strong>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={closeLoading}
-                  style={{
-                    width: '100%',
-                    padding: '0.85rem 1.25rem',
-                    fontSize: '0.95rem',
-                    fontWeight: 800,
-                    color: '#ffffff',
-                    background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
-                    cursor: closeLoading ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.5rem',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <Lock size={18} />
-                  {closeLoading ? 'Memproses Closing & Rekonsiliasi...' : 'Tutup Shift & Eksekusi Rekonsiliasi'}
-                </button>
-              </form>
-            ) : (
-              <div style={{ padding: '1rem', background: 'rgba(239,68,68,0.1)', color: 'var(--danger)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <ShieldAlert size={20} />
-                <span>Tombol closing dikunci. Hanya Penanggung Jawab Shift ({getUserDisplayName(shift.shift_leader_user_id)}) yang dapat mengeksekusi rekonsiliasi kas.</span>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -496,7 +388,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       </div>
 
       <ActionLoadingModal
-        isOpen={openLoading || capitalLoading || closeLoading}
+        isOpen={openLoading || capitalLoading}
         message="Memproses transaksi sesi shift ke backend POS..."
         submessage="Menghubungi server untuk verifikasi laci kas..."
       />

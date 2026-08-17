@@ -8,18 +8,17 @@ export class StockRepository implements IRepository<StockEntity> {
   async findAll(): Promise<StockEntity[]> {
     try {
       const res = await pool.query(
-        `SELECT stock_id, product_id, current_stock::float, 
-                COALESCE(stock_gudang, 0)::float as stock_gudang, 
-                COALESCE(stock_etalase, 0)::float as stock_etalase, 
-                last_updated::text 
-         FROM stocks 
-         ORDER BY last_updated DESC`
+        `SELECT s.stock_id, s.product_id, s.current_stock::float, 
+                COALESCE(s.stock_gudang, 0)::float as stock_gudang, 
+                COALESCE(s.stock_etalase, 0)::float as stock_etalase, 
+                s.last_updated::text 
+         FROM stocks s
+         JOIN products p ON s.product_id = p.product_id
+         WHERE p.is_active = true
+         ORDER BY s.last_updated DESC`
       );
-      if (res.rows.length > 0) {
-        this.inMemoryStocks = res.rows;
-        return res.rows;
-      }
-      return [...this.inMemoryStocks];
+      this.inMemoryStocks = res.rows;
+      return res.rows;
     } catch (err) {
       console.warn('[StockRepository] Database fetch fallback to memory:', (err as Error).message);
       return [...this.inMemoryStocks];

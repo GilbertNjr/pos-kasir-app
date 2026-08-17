@@ -199,7 +199,7 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
             }}
           >
             <Clock size={20} />
-            {shift?.shift_status === 'ACTIVE' ? 'Kelola / Tutup Shift' : 'Mulai / Buka Shift'}
+            {shift?.shift_status === 'ACTIVE' ? 'Kelola Sesi Shift' : 'Mulai / Buka Shift'}
           </button>
 
           <button

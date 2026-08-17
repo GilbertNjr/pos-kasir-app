@@ -46,6 +46,7 @@ export interface EmployeeDashboardSummary {
   username: string;
   full_name: string;
   role: string;
+  is_pj?: boolean;
   transaction_count: number;
   total_sales: number;
   is_active_in_shift: boolean;
@@ -303,6 +304,7 @@ export class DashboardService {
         username: u.username,
         full_name: u.full_name,
         role: u.role,
+        is_pj: Boolean(u.is_pj),
         transaction_count: 0,
         total_sales: 0,
         is_active_in_shift: Boolean(isActiveInShift),

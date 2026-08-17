@@ -270,7 +270,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 </div>
               ) : (
                 <div style={{ fontSize: '0.7rem', color: 'var(--sidebar-subtext, #6b7280)' }}>
-                  Role: {currentUser.role}
+                  Role: {currentUser.is_pj || currentUser.role === 'PENANGGUNG_JAWAB' ? 'Penanggung Jawab (PJ)' : 'Kasir Operasional'}
                 </div>
               )}
             </div>

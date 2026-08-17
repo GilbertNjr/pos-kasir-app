@@ -40,10 +40,9 @@ INSERT INTO system_settings (setting_id, store_name, store_phone, store_address,
 ON CONFLICT (setting_id) DO NOTHING;
 
 -- 5. SEED USERS DEFAULT (PASSWORD: owner123 / kasir123 via bcrypt hash)
--- owner123 -> $2b$10$vgC/B9W4rKjJ5L...
 INSERT INTO users (user_id, username, email, password_hash, full_name, role, status) VALUES
-  ('usr-owner-001', 'owner', 'owner@tokopos.id', '$2b$10$eQ2K08Z9M8G1gq.X9h2P3.7qR7wW4o9k1V8v5Z2z5w4y3x2w1v0u', 'Pemilik Toko', 'OWNER', 'ACTIVE'),
-  ('usr-kasir-001', 'budi', 'budi@tokopos.id', '$2b$10$eQ2K08Z9M8G1gq.X9h2P3.7qR7wW4o9k1V8v5Z2z5w4y3x2w1v0u', 'Budi Kasir', 'KARYAWAN', 'ACTIVE')
+  ('usr-owner-001', 'owner', 'owner@tokopos.id', '$2b$10$6F88COtfi0quej0c5BCPae7YWLitP.A.iUXFOjTEXh21a6L4oMYh6', 'Pemilik Toko', 'OWNER', 'ACTIVE'),
+  ('usr-kasir-001', 'budi', 'budi@tokopos.id', '$2b$10$jSDAIZnX6C0vHD8se7jZS.emmQ5t5UyEbcQzpEBwdSCXoCzH.g7QK', 'Budi Kasir', 'KARYAWAN', 'ACTIVE')
 ON CONFLICT (user_id) DO NOTHING;
 
 COMMIT;

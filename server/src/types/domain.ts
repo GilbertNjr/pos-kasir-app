@@ -1,7 +1,7 @@
 /* Backend Domain Interfaces matching DATABASE.md v0.2.0 */
 
 export type UserRole = 'OWNER' | 'PENANGGUNG_JAWAB' | 'KARYAWAN';
-export type UserStatus = 'PENDING_ACTIVATION' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+export type UserStatus = 'PENDING_ACTIVATION' | 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DELETED';
 
 export interface UserEntity {
   user_id: string;

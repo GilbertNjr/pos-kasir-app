@@ -10,8 +10,6 @@ import {
   CreditCard,
   TrendingUp,
   X,
-  User as UserIcon,
-  Trash2,
   ArrowRight,
   ShoppingBag as BagIcon,
 } from 'lucide-react';
@@ -19,6 +17,7 @@ import { apiService } from '../services/api';
 import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { CashierBadge } from '../components/common/CashierBadge';
+import { TransactionDetailModal } from '../components/common/TransactionDetailModal';
 
 interface DonutSegment {
   name: string;
@@ -296,7 +295,6 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
 
   // Detail Modal & Cancel Transaction State
   const [selectedTx, setSelectedTx] = useState<any | null>(null);
-  const [cancelling, setCancelling] = useState(false);
 
   // Additional Interactive Detail Modals
   const [showAllTxModal, setShowAllTxModal] = useState(false);
@@ -667,58 +665,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
     window.print();
   };
 
-  const handleCancelTransaction = async (txId: string) => {
-    if (!window.confirm('Apakah Anda yakin ingin membatalkan transaksi ini? Stok produk terkait akan dikembalikan secara otomatis.')) {
-      return;
-    }
-    try {
-      setCancelling(true);
-      await apiService.cancelTransaction(txId);
-      setSelectedTx(null);
-      loadReport();
-    } catch (err: any) {
-      alert(err.message || 'Gagal membatalkan transaksi');
-    } finally {
-      setCancelling(false);
-    }
-  };
 
-  const renderStatusBadge = (status: string) => {
-    const s = (status || 'COMPLETED').toUpperCase();
-    if (s === 'COMPLETED' || s === 'LUNAS') {
-      return (
-        <span style={{ padding: '0.25rem 0.65rem', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800 }}>
-          Lunas
-        </span>
-      );
-    }
-    if (s === 'BELUM_BAYAR' || s === 'PENDING') {
-      return (
-        <span style={{ padding: '0.25rem 0.65rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800 }}>
-          Belum Bayar
-        </span>
-      );
-    }
-    if (s === 'DP') {
-      return (
-        <span style={{ padding: '0.25rem 0.65rem', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800 }}>
-          DP
-        </span>
-      );
-    }
-    if (s === 'CANCELLED' || s === 'DIBATALKAN') {
-      return (
-        <span style={{ padding: '0.25rem 0.65rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800 }}>
-          Dibatalkan
-        </span>
-      );
-    }
-    return (
-      <span style={{ padding: '0.25rem 0.65rem', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800 }}>
-        {status}
-      </span>
-    );
-  };
 
   const summary = reportData?.summary;
   const transactions = reportData?.transactions || [];
@@ -799,7 +746,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
           LAPORAN PENJUALAN RESMI ({periodType})
         </h3>
         <p style={{ fontSize: '0.8rem', color: '#555' }}>
-          Dicetak Pada: {new Date().toLocaleString('id-ID')} | Petugas: {currentUser.full_name} ({currentUser.role})
+          Dicetak Pada: {new Date().toLocaleString('id-ID')} | Petugas: {currentUser.full_name} ({currentUser.role === 'OWNER' ? 'Owner' : (currentUser.role === 'PENANGGUNG_JAWAB' || currentUser.is_pj) ? 'Penanggung Jawab (PJ)' : 'Kasir Operasional'})
         </p>
       </div>
 
@@ -1275,9 +1222,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
             </div>
 
             <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase' }}>Stok Menipis (&lt;10 Pcs)</span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase' }}>Stok Menipis (&lt;5 Pcs)</span>
               <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#d97706', marginTop: '0.25rem' }}>
-                {stockList.filter((s) => Number(s.current_stock) > 0 && Number(s.current_stock) < 10).length} Item
+                {stockList.filter((s) => Number(s.current_stock) > 0 && Number(s.current_stock) < 5).length} Item
               </div>
             </div>
 
@@ -1597,193 +1544,19 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
       ) : null}
 
       {/* MODAL DETAIL TRANSAKSI (Sama Persis Gambar 2) */}
-      {selectedTx && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 9999,
-            padding: '1rem',
-          }}
-        >
-          <div
-            style={{
-              background: '#ffffff',
-              width: '100%',
-              maxWidth: '520px',
-              maxHeight: '90vh',
-              borderRadius: '24px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-              overflowY: 'auto',
-              border: '1px solid #e2e8f0',
-              padding: '1.5rem',
-            }}
-          >
-            {/* Modal Title & Close */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid #f1f5f9' }}>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Detail Transaksi</h3>
-              <button
-                onClick={() => setSelectedTx(null)}
-                style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b' }}
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* Transaction Number & Status Header */}
-            <div style={{ marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <h2 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0f172a', margin: 0, fontFamily: 'monospace' }}>
-                  {selectedTx.transaction_number}
-                </h2>
-                {renderStatusBadge(selectedTx.status || 'COMPLETED')}
-              </div>
-              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.35rem' }}>
-                {formatWaktuIndo(selectedTx.transaction_time)} | <strong style={{ color: '#0f172a' }}>Kasir: {selectedTx.created_by_user_id || 'Kasir'}</strong>
-              </div>
-            </div>
-
-            {/* Informasi Pelanggan */}
-            <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#2563eb', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <UserIcon size={14} /> Informasi Pelanggan
-              </div>
-              <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a' }}>Pelanggan Umum</div>
-            </div>
-
-            {/* Detail Item Table */}
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <ShoppingBag size={14} color="#6366f1" /> Detail Item
-              </div>
-
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.825rem' }}>
-                <thead>
-                  <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem' }}>
-                    <th style={{ padding: '0.5rem' }}>Produk</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'center' }}>Qty</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>Harga</th>
-                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {selectedTx.items && selectedTx.items.length > 0 ? (
-                    selectedTx.items.map((item: any, idx: number) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '0.5rem', fontWeight: 700, color: '#0f172a' }}>{item.product_name || `Item ${idx + 1}`}</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'center', fontWeight: 700 }}>{item.qty}</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'right', color: '#64748b' }}>{formatRupiah(item.unit_price)}</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>{formatRupiah(item.subtotal)}</td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={4} style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8' }}>
-                        Detail item tidak tersedia
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* Rincian Finansial Summary */}
-            <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#64748b' }}>
-                <span>Subtotal</span>
-                <span style={{ fontWeight: 700, color: '#0f172a' }}>{formatRupiah(selectedTx.subtotal_amount || selectedTx.final_total)}</span>
-              </div>
-              {selectedTx.discount_amount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#dc2626' }}>
-                  <span>Diskon</span>
-                  <span style={{ fontWeight: 700 }}>- {formatRupiah(selectedTx.discount_amount)}</span>
-                </div>
-              )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', fontWeight: 900, color: '#2563eb', paddingTop: '0.4rem', borderTop: '1px dashed #cbd5e1' }}>
-                <span>Total</span>
-                <span>{formatRupiah(selectedTx.final_total)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#475569', paddingTop: '0.2rem' }}>
-                <span>Dibayar</span>
-                <span style={{ fontWeight: 700 }}>{formatRupiah(selectedTx.final_total)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#047857', fontWeight: 800 }}>
-                <span>Kembalian</span>
-                <span>Rp 0</span>
-              </div>
-            </div>
-
-            {/* Metode Pembayaran Card */}
-            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', padding: '1rem', borderRadius: '16px', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', marginBottom: '0.25rem' }}>Metode Pembayaran</div>
-                <div style={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a' }}>
-                  {selectedTx.payment_method === 'QRIS' ? 'QRIS' : selectedTx.payment_method === 'TRANSFER' ? 'Transfer Bank' : 'CASH / Tunai'}
-                </div>
-                {selectedTx.payment_method === 'QRIS' && <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Bank BCA | No. Ref: 123456789012</div>}
-              </div>
-              <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {selectedTx.payment_method === 'QRIS' ? <QrCode size={24} color="#2563eb" /> : selectedTx.payment_method === 'TRANSFER' ? <CreditCard size={24} color="#d97706" /> : <Banknote size={24} color="#059669" />}
-              </div>
-            </div>
-
-            {/* Action Buttons */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-              <button
-                onClick={() => window.print()}
-                style={{
-                  padding: '0.7rem',
-                  borderRadius: '12px',
-                  border: '1px solid #cbd5e1',
-                  background: '#f1f5f9',
-                  color: '#0f172a',
-                  fontWeight: 800,
-                  fontSize: '0.85rem',
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.4rem',
-                }}
-              >
-                <Printer size={16} /> Cetak Struk
-              </button>
-
-              {selectedTx.status !== 'CANCELLED' ? (
-                <button
-                  onClick={() => handleCancelTransaction(selectedTx.transaction_id)}
-                  disabled={cancelling}
-                  style={{
-                    padding: '0.7rem',
-                    borderRadius: '12px',
-                    border: '1px solid #fecaca',
-                    background: '#fef2f2',
-                    color: '#dc2626',
-                    fontWeight: 800,
-                    fontSize: '0.85rem',
-                    cursor: cancelling ? 'not-allowed' : 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '0.4rem',
-                  }}
-                >
-                  <Trash2 size={16} /> {cancelling ? 'Membatalkan...' : 'Batalkan Transaksi'}
-                </button>
-              ) : (
-                <div style={{ padding: '0.7rem', borderRadius: '12px', background: '#fef2f2', color: '#dc2626', textAlign: 'center', fontWeight: 800, fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  Telah Dibatalkan
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* MODAL TRANSACTION DETAIL (NEW SCREENSHOT ACCURATE DESIGN WITH CANCELLATION WARNING) */}
+      <TransactionDetailModal
+        isOpen={!!selectedTx}
+        onClose={() => setSelectedTx(null)}
+        transaction={selectedTx}
+        getUserName={(userId) => {
+          const user = usersList.find((u: any) => u.user_id === userId);
+          return user ? user.full_name || user.username : userId || 'Kasir';
+        }}
+        onTransactionCancelled={() => {
+          loadReport();
+        }}
+      />
 
       {/* MODAL 1: LIHAT SEMUA TRANSAKSI */}
       {showAllTxModal && (

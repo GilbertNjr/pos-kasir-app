@@ -2,30 +2,45 @@
   {
     "user_id": "usr-owner-001",
     "username": "owner",
-    "password_hash": "$2b$10$.WzI456HUFLy462/BtGLj.FRnO0wEiE93a5uM0otzv5j7XsUMqHwS",
-    "full_name": "Pemilik Toko (Owner)",
+    "password_hash": "$2b$10$jBt73IQ66LNKuvZqxCaqte8g8YD6EqWbAr8acgfJ.TIpYniAjrgpm",
+    "full_name": "Pemilik Toko",
     "role": "OWNER",
-    "phone": "0812-0000-1111",
-    "is_pj": true,
+    "phone": "",
+    "is_pj": false,
     "shift": "Pagi (08:00 - 16:00)",
     "status": "ACTIVE",
-    "avatar_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150",
-    "last_login": "17 Agu 2026, 13.12",
-    "created_at": "2026-01-01T00:00:00.000Z"
+    "avatar_url": "",
+    "last_login": "-",
+    "created_at": "2026-08-17T06:09:49.581Z"
   },
   {
-    "user_id": "usr-mswvnkwj",
-    "username": "kasir.santoso",
-    "full_name": "santoso",
-    "password_hash": "$2b$10$7fyJnldEhW6IS6ZRUwNs7.3JmY6/BtiqhrH0bgDLlGFpfD5reJv.a",
+    "user_id": "usr-msxf7uzw",
+    "username": "eyang.aynangngg",
+    "password_hash": "$2b$10$GOZgaex/15VYK2LeEK2TLOzyfoW3MBAvZ7vYPa9M7m1u7KcoPsLv2",
+    "full_name": "eyang aynangngg",
     "role": "KARYAWAN",
-    "phone": "0013813881",
+    "phone": "",
     "is_pj": false,
     "shift": "Pagi (08:00 - 16:00)",
     "status": "ACTIVE",
     "avatar_url": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
     "last_login": "-",
     "invited_by_user_id": "usr-owner-001",
-    "created_at": "2026-08-17T06:53:21.427Z"
+    "created_at": "2026-08-17T16:01:00.332Z"
+  },
+  {
+    "user_id": "usr-msxf9nc3",
+    "username": "kasir.muahhh",
+    "password_hash": "$2b$10$p6Ucr0eU9kV6HSJrqeT03u7G5xX4lqgmW/gyepIldywMwDkbpa5XO",
+    "full_name": "muahhh",
+    "role": "KARYAWAN",
+    "phone": "",
+    "is_pj": true,
+    "shift": "Pagi (08:00 - 16:00)",
+    "status": "ACTIVE",
+    "avatar_url": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150",
+    "last_login": "-",
+    "invited_by_user_id": "usr-owner-001",
+    "created_at": "2026-08-17T16:02:23.716Z"
   }
 ]

@@ -10,6 +10,7 @@ import { OwnerDashboardPage } from './pages/OwnerDashboardPage';
 import { ShiftLeaderDashboardPage } from './pages/ShiftLeaderDashboardPage';
 import { CashierDashboardPage } from './pages/CashierDashboardPage';
 import { ReportsPage } from './pages/ReportsPage';
+import { OwnerTransactionsPage } from './pages/OwnerTransactionsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { BackupRestorePage } from './pages/BackupRestorePage';
 import { PosRegister } from './components/PosRegister';
@@ -202,7 +203,13 @@ export const App: React.FC = () => {
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
     loadActiveShift();
-    addToast('success', 'Selamat Datang!', `Berhasil masuk sebagai ${user.full_name} (${user.role}).`);
+    const roleLabel =
+      user.role === 'OWNER'
+        ? 'Owner'
+        : user.role === 'PENANGGUNG_JAWAB' || Boolean(user.is_pj)
+        ? 'Penanggung Jawab (PJ)'
+        : 'Kasir Operasional';
+    addToast('success', 'Selamat Datang!', `Berhasil masuk sebagai ${user.full_name} (${roleLabel}).`);
   };
 
   const handleLogout = () => {
@@ -256,7 +263,9 @@ export const App: React.FC = () => {
         {ownerTab === 'DASHBOARD' && (
           <OwnerDashboardPage onTriggerToast={addToast} onNavigateTab={setOwnerTab} />
         )}
-        {(ownerTab === 'PENJUALAN' || ownerTab === 'TRANSAKSI') && <ReportsPage currentUser={currentUser} />}
+        {(ownerTab === 'PENJUALAN' || ownerTab === 'TRANSAKSI') && (
+          <OwnerTransactionsPage currentUser={currentUser} onTriggerToast={addToast} />
+        )}
         {ownerTab === 'PRODUCTS' && <ProductsPage currentUser={currentUser} onTriggerToast={addToast} />}
         {(ownerTab === 'BACKUP' || ownerTab === 'BACKUP_DATA' || ownerTab === 'SYNC' || ownerTab === 'KATEGORI') && (
           <BackupRestorePage currentUser={currentUser} />
@@ -281,9 +290,9 @@ export const App: React.FC = () => {
   // 2. WORKSPACE PENANGGUNG JAWAB & KARYAWAN
   // ==========================================
   const isShiftLeader =
+    (currentUser.role as string) === 'OWNER' ||
     currentUser.role === 'PENANGGUNG_JAWAB' ||
-    Boolean(currentUser.is_pj) ||
-    activeShiftData?.shift?.shift_leader_user_id === currentUser.user_id;
+    Boolean(currentUser.is_pj);
 
   return (
     <CashierLayout

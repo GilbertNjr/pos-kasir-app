@@ -108,14 +108,16 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       (prodsData || []).forEach((p) => pMap.set(p.product_id, p));
       setProductsMap(pMap);
 
-      const mergedStocks = (stocksData || []).map((s) => {
-        const prod = pMap.get(s.product_id);
-        return {
-          ...s,
-          selling_price: prod ? prod.selling_price : 0,
-          category_id: prod ? prod.category_id : undefined,
-        };
-      });
+      const mergedStocks = (stocksData || [])
+        .filter((s) => pMap.has(s.product_id))
+        .map((s) => {
+          const prod = pMap.get(s.product_id);
+          return {
+            ...s,
+            selling_price: prod ? prod.selling_price : 0,
+            category_id: prod ? prod.category_id : undefined,
+          };
+        });
 
       setStocks(mergedStocks);
       setCategories(catsData || []);
@@ -166,14 +168,16 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               (prodsData || []).forEach((p) => pMap.set(p.product_id, p));
               setProductsMap(pMap);
 
-              const mergedStocks = (stocksData || []).map((s) => {
-                const prod = pMap.get(s.product_id);
-                return {
-                  ...s,
-                  selling_price: prod ? prod.selling_price : 0,
-                  category_id: prod ? prod.category_id : undefined,
-                };
-              });
+              const mergedStocks = (stocksData || [])
+                .filter((s) => pMap.has(s.product_id))
+                .map((s) => {
+                  const prod = pMap.get(s.product_id);
+                  return {
+                    ...s,
+                    selling_price: prod ? prod.selling_price : 0,
+                    category_id: prod ? prod.category_id : undefined,
+                  };
+                });
               setStocks(mergedStocks);
             }
           }).catch(() => {});
@@ -431,10 +435,65 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     if (name.includes('gorengan') || name.includes('tempe') || name.includes('tahu')) return 'Gorengan';
     if (name.includes('minuman') || name.includes('teh') || name.includes('kopi') || name.includes('es')) return 'Minuman';
     if (name.includes('seblak')) return 'Seblak';
-    if (name.includes('snack') || name.includes('keripik') || name.includes('roti') || name.includes('makanan')) return 'Makanan & Snack';
+    if (name.includes('snack') || name.includes('keripik') || name.includes('roti') || name.includes('makanan') || name.includes('kul kul') || name.includes('lilit')) return 'Makanan & Snack';
     if (name.includes('kertas') || name.includes('hvs') || name.includes('atk') || name.includes('pulpen')) return 'ATK & Persediaan';
     if (name.includes('print') || name.includes('foto') || name.includes('copy') || name.includes('laminasi')) return 'Fotokopi & Print';
     return item.business_unit === 'FC_PRINT' ? 'ATK & Persediaan' : 'Makanan & Snack';
+  };
+
+  // Helper Dynamic Pastel Badge Color per Kategori
+  const getCategoryBadgeStyle = (categoryName: string) => {
+    const cat = (categoryName || '').toLowerCase().trim();
+
+    if (cat.includes('es krim') || cat.includes('aice') || cat.includes('walls') || cat.includes('krim')) {
+      return {
+        bg: '#e0f2fe',       // Soft Pastel Cyan
+        text: '#0284c7',
+        border: '#bae6fd',
+      };
+    }
+    if (cat.includes('makanan') || cat.includes('snack') || cat.includes('kul kul') || cat.includes('gorengan') || cat.includes('lilit') || cat.includes('seblak')) {
+      return {
+        bg: '#fff7ed',       // Soft Pastel Amber / Orange
+        text: '#c2410c',
+        border: '#ffedd5',
+      };
+    }
+    if (cat.includes('minuman') || cat.includes('teh') || cat.includes('kopi') || cat.includes('jus') || cat.includes('drink')) {
+      return {
+        bg: '#f0fdf4',       // Soft Pastel Emerald / Green
+        text: '#15803d',
+        border: '#bbf7d0',
+      };
+    }
+    if (cat.includes('fotokopi') || cat.includes('print') || cat.includes('fc') || cat.includes('copy')) {
+      return {
+        bg: '#faf5ff',       // Soft Pastel Violet / Purple
+        text: '#7e22ce',
+        border: '#e9d5ff',
+      };
+    }
+    if (cat.includes('atk') || cat.includes('tulis') || cat.includes('kertas') || cat.includes('buku')) {
+      return {
+        bg: '#fdf4ff',       // Soft Pastel Fuchsia
+        text: '#a21caf',
+        border: '#f5d0fe',
+      };
+    }
+    if (cat.includes('jasa') || cat.includes('desain') || cat.includes('ketik') || cat.includes('laminasi')) {
+      return {
+        bg: '#fff1f2',       // Soft Pastel Rose
+        text: '#e11d48',
+        border: '#fecdd3',
+      };
+    }
+
+    // Default Fallback Color
+    return {
+      bg: '#eff6ff',
+      text: '#2563eb',
+      border: '#dbeafe',
+    };
   };
 
   // Filtering Logic
@@ -456,19 +515,19 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       }
     }
 
-    if (filterStatus === 'SAFE') return item.current_stock >= 10;
-    if (filterStatus === 'LOW') return item.current_stock > 0 && item.current_stock < 10;
+    if (filterStatus === 'SAFE') return item.current_stock >= 5;
+    if (filterStatus === 'LOW') return item.current_stock > 0 && item.current_stock < 5;
     if (filterStatus === 'OUT') return item.current_stock === 0;
 
     return true;
   });
 
-  const lowStockCount = stocks.filter((s) => s.current_stock > 0 && s.current_stock < 10).length;
+  const lowStockCount = stocks.filter((s) => s.current_stock > 0 && s.current_stock < 5).length;
   const outOfStockCount = stocks.filter((s) => s.current_stock === 0).length;
-  const safeStockCount = stocks.filter((s) => s.current_stock >= 10).length;
+  const safeStockCount = stocks.filter((s) => s.current_stock >= 5).length;
 
   const alertStocks = React.useMemo(() => {
-    return stocks.filter((s) => s.current_stock < 10).slice(0, 5);
+    return stocks.filter((s) => s.current_stock < 5).slice(0, 5);
   }, [stocks]);
   const totalValuation = stocks.reduce((acc, s) => acc + (s.current_stock * (s.selling_price || 0)), 0);
 
@@ -1035,10 +1094,11 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                   <tbody>
                     {paginatedStocks.map((item) => {
                       const isOut = item.current_stock === 0;
-                      const isLow = item.current_stock > 0 && item.current_stock < 10;
+                      const isLow = item.current_stock > 0 && item.current_stock < 5;
                       const catName = getItemCategory(item);
-                      const minStock = isOut ? 20 : isLow ? 10 : 30;
+                      const minStock = 5;
                       const location = item.business_unit === 'FC_PRINT' ? 'Storage FC' : 'Gudang Utama';
+                      const badgeStyle = getCategoryBadgeStyle(catName);
 
                       return (
                         <tr key={item.stock_id || item.product_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
@@ -1062,7 +1122,19 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
                           {/* SKU / Barcode Tag */}
                           <td style={{ padding: '0.85rem 1rem' }}>
-                            <span style={{ padding: '0.25rem 0.65rem', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800, background: '#eff6ff', color: '#2563eb', border: '1px solid #dbeafe', display: 'inline-block' }}>
+                            <span
+                              style={{
+                                padding: '0.3rem 0.75rem',
+                                borderRadius: '8px',
+                                fontSize: '0.75rem',
+                                fontWeight: 800,
+                                background: badgeStyle.bg,
+                                color: badgeStyle.text,
+                                border: `1px solid ${badgeStyle.border}`,
+                                display: 'inline-block',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                              }}
+                            >
                               {catName}
                             </span>
                           </td>
@@ -1154,8 +1226,9 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               <div className="responsive-stock-grid">
                 {paginatedStocks.map((item) => {
                   const isOut = item.current_stock === 0;
-                  const isLow = item.current_stock > 0 && item.current_stock < 10;
+                  const isLow = item.current_stock > 0 && item.current_stock < 5;
                   const catName = getItemCategory(item);
+                  const badgeStyle = getCategoryBadgeStyle(catName);
 
                   return (
                     <div
@@ -1213,8 +1286,21 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                         <h3 style={{ fontSize: '0.975rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.2rem 0', wordBreak: 'break-word', lineHeight: 1.3 }}>
                           {item.product_name}
                         </h3>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem', wordBreak: 'break-word' }}>
-                          Kategori: <strong style={{ color: '#334155' }}>{catName}</strong>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem', wordBreak: 'break-word', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          <span>Kategori:</span>
+                          <span
+                            style={{
+                              padding: '0.15rem 0.45rem',
+                              borderRadius: '6px',
+                              fontSize: '0.7rem',
+                              fontWeight: 800,
+                              background: badgeStyle.bg,
+                              color: badgeStyle.text,
+                              border: `1px solid ${badgeStyle.border}`,
+                            }}
+                          >
+                            {catName}
+                          </span>
                         </div>
 
                         {/* Price Box */}

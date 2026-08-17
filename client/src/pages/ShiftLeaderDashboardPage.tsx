@@ -5,7 +5,6 @@ import {
   Receipt,
   TrendingUp,
   Clock,
-  Lock,
   Download,
   Activity,
   CheckCircle2,
@@ -30,9 +29,6 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
   const [shiftData, setShiftData] = useState<ActiveShiftDetailsData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [showCloseModal, setShowCloseModal] = useState(false);
-  const [actualCashInput, setActualCashInput] = useState<string>('');
-  const [processingClose, setProcessingClose] = useState(false);
 
   const fetchLeaderDashboardData = async () => {
     try {
@@ -89,28 +85,6 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
     };
   }, []);
 
-  const handleCloseShift = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!shiftData?.shift?.shift_id) return;
-    const actualCash = parseFloat(actualCashInput);
-    if (isNaN(actualCash) || actualCash < 0) {
-      if (onTriggerToast) onTriggerToast('danger', 'Input Tidak Valid', 'Nominal uang fisik tidak boleh kosong atau minus.');
-      return;
-    }
-
-    setProcessingClose(true);
-    try {
-      await apiService.closeShift(shiftData.shift.shift_id, actualCash);
-      if (onTriggerToast) onTriggerToast('success', 'Shift Ditutup', 'Rekonsiliasi kas dan closure shift berhasil disimpan.');
-      setShowCloseModal(false);
-      fetchLeaderDashboardData();
-    } catch (err: any) {
-      if (onTriggerToast) onTriggerToast('danger', 'Gagal Tutup Shift', err.message || 'Terjadi kesalahan saat closing shift');
-    } finally {
-      setProcessingClose(false);
-    }
-  };
-
   if (loading) {
     return (
       <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
@@ -122,11 +96,6 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
 
   const shift = shiftData?.shift;
   const isShiftActive = shift?.shift_status === 'ACTIVE';
-  const isShiftLeader =
-    shift?.shift_leader_user_id === currentUser.user_id ||
-    currentUser.role === 'PENANGGUNG_JAWAB' ||
-    Boolean(currentUser.is_pj) ||
-    currentUser.role === 'OWNER';
   const totalSalesRevenue = transactions.reduce((acc, curr) => acc + (curr.status === 'COMPLETED' ? curr.final_total : 0), 0);
 
   // Determine Active User IDs Set dynamically
@@ -209,29 +178,6 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
             <Download size={16} />
             Export Data
           </button>
-
-          {isShiftActive && isShiftLeader && (
-            <button
-              onClick={() => setShowCloseModal(true)}
-              style={{
-                padding: '0.65rem 1.25rem',
-                borderRadius: '8px',
-                border: 'none',
-                background: '#4f46e5',
-                color: '#ffffff',
-                fontWeight: 700,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.3)',
-              }}
-            >
-              <Lock size={16} />
-              Tutup Shift & Rekonsiliasi
-            </button>
-          )}
         </div>
       </div>
 
@@ -498,57 +444,6 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
         </div>
       </div>
 
-      {/* 5. MODAL CLOSING SHIFT & REKONSILIASI KAS */}
-      {showCloseModal && shift && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '440px', width: '100%', padding: '1.5rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 0.5rem 0', color: '#0f172a' }}>Tutup Shift & Rekonsiliasi Kas</h3>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.25rem' }}>
-              Masukkan jumlah fisik uang tunai aktual yang dihitung di dalam laci kas saat ini.
-            </p>
-
-            <form onSubmit={handleCloseShift}>
-              <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '8px', marginBottom: '1rem', border: '1px solid #e2e8f0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginBottom: '0.4rem', color: '#475569' }}>
-                  <span>Saldo Kas Teoritis:</span>
-                  <span style={{ fontWeight: 700, color: '#4338ca' }}>{formatRupiah(shift.theoretical_cash || 0)}</span>
-                </div>
-              </div>
-
-              <div style={{ marginBottom: '1.25rem' }}>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
-                  Uang Fisik Aktual di Laci (Rp)
-                </label>
-                <input
-                  type="number"
-                  placeholder="Masukkan nominal hasil hitung fisik..."
-                  value={actualCashInput}
-                  onChange={(e) => setActualCashInput(e.target.value)}
-                  required
-                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '1rem', fontWeight: 700 }}
-                />
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowCloseModal(false)}
-                  style={{ padding: '0.6rem 1rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer' }}
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={processingClose}
-                  style={{ padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none', background: '#dc2626', color: '#fff', fontWeight: 700, cursor: 'pointer' }}
-                >
-                  {processingClose ? 'Memproses...' : 'Tutup Shift Sekarang'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

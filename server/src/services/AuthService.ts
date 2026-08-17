@@ -83,7 +83,7 @@ export class AuthService {
     const permissions = await this.rolePermissionRepo.getPermissionsForRole(user.role);
 
     // Update last_login
-    const nowStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const nowStr = new Date().toISOString();
     await this.userRepository.update(user.user_id, { last_login: nowStr });
     user.last_login = nowStr;
 
@@ -187,7 +187,7 @@ export class AuthService {
     }
 
     const password_hash = bcrypt.hashSync(newPasswordPlain, 10);
-    const nowStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    const nowStr = new Date().toISOString();
 
     const updatedUser = await this.userRepository.update(user.user_id, {
       username: newUsername,

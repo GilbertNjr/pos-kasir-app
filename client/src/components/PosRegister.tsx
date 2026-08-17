@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Plus, Minus, Trash2, CheckCircle, Printer, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Minus, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
 import { apiService, CreateTransactionResultData } from '../services/api';
 import { Product, User, PaymentMethod } from '../types';
-import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
+import { formatRupiah } from '../utils/formatters';
 import { ActionLoadingModal } from './common/ActionLoadingModal';
+import { TransactionDetailModal } from './common/TransactionDetailModal';
 
 
 interface PosRegisterProps {
@@ -606,76 +607,18 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
       {/* Struk Digital Modal */}
       {lastReceipt && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, padding: '1rem' }}>
-          <div className="printable-receipt-modal" style={{ width: '100%', maxWidth: '380px', padding: '1.75rem', background: '#ffffff', color: '#1e293b', borderRadius: '18px', boxShadow: '0 20px 40px rgba(0,0,0,0.25)', border: '1px solid #cbd5e1' }}>
-            <div style={{ textAlign: 'center', borderBottom: '1px dashed #cbd5e1', paddingBottom: '1rem', marginBottom: '1rem' }}>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', letterSpacing: '0.02em', margin: 0 }}>STRUK POS KASIR</h3>
-              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.2rem 0 0 0', fontWeight: 600 }}>Usaha Campuran FC/Printing & FNB</p>
-              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem', fontWeight: 600 }}>
-                No: <strong style={{ color: '#0f172a' }}>{lastReceipt.transaction.transaction_number}</strong> | {formatWaktuIndo(lastReceipt.transaction.transaction_time)}
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '1rem', fontSize: '0.85rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', color: '#475569', fontSize: '0.8rem', fontWeight: 700 }}>
-                <span>👤 Kasir: {currentUser.full_name || currentUser.username}</span>
-                <span>⏰ {currentUser.shift || 'Shift Pagi'}</span>
-              </div>
-
-              <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem', marginTop: '0.5rem' }}>
-                {lastReceipt.items.map((item) => {
-                  const productObj = products.find((p) => p.product_id === item.product_id);
-                  const productName = productObj ? productObj.product_name : `Product #${item.product_id.slice(-6)}`;
-
-                  return (
-                    <div key={item.transaction_item_id} style={{ marginBottom: '0.65rem', borderBottom: '1px dashed #f1f5f9', paddingBottom: '0.4rem' }}>
-                      <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.85rem' }}>
-                        {productName}
-                      </div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: '#64748b', marginTop: '0.15rem' }}>
-                        <span>{item.qty} x {formatRupiah(item.unit_price)}</span>
-                        <strong style={{ color: '#0f172a', fontSize: '0.85rem' }}>{formatRupiah(item.subtotal)}</strong>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div style={{ borderTop: '2px dashed #cbd5e1', paddingTop: '0.75rem', marginBottom: '1.25rem', fontSize: '0.9rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, fontSize: '1.15rem', marginBottom: '0.35rem', color: '#0f172a' }}>
-                <span>TOTAL:</span>
-                <span style={{ color: '#047857' }}>{formatRupiah(lastReceipt.transaction.final_total)}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#475569', fontWeight: 700 }}>
-                <span>Metode Bayar:</span>
-                <span>{lastReceipt.transaction.payment_method}</span>
-              </div>
-              {lastReceipt.transaction.payment_method === 'CASH' && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#059669', fontWeight: 800, marginTop: '0.2rem' }}>
-                  <span>Kembalian:</span>
-                  <span>{formatRupiah(lastReceipt.change_due)}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="no-print" style={{ display: 'flex', gap: '0.5rem' }}>
-              <button
-                onClick={() => setLastReceipt(null)}
-                style={{ flex: 1, padding: '0.65rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#334155', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
-              >
-                Tutup Struk
-              </button>
-              <button
-                onClick={() => window.print()}
-                className="btn-primary"
-                style={{ flex: 1, padding: '0.65rem', fontSize: '0.85rem', fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.35rem', background: '#0f172a', border: 'none', borderRadius: '10px', color: '#fff', cursor: 'pointer' }}
-              >
-                <Printer size={16} /> Cetak Struk PDF
-              </button>
-            </div>
-          </div>
-        </div>
+        <TransactionDetailModal
+          isOpen={!!lastReceipt}
+          onClose={() => setLastReceipt(null)}
+          transaction={{
+            ...lastReceipt.transaction,
+            cash_tendered: cashTendered,
+          }}
+          items={lastReceipt.items}
+          products={products}
+          getUserName={() => currentUser.full_name || currentUser.username}
+          onTransactionComplete={loadProducts}
+        />
       )}
 
       <ActionLoadingModal

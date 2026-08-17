@@ -638,7 +638,9 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                             </div>
                             <div>
                               <h4 style={{ fontSize: '0.975rem', fontWeight: 900, margin: 0, color: cashierColor.text }}>{emp.full_name}</h4>
-                              <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700 }}>Role: {emp.role}</span>
+                              <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700 }}>
+                                Role: {emp.is_pj || emp.role === 'PENANGGUNG_JAWAB' ? 'Penanggung Jawab (PJ)' : emp.role === 'OWNER' ? 'Owner' : 'Kasir Operasional'}
+                              </span>
                             </div>
                           </div>
 

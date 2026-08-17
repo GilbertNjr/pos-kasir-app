@@ -63,15 +63,51 @@ if (process.env.NODE_ENV === 'production') {
 
 import { runMigrations } from './database/migrate';
 
+const killPortProcess = (port: number) => {
+  try {
+    const { execSync } = require('child_process');
+    if (process.platform === 'win32') {
+      const output = execSync(`netstat -ano | findstr :${port}`).toString();
+      const lines = output.trim().split('\n');
+      for (const line of lines) {
+        const parts = line.trim().split(/\s+/);
+        const pid = parts[parts.length - 1];
+        if (pid && pid !== '0' && pid !== process.pid.toString()) {
+          try {
+            execSync(`taskkill /F /PID ${pid}`);
+          } catch {}
+        }
+      }
+    }
+  } catch {}
+};
+
+const startServer = () => {
+  const server = app.listen(PORT, () => {
+    console.log(`[POS Cloud Supabase Engine] Server operational on http://localhost:${PORT}`);
+  });
+
+  server.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE') {
+      console.warn(`\n⚠️ [PORT BUSY] Port ${PORT} sedang digunakan oleh proses lama.`);
+      console.log(`🔄 Membersihkan port ${PORT} dan merestart server otomatis...`);
+      killPortProcess(Number(PORT));
+      setTimeout(() => {
+        startServer();
+      }, 1000);
+    } else {
+      console.error('[Server Error]:', err);
+    }
+  });
+};
+
 // Start Server if not imported as module
 if (require.main === module) {
   runMigrations()
     .then(() => console.log('[Database] PostgreSQL Supabase Cloud schema & seed ready.'))
     .catch((err) => console.warn('[Database Migration Notice]:', err.message));
 
-  app.listen(PORT, () => {
-    console.log(`[POS Cloud Supabase Engine] Server operational on http://localhost:${PORT}`);
-  });
+  startServer();
 }
 
 export default app;
