@@ -151,7 +151,7 @@ Berikan respon HANYA berupa JSON Array murni (tanpa markdown formatting seperti 
 `;
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 detik timeout
+    const timeoutId = setTimeout(() => controller.abort(), 2500); // 2.5 detik fast timeout agar dashboard tidak lemot
 
     try {
       const response = await fetch(endpoint, {

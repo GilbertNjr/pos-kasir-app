@@ -138,14 +138,24 @@ export class DashboardService {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
     }
 
-    // Read all base entities
-    const allTransactions = await this.transactionRepository.findAll();
-    const allItems = await this.itemRepository.findAll();
-    const allProducts = await this.productRepository.findAll();
-    const allExpenses = await this.expenseRepository.findAll();
-    const allUsers = await this.userRepository.findAll();
-    const activeShift = await this.shiftRepository.findActiveShift();
-    const allShifts = await this.shiftRepository.findAll();
+    // Read all base entities concurrently in parallel for ultra-fast performance
+    const [
+      allTransactions,
+      allItems,
+      allProducts,
+      allExpenses,
+      allUsers,
+      activeShift,
+      allShifts,
+    ] = await Promise.all([
+      this.transactionRepository.findAll(),
+      this.itemRepository.findAll(),
+      this.productRepository.findAll(),
+      this.expenseRepository.findAll(),
+      this.userRepository.findAll(),
+      this.shiftRepository.findActiveShift(),
+      this.shiftRepository.findAll(),
+    ]);
 
     const userMap = new Map<string, string>();
     for (const u of allUsers) {
