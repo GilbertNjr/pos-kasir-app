@@ -577,70 +577,68 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
           <AlertTriangle size={20} color="#dc2626" />
           <span>{error}</span>
         </div>
-      )}
-
-      {/* 2. EXECUTIVE METRICS CARDS (4 CARDS GRID) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+      )}      {/* 2. EXECUTIVE METRICS CARDS (4 CARDS GRID: 2x2 ON MOBILE, 4 COLS ON DESKTOP) */}
+      <div className="responsive-kpi-grid">
         {/* Metric 1 */}
-        <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TOTAL PRODUK</span>
-            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TOTAL PRODUK</span>
+            <div className="kpi-icon" style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <Package size={22} />
             </div>
           </div>
-          <div style={{ fontSize: '1.85rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
-            {stocks.length} <span style={{ fontSize: '1rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
+          <div className="kpi-value" style={{ fontSize: '1.85rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
+            {stocks.length} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.35rem', fontWeight: 600 }}>
+          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem', fontWeight: 600 }}>
             Terdaftar di database inventaris
           </div>
         </div>
 
         {/* Metric 2: Asset Valuation */}
-        <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>NILAI STOK</span>
-            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>NILAI STOK</span>
+            <div className="kpi-icon" style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <DollarSign size={22} />
             </div>
           </div>
-          <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#059669', letterSpacing: '-0.03em' }}>
+          <div className="kpi-value" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#059669', letterSpacing: '-0.03em' }}>
             {formatRupiah(totalValuation)}
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '0.35rem', fontWeight: 600 }}>
+          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem', fontWeight: 600 }}>
             Est. Nilai Aset Stok Fisik
           </div>
         </div>
 
         {/* Metric 3: Stok Menipis */}
-        <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>STOK MENIPIS</span>
-            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>STOK MENIPIS</span>
+            <div className="kpi-icon" style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <AlertTriangle size={22} />
             </div>
           </div>
-          <div style={{ fontSize: '1.85rem', fontWeight: 900, color: '#d97706', letterSpacing: '-0.03em' }}>
-            {lowStockCount} <span style={{ fontSize: '1rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
+          <div className="kpi-value" style={{ fontSize: '1.85rem', fontWeight: 900, color: '#d97706', letterSpacing: '-0.03em' }}>
+            {lowStockCount} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#b45309', marginTop: '0.35rem', fontWeight: 700 }}>
+          <div style={{ fontSize: '0.75rem', color: '#b45309', marginTop: '0.35rem', fontWeight: 700 }}>
             Perlu segera disiap/restock
           </div>
         </div>
 
         {/* Metric 4: Stok Habis */}
-        <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>STOK HABIS</span>
-            <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>STOK HABIS</span>
+            <div className="kpi-icon" style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <XCircle size={22} />
             </div>
           </div>
-          <div style={{ fontSize: '1.85rem', fontWeight: 900, color: '#dc2626', letterSpacing: '-0.03em' }}>
-            {outOfStockCount} <span style={{ fontSize: '1rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
+          <div className="kpi-value" style={{ fontSize: '1.85rem', fontWeight: 900, color: '#dc2626', letterSpacing: '-0.03em' }}>
+            {outOfStockCount} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
           </div>
-          <div style={{ fontSize: '0.78rem', color: '#dc2626', marginTop: '0.35rem', fontWeight: 700 }}>
+          <div style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '0.35rem', fontWeight: 700 }}>
             Tidak dapat ditransaksikan
           </div>
         </div>

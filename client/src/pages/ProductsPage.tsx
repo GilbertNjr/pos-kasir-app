@@ -290,60 +290,60 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', paddingBottom: '3rem' }}>
-      {/* 1. TOP METRIC CARDS BAR (5 DYNAMIC REAL-TIME GRID COLUMNS) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.1rem' }}>
+      {/* 1. TOP METRIC CARDS BAR (5 DYNAMIC REAL-TIME GRID COLUMNS: 2 CARDS PER ROW ON MOBILE) */}
+      <div className="responsive-kpi-grid">
         {/* CARD 1: TOTAL PRODUK */}
-        <div style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="kpi-icon" style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <Package size={22} />
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Produk</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{totalProductCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#94a3b8' }}>Item</span></div>
+            <div className="kpi-value" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{totalProductCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#94a3b8' }}>Item</span></div>
           </div>
         </div>
 
         {/* CARD 2: PRODUK AKTIF */}
-        <div style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="kpi-icon" style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <CheckCircle2 size={22} />
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Produk Aktif</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{activeProductCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#059669' }}>Aktif</span></div>
+            <div className="kpi-value" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{activeProductCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#059669' }}>Aktif</span></div>
           </div>
         </div>
 
         {/* CARD 3: PRODUK NON-AKTIF */}
-        <div style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="kpi-icon" style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <XCircle size={22} />
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Produk Non-Aktif</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{inactiveProductCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#dc2626' }}>Item</span></div>
+            <div className="kpi-value" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{inactiveProductCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#dc2626' }}>Item</span></div>
           </div>
         </div>
 
         {/* CARD 4: STOK MENIPIS */}
-        <div style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="kpi-icon" style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <AlertTriangle size={22} />
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Stok Menipis</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{lowStockCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#d97706' }}>Item</span></div>
+            <div className="kpi-value" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{lowStockCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#d97706' }}>Item</span></div>
           </div>
         </div>
 
         {/* CARD 5: STOK HABIS */}
-        <div style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#fff1f2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="kpi-icon" style={{ width: '46px', height: '46px', borderRadius: '14px', background: '#fff1f2', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <PackageX size={22} />
           </div>
           <div>
             <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Stok Habis</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{outOfStockCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#e11d48' }}>Habis</span></div>
+            <div className="kpi-value" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{outOfStockCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#e11d48' }}>Habis</span></div>
           </div>
         </div>
       </div>
