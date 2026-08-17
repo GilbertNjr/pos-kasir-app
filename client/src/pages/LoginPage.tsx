@@ -394,9 +394,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               <Shield size={20} />
             </div>
             <div>
-              <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#1e3a8a' }}>Akses Owner</div>
+              <div style={{ fontSize: '0.875rem', fontWeight: 800, color: '#1e3a8a' }}>Portal Akses POS</div>
               <div style={{ fontSize: '0.775rem', color: '#3b82f6', fontWeight: 500 }}>
-                Masuk untuk mengakses dashboard owner
+                Masuk untuk mengakses workspace Owner, Supervisor, & Kasir
               </div>
             </div>
           </div>
@@ -407,7 +407,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               Masuk ke Sistem POS
             </h2>
             <p style={{ fontSize: '0.875rem', color: '#64748b', margin: 0 }}>
-              Silakan masuk dengan akun owner Anda
+              Silakan masuk dengan akun Anda (Owner, Penanggung Jawab, & Kasir)
             </p>
           </div>
 
@@ -721,9 +721,9 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
           >
             <Info size={18} style={{ color: '#2563eb', flexShrink: 0, marginTop: '2px' }} />
             <div>
-              <div style={{ fontSize: '0.785rem', fontWeight: 800, color: '#1e293b' }}>Perhatian</div>
+              <div style={{ fontSize: '0.785rem', fontWeight: 800, color: '#1e293b' }}>Portal Akses Utama POS</div>
               <div style={{ fontSize: '0.735rem', color: '#64748b', lineHeight: 1.4 }}>
-                Akun ini hanya untuk owner. Untuk pegawai, gunakan kode aktivasi akun yang diberikan oleh owner.
+                Halaman ini digunakan untuk login harian seluruh pengguna (Owner & Kasir yang sudah aktif). Bagi pegawai baru yang baru memiliki kode dari Owner, silakan klik 'Aktivasi Akun Pegawai' di bawah.
               </div>
             </div>
           </div>

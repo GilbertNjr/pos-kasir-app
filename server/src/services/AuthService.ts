@@ -187,15 +187,36 @@ export class AuthService {
     }
 
     const password_hash = bcrypt.hashSync(newPasswordPlain, 10);
+    const nowStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
     const updatedUser = await this.userRepository.update(user.user_id, {
       username: newUsername,
       password_hash,
       status: 'ACTIVE',
+      last_login: nowStr,
     });
 
     await this.activationTokenRepo.markAsUsed(tokenRecord.token_id);
 
-    return updatedUser ? this.sanitizeUser(updatedUser) : null;
+    const activeUser = updatedUser || user;
+    const permissions = await this.rolePermissionRepo.getPermissionsForRole(activeUser.role);
+
+    const token = jwt.sign(
+      {
+        user_id: activeUser.user_id,
+        username: activeUser.username,
+        role: activeUser.role,
+        is_pj: Boolean(activeUser.is_pj),
+        permissions,
+      },
+      JWT_SECRET,
+      { expiresIn: '24h' }
+    );
+
+    return {
+      token,
+      user: this.sanitizeUser(activeUser, permissions),
+    };
   }
 
   /**

@@ -219,7 +219,7 @@ export const apiService = {
     return true;
   },
 
-  async activateAccount(activation_code: string, username: string, password: string): Promise<User> {
+  async activateAccount(activation_code: string, username: string, password: string): Promise<LoginResponseData> {
     const response = await fetch(`${API_BASE}/auth/activate`, {
       method: 'POST',
       headers: {
@@ -230,6 +230,10 @@ export const apiService = {
 
     const result = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(result?.error || 'Gagal melakukan aktivasi akun');
+
+    if (result.data?.token && result.data?.user) {
+      this.setAuth(result.data.token, result.data.user);
+    }
     return result.data;
   },
 

@@ -207,9 +207,12 @@ export const App: React.FC = () => {
     if (hash === '#activate') {
       return (
         <ActivateAccountPage
-          onSuccess={() => {
+          onSuccess={(activatedUser?: User) => {
             window.location.hash = '';
             setHash('');
+            if (activatedUser) {
+              handleLoginSuccess(activatedUser);
+            }
           }}
         />
       );

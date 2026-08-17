@@ -148,10 +148,10 @@ export class AuthController {
       const { activation_code, username, password } = req.body;
       const result = await this.authService.activateAccount(activation_code, username, password);
 
-      sseManager.broadcast('USER_UPDATED', { action: 'ACTIVATED', user: result });
+      sseManager.broadcast('USER_UPDATED', { action: 'ACTIVATED', user: result.user });
 
       return res.status(200).json({
-        message: 'Akun pegawai berhasil diaktivasi. Anda dapat login sekarang.',
+        message: 'Akun pegawai berhasil diaktivasi. Otomatis masuk ke sistem POS.',
         data: result,
       });
     } catch (error: any) {

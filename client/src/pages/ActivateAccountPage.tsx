@@ -18,8 +18,10 @@ import {
 } from 'lucide-react';
 import { apiService } from '../services/api';
 
+import { User } from '../types';
+
 interface ActivateAccountPageProps {
-  onSuccess: () => void;
+  onSuccess: (user?: User) => void;
 }
 
 export const ActivateAccountPage: React.FC<ActivateAccountPageProps> = ({ onSuccess }) => {
@@ -56,11 +58,11 @@ export const ActivateAccountPage: React.FC<ActivateAccountPageProps> = ({ onSucc
 
     setIsLoading(true);
     try {
-      await apiService.activateAccount(activationCode.trim().toUpperCase(), username.trim(), password);
-      setSuccessMsg('Akun berhasil diaktivasi! Mengalihkan ke halaman login...');
+      const data = await apiService.activateAccount(activationCode.trim().toUpperCase(), username.trim(), password);
+      setSuccessMsg('Akun berhasil diaktivasi! Mengalihkan ke sistem kasir POS...');
       setTimeout(() => {
-        onSuccess();
-      }, 1500);
+        onSuccess(data.user);
+      }, 1000);
     } catch (err: any) {
       setError(err.message || 'Gagal melakukan aktivasi akun. Periksa kembali kode aktivasi Anda.');
     } finally {
@@ -329,7 +331,7 @@ export const ActivateAccountPage: React.FC<ActivateAccountPageProps> = ({ onSucc
           <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
             <button
               type="button"
-              onClick={onSuccess}
+              onClick={() => onSuccess()}
               disabled={isLoading}
               style={{
                 display: 'flex',
