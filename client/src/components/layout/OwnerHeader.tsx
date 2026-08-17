@@ -97,6 +97,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
         <button
           onClick={() => setIsHelpOpen(true)}
           title="Pusat Bantuan & Panduan Sistem POS"
+          className="header-hide-mobile"
           style={{
             display: 'flex',
             alignItems: 'center',

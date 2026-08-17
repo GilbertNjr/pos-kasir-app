@@ -407,21 +407,22 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
         {/* Top Header Bar */}
         <header
           style={{
-            height: '64px',
+            minHeight: '56px',
             background: '#ffffff',
             borderBottom: '1px solid #e2e8f0',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0 1rem',
+            padding: '0.4rem 0.75rem',
             position: 'sticky',
             top: 0,
             zIndex: 40,
             boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+            gap: '0.5rem',
           }}
         >
           {/* App Title & Hamburger */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
             <button
               onClick={() => setIsMobileOpen(true)}
               className="mobile-hamburger-btn"
@@ -430,25 +431,25 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
                 border: 'none',
                 color: '#64748b',
                 cursor: 'pointer',
-                padding: '0.25rem',
+                padding: '0.2rem',
                 display: 'flex',
                 alignItems: 'center',
               }}
             >
-              <Menu size={24} />
+              <Menu size={22} />
             </button>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#4f46e5', letterSpacing: '-0.03em' }}>ShiftMaster</span>
-              <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>POS</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+              <span style={{ fontSize: '1.05rem', fontWeight: 800, color: '#4f46e5', letterSpacing: '-0.03em' }}>ShiftMaster</span>
+              <span className="header-hide-mobile" style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a' }}>POS</span>
             </div>
           </div>
 
           {/* Right Shift Indicator & Action Badges */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: activeShiftId ? '#f0fdf4' : '#fef2f2', padding: '0.35rem 0.85rem', borderRadius: '20px', border: activeShiftId ? '1px solid #bbf7d0' : '1px solid #fecaca' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: activeShiftId ? '#22c55e' : '#ef4444' }}></span>
-              <span style={{ fontSize: '0.75rem', fontWeight: 700, color: activeShiftId ? '#15803d' : '#991b1b' }}>
-                {activeShiftId ? `SHIFT ACTIVE (${activeShiftId})` : 'SHIFT OFFLINE'}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: activeShiftId ? '#f0fdf4' : '#fef2f2', padding: '0.3rem 0.6rem', borderRadius: '20px', border: activeShiftId ? '1px solid #bbf7d0' : '1px solid #fecaca' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: activeShiftId ? '#22c55e' : '#ef4444', flexShrink: 0 }}></span>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: activeShiftId ? '#15803d' : '#991b1b', whiteSpace: 'nowrap' }}>
+                {activeShiftId ? 'ACTIVE' : 'OFFLINE'}
               </span>
             </div>
 
@@ -457,17 +458,19 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             <button
               onClick={() => onTabChange('SHIFT')}
               style={{
-                padding: '0.45rem 1rem',
+                padding: '0.35rem 0.65rem',
                 borderRadius: '8px',
                 border: 'none',
                 background: '#4f46e5',
                 color: '#ffffff',
                 fontWeight: 700,
-                fontSize: '0.8rem',
+                fontSize: '0.75rem',
                 cursor: 'pointer',
+                whiteSpace: 'nowrap',
+                flexShrink: 0,
               }}
             >
-              Start Shift
+              Shift
             </button>
           </div>
         </header>
