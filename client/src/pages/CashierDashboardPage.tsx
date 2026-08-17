@@ -100,11 +100,11 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
       {/* 1. WELCOME KASIR HERO CARD */}
       <div
         style={{
-          background: 'var(--primary-gradient, linear-gradient(135deg, #0f172a 0%, #1e293b 100%))',
-          borderRadius: '16px',
-          padding: '1.75rem',
-          color: '#ffffff',
-          boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.3)',
+          background: '#ffffff',
+          borderRadius: '20px',
+          padding: '1.75rem 2rem',
+          border: '1px solid #cbd5e1',
+          boxShadow: '0 8px 30px rgba(15, 23, 42, 0.05)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
@@ -113,19 +113,19 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
         }}
       >
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
             <span
               style={{
-                background: 'rgba(59, 130, 246, 0.2)',
-                color: '#60a5fa',
-                border: '1px solid rgba(59, 130, 246, 0.4)',
+                background: '#eff6ff',
+                color: '#1d4ed8',
+                border: '1px solid #bfdbfe',
                 fontSize: '0.75rem',
-                fontWeight: 700,
-                padding: '0.2rem 0.65rem',
+                fontWeight: 800,
+                padding: '0.3rem 0.75rem',
                 borderRadius: '9999px',
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: '0.35rem',
+                gap: '0.4rem',
               }}
             >
               <UserCheck size={14} />
@@ -135,38 +135,46 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
             {shift?.shift_status === 'ACTIVE' ? (
               <span
                 style={{
-                  background: 'rgba(34, 197, 94, 0.2)',
-                  color: '#4ade80',
-                  border: '1px solid rgba(34, 197, 94, 0.4)',
+                  background: '#ecfdf5',
+                  color: '#047857',
+                  border: '1px solid #a7f3d0',
                   fontSize: '0.75rem',
-                  fontWeight: 700,
-                  padding: '0.2rem 0.65rem',
+                  fontWeight: 800,
+                  padding: '0.3rem 0.75rem',
                   borderRadius: '9999px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
                 }}
               >
-                🟢 SHIFT AKTIF (# {shift.shift_id})
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                SHIFT AKTIF (# {shift.shift_id.slice(-6)})
               </span>
             ) : (
               <span
                 style={{
-                  background: 'rgba(239, 68, 68, 0.2)',
-                  color: '#fca5a5',
-                  border: '1px solid rgba(239, 68, 68, 0.4)',
+                  background: '#fef2f2',
+                  color: '#dc2626',
+                  border: '1px solid #fecaca',
                   fontSize: '0.75rem',
-                  fontWeight: 700,
-                  padding: '0.2rem 0.65rem',
+                  fontWeight: 800,
+                  padding: '0.3rem 0.75rem',
                   borderRadius: '9999px',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
                 }}
               >
-                🔴 BELUM ADA SHIFT AKTIF
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#ef4444', display: 'inline-block' }} />
+                BELUM ADA SHIFT AKTIF
               </span>
             )}
           </div>
 
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 0.25rem 0' }}>
+          <h1 style={{ fontSize: '1.65rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.35rem 0', letterSpacing: '-0.02em' }}>
             Halo, {currentUser.full_name}! 👋
           </h1>
-          <p style={{ fontSize: '0.875rem', color: '#94a3b8', margin: 0 }}>
+          <p style={{ fontSize: '0.9rem', color: '#475569', fontWeight: 600, margin: 0 }}>
             Siap melayani pelanggan toko dengan cepat dan akurat.
           </p>
         </div>
@@ -175,21 +183,22 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
           <button
             onClick={() => onNavigateTab('POS')}
             style={{
-              padding: '0.75rem 1.35rem',
-              borderRadius: '10px',
+              padding: '0.85rem 1.5rem',
+              borderRadius: '12px',
               border: 'none',
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
               color: '#ffffff',
-              fontWeight: 700,
-              fontSize: '0.9rem',
+              fontWeight: 800,
+              fontSize: '0.95rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.5rem',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+              gap: '0.55rem',
+              boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
+              transition: 'all 0.15s ease',
             }}
           >
-            <ShoppingCart size={18} />
+            <ShoppingCart size={20} />
             Mulai Transaksi Baru
           </button>
         </div>

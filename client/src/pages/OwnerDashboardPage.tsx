@@ -146,7 +146,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
               padding: '0.55rem 1.15rem',
               borderRadius: '10px',
               border: 'none',
-              background: 'var(--primary-gradient, linear-gradient(135deg, #b45309 0%, #d97706 100%))',
+              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
               color: '#ffffff',
               fontWeight: 800,
               fontSize: '0.825rem',
@@ -155,7 +155,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
               alignItems: 'center',
               gap: '0.45rem',
               whiteSpace: 'nowrap',
-              boxShadow: '0 3px 10px rgba(180, 83, 9, 0.25)',
+              boxShadow: '0 3px 10px rgba(15, 23, 42, 0.25)',
               transition: 'all 0.15s ease',
             }}
           >
