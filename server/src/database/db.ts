@@ -23,14 +23,30 @@ export const pool = new Pool(
       }
 );
 
+let dbAuthFailed = false;
+
 export const query = async (text: string, params?: any[]) => {
-  const start = Date.now();
-  const res = await pool.query(text, params);
-  const duration = Date.now() - start;
-  if (process.env.NODE_ENV !== 'production' && duration > 100) {
-    console.log('[DB Query Warning] Slow Query:', { text, duration, rows: res.rowCount });
+  if (dbAuthFailed) {
+    throw new Error('Database authentication failed (using in-memory fallback)');
   }
-  return res;
+  try {
+    const start = Date.now();
+    const res = await pool.query(text, params);
+    const duration = Date.now() - start;
+    if (process.env.NODE_ENV !== 'production' && duration > 100) {
+      console.log('[DB Query Warning] Slow Query:', { text, duration, rows: res.rowCount });
+    }
+    return res;
+  } catch (err: any) {
+    if (err && err.message && (err.message.includes('password authentication failed') || err.message.includes('authentication failed'))) {
+      if (!dbAuthFailed) {
+        dbAuthFailed = true;
+        console.warn('\n⚠️ [DB Connection Notice] Kredensial DATABASE_URL PostgreSQL di server/.env salah atau telah expired.');
+        console.warn('⚠️ Sistem otomatis mengalihkan seluruh transaksi & data ke In-Memory Storage secara stabil.\n');
+      }
+    }
+    throw err;
+  }
 };
 
 export default {
