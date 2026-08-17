@@ -89,20 +89,26 @@ export const apiService = {
     const token = this.getToken();
     if (!token) throw new Error('Tidak ada sesi login');
 
-    const response = await fetch(`${API_BASE}/auth/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    try {
+      const response = await fetch(`${API_BASE}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
-    const result = await response.json();
-    if (!response.ok) {
-      if (response.status === 401 || response.status === 403) {
-        this.clearAuth();
-        window.dispatchEvent(new Event('pos_auth_expired'));
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 401 && result?.error?.includes('Token')) {
+          this.clearAuth();
+          window.dispatchEvent(new Event('pos_auth_expired'));
+        }
+        throw new Error(result?.error || 'Gagal mengambil profil');
       }
-      throw new Error(result.error || 'Gagal mengambil profil');
+      this.setAuth(token, result.data);
+      return result.data;
+    } catch (err: any) {
+      const stored = this.getStoredUser();
+      if (stored) return stored;
+      throw err;
     }
-    this.setAuth(token, result.data);
-    return result.data;
   },
 
   async changePassword(currentPassword: string, newPassword: string): Promise<string> {

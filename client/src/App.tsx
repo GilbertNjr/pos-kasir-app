@@ -25,9 +25,22 @@ export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [hash, setHash] = useState<string>(window.location.hash);
-  const [ownerTab, setOwnerTab] = useState<string>('DASHBOARD');
-  const [cashierTab, setCashierTab] = useState<string>('DASHBOARD');
+  const [ownerTabState, setOwnerTabState] = useState<string>(() => localStorage.getItem('pos_owner_tab') || 'DASHBOARD');
+  const [cashierTabState, setCashierTabState] = useState<string>(() => localStorage.getItem('pos_cashier_tab') || 'DASHBOARD');
   const [activeShiftData, setActiveShiftData] = useState<ActiveShiftDetailsData | null>(null);
+
+  const ownerTab = ownerTabState;
+  const cashierTab = cashierTabState;
+
+  const setOwnerTab = (tab: string) => {
+    localStorage.setItem('pos_owner_tab', tab);
+    setOwnerTabState(tab);
+  };
+
+  const setCashierTab = (tab: string) => {
+    localStorage.setItem('pos_cashier_tab', tab);
+    setCashierTabState(tab);
+  };
 
   useEffect(() => {
     const handleHashChange = () => setHash(window.location.hash);
