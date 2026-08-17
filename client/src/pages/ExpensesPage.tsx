@@ -163,82 +163,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', paddingBottom: '3rem' }}>
-      {/* 1. HEADER BANNER SECTION */}
-      <div
-        style={{
-          background: 'var(--primary-gradient, linear-gradient(135deg, #0f172a 0%, #1e293b 100%))',
-          borderRadius: '24px',
-          padding: '2rem 2.25rem',
-          color: '#ffffff',
-          boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.15)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1.25rem',
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-            <div style={{ padding: '0.55rem', borderRadius: '14px', background: 'rgba(239, 68, 68, 0.2)', color: '#f87171' }}>
-              <DollarSign size={26} />
-            </div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, letterSpacing: '-0.02em', color: '#ffffff' }}>
-              Manajemen Pengeluaran Kas Toko
-            </h1>
-          </div>
-          <p style={{ fontSize: '0.875rem', color: '#94a3b8', margin: 0, maxWidth: '650px' }}>
-            Pencatatan real-time pengeluaran operasional, bahan baku, ATK, dan keperluan kas usaha.
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button
-            onClick={loadExpenses}
-            disabled={loading}
-            style={{
-              padding: '0.65rem 1.25rem',
-              borderRadius: '14px',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              background: 'rgba(255, 255, 255, 0.08)',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              backdropFilter: 'blur(10px)',
-            }}
-          >
-            <RefreshCw size={16} className={loading ? 'spinning' : ''} />
-            Refresh Data
-          </button>
-
-          <button
-            onClick={() => setShowModal(true)}
-            style={{
-              padding: '0.65rem 1.25rem',
-              borderRadius: '14px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)',
-            }}
-          >
-            <PlusCircle size={18} />
-            Catat Pengeluaran Baru
-          </button>
-        </div>
-      </div>
-
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
       {!activeShiftId && currentUser?.role !== 'OWNER' && (
         <div style={{ padding: '0.85rem 1.25rem', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '16px', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <AlertCircle size={20} />
@@ -252,7 +177,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
         </div>
       )}
 
-      {/* 2. TOP METRIC CARDS BAR (4 DYNAMIC REAL-TIME CARDS) */}
+      {/* 1. TOP METRIC CARDS BAR (4 DYNAMIC REAL-TIME CARDS - GAMBAR 2) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
         {/* CARD 1: TOTAL PENGELUARAN */}
         <div style={{ background: '#ffffff', padding: '1.35rem 1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
@@ -296,6 +221,83 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
             <div style={{ fontSize: '0.775rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Kategori Dominan</div>
             <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, textTransform: 'uppercase' }}>{topCategoryName}</div>
           </div>
+        </div>
+      </div>
+
+      {/* 2. UNIFIED SINGLE-ROW CONTROL ACTION CARD (DITARUH DI BAWAH GAMBAR 2) */}
+      <div
+        style={{
+          background: '#ffffff',
+          padding: '0.85rem 1.25rem',
+          borderRadius: '16px',
+          border: '1px solid #cbd5e1',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          gap: '0.75rem',
+          width: '100%',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <div style={{ padding: '0.4rem 0.65rem', background: '#fef2f2', borderRadius: '10px', color: '#dc2626', fontSize: '0.8rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <DollarSign size={16} color="#dc2626" />
+            <span>Kas Toko</span>
+          </div>
+          <span style={{ fontSize: '0.875rem', fontWeight: 800, color: '#1e293b' }}>
+            Pencatatan & Manajemen Pengeluaran Kas Operasional
+          </span>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0, marginLeft: 'auto' }}>
+          <button
+            onClick={loadExpenses}
+            disabled={loading}
+            style={{
+              padding: '0.55rem 1.1rem',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              background: '#ffffff',
+              color: '#334155',
+              fontWeight: 700,
+              fontSize: '0.825rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.15s ease',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            }}
+          >
+            <RefreshCw size={15} color="#475569" className={loading ? 'spinning' : ''} />
+            Refresh Data
+          </button>
+
+          <button
+            onClick={() => setShowModal(true)}
+            style={{
+              padding: '0.55rem 1.15rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '0.825rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 3px 10px rgba(239, 68, 68, 0.25)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <PlusCircle size={16} />
+            Catat Pengeluaran Baru
+          </button>
         </div>
       </div>
 
