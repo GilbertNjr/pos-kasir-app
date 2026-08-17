@@ -175,21 +175,23 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         </div>
       )}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+      <div className="responsive-main-grid">
         {/* Left Column: Product Selection Grid */}
-        <div style={{ flex: 1 }}>
+        <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button
                 onClick={() => setSelectedUnit('ALL')}
                 style={{
-                  padding: '0.35rem 0.75rem',
+                  padding: '0.4rem 0.85rem',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.8rem',
-                  fontWeight: 600,
-                  border: '1px solid var(--border-color)',
-                  background: selectedUnit === 'ALL' ? 'var(--primary-500)' : 'var(--bg-card)',
-                  color: selectedUnit === 'ALL' ? '#fff' : 'var(--text-secondary)',
+                  fontWeight: 700,
+                  border: selectedUnit === 'ALL' ? 'none' : '1px solid var(--border-color)',
+                  background: selectedUnit === 'ALL' ? '#0f172a' : '#ffffff',
+                  color: selectedUnit === 'ALL' ? '#ffffff' : '#4b5563',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 Semua
@@ -197,13 +199,15 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               <button
                 onClick={() => setSelectedUnit('FC_PRINT')}
                 style={{
-                  padding: '0.35rem 0.75rem',
+                  padding: '0.4rem 0.85rem',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.8rem',
-                  fontWeight: 600,
-                  border: '1px solid var(--border-color)',
-                  background: selectedUnit === 'FC_PRINT' ? 'var(--accent-fc)' : 'var(--bg-card)',
-                  color: selectedUnit === 'FC_PRINT' ? '#fff' : 'var(--text-secondary)',
+                  fontWeight: 700,
+                  border: selectedUnit === 'FC_PRINT' ? 'none' : '1px solid var(--border-color)',
+                  background: selectedUnit === 'FC_PRINT' ? 'var(--accent-fc)' : '#ffffff',
+                  color: selectedUnit === 'FC_PRINT' ? '#ffffff' : '#4b5563',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 FC / Print
@@ -211,21 +215,23 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               <button
                 onClick={() => setSelectedUnit('FNB')}
                 style={{
-                  padding: '0.35rem 0.75rem',
+                  padding: '0.4rem 0.85rem',
                   borderRadius: 'var(--radius-md)',
                   fontSize: '0.8rem',
-                  fontWeight: 600,
-                  border: '1px solid var(--border-color)',
-                  background: selectedUnit === 'FNB' ? 'var(--accent-fnb)' : 'var(--bg-card)',
-                  color: selectedUnit === 'FNB' ? '#fff' : 'var(--text-secondary)',
+                  fontWeight: 700,
+                  border: selectedUnit === 'FNB' ? 'none' : '1px solid var(--border-color)',
+                  background: selectedUnit === 'FNB' ? 'var(--accent-fnb)' : '#ffffff',
+                  color: selectedUnit === 'FNB' ? '#ffffff' : '#4b5563',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 F&B
               </button>
             </div>
 
-            <div style={{ position: 'relative', width: '200px' }}>
-              <Search size={16} style={{ position: 'absolute', left: '8px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <div style={{ position: 'relative', flex: 1, minWidth: '160px', maxWidth: '240px' }}>
+              <Search size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
                 type="text"
                 placeholder="Cari item..."
@@ -233,46 +239,48 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '0.35rem 0.6rem 0.35rem 2rem',
+                  padding: '0.4rem 0.6rem 0.4rem 2.2rem',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border-color)',
-                  fontSize: '0.8rem',
+                  fontSize: '0.825rem',
+                  background: '#ffffff',
                 }}
               />
             </div>
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>Memuat produk POS...</div>
+            <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>Memuat produk POS...</div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.85rem', maxHeight: '520px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: '0.75rem', maxHeight: '520px', overflowY: 'auto', paddingRight: '0.25rem' }}>
               {filteredProducts.map((p) => (
                 <div
                   key={p.product_id}
                   onClick={() => addToCart(p)}
                   style={{
-                    background: 'var(--bg-card)',
+                    background: '#ffffff',
                     border: '1px solid var(--border-color)',
                     borderRadius: 'var(--radius-md)',
                     padding: '0.85rem',
                     cursor: 'pointer',
-                    transition: 'transform 0.15s ease, border-color 0.15s ease',
+                    transition: 'all 0.15s ease',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
+                    boxShadow: 'var(--shadow-sm)',
                   }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--primary-500)')}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#5b21b6')}
                   onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border-color)')}
                 >
                   <div>
                     <span className={p.business_unit === 'FC_PRINT' ? 'badge badge-fc' : 'badge badge-fnb'} style={{ fontSize: '0.65rem', marginBottom: '0.35rem' }}>
                       {p.business_unit}
                     </span>
-                    <h4 style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-primary)', lineHeight: 1.2, marginBottom: '0.5rem' }}>
+                    <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.25, marginBottom: '0.5rem' }}>
                       {p.product_name}
                     </h4>
                   </div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--primary-600)' }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#4f46e5' }}>
                     {formatRupiah(p.selling_price)}
                   </div>
                 </div>
@@ -282,15 +290,15 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         </div>
 
         {/* Right Column: Shopping Cart Drawer & Checkout Panel */}
-        <div style={{ background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div style={{ background: '#ffffff', border: '1px solid var(--border-color)', borderRadius: 'var(--radius-lg)', padding: '1.25rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', width: '100%', minWidth: 0, boxShadow: 'var(--shadow-sm)' }}>
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
-              <h3 style={{ fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <ShoppingCart size={20} color="var(--primary-500)" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.65rem' }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#0f172a' }}>
+                <ShoppingCart size={20} color="#5b21b6" />
                 Keranjang Kasir ({cart.length})
               </h3>
               {cart.length > 0 && (
-                <button onClick={clearCart} style={{ color: 'var(--danger)', fontSize: '0.75rem', border: 'none', background: 'none', cursor: 'pointer' }}>
+                <button onClick={clearCart} style={{ color: '#991b1b', background: '#fee2e2', padding: '0.2rem 0.5rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700, border: 'none', cursor: 'pointer' }}>
                   Bersihkan
                 </button>
               )}
@@ -298,7 +306,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
             {/* Cart Items List */}
             {cart.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '3rem 1rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
+              <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: 'var(--text-muted)', fontSize: '0.875rem' }}>
                 Klik produk di sebelah kiri untuk menambah ke keranjang.
               </div>
             ) : (
@@ -315,30 +323,30 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                       fontSize: '0.85rem',
                     }}
                   >
-                    <div style={{ flex: 1, paddingRight: '0.5rem' }}>
-                      <div style={{ fontWeight: 600 }}>{item.product.product_name}</div>
+                    <div style={{ flex: 1, paddingRight: '0.5rem', minWidth: 0 }}>
+                      <div style={{ fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.product.product_name}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         {formatRupiah(item.product.selling_price)} x {item.qty}
                       </div>
                     </div>
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
                       <button
                         onClick={() => updateCartQty(item.product.product_id, -1)}
-                        style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-main)' }}
+                        style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: '#f8fafc', cursor: 'pointer' }}
                       >
                         <Minus size={12} />
                       </button>
-                      <span style={{ fontWeight: 600, minWidth: '20px', textAlign: 'center' }}>{item.qty}</span>
+                      <span style={{ fontWeight: 700, minWidth: '20px', textAlign: 'center' }}>{item.qty}</span>
                       <button
                         onClick={() => updateCartQty(item.product.product_id, 1)}
-                        style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: 'var(--bg-main)' }}
+                        style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: '#f8fafc', cursor: 'pointer' }}
                       >
                         <Plus size={12} />
                       </button>
                       <button
                         onClick={() => removeFromCart(item.product.product_id)}
-                        style={{ padding: '0.2rem 0.4rem', color: 'var(--danger)', border: 'none', background: 'none', cursor: 'pointer' }}
+                        style={{ padding: '0.2rem 0.4rem', color: '#991b1b', border: 'none', background: 'none', cursor: 'pointer' }}
                       >
                         <Trash2 size={14} />
                       </button>
@@ -351,16 +359,16 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
           {/* Payment Details & Submit */}
           <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', fontWeight: 700, marginBottom: '1rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.05rem', fontWeight: 800, marginBottom: '1rem', color: '#0f172a' }}>
               <span>Total Tagihan:</span>
-              <span style={{ color: 'var(--primary-600)' }}>{formatRupiah(totalAmount)}</span>
+              <span style={{ color: '#0f172a', fontSize: '1.15rem' }}>{formatRupiah(totalAmount)}</span>
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.4rem', color: 'var(--text-secondary)' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, marginBottom: '0.4rem', color: '#4b5563' }}>
                 Pilih Metode Pembayaran:
               </label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.5rem' }}>
                 {/* CASH */}
                 <button
                   type="button"
@@ -368,20 +376,20 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                   style={{
                     padding: '0.5rem 0.25rem',
                     borderRadius: '8px',
-                    fontSize: '0.78rem',
+                    fontSize: '0.75rem',
                     fontWeight: 800,
                     border: paymentMethod === 'CASH' ? '2px solid #047857' : '1px solid #a7f3d0',
-                    background: paymentMethod === 'CASH' ? '#ecfdf5' : '#f0fdf4',
+                    background: paymentMethod === 'CASH' ? '#ecfdf5' : '#ffffff',
                     color: '#047857',
-                    boxShadow: paymentMethod === 'CASH' ? '0 0 0 2px rgba(4,120,87,0.2)' : 'none',
+                    boxShadow: paymentMethod === 'CASH' ? '0 0 0 2px rgba(4,120,87,0.15)' : 'none',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '0.2rem',
+                    gap: '0.15rem',
                   }}
                 >
-                  <span style={{ fontSize: '0.68rem', opacity: 0.8 }}>HIJAU</span>
+                  <span style={{ fontSize: '0.65rem', opacity: 0.85 }}>HIJAU</span>
                   💵 TUNAI / CASH
                 </button>
 
@@ -392,20 +400,20 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                   style={{
                     padding: '0.5rem 0.25rem',
                     borderRadius: '8px',
-                    fontSize: '0.78rem',
+                    fontSize: '0.75rem',
                     fontWeight: 800,
                     border: paymentMethod === 'QRIS' ? '2px solid #1d4ed8' : '1px solid #bfdbfe',
-                    background: paymentMethod === 'QRIS' ? '#eff6ff' : '#f8fafc',
+                    background: paymentMethod === 'QRIS' ? '#eff6ff' : '#ffffff',
                     color: '#1d4ed8',
-                    boxShadow: paymentMethod === 'QRIS' ? '0 0 0 2px rgba(29,78,216,0.2)' : 'none',
+                    boxShadow: paymentMethod === 'QRIS' ? '0 0 0 2px rgba(29,78,216,0.15)' : 'none',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '0.2rem',
+                    gap: '0.15rem',
                   }}
                 >
-                  <span style={{ fontSize: '0.68rem', opacity: 0.8 }}>BIRU</span>
+                  <span style={{ fontSize: '0.65rem', opacity: 0.85 }}>BIRU</span>
                   📱 QRIS
                 </button>
 
@@ -416,20 +424,20 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                   style={{
                     padding: '0.5rem 0.25rem',
                     borderRadius: '8px',
-                    fontSize: '0.78rem',
+                    fontSize: '0.75rem',
                     fontWeight: 800,
                     border: paymentMethod === 'TRANSFER' ? '2px solid #b45309' : '1px solid #fde68a',
-                    background: paymentMethod === 'TRANSFER' ? '#fffbeb' : '#fffdf5',
+                    background: paymentMethod === 'TRANSFER' ? '#fffbeb' : '#ffffff',
                     color: '#b45309',
-                    boxShadow: paymentMethod === 'TRANSFER' ? '0 0 0 2px rgba(180,83,9,0.2)' : 'none',
+                    boxShadow: paymentMethod === 'TRANSFER' ? '0 0 0 2px rgba(180,83,9,0.15)' : 'none',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '0.2rem',
+                    gap: '0.15rem',
                   }}
                 >
-                  <span style={{ fontSize: '0.68rem', opacity: 0.8 }}>KUNING</span>
+                  <span style={{ fontSize: '0.65rem', opacity: 0.85 }}>KUNING</span>
                   🏦 TRANSFER
                 </button>
               </div>
@@ -437,18 +445,18 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
             {paymentMethod === 'CASH' && (
               <div style={{ marginBottom: '1rem' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.25rem', color: '#4b5563' }}>
                   Uang Diserahkan Pembeli (Rp):
                 </label>
                 <input
                   type="number"
                   value={cashTendered}
                   onChange={(e) => setCashTendered(Number(e.target.value))}
-                  style={{ width: '100%', padding: '0.45rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '0.95rem', fontWeight: 700 }}
+                  style={{ width: '100%', padding: '0.45rem 0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '0.95rem', fontWeight: 700 }}
                   min={totalAmount}
                   step={1000}
                 />
-                <div style={{ fontSize: '0.8rem', marginTop: '0.25rem', color: cashTendered >= totalAmount ? 'var(--success)' : 'var(--danger)', fontWeight: 600 }}>
+                <div style={{ fontSize: '0.8rem', marginTop: '0.25rem', color: cashTendered >= totalAmount ? '#16a34a' : '#dc2626', fontWeight: 700 }}>
                   Kembalian: {formatRupiah(Math.max(0, cashTendered - totalAmount))}
                 </div>
               </div>
@@ -457,10 +465,10 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
             <button
               onClick={handleCheckout}
               disabled={cart.length === 0 || submitLoading || !activeShiftId}
-              className="btn-primary"
-              style={{ width: '100%', padding: '0.75rem', fontSize: '1rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem' }}
+              className="btn-action-primary"
+              style={{ width: '100%', padding: '0.75rem', fontSize: '0.95rem', borderRadius: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: cart.length === 0 ? 'not-allowed' : 'pointer', opacity: cart.length === 0 ? 0.6 : 1 }}
             >
-              <CheckCircle size={20} />
+              <CheckCircle size={18} />
               {submitLoading ? 'Memproses Transaksi...' : 'Bayar & Selesaikan Order'}
             </button>
           </div>
