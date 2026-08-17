@@ -12,17 +12,17 @@ export interface ThemePalette {
 }
 
 export const THEME_PALETTES: Record<string, ThemePalette> = {
-  brown: {
-    id: 'brown',
-    name: 'Coklat Mocha',
-    primaryHex: '#b45309',
-    secondaryHex: '#92400e',
-    gradient: 'linear-gradient(135deg, #b45309 0%, #d97706 100%)',
-    sidebarBg: '#1c140e',
-    sidebarBorder: '#2e1c12',
-    accentBg: 'rgba(180, 83, 9, 0.15)',
-    accentText: '#b45309',
-    dashboardBg: '#fcf8f6',
+  dark_slate: {
+    id: 'dark_slate',
+    name: 'Dark Charcoal (Default)',
+    primaryHex: '#2563eb',
+    secondaryHex: '#1d4ed8',
+    gradient: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+    sidebarBg: '#090d16',
+    sidebarBorder: '#1e293b',
+    accentBg: 'rgba(37, 99, 235, 0.15)',
+    accentText: '#2563eb',
+    dashboardBg: '#f8fafc',
   },
   blue: {
     id: 'blue',
@@ -35,6 +35,18 @@ export const THEME_PALETTES: Record<string, ThemePalette> = {
     accentBg: 'rgba(37, 99, 235, 0.15)',
     accentText: '#2563eb',
     dashboardBg: '#f8fafc',
+  },
+  brown: {
+    id: 'brown',
+    name: 'Coklat Mocha',
+    primaryHex: '#b45309',
+    secondaryHex: '#92400e',
+    gradient: 'linear-gradient(135deg, #b45309 0%, #d97706 100%)',
+    sidebarBg: '#1c140e',
+    sidebarBorder: '#2e1c12',
+    accentBg: 'rgba(180, 83, 9, 0.15)',
+    accentText: '#b45309',
+    dashboardBg: '#fcf8f6',
   },
   emerald: {
     id: 'emerald',
@@ -72,18 +84,6 @@ export const THEME_PALETTES: Record<string, ThemePalette> = {
     accentText: '#d97706',
     dashboardBg: '#fffbeb',
   },
-  dark_slate: {
-    id: 'dark_slate',
-    name: 'Dark Charcoal',
-    primaryHex: '#334155',
-    secondaryHex: '#1e293b',
-    gradient: 'linear-gradient(135deg, #475569 0%, #0f172a 100%)',
-    sidebarBg: '#020617',
-    sidebarBorder: '#0f172a',
-    accentBg: 'rgba(51, 65, 85, 0.15)',
-    accentText: '#475569',
-    dashboardBg: '#f1f5f9',
-  },
 };
 
 export const applyGlobalTheme = (
@@ -103,14 +103,14 @@ export const applyGlobalTheme = (
       primaryHex: hex,
       secondaryHex: hex,
       gradient: `linear-gradient(135deg, ${hex} 0%, #111827 100%)`,
-      sidebarBg: customSidebarBg || '#18181b',
-      sidebarBorder: '#27272a',
+      sidebarBg: customSidebarBg || '#090d16',
+      sidebarBorder: '#1e293b',
       accentBg: `${hex}25`,
       accentText: hex,
       dashboardBg: customDashboardBg || '#f8fafc',
     };
   } else {
-    palette = { ...THEME_PALETTES.brown };
+    palette = { ...THEME_PALETTES.dark_slate };
   }
 
   if (customSidebarBg && customSidebarBg.startsWith('#')) {

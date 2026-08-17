@@ -106,11 +106,11 @@ export const App: React.FC = () => {
         if (s?.theme_settings?.theme_color) {
           applyGlobalTheme(s.theme_settings.theme_color, s.theme_settings.sidebar_color, s.theme_settings.dashboard_bg);
         } else {
-          applyGlobalTheme('brown');
+          applyGlobalTheme('dark_slate');
         }
       })
       .catch(() => {
-        applyGlobalTheme('brown');
+        applyGlobalTheme('dark_slate');
       });
 
     // Realtime EventSource SSE listener for settings & theme changes

@@ -51,10 +51,10 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
   const [country, setCountry] = useState('Indonesia');
 
   // Theme & Branding State
-  const [selectedThemeColor, setSelectedThemeColor] = useState<string>('brown');
-  const [customColorHex, setCustomColorHex] = useState<string>('#b45309');
-  const [sidebarColor, setSidebarColor] = useState<string>('#1c140e');
-  const [dashboardBgColor, setDashboardBgColor] = useState<string>('#fcf8f6');
+  const [selectedThemeColor, setSelectedThemeColor] = useState<string>('dark_slate');
+  const [customColorHex, setCustomColorHex] = useState<string>('#2563eb');
+  const [sidebarColor, setSidebarColor] = useState<string>('#090d16');
+  const [dashboardBgColor, setDashboardBgColor] = useState<string>('#f8fafc');
 
   // Operating Hours State
   const [isOpHoursEnabled, setIsOpHoursEnabled] = useState<boolean>(true);
@@ -172,14 +172,14 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
 
         // Theme Settings
         if (s.theme_settings) {
-          const themeKey = s.theme_settings.theme_color || 'brown';
+          const themeKey = s.theme_settings.theme_color || 'dark_slate';
           setSelectedThemeColor(themeKey);
           if (s.theme_settings.primary_hex) {
             setCustomColorHex(s.theme_settings.primary_hex);
           }
-          const sbBg = s.theme_settings.sidebar_color || '#1c140e';
+          const sbBg = s.theme_settings.sidebar_color || '#090d16';
           setSidebarColor(sbBg);
-          const dbBg = (s.theme_settings as any).dashboard_bg || localStorage.getItem('pos_app_dashboard_bg') || '#fcf8f6';
+          const dbBg = (s.theme_settings as any).dashboard_bg || localStorage.getItem('pos_app_dashboard_bg') || '#f8fafc';
           setDashboardBgColor(dbBg);
           applyGlobalTheme(themeKey, sbBg, dbBg);
         }
@@ -483,8 +483,8 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
   };
 
   const executeResetDefaults = () => {
-    setSelectedThemeColor('brown');
-    setSidebarColor('#1c140e');
+    setSelectedThemeColor('dark_slate');
+    setSidebarColor('#090d16');
     setStoreName('kui');
     setOwnerName('Ahmat Gebyar Gumelar');
     setEmail('gebyargumelar@gmail.com');
@@ -493,7 +493,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
     setIsOpHoursEnabled(true);
     setOpenTime('07:00');
     setCloseTime('22:00');
-    applyGlobalTheme('brown', '#1c140e', '#fcf8f6');
+    applyGlobalTheme('dark_slate', '#090d16', '#f8fafc');
     handleSaveAllSettings('Reset Pengaturan');
     if (onTriggerToast) {
       onTriggerToast('warning', 'Pengaturan Direset', 'Preferensi toko berhasil dikembalikan ke default.');
