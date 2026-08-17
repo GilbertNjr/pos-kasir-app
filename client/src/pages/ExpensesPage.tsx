@@ -617,22 +617,23 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
           </div>
 
           {/* QUICK SUMMARY CARD */}
-          <div style={{ background: 'var(--primary-gradient, linear-gradient(135deg, #1e293b 0%, #0f172a 100%))', padding: '1.5rem', borderRadius: '24px', color: '#ffffff', boxShadow: '0 10px 25px rgba(15, 23, 42, 0.15)' }}>
-            <div style={{ fontSize: '0.8rem', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '0.75rem' }}>
-              Ringkasan Operasional Kas
+          <div style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', padding: '1.5rem', borderRadius: '24px', color: '#ffffff', border: '1px solid #334155', boxShadow: '0 10px 25px rgba(15, 23, 42, 0.15)' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', color: '#94a3b8', letterSpacing: '0.05em', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <TrendingDown size={16} color="#f87171" />
+              <span>Ringkasan Operasional Kas</span>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>Rata-rata Per Transaksi</div>
-                <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#f87171' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#cbd5e1' }}>Rata-rata Per Transaksi</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#f87171', marginTop: '0.2rem' }}>
                   {formatRupiah(expenses.length > 0 ? Math.round(totalExpensesAmount / expenses.length) : 0)}
                 </div>
               </div>
 
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '0.75rem' }}>
-                <div style={{ fontSize: '0.75rem', color: '#cbd5e1' }}>Pengeluaran Terbesar</div>
-                <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#fbbf24' }}>
+              <div style={{ borderTop: '1px solid rgba(255,255,255,0.12)', paddingTop: '0.75rem' }}>
+                <div style={{ fontSize: '0.75rem', fontWeight: 600, color: '#cbd5e1' }}>Pengeluaran Terbesar</div>
+                <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#fbbf24', marginTop: '0.2rem' }}>
                   {formatRupiah(expenses.reduce((max, e) => Math.max(max, e.amount || 0), 0))}
                 </div>
               </div>

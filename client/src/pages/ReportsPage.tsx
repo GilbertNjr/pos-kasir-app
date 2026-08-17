@@ -926,7 +926,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         {/* Card 1: Total Omzet Penjualan */}
         <div
           style={{
-            background: 'var(--primary-gradient, linear-gradient(135deg, #1e293b 0%, #0f172a 100%))',
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
             color: '#ffffff',
             padding: '1.25rem',
             borderRadius: '20px',
@@ -938,13 +938,13 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
           }}
         >
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <TrendingUp size={15} color="#38bdf8" />
+            <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <TrendingUp size={16} color="#38bdf8" />
               Total Omzet Penjualan
             </div>
             <h3 style={{ fontSize: '1.45rem', fontWeight: 900, margin: 0, color: '#ffffff' }}>{formatRupiah(summary?.total_net_sales || summary?.total_gross_sales || 0)}</h3>
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#cbd5e1', marginTop: '0.75rem', fontWeight: 600 }}>
+          <div style={{ fontSize: '0.72rem', color: '#38bdf8', marginTop: '0.75rem', fontWeight: 700 }}>
             {summary?.total_transactions || 0} Transaksi Selesai
           </div>
         </div>
