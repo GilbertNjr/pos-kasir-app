@@ -123,18 +123,6 @@ export const apiService = {
     return result.message || 'Password berhasil diperbarui';
   },
 
-  async recoverPassword(username: string, recoveryPin: string, newPassword: string): Promise<string> {
-    const response = await fetch(`${API_BASE}/auth/recover-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, recoveryPin, newPassword }),
-    });
-
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Gagal memulihkan password');
-    return result.message || 'Password berhasil dipulihkan';
-  },
-
   handleResponseError(response: Response, result: any, fallbackMessage: string): never {
     if (response.status === 401) {
       this.clearAuth();
@@ -235,6 +223,20 @@ export const apiService = {
       this.setAuth(result.data.token, result.data.user);
     }
     return result.data;
+  },
+
+  async recoverPassword(username: string, newPassword: string): Promise<string> {
+    const response = await fetch(`${API_BASE}/auth/recover-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ username, newPassword }),
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result?.error || 'Gagal memulihkan password');
+    return result.message || 'Password berhasil dipulihkan';
   },
 
   async generateActivationCode(userId: string): Promise<{ user_id: string; activation_code: string }> {

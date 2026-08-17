@@ -38,7 +38,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
   const [showRecoverModal, setShowRecoverModal] = useState(false);
   const [recoverTab, setRecoverTab] = useState<'OWNER' | 'EMPLOYEE'>('OWNER');
   const [recoverUsername, setRecoverUsername] = useState('owner');
-  const [recoverPin, setRecoverPin] = useState('');
   const [recoverNewPassword, setRecoverNewPassword] = useState('');
   const [recoverConfirmPassword, setRecoverConfirmPassword] = useState('');
   const [recovering, setRecovering] = useState(false);
@@ -50,8 +49,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     setRecoverError(null);
     setRecoverSuccess(null);
 
-    if (!recoverUsername.trim() || !recoverPin.trim() || !recoverNewPassword.trim()) {
-      setRecoverError('Semua kolom wajib diisi.');
+    if (!recoverUsername.trim() || !recoverNewPassword.trim()) {
+      setRecoverError('Username dan Password Baru wajib diisi.');
       return;
     }
     if (recoverNewPassword.length < 6) {
@@ -65,8 +64,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
     try {
       setRecovering(true);
-      const msg = await apiService.recoverPassword(recoverUsername.trim(), recoverPin.trim(), recoverNewPassword.trim());
-      setRecoverSuccess(msg || 'Password berhasil dipulihkan!');
+      const msg = await apiService.recoverPassword(recoverUsername.trim(), recoverNewPassword.trim());
+      setRecoverSuccess(msg || 'Password berhasil diperbarui!');
       
       // Auto fill new password in main form
       setUsername(recoverUsername);
@@ -74,10 +73,10 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
       setTimeout(() => {
         setShowRecoverModal(false);
-        setSuccessMsg('Password berhasil dipulihkan! Kredensial baru sudah diisikan. Klik Masuk.');
+        setSuccessMsg('Password berhasil diperbarui! Kredensial baru sudah diisikan. Klik Masuk.');
       }, 1200);
     } catch (err: any) {
-      setRecoverError(err.message || 'PIN Darurat salah atau username tidak ditemukan.');
+      setRecoverError(err.message || 'Username tidak ditemukan.');
     } finally {
       setRecovering(false);
     }
@@ -795,11 +794,11 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               </button>
             </div>
 
-            {/* TAB 1: OWNER EMERGENCY RECOVERY */}
+            {/* TAB 1: OWNER DIRECT RECOVERY */}
             {recoverTab === 'OWNER' && (
               <>
                 <p style={{ fontSize: '0.8rem', color: '#475569', marginBottom: '1.15rem', lineHeight: 1.4 }}>
-                  Masukkan Username, <strong>PIN Pemulihan Darurat (6-Digit)</strong> Anda, serta Password Baru untuk memulihkan akun Owner secara instant.
+                  Masukkan <strong>Username Owner</strong> dan <strong>Password Baru</strong> yang Anda inginkan untuk memperbarui password secara langsung.
                 </p>
 
                 {recoverSuccess && (
@@ -826,19 +825,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                       placeholder="e.g. owner"
                       required
                       style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a', fontWeight: 700 }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>PIN Pemulihan Darurat (Default: 999888)</label>
-                    <input
-                      type="text"
-                      maxLength={6}
-                      value={recoverPin}
-                      onChange={(e) => setRecoverPin(e.target.value)}
-                      placeholder="Masukkan 6-digit PIN"
-                      required
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a', fontWeight: 800, letterSpacing: '0.15em', textAlign: 'center' }}
                     />
                   </div>
 

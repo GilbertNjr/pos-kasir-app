@@ -246,26 +246,19 @@ export class AuthService {
   }
 
   /**
-   * Pemulihan Password Owner via Emergency Recovery Key / PIN Master
+   * Pemulihan / Reset Password Langsung (Owner / Pegawai)
    */
-  public async recoverPassword(username: string, recoveryPin: string, newPasswordPlain: string) {
-    if (!username || !recoveryPin || !newPasswordPlain) {
-      throw new Error('Username, PIN Pemulihan, dan Password Baru wajib diisi');
+  public async recoverPassword(username: string, newPasswordPlain: string) {
+    if (!username || !newPasswordPlain) {
+      throw new Error('Username dan Password Baru wajib diisi');
     }
     if (newPasswordPlain.length < 6) {
       throw new Error('Password baru minimal 6 karakter');
     }
 
-    const user = await this.userRepository.findByUsername(username);
+    const user = await this.userRepository.findByUsername(username.trim());
     if (!user) {
       throw new Error('Username tidak ditemukan');
-    }
-
-    // Default Emergency Master PIN: 999888 atau PIN kustom 6 digit
-    const formattedPin = recoveryPin.trim();
-
-    if (formattedPin !== '999888' && formattedPin.length !== 6) {
-      throw new Error('PIN Pemulihan Darurat tidak cocok / tidak valid.');
     }
 
     const password_hash = bcrypt.hashSync(newPasswordPlain, 10);

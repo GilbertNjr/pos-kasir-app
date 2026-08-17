@@ -320,19 +320,19 @@ export class AuthController {
   };
 
   /**
-   * Endpoint Pemulihan Password Darurat (Lupa Password)
+   * Endpoint Pemulihan / Reset Password (Lupa Password)
    */
   public recoverPassword = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { username, recoveryPin, newPassword } = req.body;
-      await this.authService.recoverPassword(username, recoveryPin, newPassword);
+      const { username, newPassword } = req.body;
+      await this.authService.recoverPassword(username, newPassword);
 
       return res.status(200).json({
-        message: 'Password berhasil dipulihkan! Silakan login dengan password baru Anda.',
+        message: 'Password berhasil diperbarui! Silakan login dengan password baru Anda.',
       });
     } catch (error: any) {
       return res.status(400).json({
-        error: error.message || 'Gagal memulihkan password',
+        error: error.message || 'Gagal memperbarui password',
       });
     }
   };

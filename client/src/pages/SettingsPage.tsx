@@ -11,7 +11,6 @@ import {
   Sparkles,
   Key,
   ShieldCheck,
-  Lock,
   Eye,
   EyeOff,
   CheckCircle2,
@@ -81,7 +80,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
   const [showCurrentPass, setShowCurrentPass] = useState(false);
   const [showNewPass, setShowNewPass] = useState(false);
   const [showConfirmPass, setShowConfirmPass] = useState(false);
-  const [recoveryPin, setRecoveryPin] = useState('999888');
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordSuccessMsg, setPasswordSuccessMsg] = useState<string | null>(null);
   const [passwordErrorMsg, setPasswordErrorMsg] = useState<string | null>(null);
@@ -1333,52 +1331,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
               </button>
             </form>
 
-            {/* Metode Pemulihan Darurat / PIN Recovery */}
-            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '1.25rem' }}>
-              <div style={{ fontSize: '0.825rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.35rem' }}>
-                <Lock size={15} color="var(--color-primary)" />
-                <span>PIN Pemulihan Darurat (Emergency Recovery Key)</span>
-              </div>
-              <p style={{ fontSize: '0.725rem', color: '#64748b', margin: '0 0 0.75rem 0', lineHeight: 1.4 }}>
-                Jika suatu saat Owner lupa kata sandi, PIN 6-digit ini digunakan sebagai <strong>metode kedua</strong> di halaman login untuk memulihkan akun secara instant & real-time.
-              </p>
-
-              <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                <input
-                  type="text"
-                  maxLength={6}
-                  value={recoveryPin}
-                  onChange={(e) => setRecoveryPin(e.target.value)}
-                  style={{ width: '120px', padding: '0.45rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 800, textAlign: 'center', letterSpacing: '0.15em', color: '#0f172a' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => handleSaveAllSettings('PIN Pemulihan')}
-                  disabled={saving}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                    color: '#ffffff',
-                    fontWeight: 800,
-                    fontSize: '0.8rem',
-                    cursor: saving ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 4px 10px rgba(37, 99, 235, 0.25)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <ShieldCheck size={14} />
-                  <span>Simpan PIN</span>
-                </button>
-              </div>
-              <div style={{ fontSize: '0.7rem', color: '#166534', marginTop: '0.35rem', fontWeight: 600 }}>
-                ✓ PIN Darurat Aktif: Kode Default Login (`999888`)
-              </div>
-            </div>
           </div>
 
           {/* SECTION 6: Ringkasan Pengaturan */}
