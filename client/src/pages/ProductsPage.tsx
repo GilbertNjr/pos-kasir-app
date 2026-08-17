@@ -18,6 +18,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Sparkles,
+  Trash2,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { Product, Category, User, BusinessUnit } from '../types';
@@ -63,6 +64,10 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   const [editBusinessUnit, setEditBusinessUnit] = useState<BusinessUnit>('FC_PRINT');
   const [editPrice, setEditPrice] = useState<number | string>(0);
   const [editManageStock, setEditManageStock] = useState(true);
+
+  // State Modal Hapus Produk (Owner Only)
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState<Product | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const loadData = async () => {
     try {
@@ -193,6 +198,26 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
       }
     } finally {
       setFormLoading(false);
+    }
+  };
+
+  // Handle Delete Product
+  const handleDeleteProduct = async () => {
+    if (!deleteConfirmItem) return;
+    try {
+      setDeleteLoading(true);
+      await apiService.deleteProduct(deleteConfirmItem.product_id);
+      if (onTriggerToast) {
+        onTriggerToast('success', 'Produk Dihapus', `Produk "${deleteConfirmItem.product_name}" berhasil dihapus dari database.`);
+      }
+      setDeleteConfirmItem(null);
+      loadData();
+    } catch (err: any) {
+      if (onTriggerToast) {
+        onTriggerToast('danger', 'Gagal Menghapus Produk', err.message || 'Terjadi kesalahan sistem.');
+      }
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -752,25 +777,48 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                           </td>
                           <td style={{ padding: '1rem 1.25rem', textAlign: 'right' }}>
                             <RoleGuard userRole={currentUser.role} allow={['OWNER']}>
-                              <button
-                                onClick={() => handleOpenEditModal(p)}
-                                title="Edit Detail Produk"
-                                style={{
-                                  padding: '0.4rem 0.75rem',
-                                  borderRadius: '8px',
-                                  border: '1px solid #cbd5e1',
-                                  background: '#ffffff',
-                                  color: '#334155',
-                                  fontSize: '0.775rem',
-                                  fontWeight: 800,
-                                  cursor: 'pointer',
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '0.3rem',
-                                }}
-                              >
-                                <Edit3 size={14} color="#4f46e5" /> Edit
-                              </button>
+                              <div style={{ display: 'flex', gap: '0.4rem', justifyContent: 'flex-end', alignItems: 'center' }}>
+                                <button
+                                  onClick={() => handleOpenEditModal(p)}
+                                  title="Edit Detail Produk"
+                                  style={{
+                                    padding: '0.4rem 0.75rem',
+                                    borderRadius: '8px',
+                                    border: '1px solid #cbd5e1',
+                                    background: '#ffffff',
+                                    color: '#334155',
+                                    fontSize: '0.775rem',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.3rem',
+                                  }}
+                                >
+                                  <Edit3 size={14} color="#4f46e5" /> Edit
+                                </button>
+
+                                <button
+                                  onClick={() => setDeleteConfirmItem(p)}
+                                  title="Hapus Produk Master"
+                                  style={{
+                                    padding: '0.4rem 0.65rem',
+                                    borderRadius: '8px',
+                                    border: 'none',
+                                    background: '#fee2e2',
+                                    color: '#dc2626',
+                                    fontSize: '0.775rem',
+                                    fontWeight: 800,
+                                    cursor: 'pointer',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.3rem',
+                                    transition: 'all 0.15s ease',
+                                  }}
+                                >
+                                  <Trash2 size={14} /> Hapus
+                                </button>
+                              </div>
                             </RoleGuard>
                           </td>
                         </tr>
@@ -838,24 +886,46 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                         )}
 
                         <RoleGuard userRole={currentUser.role} allow={['OWNER']}>
-                          <button
-                            onClick={() => handleOpenEditModal(p)}
-                            style={{
-                              padding: '0.35rem 0.75rem',
-                              borderRadius: '8px',
-                              border: '1px solid #cbd5e1',
-                              background: '#ffffff',
-                              color: '#334155',
-                              fontSize: '0.75rem',
-                              fontWeight: 800,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '0.3rem',
-                            }}
-                          >
-                            <Edit3 size={13} color="#4f46e5" /> Edit
-                          </button>
+                          <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                            <button
+                              onClick={() => handleOpenEditModal(p)}
+                              style={{
+                                padding: '0.35rem 0.75rem',
+                                borderRadius: '8px',
+                                border: '1px solid #cbd5e1',
+                                background: '#ffffff',
+                                color: '#334155',
+                                fontSize: '0.75rem',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.3rem',
+                              }}
+                            >
+                              <Edit3 size={13} color="#4f46e5" /> Edit
+                            </button>
+
+                            <button
+                              onClick={() => setDeleteConfirmItem(p)}
+                              title="Hapus Produk Master"
+                              style={{
+                                padding: '0.35rem 0.65rem',
+                                borderRadius: '8px',
+                                border: 'none',
+                                background: '#fee2e2',
+                                color: '#dc2626',
+                                fontSize: '0.75rem',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.3rem',
+                              }}
+                            >
+                              <Trash2 size={13} /> Hapus
+                            </button>
+                          </div>
                         </RoleGuard>
                       </div>
                     </div>
@@ -1344,6 +1414,82 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 6. MODAL KONFIRMASI HAPUS PRODUK MASTER (OWNER ONLY) */}
+      {deleteConfirmItem && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1050, padding: '1rem' }}>
+          <div style={{ width: '100%', maxWidth: '440px', background: '#ffffff', borderRadius: '24px', padding: '1.75rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #fecaca', textAlign: 'center' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '18px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem auto', border: '1px solid #fecaca' }}>
+              <AlertTriangle size={28} />
+            </div>
+
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.5rem 0' }}>
+              Hapus Produk Master?
+            </h3>
+
+            <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
+              Apakah Anda yakin ingin menghapus produk <strong style={{ color: '#0f172a' }}>"{deleteConfirmItem.product_name}"</strong> (ID: {deleteConfirmItem.product_id})?
+              <br />
+              <span style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: 700, marginTop: '0.4rem', display: 'block' }}>
+                ⚠️ Tindakan ini akan menghapus data produk secara permanen dari katalog master database.
+              </span>
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={() => setDeleteConfirmItem(null)}
+                style={{
+                  flex: 1,
+                  padding: '0.65rem 1rem',
+                  borderRadius: '12px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#334155',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={handleDeleteProduct}
+                style={{
+                  flex: 1,
+                  padding: '0.65rem 1rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                  color: '#ffffff',
+                  fontWeight: 900,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
+                }}
+              >
+                {deleteLoading ? (
+                  <>
+                    <RefreshCw size={15} className="spinning" /> Menghapus...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 size={15} /> Ya, Hapus Produk
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}
