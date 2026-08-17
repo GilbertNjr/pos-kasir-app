@@ -13,7 +13,6 @@ import {
   ArrowUpRight,
   FileText,
   Settings,
-  Zap,
   Headphones,
   Sparkles,
   CheckCircle2,
@@ -67,150 +66,102 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', paddingBottom: '3.5rem' }}>
-      {/* 1. HERO HEADER ULTRA MODERN EXECUTIVE BANNER - DYNAMIC OWNER THEME PALETTE */}
+      {/* 1. UNIFIED SINGLE-ROW CONTROL TOOLBAR CARD FOR OWNER DASHBOARD */}
       <div
         style={{
-          position: 'relative',
-          overflow: 'hidden',
-          background: 'linear-gradient(135deg, var(--sidebar-bg, #1c140e) 0%, var(--color-primary-dark, #92400e) 55%, var(--color-primary, #b45309) 100%)',
-          borderRadius: '28px',
-          padding: '2.25rem 2.5rem',
-          color: '#ffffff',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
-          border: '1px solid rgba(255, 255, 255, 0.18)',
+          background: '#ffffff',
+          padding: '0.85rem 1.25rem',
+          borderRadius: '16px',
+          border: '1px solid #cbd5e1',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          gap: '0.75rem',
+          width: '100%',
         }}
       >
-        {/* Glow Radial Accents */}
-        <div
-          style={{
-            position: 'absolute',
-            top: '-80px',
-            right: '-60px',
-            width: '280px',
-            height: '280px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, var(--color-primary, #d97706) 0%, rgba(0, 0, 0, 0) 70%)',
-            opacity: 0.4,
-            pointerEvents: 'none',
-          }}
-        />
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '-60px',
-            left: '30%',
-            width: '200px',
-            height: '200px',
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, var(--color-primary-dark, #b45309) 0%, rgba(0, 0, 0, 0) 70%)',
-            opacity: 0.3,
-            pointerEvents: 'none',
-          }}
-        />
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1.5rem', zIndex: 2, position: 'relative' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.6rem', flexWrap: 'wrap' }}>
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.35rem 0.85rem',
-                  borderRadius: '20px',
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  backdropFilter: 'blur(4px)',
-                  border: '1px solid rgba(255, 255, 255, 0.3)',
-                  color: '#ffffff',
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  letterSpacing: '0.04em',
-                }}
-              >
-                <Zap size={14} color="#ffffff" /> EXECUTIVE DASHBOARD OWNER v3.5
-              </span>
-
-              {/* Realtime Pulse Indicator */}
-              <div
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.45rem',
-                  padding: '0.35rem 0.85rem',
-                  borderRadius: '20px',
-                  background: isSseConnected ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)',
-                  backdropFilter: 'blur(4px)',
-                  border: `1px solid ${isSseConnected ? 'rgba(52, 211, 153, 0.5)' : 'rgba(248, 113, 113, 0.5)'}`,
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  color: isSseConnected ? '#6ee7b7' : '#fca5a5',
-                }}
-              >
-                <span
-                  style={{
-                    width: '8px',
-                    height: '8px',
-                    borderRadius: '50%',
-                    background: isSseConnected ? '#10b981' : '#ef4444',
-                    boxShadow: isSseConnected ? '0 0 12px #34d399' : 'none',
-                  }}
-                />
-                {isSseConnected ? 'SINKRONISASI REALTIME AKTIF' : 'TERPUTUS'}
-              </div>
-            </div>
-
-            <h1 style={{ fontSize: '2.1rem', fontWeight: 900, margin: 0, letterSpacing: '-0.03em', color: '#ffffff' }}>
-              Pusat Analitik & Kendali Usaha 🏪
-            </h1>
-            <p style={{ fontSize: '0.925rem', color: 'rgba(255, 255, 255, 0.88)', margin: '0.4rem 0 0 0', maxWidth: '680px', lineHeight: 1.5 }}>
-              Pantau performa penjualan, omzet harian/bulanan, perputaran stok barang FC/Print & F&B, serta aktivitas shift kasir secara real-time.
-            </p>
+        {/* Left Side: Realtime Active Badge & Last Updated Timestamp */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'nowrap' }}>
+          {/* Realtime Pulse Indicator */}
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              padding: '0.35rem 0.85rem',
+              borderRadius: '20px',
+              background: isSseConnected ? '#ecfdf5' : '#fef2f2',
+              border: `1px solid ${isSseConnected ? '#a7f3d0' : '#fecaca'}`,
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              color: isSseConnected ? '#047857' : '#dc2626',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                background: isSseConnected ? '#10b981' : '#ef4444',
+                boxShadow: isSseConnected ? '0 0 10px #10b981' : 'none',
+              }}
+            />
+            {isSseConnected ? 'SINKRONISASI REALTIME AKTIF' : 'TERPUTUS'}
           </div>
 
-          {/* Right Header Controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'wrap' }}>
-            <div
-              style={{
-                fontSize: '0.8rem',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                background: 'rgba(255, 255, 255, 0.12)',
-                backdropFilter: 'blur(4px)',
-                padding: '0.6rem 1rem',
-                borderRadius: '14px',
-                border: '1px solid rgba(255, 255, 255, 0.25)',
-              }}
-            >
-              <Clock size={16} color="#ffffff" />
-              <span>Pembaruan: <strong style={{ color: '#ffffff' }}>{lastUpdated ? formatWaktuIndo(lastUpdated) : '-'}</strong></span>
-            </div>
-
-            <button
-              onClick={() => {
-                refresh();
-                if (onTriggerToast) onTriggerToast('success', 'Sinkronisasi Berhasil', 'Data analitik owner telah diperbarui.');
-              }}
-              style={{
-                padding: '0.65rem 1.35rem',
-                borderRadius: '14px',
-                border: '1px solid rgba(255, 255, 255, 0.35)',
-                background: 'var(--primary-gradient, linear-gradient(135deg, #b45309 0%, #d97706 100%))',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 8px 20px rgba(0, 0, 0, 0.25)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <RefreshCw size={16} className={loading ? 'spinning' : ''} /> Segarkan Data
-            </button>
+          {/* Last Updated Time */}
+          <div
+            style={{
+              fontSize: '0.8rem',
+              color: '#475569',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: '#f8fafc',
+              padding: '0.35rem 0.85rem',
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Clock size={15} color="#64748b" />
+            <span>Pembaruan: <strong style={{ color: '#0f172a' }}>{lastUpdated ? formatWaktuIndo(lastUpdated) : '-'}</strong></span>
           </div>
+        </div>
+
+        {/* Right Side: Refresh Data Button */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0, marginLeft: 'auto' }}>
+          <button
+            onClick={() => {
+              refresh();
+              if (onTriggerToast) onTriggerToast('success', 'Sinkronisasi Berhasil', 'Data analitik owner telah diperbarui.');
+            }}
+            disabled={loading}
+            style={{
+              padding: '0.55rem 1.15rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: 'var(--primary-gradient, linear-gradient(135deg, #b45309 0%, #d97706 100%))',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '0.825rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              whiteSpace: 'nowrap',
+              boxShadow: '0 3px 10px rgba(180, 83, 9, 0.25)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <RefreshCw size={15} className={loading ? 'spinning' : ''} />
+            Segarkan Data
+          </button>
         </div>
       </div>
 
