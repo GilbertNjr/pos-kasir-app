@@ -9,7 +9,6 @@ import {
   TrendingUp,
   LayoutGrid,
   List,
-  Sparkles,
   DollarSign,
   Filter,
   Eye,
@@ -573,86 +572,6 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', paddingBottom: '2.5rem' }}>
-      {/* 1. HERO HEADER BANNER WITH GRADIENT & CTA */}
-      <div
-        style={{
-          background: 'var(--primary-gradient, linear-gradient(135deg, #0f172a 0%, #1e1b4b 60%, #312e81 100%))',
-          borderRadius: '24px',
-          padding: '2rem 2.25rem',
-          color: '#ffffff',
-          boxShadow: '0 10px 30px rgba(15, 23, 42, 0.25)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1.5rem',
-          position: 'relative',
-          overflow: 'hidden',
-        }}
-      >
-        <div style={{ position: 'relative', zIndex: 2, maxWidth: '680px' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', padding: '0.35rem 0.85rem', borderRadius: '20px', background: 'rgba(255, 255, 255, 0.12)', backdropFilter: 'blur(8px)', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#a5b4fc', marginBottom: '0.75rem', border: '1px solid rgba(255,255,255,0.15)' }}>
-            <Sparkles size={14} color="#818cf8" />
-            STOK INVENTARIS OPERASIONAL v3.0 ({currentUser.role})
-          </div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 900, margin: '0 0 0.5rem 0', letterSpacing: '-0.03em', color: '#ffffff', lineHeight: 1.2 }}>
-            Kelola Stok Barang & Restock Fisik
-          </h1>
-          <p style={{ fontSize: '0.925rem', color: '#cbd5e1', margin: 0, lineHeight: 1.5 }}>
-            Pantau ketersediaan barang fisik FC/Print, Makanan, Minuman, Gorengan, & Es Krim secara akurat & realtime.
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', flexWrap: 'wrap', position: 'relative', zIndex: 2 }}>
-          <button
-            onClick={loadData}
-            disabled={loading}
-            style={{
-              padding: '0.7rem 1.15rem',
-              borderRadius: '14px',
-              border: '1px solid rgba(255,255,255,0.2)',
-              background: 'rgba(255, 255, 255, 0.1)',
-              backdropFilter: 'blur(8px)',
-              color: '#ffffff',
-              fontWeight: 700,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <RefreshCw size={17} className={loading ? 'spinning' : ''} />
-            Refetch Data
-          </button>
-
-          {currentUser.role !== 'OWNER' && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              style={{
-                padding: '0.7rem 1.4rem',
-                borderRadius: '14px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #6366f1 0%, #4f46e5 100%)',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 6px 20px rgba(99, 102, 241, 0.45)',
-                transition: 'all 0.2s ease',
-              }}
-            >
-              <PlusCircle size={19} />
-              + Tambah Produk & Stok Baru
-            </button>
-          )}
-        </div>
-      </div>
-
       {error && (
         <div style={{ padding: '1rem 1.25rem', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '16px', fontSize: '0.875rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <AlertTriangle size={20} color="#dc2626" />
@@ -727,22 +646,24 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         </div>
       </div>
 
-      {/* 2.2 TOOLBAR SEARCH & FILTER BAR (SATU BARIS SANGAT RAPI & MINIMALIS) */}
+      {/* 2.2 TOOLBAR SEARCH & FILTER BAR (SINGLE ROW WITH HORIZONTAL SCROLL) */}
       <div
         style={{
           background: '#ffffff',
           padding: '0.85rem 1.25rem',
           borderRadius: '18px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid #cbd5e1',
           boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
           display: 'flex',
           alignItems: 'center',
           gap: '0.65rem',
           flexWrap: 'nowrap',
           overflowX: 'auto',
+          scrollBehavior: 'smooth',
+          WebkitOverflowScrolling: 'touch',
         }}
       >
-        {/* Search Input Box (Fleksibel mengisi sisa ruang di sebelah kiri) */}
+        {/* Search Input Box */}
         <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '180px' }}>
           <input
             type="text"
@@ -872,6 +793,31 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
           Filter Lainnya
         </button>
 
+        {/* Button Refresh Data (Pindahan dari Header, Typo Fixed) */}
+        <button
+          onClick={loadData}
+          disabled={loading}
+          style={{
+            padding: '0.6rem 0.95rem',
+            borderRadius: '12px',
+            border: '1px solid #cbd5e1',
+            background: '#ffffff',
+            color: '#334155',
+            fontSize: '0.825rem',
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            flexShrink: 0,
+            whiteSpace: 'nowrap',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          <RefreshCw size={15} className={loading ? 'spinning' : ''} color="#2563eb" />
+          Refresh Data
+        </button>
+
         {/* Button Update Stok */}
         <button
           onClick={async () => {
@@ -883,7 +829,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             padding: '0.6rem 1.1rem',
             borderRadius: '12px',
             border: 'none',
-            background: 'var(--primary-gradient, linear-gradient(135deg, #2563eb 0%, #3b82f6 100%))',
+            background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
             color: '#ffffff',
             fontSize: '0.825rem',
             fontWeight: 800,
@@ -891,7 +837,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             display: 'flex',
             alignItems: 'center',
             gap: '0.4rem',
-            boxShadow: '0 4px 14px rgba(37, 99, 235, 0.35)',
+            boxShadow: '0 4px 14px rgba(217, 119, 6, 0.35)',
             flexShrink: 0,
             whiteSpace: 'nowrap',
             transition: 'all 0.2s ease',
@@ -900,6 +846,31 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
           <RefreshCw size={15} className={loading ? 'spinning' : ''} />
           Update Stok
         </button>
+
+        {currentUser.role !== 'OWNER' && (
+          <button
+            onClick={() => setShowCreateModal(true)}
+            style={{
+              padding: '0.6rem 1.1rem',
+              borderRadius: '12px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              color: '#ffffff',
+              fontSize: '0.825rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              boxShadow: '0 4px 14px rgba(5, 150, 105, 0.3)',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <PlusCircle size={16} />
+            + Tambah Stok
+          </button>
+        )}
       </div>
 
 
