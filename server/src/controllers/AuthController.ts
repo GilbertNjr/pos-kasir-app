@@ -4,6 +4,7 @@ import { UserRepository } from '../repositories/UserRepository';
 import { EmployeeAssignmentRepository } from '../repositories/EmployeeAssignmentRepository';
 import { ActivationTokenRepository } from '../repositories/ActivationTokenRepository';
 import { AuthenticatedRequest } from '../middlewares/AuthMiddleware';
+import { sseManager } from '../utils/sseManager';
 
 export class AuthController {
   private authService: AuthService;
@@ -27,6 +28,8 @@ export class AuthController {
     try {
       const { username, password } = req.body;
       const result = await this.authService.login(username, password);
+
+      sseManager.broadcast('USER_UPDATED', { action: 'LOGIN', user: result.user });
 
       return res.status(200).json({
         message: 'Login berhasil',
@@ -123,6 +126,8 @@ export class AuthController {
       // Menerbitkan Kode Aktivasi Sementara
       let activationCode = await this.authService.generateActivationToken(newUser.user_id);
 
+      sseManager.broadcast('USER_UPDATED', { action: 'CREATED', user_id: newUser.user_id });
+
       return res.status(201).json({
         message: 'Pegawai berhasil ditambahkan',
         data: {
@@ -142,6 +147,8 @@ export class AuthController {
     try {
       const { activation_code, username, password } = req.body;
       const result = await this.authService.activateAccount(activation_code, username, password);
+
+      sseManager.broadcast('USER_UPDATED', { action: 'ACTIVATED', user: result });
 
       return res.status(200).json({
         message: 'Akun pegawai berhasil diaktivasi. Anda dapat login sekarang.',

@@ -249,17 +249,26 @@ export class DashboardService {
 
     // Employee Performance Breakdown
     const activeShiftUserIds = new Set<string>();
-    if (activeShift) {
-      if (activeShift.opened_by_user_id) activeShiftUserIds.add(activeShift.opened_by_user_id);
-      if (activeShift.shift_leader_user_id) activeShiftUserIds.add(activeShift.shift_leader_user_id);
+    
+    // Collect all active shift user IDs and usernames
+    const activeShifts = allShifts.filter((s) => s.shift_status === 'ACTIVE');
+    for (const s of activeShifts) {
+      if (s.opened_by_user_id) activeShiftUserIds.add(s.opened_by_user_id.toLowerCase());
+      if (s.shift_leader_user_id) activeShiftUserIds.add(s.shift_leader_user_id.toLowerCase());
+      if (s.closed_by_user_id) activeShiftUserIds.add(s.closed_by_user_id.toLowerCase());
     }
-    // Check all active shifts
-    allShifts
-      .filter((s) => s.shift_status === 'ACTIVE')
-      .forEach((s) => {
-        if (s.opened_by_user_id) activeShiftUserIds.add(s.opened_by_user_id);
-        if (s.shift_leader_user_id) activeShiftUserIds.add(s.shift_leader_user_id);
-      });
+
+    if (activeShift) {
+      if (activeShift.opened_by_user_id) activeShiftUserIds.add(activeShift.opened_by_user_id.toLowerCase());
+      if (activeShift.shift_leader_user_id) activeShiftUserIds.add(activeShift.shift_leader_user_id.toLowerCase());
+    }
+
+    // Also include any user who created a transaction during the active shift / period
+    for (const tx of periodTransactions) {
+      if (tx.created_by_user_id) {
+        activeShiftUserIds.add(tx.created_by_user_id.toLowerCase());
+      }
+    }
 
     const empMap = new Map<string, EmployeeDashboardSummary>();
     
@@ -268,7 +277,18 @@ export class DashboardService {
     const targetUsersList = nonOwnerUsers.length > 0 ? nonOwnerUsers : allUsers;
 
     for (const u of targetUsersList) {
-      const isActiveInShift = activeShiftUserIds.has(u.user_id) || (activeShiftUserIds.size > 0 && u.status === 'ACTIVE');
+      const uIdLower = u.user_id.toLowerCase();
+      const uNameLower = u.username.toLowerCase();
+      const uFullNameLower = u.full_name.toLowerCase();
+
+      const isDirectMatch =
+        activeShiftUserIds.has(uIdLower) ||
+        activeShiftUserIds.has(uNameLower) ||
+        activeShiftUserIds.has(uFullNameLower);
+
+      const hasActiveShift = activeShiftUserIds.size > 0 || activeShifts.length > 0;
+      const isActiveInShift = isDirectMatch || (hasActiveShift && u.status === 'ACTIVE');
+
       empMap.set(u.user_id, {
         user_id: u.user_id,
         username: u.username,
@@ -276,7 +296,7 @@ export class DashboardService {
         role: u.role,
         transaction_count: 0,
         total_sales: 0,
-        is_active_in_shift: isActiveInShift,
+        is_active_in_shift: Boolean(isActiveInShift),
       });
     }
 

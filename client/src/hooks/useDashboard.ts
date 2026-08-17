@@ -69,6 +69,7 @@ export function useDashboard(initialFilter: DashboardFilterParams = { period_typ
       es.addEventListener('SHIFT_CLOSED', handleEventSignal);
       es.addEventListener('PRODUCT_UPDATED', handleEventSignal);
       es.addEventListener('SETTINGS_UPDATED', handleEventSignal);
+      es.addEventListener('USER_UPDATED', handleEventSignal);
 
       es.onerror = () => {
         if (!isSubscribed) return;
