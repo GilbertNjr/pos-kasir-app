@@ -286,8 +286,8 @@ export class DashboardService {
         activeShiftUserIds.has(uNameLower) ||
         activeShiftUserIds.has(uFullNameLower);
 
-      const hasActiveShift = activeShiftUserIds.size > 0 || activeShifts.length > 0;
-      const isActiveInShift = isDirectMatch || (hasActiveShift && u.status === 'ACTIVE');
+      // Active cashier = direct shift match OR user account is ACTIVE and has logged in
+      const isActiveInShift = isDirectMatch || (u.status === 'ACTIVE' && u.last_login && u.last_login !== '-');
 
       empMap.set(u.user_id, {
         user_id: u.user_id,

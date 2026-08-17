@@ -411,7 +411,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
             {activeCashiersCount} <span style={{ fontSize: '1.1rem', color: '#94a3b8', fontWeight: 700 }}>/ {totalCashiersCount || (activeCashiersCount > 0 ? activeCashiersCount : 0)}</span>
           </div>
           <div style={{ fontSize: '0.78rem', color: activeCashiersCount > 0 ? '#be123c' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: activeCashiersCount > 0 ? '#ffe4e6' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${activeCashiersCount > 0 ? '#fecdd3' : '#e2e8f0'}` }}>
-            <span>{activeCashiersCount > 0 ? `● ${activeCashiersCount} Shift Kasir Berjalan` : '○ 0 Shift Kasir Aktif'}</span>
+            <span>{activeCashiersCount > 0 ? `● ${activeCashiersCount} Kasir Logged In / Aktif` : '○ 0 Kasir Logged In'}</span>
           </div>
         </div>
       </div>
