@@ -921,40 +921,43 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         </form>
       </div>
 
-      {/* Summary Financial Cards: 5 Cards (Omzet Total, Transaksi, Tunai (Hijau), QRIS (Biru), Transfer (Kuning)) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem', marginBottom: '1.5rem' }}>
-        {/* Card 1: Total Omzet Penjualan */}
-        <div
-          style={{
-            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-            color: '#ffffff',
-            padding: '1.25rem',
-            borderRadius: '20px',
-            border: '1px solid #334155',
-            boxShadow: '0 4px 16px rgba(15, 23, 42, 0.2)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <TrendingUp size={16} color="#38bdf8" />
-              Total Omzet Penjualan
-            </div>
-            <h3 style={{ fontSize: '1.45rem', fontWeight: 900, margin: 0, color: '#ffffff' }}>{formatRupiah(summary?.total_net_sales || summary?.total_gross_sales || 0)}</h3>
+      {/* Featured Banner Card: Total Omzet Penjualan */}
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+          color: '#ffffff',
+          padding: '1.25rem 1.5rem',
+          borderRadius: '20px',
+          border: '1px solid #334155',
+          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.2)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          marginBottom: '1rem',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#94a3b8', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <TrendingUp size={16} color="#38bdf8" />
+            Total Omzet Penjualan
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#38bdf8', marginTop: '0.75rem', fontWeight: 700 }}>
-            {summary?.total_transactions || 0} Transaksi Selesai
-          </div>
+          <h3 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, color: '#ffffff' }}>{formatRupiah(summary?.total_net_sales || summary?.total_gross_sales || 0)}</h3>
         </div>
+        <div style={{ fontSize: '0.8rem', color: '#38bdf8', fontWeight: 700, background: 'rgba(56, 189, 248, 0.12)', padding: '0.4rem 0.85rem', borderRadius: '10px', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
+          {summary?.total_transactions || 0} Transaksi Selesai
+        </div>
+      </div>
 
-        {/* Card 2: Jumlah Transaksi */}
+      {/* 4 Summary Metric Cards (2x2 Grid on Mobile, 4 Columns on Laptop/Desktop) */}
+      <div className="responsive-summary-2x2-grid">
+        {/* Card 1: Jumlah Transaksi */}
         <div
           style={{
             background: '#ffffff',
-            padding: '1.25rem',
-            borderRadius: '20px',
+            padding: '1rem',
+            borderRadius: '16px',
             border: '1px solid #e2e8f0',
             boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
             display: 'flex',
@@ -963,24 +966,24 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
           }}
         >
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <ShoppingBag size={15} color="#6366f1" />
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#64748b', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <ShoppingBag size={14} color="#6366f1" />
               Total Transaksi
             </div>
-            <h3 style={{ fontSize: '1.45rem', fontWeight: 900, margin: 0, color: '#0f172a' }}>{summary?.total_transactions || 0} Transaksi</h3>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0, color: '#0f172a' }}>{summary?.total_transactions || 0} Transaksi</h3>
           </div>
-          <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: '0.75rem', fontWeight: 600 }}>
+          <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.65rem', fontWeight: 600 }}>
             Nota Terfilter
           </div>
         </div>
 
-        {/* Card 3: Tunai / Cash (HIJAU) */}
+        {/* Card 2: Tunai / Cash (HIJAU) */}
         <div
           style={{
             background: '#ecfdf5',
             border: '1px solid #a7f3d0',
-            padding: '1.25rem',
-            borderRadius: '20px',
+            padding: '1rem',
+            borderRadius: '16px',
             boxShadow: '0 4px 16px rgba(16, 185, 129, 0.08)',
             display: 'flex',
             flexDirection: 'column',
@@ -988,25 +991,25 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
           }}
         >
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#047857', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <Banknote size={16} color="#059669" />
+            <div style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#047857', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <Banknote size={15} color="#059669" />
               Pembayaran Tunai
             </div>
-            <h3 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#065f46' }}>{formatRupiah(totalCash)}</h3>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0, color: '#065f46' }}>{formatRupiah(totalCash)}</h3>
           </div>
-          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#047857', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span style={{ padding: '0.15rem 0.45rem', background: '#10b981', color: '#fff', borderRadius: '6px', fontSize: '0.65rem' }}>TUNAI</span>
+          <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#047857', marginTop: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+            <span style={{ padding: '0.15rem 0.4rem', background: '#10b981', color: '#fff', borderRadius: '5px', fontSize: '0.6rem' }}>TUNAI</span>
             <span>Uang Fisik Kasir</span>
           </div>
         </div>
 
-        {/* Card 4: QRIS Non-Tunai (BIRU) */}
+        {/* Card 3: QRIS Non-Tunai (BIRU) */}
         <div
           style={{
             background: '#eff6ff',
             border: '1px solid #bfdbfe',
-            padding: '1.25rem',
-            borderRadius: '20px',
+            padding: '1rem',
+            borderRadius: '16px',
             boxShadow: '0 4px 16px rgba(37, 99, 235, 0.08)',
             display: 'flex',
             flexDirection: 'column',
@@ -1014,25 +1017,25 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
           }}
         >
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1d4ed8', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <QrCode size={16} color="#2563eb" />
+            <div style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#1d4ed8', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <QrCode size={15} color="#2563eb" />
               QRIS Non-Tunai
             </div>
-            <h3 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#1e40af' }}>{formatRupiah(totalQris)}</h3>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0, color: '#1e40af' }}>{formatRupiah(totalQris)}</h3>
           </div>
-          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#1d4ed8', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span style={{ padding: '0.15rem 0.45rem', background: '#2563eb', color: '#fff', borderRadius: '6px', fontSize: '0.65rem' }}>QRIS</span>
+          <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#1d4ed8', marginTop: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+            <span style={{ padding: '0.15rem 0.4rem', background: '#2563eb', color: '#fff', borderRadius: '5px', fontSize: '0.6rem' }}>QRIS</span>
             <span>Scan Kode E-Wallet/Bank</span>
           </div>
         </div>
 
-        {/* Card 5: Transfer Bank (KUNING) */}
+        {/* Card 4: Transfer Bank (KUNING) */}
         <div
           style={{
             background: '#fffbeb',
             border: '1px solid #fde68a',
-            padding: '1.25rem',
-            borderRadius: '20px',
+            padding: '1rem',
+            borderRadius: '16px',
             boxShadow: '0 4px 16px rgba(245, 158, 11, 0.08)',
             display: 'flex',
             flexDirection: 'column',
@@ -1040,57 +1043,32 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
           }}
         >
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#b45309', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <CreditCard size={16} color="#d97706" />
+            <div style={{ fontSize: '0.72rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', color: '#b45309', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <CreditCard size={15} color="#d97706" />
               Transfer Bank
             </div>
-            <h3 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#92400e' }}>{formatRupiah(totalTransfer)}</h3>
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0, color: '#92400e' }}>{formatRupiah(totalTransfer)}</h3>
           </div>
-          <div style={{ fontSize: '0.72rem', fontWeight: 800, color: '#b45309', marginTop: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-            <span style={{ padding: '0.15rem 0.45rem', background: '#f59e0b', color: '#fff', borderRadius: '6px', fontSize: '0.65rem' }}>TRANSFER</span>
+          <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#b45309', marginTop: '0.65rem', display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+            <span style={{ padding: '0.15rem 0.4rem', background: '#f59e0b', color: '#fff', borderRadius: '5px', fontSize: '0.6rem' }}>TRANSFER</span>
             <span>Direct Bank Rekening</span>
           </div>
         </div>
       </div>
 
-      {/* UNIFIED SINGLE-ROW CONTROL CARD BAR: Sub-Tabs & Export Actions (POSITIONED BELOW THE 5 CARDS GRID) */}
-      <div
-        style={{
-          background: '#ffffff',
-          padding: '0.75rem 1.25rem',
-          borderRadius: '16px',
-          border: '1px solid #cbd5e1',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
-          marginBottom: '1.5rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'nowrap',
-          overflowX: 'auto',
-          gap: '0.75rem',
-          width: '100%',
-        }}
-      >
+      {/* RESPONSIVE CONTROL BAR: Sub-Tabs & Export Actions (No horizontal scroll, wraps cleanly on mobile) */}
+      <div className="responsive-control-bar">
         {/* Left Side: Sub-Tab Navigation Switcher */}
-        <div style={{ display: 'flex', gap: '0.35rem', background: '#f1f5f9', padding: '0.25rem', borderRadius: '12px', flexShrink: 0 }}>
+        <div className="responsive-tab-group">
           <button
             type="button"
             onClick={() => setActiveReportSubTab('SHIFT_SALES')}
+            className="responsive-tab-button"
             style={{
-              padding: '0.5rem 0.95rem',
-              borderRadius: '9px',
               border: activeReportSubTab === 'SHIFT_SALES' ? '1px solid #cbd5e1' : 'none',
               background: activeReportSubTab === 'SHIFT_SALES' ? '#ffffff' : 'transparent',
               color: activeReportSubTab === 'SHIFT_SALES' ? '#2563eb' : '#64748b',
-              fontWeight: 800,
-              fontSize: '0.825rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
               boxShadow: activeReportSubTab === 'SHIFT_SALES' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.15s ease',
             }}
           >
             <FileText size={15} color={activeReportSubTab === 'SHIFT_SALES' ? '#2563eb' : '#64748b'} />
@@ -1100,21 +1078,12 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
           <button
             type="button"
             onClick={() => setActiveReportSubTab('STOCKS_LOG')}
+            className="responsive-tab-button"
             style={{
-              padding: '0.5rem 0.95rem',
-              borderRadius: '9px',
               border: activeReportSubTab === 'STOCKS_LOG' ? '1px solid #cbd5e1' : 'none',
               background: activeReportSubTab === 'STOCKS_LOG' ? '#ffffff' : 'transparent',
               color: activeReportSubTab === 'STOCKS_LOG' ? '#2563eb' : '#64748b',
-              fontWeight: 800,
-              fontSize: '0.825rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
               boxShadow: activeReportSubTab === 'STOCKS_LOG' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.15s ease',
             }}
           >
             <ShoppingBag size={15} color={activeReportSubTab === 'STOCKS_LOG' ? '#2563eb' : '#64748b'} />
@@ -1123,7 +1092,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         </div>
 
         {/* Right Side: Export & Print Action Buttons */}
-        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0, marginLeft: 'auto' }}>
+        <div className="responsive-action-group">
           <button
             onClick={handleExportExcel}
             style={{

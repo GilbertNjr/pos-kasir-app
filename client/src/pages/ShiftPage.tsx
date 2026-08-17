@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, DollarSign, Lock, CheckCircle2, UserCheck, ShieldAlert, RotateCcw, PlayCircle } from 'lucide-react';
+import { ShoppingBag, DollarSign, Lock, CheckCircle2, ShieldAlert, RotateCcw, PlayCircle } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
@@ -257,13 +257,15 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               Tutup Shift & Rekonsiliasi Kas Bersama
             </h3>
 
-            <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '10px', fontSize: '0.85rem', border: '1px solid #e2e8f0' }}>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#0f172a', marginBottom: '0.25rem', fontWeight: 700 }}>
-                <UserCheck size={16} color="#4f46e5" />
-                Penanggung Jawab Shift: <strong>{shift.shift_leader_user_id}</strong>
+            <div style={{ marginBottom: '1rem', padding: '0.85rem', background: isPJ ? '#faf5ff' : '#f8fafc', borderRadius: '12px', fontSize: '0.85rem', border: isPJ ? '1px solid #d8b4fe' : '1px solid #e2e8f0' }}>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#0f172a', marginBottom: '0.25rem', fontWeight: 800 }}>
+                <span style={{ background: '#7e22ce', color: '#ffffff', padding: '0.15rem 0.5rem', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 900 }}>
+                  ⭐ PJ SHIFT
+                </span>
+                Penanggung Jawab: <strong style={{ color: '#6b21a8' }}>{shift.shift_leader_user_id}</strong>
               </p>
-              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                {isPJ ? '✅ Anda bertugas sebagai Penanggung Jawab Shift ini.' : isOwner ? '👑 Anda dapat melakukan override sebagai Owner.' : '⚠️ Hanya PJ Shift yang diizinkan melakukan closing.'}
+              <p style={{ fontSize: '0.75rem', color: isPJ ? '#6b21a8' : '#64748b', fontWeight: 600, margin: 0 }}>
+                {isPJ ? '✅ Anda bertugas sebagai Penanggung Jawab Shift ini (Supervisor Terminal).' : isOwner ? '👑 Anda dapat melakukan override closing sebagai Owner.' : '⚠️ Hanya Penanggung Jawab Shift yang diizinkan menutup & merekonsiliasi kas.'}
               </p>
             </div>
 

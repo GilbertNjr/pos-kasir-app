@@ -79,6 +79,15 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     loadProducts();
   }, [selectedUnit]);
 
+  const [stockAlert, setStockAlert] = useState<{
+    isOpen: boolean;
+    type: 'WARNING' | 'DANGER' | 'INFO';
+    title: string;
+    productName?: string;
+    currentStock?: number;
+    message: string;
+  } | null>(null);
+
   const addToCart = (product: Product) => {
     const existing = cart.find((item) => item.product.product_id === product.product_id);
     const currentInCart = existing ? existing.qty : 0;
@@ -88,12 +97,26 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       const maxStock = product.stock ?? 0;
 
       if (maxStock <= 0) {
-        alert(`🔴 STOK HABIS!\n\nProduk "${product.product_name}" saat ini 0 Pcs dan tidak dapat ditambahkan ke keranjang kasir.`);
+        setStockAlert({
+          isOpen: true,
+          type: 'DANGER',
+          title: 'STOK HABIS!',
+          productName: product.product_name,
+          currentStock: 0,
+          message: `Produk "${product.product_name}" saat ini 0 Pcs dan tidak dapat ditambahkan ke keranjang kasir.`,
+        });
         return;
       }
 
       if (currentInCart + 1 > maxStock) {
-        alert(`⚠️ STOK TERBATAS!\n\nProduk "${product.product_name}" hanya tersisa ${maxStock} Pcs.\n\nJumlah di keranjang kasir telah mencapai batas maksimal stok yang tersedia (${maxStock} Pcs).`);
+        setStockAlert({
+          isOpen: true,
+          type: 'WARNING',
+          title: 'STOK TERBATAS!',
+          productName: product.product_name,
+          currentStock: maxStock,
+          message: `Jumlah di keranjang kasir telah mencapai batas maksimal stok yang tersedia (${maxStock} Pcs).`,
+        });
         return;
       }
     }
@@ -114,7 +137,14 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       if (item && item.product.manage_stock) {
         const maxStock = item.product.stock ?? 0;
         if (item.qty + delta > maxStock) {
-          alert(`⚠️ STOK TERBATAS!\n\nProduk "${item.product.product_name}" hanya tersisa ${maxStock} Pcs.\n\nKuantitas tidak dapat melebihi stok fisik yang tersedia.`);
+          setStockAlert({
+            isOpen: true,
+            type: 'WARNING',
+            title: 'STOK TERBATAS!',
+            productName: item.product.product_name,
+            currentStock: maxStock,
+            message: `Kuantitas di keranjang tidak dapat melebihi stok fisik yang tersedia (${maxStock} Pcs).`,
+          });
           return;
         }
       }
@@ -153,12 +183,22 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
   const handleCheckout = async () => {
     if (!activeShiftId) {
-      alert('Transaksi ditolak. Harap buka sesi shift terlebih dahulu pada tab Manajemen Shift.');
+      setStockAlert({
+        isOpen: true,
+        type: 'INFO',
+        title: 'SESI SHIFT OFFLINE',
+        message: 'Transaksi ditolak. Harap buka sesi shift terlebih dahulu pada tab Manajemen Shift.',
+      });
       return;
     }
 
     if (cart.length === 0) {
-      alert('Keranjang belanja masih kosong.');
+      setStockAlert({
+        isOpen: true,
+        type: 'INFO',
+        title: 'KERANJANG KOSONG',
+        message: 'Keranjang belanja masih kosong. Silakan pilih produk dari katalog.',
+      });
       return;
     }
 
@@ -601,6 +641,170 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         message="Memproses pembayaran & transaksi kasir ke backend POS..."
         submessage="Mencegah duplikasi pesanan & mengurangi stok barang..."
       />
+
+      {/* Sleek Custom Stock & System Alert Modal (Replacing Native Browser alert()) */}
+      {stockAlert && stockAlert.isOpen && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '1rem',
+          }}
+          onClick={() => setStockAlert(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              maxWidth: '420px',
+              width: '100%',
+              padding: '1.75rem 1.5rem',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              border:
+                stockAlert.type === 'DANGER'
+                  ? '1px solid #fecaca'
+                  : stockAlert.type === 'WARNING'
+                  ? '1px solid #fde68a'
+                  : '1px solid #cbd5e1',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              animation: 'scaleUp 0.2s ease-out',
+            }}
+          >
+            {/* Header Icon Badge */}
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '20px',
+                background:
+                  stockAlert.type === 'DANGER'
+                    ? '#fef2f2'
+                    : stockAlert.type === 'WARNING'
+                    ? '#fffbeb'
+                    : '#eff6ff',
+                color:
+                  stockAlert.type === 'DANGER'
+                    ? '#dc2626'
+                    : stockAlert.type === 'WARNING'
+                    ? '#d97706'
+                    : '#2563eb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1.15rem',
+                boxShadow:
+                  stockAlert.type === 'DANGER'
+                    ? '0 8px 20px rgba(220, 38, 38, 0.18)'
+                    : stockAlert.type === 'WARNING'
+                    ? '0 8px 20px rgba(217, 119, 6, 0.18)'
+                    : '0 8px 20px rgba(37, 99, 235, 0.18)',
+              }}
+            >
+              <AlertCircle size={34} />
+            </div>
+
+            {/* Title */}
+            <h3
+              style={{
+                fontSize: '1.25rem',
+                fontWeight: 900,
+                color: '#0f172a',
+                margin: '0 0 0.5rem 0',
+                letterSpacing: '-0.02em',
+              }}
+            >
+              {stockAlert.title}
+            </h3>
+
+            {/* Product Tag Badge if product info exists */}
+            {stockAlert.productName && (
+              <div
+                style={{
+                  background: stockAlert.type === 'DANGER' ? '#fef2f2' : '#f8fafc',
+                  border: stockAlert.type === 'DANGER' ? '1px solid #fee2e2' : '1px solid #e2e8f0',
+                  padding: '0.4rem 0.85rem',
+                  borderRadius: '12px',
+                  fontSize: '0.825rem',
+                  fontWeight: 800,
+                  color: stockAlert.type === 'DANGER' ? '#991b1b' : '#334155',
+                  marginBottom: '0.85rem',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  maxWidth: '100%',
+                }}
+              >
+                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  📦 Produk "{stockAlert.productName}"
+                </span>
+                {stockAlert.currentStock !== undefined && (
+                  <span
+                    style={{
+                      background: stockAlert.type === 'DANGER' ? '#ef4444' : '#f59e0b',
+                      color: '#ffffff',
+                      padding: '0.15rem 0.5rem',
+                      borderRadius: '6px',
+                      fontSize: '0.72rem',
+                      whiteSpace: 'nowrap',
+                      flexShrink: 0,
+                    }}
+                  >
+                    Tersisa {stockAlert.currentStock} Pcs
+                  </span>
+                )}
+              </div>
+            )}
+
+            {/* Message Body */}
+            <p
+              style={{
+                fontSize: '0.875rem',
+                color: '#475569',
+                lineHeight: 1.5,
+                margin: '0 0 1.5rem 0',
+                fontWeight: 600,
+              }}
+            >
+              {stockAlert.message}
+            </p>
+
+            {/* Dismiss Action Button */}
+            <button
+              onClick={() => setStockAlert(null)}
+              style={{
+                width: '100%',
+                padding: '0.75rem 1.25rem',
+                borderRadius: '12px',
+                border: 'none',
+                background:
+                  stockAlert.type === 'DANGER'
+                    ? 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)'
+                    : stockAlert.type === 'WARNING'
+                    ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+                    : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.9rem',
+                cursor: 'pointer',
+                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              Saya Mengerti
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

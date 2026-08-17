@@ -10,6 +10,7 @@ import {
   Activity,
   CheckCircle2,
   DollarSign,
+  AlertCircle,
 } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User, Transaction } from '../types';
@@ -28,22 +29,27 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
   const [loading, setLoading] = useState(true);
   const [shiftData, setShiftData] = useState<ActiveShiftDetailsData | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [actualCashInput, setActualCashInput] = useState<string>('');
   const [processingClose, setProcessingClose] = useState(false);
 
   const fetchLeaderDashboardData = async () => {
-    setLoading(true);
     try {
-      const activeData = await apiService.getActiveShift();
+      const [activeData, usersList] = await Promise.all([
+        apiService.getActiveShift().catch(() => null),
+        apiService.getUsers().catch(() => []),
+      ]);
+
       setShiftData(activeData);
+      setAllUsers(usersList || []);
 
       if (activeData?.shift?.shift_id) {
-        const txList = await apiService.getTransactions(activeData.shift.shift_id);
+        const txList = await apiService.getTransactions(activeData.shift.shift_id).catch(() => []);
         setTransactions(txList || []);
+      } else {
+        setTransactions([]);
       }
-
-
     } catch (err: any) {
       console.error('Gagal memuat dashboard Penanggung Jawab:', err);
     } finally {
@@ -53,6 +59,34 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
 
   useEffect(() => {
     fetchLeaderDashboardData();
+
+    // SSE Real-time Updates Listener
+    let sse: EventSource | null = null;
+    try {
+      sse = new EventSource('/api/events');
+      sse.onmessage = (e) => {
+        try {
+          const parsed = JSON.parse(e.data);
+          if (
+            ['SHIFT_OPENED', 'SHIFT_CLOSED', 'TRANSACTION_CREATED', 'USER_CREATED', 'USER_UPDATED'].includes(parsed.type)
+          ) {
+            fetchLeaderDashboardData();
+          }
+        } catch {}
+      };
+    } catch (err) {
+      console.warn('SSE connection unavailable, using 5s polling fallback:', err);
+    }
+
+    // Polling fallback every 5s for real-time cashier login detection
+    const pollInterval = setInterval(() => {
+      fetchLeaderDashboardData();
+    }, 5000);
+
+    return () => {
+      if (sse) sse.close();
+      clearInterval(pollInterval);
+    };
   }, []);
 
   const handleCloseShift = async (e: React.FormEvent) => {
@@ -87,19 +121,66 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
   }
 
   const shift = shiftData?.shift;
-  const isShiftLeader = shift?.shift_leader_user_id === currentUser.user_id;
+  const isShiftActive = shift?.shift_status === 'ACTIVE';
+  const isShiftLeader = shift?.shift_leader_user_id === currentUser.user_id || currentUser.role === 'OWNER';
   const totalSalesRevenue = transactions.reduce((acc, curr) => acc + (curr.status === 'COMPLETED' ? curr.final_total : 0), 0);
+
+  // Determine Active User IDs Set dynamically
+  const activeUserIdsSet = new Set<string>();
+  if (isShiftActive && shift) {
+    if (shift.opened_by_user_id) activeUserIdsSet.add(shift.opened_by_user_id);
+    if (shift.shift_leader_user_id) activeUserIdsSet.add(shift.shift_leader_user_id);
+    if (currentUser?.user_id) activeUserIdsSet.add(currentUser.user_id);
+
+    if (shiftData?.shift_users && Array.isArray(shiftData.shift_users)) {
+      shiftData.shift_users.forEach((su: any) => {
+        if (su.user_id) activeUserIdsSet.add(su.user_id);
+      });
+    }
+
+    transactions.forEach((tx) => {
+      if (tx.created_by_user_id) activeUserIdsSet.add(tx.created_by_user_id);
+    });
+  }
+
+  // Active Users List
+  const activeUsersList = allUsers.filter((u) => activeUserIdsSet.has(u.user_id));
+
+  // Helper for Duration calculation
+  const getShiftDuration = (startTimeIso?: string): string => {
+    if (!startTimeIso) return 'Active Sesi';
+    const startMs = new Date(startTimeIso).getTime();
+    const nowMs = Date.now();
+    const diffMs = Math.max(0, nowMs - startMs);
+    const diffMins = Math.floor(diffMs / (1000 * 60));
+    const hours = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}h ${mins.toString().padStart(2, '0')}m`;
+    }
+    return `${mins}m`;
+  };
+
+  // Helper for Role Label
+  const getUserRoleLabel = (user: User, shiftLeaderId?: string): string => {
+    if (user.user_id === shiftLeaderId) {
+      return user.role === 'OWNER' ? 'Owner (PJ Shift)' : 'Kasir Senior (PJ Leader)';
+    }
+    if (user.role === 'OWNER') return 'Owner';
+    if (user.role === 'PENANGGUNG_JAWAB') return 'Penanggung Jawab Shift';
+    return 'Kasir';
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {/* 1. HEADER SECTION (MATCHING SCREENSHOT DESKTOPSHIFT) */}
+      {/* 1. HEADER SECTION */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.35rem 0', letterSpacing: '-0.03em' }}>
-            Manajemen & Monitoring Shift
+            Manajemen & Monitoring Shift Real-Time
           </h1>
           <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>
-            Pantau aktivitas kasir dan kinerja shift secara real time.
+            Pantau aktivitas kasir aktif, kehadiran pegawai, dan transaksi shift secara langsung.
           </p>
         </div>
 
@@ -125,7 +206,7 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
             Export Data
           </button>
 
-          {shift?.shift_status === 'ACTIVE' && isShiftLeader && (
+          {isShiftActive && isShiftLeader && (
             <button
               onClick={() => setShowCloseModal(true)}
               style={{
@@ -150,9 +231,9 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
         </div>
       </div>
 
-      {/* 2. TOP 4 METRICS CARDS (2x2 RESPONSIVE GRID LAYOUT) */}
+      {/* 2. TOP 4 METRICS CARDS */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '0.85rem' }}>
-        {/* Card 1: Total Pegawai */}
+        {/* Card 1: Total Pegawai Sistem */}
         <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>Total Pegawai</span>
@@ -161,12 +242,12 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
             </div>
           </div>
           <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.03em' }}>
-            {shiftData?.usersCount || 1}
+            {allUsers.length || 1}
           </div>
-          <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>Staff terdaftar di shift</span>
+          <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>Staff terdaftar di sistem</span>
         </div>
 
-        {/* Card 2: Kasir Aktif */}
+        {/* Card 2: Kasir / Pegawai Aktif Shift */}
         <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>Kasir Aktif</span>
@@ -175,10 +256,10 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
             </div>
           </div>
           <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.03em' }}>
-            {shiftData?.usersCount || 1} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>/ 4</span>
+            {activeUsersList.length} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>/ {allUsers.length || 1}</span>
           </div>
-          <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-            <CheckCircle2 size={12} /> Status: Optimal
+          <span style={{ fontSize: '0.72rem', color: isShiftActive ? '#16a34a' : '#64748b', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <CheckCircle2 size={12} /> Status: {isShiftActive ? 'On Duty Real-Time' : 'Shift Non-Aktif'}
           </span>
         </div>
 
@@ -219,84 +300,70 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-              Monitor Terminal Aktif
+              Monitor Terminal Kasir Aktif ({activeUsersList.length})
             </h3>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
-            {/* Terminal Card 1 (PJ Leader Budi) */}
-            <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', position: 'relative' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                <div>
-                  <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.15rem 0' }}>POS - Kasir Utama</h4>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Terminal 01</span>
-                </div>
-                <span style={{ background: '#dcfce7', color: '#15803d', fontSize: '0.68rem', fontWeight: 800, padding: '0.2rem 0.55rem', borderRadius: '20px', letterSpacing: '0.02em' }}>
-                  ONLINE
-                </span>
-              </div>
+          {!isShiftActive || activeUsersList.length === 0 ? (
+            <div style={{ background: '#ffffff', padding: '2rem', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center', color: '#64748b' }}>
+              <AlertCircle size={32} style={{ color: '#94a3b8', marginBottom: '0.5rem' }} />
+              <p style={{ fontWeight: 700, margin: '0 0 0.25rem 0', color: '#334155' }}>Belum ada Kasir yang On Duty</p>
+              <span style={{ fontSize: '0.85rem' }}>Saat ini tidak ada sesi shift aktif atau kasir yang terdeteksi login.</span>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.25rem' }}>
+              {activeUsersList.map((user, index) => {
+                // Calculate total revenue for this specific user in the current shift
+                const userSales = transactions
+                  .filter((t) => t.created_by_user_id === user.user_id && t.status === 'COMPLETED')
+                  .reduce((sum, t) => sum + t.final_total, 0);
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', background: '#f8fafc', padding: '0.65rem 0.85rem', borderRadius: '10px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#4f46e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
-                  {currentUser.full_name.charAt(0).toUpperCase()}
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a' }}>{currentUser.full_name}</div>
-                  <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
-                    Mulai: {shift ? formatWaktuIndo(shift.start_time).split(',')[1] || '08:00 AM' : '08:00 AM'}
+                const roleLabel = getUserRoleLabel(user, shift?.shift_leader_user_id);
+                const isOpener = user.user_id === shift?.opened_by_user_id || user.user_id === shift?.shift_leader_user_id;
+                const terminalTitle = isOpener ? 'POS - Kasir Utama' : `POS - Terminal ${index + 1}`;
+
+                return (
+                  <div key={user.user_id} style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)', position: 'relative' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
+                      <div>
+                        <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.15rem 0' }}>{terminalTitle}</h4>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>{roleLabel}</span>
+                      </div>
+                      <span style={{ background: '#dcfce7', color: '#15803d', fontSize: '0.68rem', fontWeight: 800, padding: '0.2rem 0.55rem', borderRadius: '20px', letterSpacing: '0.02em' }}>
+                        ONLINE
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', background: '#f8fafc', padding: '0.65rem 0.85rem', borderRadius: '10px' }}>
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: isOpener ? '#4f46e5' : '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
+                        {user.full_name.charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ minWidth: 0, flex: 1 }}>
+                        <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.full_name}</div>
+                        <div style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                          Mulai: {shift ? formatWaktuIndo(shift.start_time).split(',')[1] || '08:00 AM' : '08:00 AM'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', background: '#f1f5f9', padding: '0.75rem 1rem', borderRadius: '10px' }}>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, display: 'block', textTransform: 'uppercase' }}>Sales Sementara</span>
+                        <span style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>{formatRupiah(userSales)}</span>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, display: 'block', textTransform: 'uppercase' }}>Durasi</span>
+                        <span style={{ fontSize: '1rem', fontWeight: 800, color: '#4f46e5' }}>{getShiftDuration(shift?.start_time)}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', background: '#f1f5f9', padding: '0.75rem 1rem', borderRadius: '10px' }}>
-                <div>
-                  <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, display: 'block', textTransform: 'uppercase' }}>Sales Sementara</span>
-                  <span style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>{formatRupiah(totalSalesRevenue)}</span>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, display: 'block', textTransform: 'uppercase' }}>Durasi</span>
-                  <span style={{ fontSize: '1rem', fontWeight: 800, color: '#4f46e5' }}>Active</span>
-                </div>
-              </div>
+                );
+              })}
             </div>
-
-            {/* Terminal Card 2 (Kasir Siti Aminah) */}
-            <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
-                <div>
-                  <h4 style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.15rem 0' }}>POS - Lantai 2</h4>
-                  <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 500 }}>Terminal 03</span>
-                </div>
-                <span style={{ background: '#dcfce7', color: '#15803d', fontSize: '0.68rem', fontWeight: 800, padding: '0.2rem 0.55rem', borderRadius: '20px', letterSpacing: '0.02em' }}>
-                  ONLINE
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', background: '#f8fafc', padding: '0.65rem 0.85rem', borderRadius: '10px' }}>
-                <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
-                  S
-                </div>
-                <div>
-                  <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a' }}>Siti Aminah</div>
-                  <div style={{ fontSize: '0.72rem', color: '#64748b' }}>Mulai: 09:30 AM</div>
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', background: '#f1f5f9', padding: '0.75rem 1rem', borderRadius: '10px' }}>
-                <div>
-                  <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, display: 'block', textTransform: 'uppercase' }}>Sales Sementara</span>
-                  <span style={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a' }}>Rp 1.850.000</span>
-                </div>
-                <div style={{ textAlign: 'right' }}>
-                  <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, display: 'block', textTransform: 'uppercase' }}>Durasi</span>
-                  <span style={{ fontSize: '1rem', fontWeight: 800, color: '#059669' }}>02h 45m</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* RIGHT COLUMN: LOG AKTIVITAS SHIFT (MATCHING SCREENSHOT TIMELINE) */}
+        {/* RIGHT COLUMN: LOG AKTIVITAS SHIFT */}
         <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '16px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
             Log Aktivitas Shift
@@ -309,9 +376,11 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
                 <Activity size={16} />
               </div>
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>Shift Started</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>POS - Kasir Utama oleh {currentUser.full_name}</div>
-                <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>Hari ini, {shift ? formatWaktuIndo(shift.start_time).split(',')[1] : '08:00 AM'}</span>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>Status Shift: {isShiftActive ? 'Aktif Berjalan' : 'Non-Aktif / Closed'}</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                  {shift ? `Dipandu oleh PJ Shift: ${activeUsersList.find(u => u.user_id === shift.shift_leader_user_id)?.full_name || currentUser.full_name}` : 'Belum ada shift dibuka'}
+                </div>
+                <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>{shift ? formatWaktuIndo(shift.start_time) : 'Real-time monitoring'}</span>
               </div>
             </div>
 
@@ -321,8 +390,8 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
                 <DollarSign size={16} />
               </div>
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>Setoran Modal Initial</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Modal kas awal Rp {shift?.total_initial_cash || 50000} dicatat</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>Modal Kas Awal Shift</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Nominal kas awal {formatRupiah(shift?.total_initial_cash || 0)} dicatat di laci</div>
                 <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>Shift Leader verified</span>
               </div>
             </div>
@@ -333,8 +402,8 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
                 <Clock size={16} />
               </div>
               <div>
-                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>Monitoring Kas Drawer</div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Laci kas beroperasi normal ({transactions.length} transaksi)</div>
+                <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>Aktivitas Penjualan Shift</div>
+                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Berhasil mencatat {transactions.length} transaksi penjualan</div>
                 <span style={{ fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>Real-time status</span>
               </div>
             </div>
@@ -342,11 +411,16 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
         </div>
       </div>
 
-      {/* 4. BOTTOM TABLE SECTION (MATCHING SCREENSHOT: DAFTAR SHIFT & KEHADIRAN) */}
+      {/* 4. BOTTOM TABLE SECTION: DAFTAR SHIFT & KEHADIRAN KASIR */}
       <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 1.25rem 0' }}>
-          Daftar Shift & Kehadiran Kasir
-        </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+          <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+            Daftar Shift & Kehadiran Kasir
+          </h3>
+          <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>
+            Total Pegawai Sistem: <strong>{allUsers.length}</strong> (Aktif On Duty: <strong style={{ color: '#16a34a' }}>{activeUsersList.length}</strong>)
+          </span>
+        </div>
 
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
@@ -361,85 +435,60 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
               </tr>
             </thead>
             <tbody>
-              {/* Row 1: PJ Leader (Budi Santoso) */}
-              <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '0.85rem 1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#4f46e5', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem' }}>
-                      {currentUser.full_name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>{currentUser.full_name}</div>
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>EMP-0142</span>
-                    </div>
-                  </div>
-                </td>
-                <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: '#334155' }}>Kasir Senior (PJ Leader)</td>
-                <td style={{ padding: '0.85rem 1rem' }}>
-                  <span style={{ background: '#dcfce7', color: '#15803d', fontSize: '0.72rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
-                    • On Duty
-                  </span>
-                </td>
-                <td style={{ padding: '0.85rem 1rem', color: '#475569' }}>
-                  {shift ? formatWaktuIndo(shift.start_time).split(',')[1] || '08:00 AM' : '08:00 AM'}
-                </td>
-                <td style={{ padding: '0.85rem 1rem', color: '#475569' }}>Active Sesi</td>
-                <td style={{ padding: '0.85rem 1rem', textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>
-                  {formatRupiah(totalSalesRevenue)}
-                </td>
-              </tr>
+              {allUsers.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>
+                    Belum ada pegawai terdaftar dalam sistem.
+                  </td>
+                </tr>
+              ) : (
+                allUsers.map((user) => {
+                  const isOnDuty = isShiftActive && activeUserIdsSet.has(user.user_id);
+                  const roleLabel = getUserRoleLabel(user, shift?.shift_leader_user_id);
 
-              {/* Row 2: Siti Aminah */}
-              <tr style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td style={{ padding: '0.85rem 1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem' }}>
-                      S
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>Siti Aminah</div>
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>EMP-0103</span>
-                    </div>
-                  </div>
-                </td>
-                <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: '#334155' }}>Kasir</td>
-                <td style={{ padding: '0.85rem 1rem' }}>
-                  <span style={{ background: '#dcfce7', color: '#15803d', fontSize: '0.72rem', fontWeight: 800, padding: '0.2rem 0.65rem', borderRadius: '12px' }}>
-                    • On Duty
-                  </span>
-                </td>
-                <td style={{ padding: '0.85rem 1rem', color: '#475569' }}>09:30 AM</td>
-                <td style={{ padding: '0.85rem 1rem', color: '#475569' }}>02h 45m</td>
-                <td style={{ padding: '0.85rem 1rem', textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>
-                  Rp 1.850.000
-                </td>
-              </tr>
+                  // Compute user specific sales revenue in active shift
+                  const userSales = transactions
+                    .filter((t) => t.created_by_user_id === user.user_id && t.status === 'COMPLETED')
+                    .reduce((sum, t) => sum + t.final_total, 0);
 
-              {/* Row 3: Dwi Wahyuni */}
-              <tr>
-                <td style={{ padding: '0.85rem 1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                    <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: '#94a3b8', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem' }}>
-                      D
-                    </div>
-                    <div>
-                      <div style={{ fontWeight: 700, color: '#0f172a' }}>Dwi Wahyuni</div>
-                      <span style={{ fontSize: '0.72rem', color: '#64748b' }}>EMP-0201</span>
-                    </div>
-                  </div>
-                </td>
-                <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: '#334155' }}>Supervisor Shift</td>
-                <td style={{ padding: '0.85rem 1rem' }}>
-                  <span style={{ background: '#f1f5f9', color: '#64748b', fontSize: '0.72rem', fontWeight: 700, padding: '0.2rem 0.65rem', borderRadius: '12px' }}>
-                    • Off Duty
-                  </span>
-                </td>
-                <td style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>-</td>
-                <td style={{ padding: '0.85rem 1rem', color: '#94a3b8' }}>-</td>
-                <td style={{ padding: '0.85rem 1rem', textAlign: 'right', fontWeight: 800, color: '#94a3b8' }}>
-                  -
-                </td>
-              </tr>
+                  const isOpener = user.user_id === shift?.opened_by_user_id || user.user_id === shift?.shift_leader_user_id;
+
+                  return (
+                    <tr key={user.user_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '0.85rem 1rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isOnDuty ? (isOpener ? '#4f46e5' : '#059669') : '#94a3b8', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem' }}>
+                            {user.full_name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div style={{ fontWeight: 700, color: '#0f172a' }}>{user.full_name}</div>
+                            <span style={{ fontSize: '0.72rem', color: '#64748b' }}>
+                              @{user.username}
+                            </span>
+                          </div>
+                        </div>
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: '#334155' }}>
+                        {roleLabel}
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem' }}>
+                        <span style={{ background: isOnDuty ? '#dcfce7' : '#f1f5f9', color: isOnDuty ? '#15803d' : '#64748b', fontSize: '0.72rem', fontWeight: 800, padding: '0.2rem 0.6rem', borderRadius: '12px' }}>
+                          • {isOnDuty ? 'On Duty' : 'Off Duty'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem', color: isOnDuty ? '#475569' : '#94a3b8' }}>
+                        {isOnDuty && shift ? (formatWaktuIndo(shift.start_time).split(',')[1] || '08:00 AM') : '-'}
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem', color: isOnDuty ? '#475569' : '#94a3b8' }}>
+                        {isOnDuty ? getShiftDuration(shift?.start_time) : '-'}
+                      </td>
+                      <td style={{ padding: '0.85rem 1rem', textAlign: 'right', fontWeight: 800, color: isOnDuty ? '#0f172a' : '#94a3b8' }}>
+                        {isOnDuty ? formatRupiah(userSales) : '-'}
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -499,3 +548,4 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
     </div>
   );
 };
+

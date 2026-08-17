@@ -73,58 +73,72 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
         <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Menghitung rekap...</div>
       ) : summary ? (
         <>
-          {/* Metrik Summary Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+          {/* Metrik Summary Cards (Always 2x2 Grid on Mobile, 4 Columns on Laptop/Desktop) */}
+          <div className="responsive-summary-2x2-grid" style={{ marginBottom: '1.5rem' }}>
             {/* Total Omzet */}
-            <div style={{ background: 'linear-gradient(135deg, var(--primary-500), var(--primary-600))', color: '#fff', padding: '1.5rem', borderRadius: 'var(--radius-lg)' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 600, marginBottom: '0.35rem', opacity: 0.85 }}>Total Omzet Shift</div>
-              <h3 style={{ fontSize: '1.4rem', fontWeight: 700 }}>{formatRupiah(summary.total_revenue)}</h3>
-              <p style={{ fontSize: '0.75rem', opacity: 0.8, marginTop: '0.25rem' }}>{summary.total_transactions} Transaksi Selesai</p>
+            <div style={{ background: 'linear-gradient(135deg, var(--primary-500), var(--primary-600))', color: '#fff', padding: '0.85rem 1rem', borderRadius: 'var(--radius-lg)', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 600, marginBottom: '0.25rem', opacity: 0.85, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Total Omzet Shift</div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0 }}>{formatRupiah(summary.total_revenue)}</h3>
+              </div>
+              <p style={{ fontSize: '0.68rem', opacity: 0.8, marginTop: '0.35rem', margin: 0 }}>{summary.total_transactions} Transaksi Selesai</p>
             </div>
 
             {/* CASH */}
-            <div style={{ background: '#ecfdf5', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid #a7f3d0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#047857', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: 800 }}>
-                <Banknote size={18} />
-                CASH / TUNAI (HIJAU)
-              </div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#047857' }}>{formatRupiah(summary.cash.amount)}</h3>
-              <p style={{ fontSize: '0.75rem', color: '#065f46', marginTop: '0.25rem', fontWeight: 600 }}>{summary.cash.count} transaksi</p>
-              {summary.total_revenue > 0 && (
-                <div style={{ fontSize: '0.75rem', color: '#047857', fontWeight: 800, marginTop: '0.25rem' }}>
-                  {((summary.cash.amount / summary.total_revenue) * 100).toFixed(1)}% dari total
+            <div style={{ background: '#ecfdf5', padding: '0.85rem 1rem', borderRadius: 'var(--radius-lg)', border: '1px solid #a7f3d0', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#047857', marginBottom: '0.25rem', fontSize: '0.72rem', fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <Banknote size={15} style={{ flexShrink: 0 }} />
+                  <span>CASH / TUNAI</span>
                 </div>
-              )}
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#047857', margin: 0 }}>{formatRupiah(summary.cash.amount)}</h3>
+              </div>
+              <div>
+                <p style={{ fontSize: '0.68rem', color: '#065f46', marginTop: '0.35rem', marginBottom: 0, fontWeight: 600 }}>{summary.cash.count} transaksi</p>
+                {summary.total_revenue > 0 && (
+                  <div style={{ fontSize: '0.68rem', color: '#047857', fontWeight: 800, marginTop: '0.15rem' }}>
+                    {((summary.cash.amount / summary.total_revenue) * 100).toFixed(1)}% dari total
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* QRIS */}
-            <div style={{ background: '#eff6ff', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid #bfdbfe' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#1d4ed8', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: 800 }}>
-                <QrCode size={18} />
-                QRIS NON-TUNAI (BIRU)
-              </div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#1d4ed8' }}>{formatRupiah(summary.qris.amount)}</h3>
-              <p style={{ fontSize: '0.75rem', color: '#1e40af', marginTop: '0.25rem', fontWeight: 600 }}>{summary.qris.count} transaksi</p>
-              {summary.total_revenue > 0 && (
-                <div style={{ fontSize: '0.75rem', color: '#1d4ed8', fontWeight: 800, marginTop: '0.25rem' }}>
-                  {((summary.qris.amount / summary.total_revenue) * 100).toFixed(1)}% dari total
+            <div style={{ background: '#eff6ff', padding: '0.85rem 1rem', borderRadius: 'var(--radius-lg)', border: '1px solid #bfdbfe', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#1d4ed8', marginBottom: '0.25rem', fontSize: '0.72rem', fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <QrCode size={15} style={{ flexShrink: 0 }} />
+                  <span>QRIS NON-TUNAI</span>
                 </div>
-              )}
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#1d4ed8', margin: 0 }}>{formatRupiah(summary.qris.amount)}</h3>
+              </div>
+              <div>
+                <p style={{ fontSize: '0.68rem', color: '#1e40af', marginTop: '0.35rem', marginBottom: 0, fontWeight: 600 }}>{summary.qris.count} transaksi</p>
+                {summary.total_revenue > 0 && (
+                  <div style={{ fontSize: '0.68rem', color: '#1d4ed8', fontWeight: 800, marginTop: '0.15rem' }}>
+                    {((summary.qris.amount / summary.total_revenue) * 100).toFixed(1)}% dari total
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* TRANSFER */}
-            <div style={{ background: '#fffbeb', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid #fde68a' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#b45309', marginBottom: '0.35rem', fontSize: '0.85rem', fontWeight: 800 }}>
-                <ArrowRightLeft size={18} />
-                TRANSFER BANK (KUNING)
-              </div>
-              <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#b45309' }}>{formatRupiah(summary.transfer.amount)}</h3>
-              <p style={{ fontSize: '0.75rem', color: '#92400e', marginTop: '0.25rem', fontWeight: 600 }}>{summary.transfer.count} transaksi</p>
-              {summary.total_revenue > 0 && (
-                <div style={{ fontSize: '0.75rem', color: '#b45309', fontWeight: 800, marginTop: '0.25rem' }}>
-                  {((summary.transfer.amount / summary.total_revenue) * 100).toFixed(1)}% dari total
+            <div style={{ background: '#fffbeb', padding: '0.85rem 1rem', borderRadius: 'var(--radius-lg)', border: '1px solid #fde68a', minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', color: '#b45309', marginBottom: '0.25rem', fontSize: '0.72rem', fontWeight: 800, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <ArrowRightLeft size={15} style={{ flexShrink: 0 }} />
+                  <span>TRANSFER BANK</span>
                 </div>
-              )}
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#b45309', margin: 0 }}>{formatRupiah(summary.transfer.amount)}</h3>
+              </div>
+              <div>
+                <p style={{ fontSize: '0.68rem', color: '#92400e', marginTop: '0.35rem', marginBottom: 0, fontWeight: 600 }}>{summary.transfer.count} transaksi</p>
+                {summary.total_revenue > 0 && (
+                  <div style={{ fontSize: '0.68rem', color: '#b45309', fontWeight: 800, marginTop: '0.15rem' }}>
+                    {((summary.transfer.amount / summary.total_revenue) * 100).toFixed(1)}% dari total
+                  </div>
+                )}
+              </div>
             </div>
           </div>
 

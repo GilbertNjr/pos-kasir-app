@@ -1020,35 +1020,87 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                         {globalIdx}
                       </td>
 
-                      {/* 2. Foto */}
+                      {/* 2. Foto Avatar dengan Frame Pembeda Role */}
                       <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                        <div
-                          style={{
-                            width: '38px',
-                            height: '38px',
-                            borderRadius: '50%',
-                            background: '#e2e8f0',
-                            overflow: 'hidden',
-                            margin: '0 auto',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontWeight: 800,
-                            color: '#475569',
-                            border: '1px solid #cbd5e1',
-                          }}
-                        >
-                          {u.avatar_url ? (
-                            <img src={u.avatar_url} alt={u.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          ) : (
-                            <span>{u.full_name.charAt(0).toUpperCase()}</span>
+                        <div style={{ position: 'relative', width: '40px', height: '40px', margin: '0 auto' }}>
+                          <div
+                            style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              background: isOwnerUser ? '#fef3c7' : isPjRole ? '#f3e8ff' : '#e0f2fe',
+                              color: isOwnerUser ? '#b45309' : isPjRole ? '#6b21a8' : '#0369a1',
+                              overflow: 'hidden',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 800,
+                              fontSize: '0.9rem',
+                              border: isOwnerUser ? '2px solid #f59e0b' : isPjRole ? '2px solid #9333ea' : '2px solid #38bdf8',
+                              boxShadow: isPjRole ? '0 0 8px rgba(147, 51, 234, 0.35)' : 'none',
+                            }}
+                          >
+                            {u.avatar_url ? (
+                              <img src={u.avatar_url} alt={u.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              <span>{u.full_name.charAt(0).toUpperCase()}</span>
+                            )}
+                          </div>
+                          {isPjRole && !isOwnerUser && (
+                            <span
+                              title="Penanggung Jawab Shift (Supervisor)"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-2px',
+                                right: '-2px',
+                                background: '#7e22ce',
+                                color: '#ffffff',
+                                fontSize: '0.6rem',
+                                borderRadius: '50%',
+                                width: '17px',
+                                height: '17px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '1.5px solid #ffffff',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                              }}
+                            >
+                              ⭐
+                            </span>
+                          )}
+                          {isOwnerUser && (
+                            <span
+                              title="Pemilik Toko (Owner)"
+                              style={{
+                                position: 'absolute',
+                                bottom: '-2px',
+                                right: '-2px',
+                                background: '#d97706',
+                                color: '#ffffff',
+                                fontSize: '0.6rem',
+                                borderRadius: '50%',
+                                width: '17px',
+                                height: '17px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                border: '1.5px solid #ffffff',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                              }}
+                            >
+                              👑
+                            </span>
                           )}
                         </div>
                       </td>
 
-                      {/* 3. Nama */}
-                      <td style={{ padding: '0.75rem 1rem', fontWeight: 800, color: '#0f172a' }}>
-                        {u.full_name}
+                      {/* 3. Nama & Label Sub-Role */}
+                      <td style={{ padding: '0.75rem 1rem' }}>
+                        <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>{u.full_name}</div>
+                        <div style={{ fontSize: '0.72rem', fontWeight: 800, color: isOwnerUser ? '#b45309' : isPjRole ? '#7e22ce' : '#0369a1', marginTop: '0.1rem' }}>
+                          {isOwnerUser ? '👑 Pemilik Toko' : isPjRole ? '⭐ Penanggung Jawab (PJ)' : '👤 Kasir Operasional'}
+                        </div>
                       </td>
 
                       {/* 4. Username */}
@@ -1056,22 +1108,62 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                         @{u.username}
                       </td>
 
-                      {/* 5. Role Badge (PJ / KASIR) */}
+                      {/* 5. Role Badge Pembeda (PJ vs KASIR vs OWNER) */}
                       <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                        <span
-                          style={{
-                            padding: '0.25rem 0.65rem',
-                            borderRadius: '8px',
-                            fontSize: '0.72rem',
-                            fontWeight: 900,
-                            textTransform: 'uppercase',
-                            background: isPjRole ? '#f3e8ff' : '#dbeafe',
-                            color: isPjRole ? '#9333ea' : '#2563eb',
-                            border: isPjRole ? '1px solid #e9d5ff' : '1px solid #bfdbfe',
-                          }}
-                        >
-                          {isOwnerUser ? 'OWNER' : isPjRole ? 'PJ' : 'KASIR'}
-                        </span>
+                        {isOwnerUser ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              padding: '0.3rem 0.75rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.72rem',
+                              fontWeight: 900,
+                              background: '#fffbeb',
+                              color: '#b45309',
+                              border: '1px solid #fde68a',
+                              boxShadow: '0 1px 3px rgba(180,83,9,0.1)',
+                            }}
+                          >
+                            👑 OWNER
+                          </span>
+                        ) : isPjRole ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              padding: '0.3rem 0.75rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.72rem',
+                              fontWeight: 900,
+                              background: '#f3e8ff',
+                              color: '#6b21a8',
+                              border: '1px solid #c084fc',
+                              boxShadow: '0 2px 8px rgba(107,33,168,0.18)',
+                            }}
+                          >
+                            🛡️ PJ / SUPERVISOR
+                          </span>
+                        ) : (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              padding: '0.3rem 0.75rem',
+                              borderRadius: '9999px',
+                              fontSize: '0.72rem',
+                              fontWeight: 800,
+                              background: '#e0f2fe',
+                              color: '#0369a1',
+                              border: '1px solid #7dd3fc',
+                            }}
+                          >
+                            👤 KASIR BIASA
+                          </span>
+                        )}
                       </td>
 
                       {/* 6. No. HP */}
@@ -1675,33 +1767,73 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                 />
               </div>
 
-              {/* Role & Status */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
-                    Role / Wewenang
-                  </label>
-                  <select
-                    value={formData.is_pj ? 'PJ' : 'KASIR'}
-                    onChange={(e) => setFormData({ ...formData, is_pj: e.target.value === 'PJ' })}
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600 }}
+              {/* Role & Status Selection Cards */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>
+                  Role & Wewenang Pegawai
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+                  {/* Card 1: Kasir Biasa */}
+                  <div
+                    onClick={() => setFormData({ ...formData, is_pj: false })}
+                    style={{
+                      padding: '0.85rem 1rem',
+                      borderRadius: '14px',
+                      border: !formData.is_pj ? '2px solid #0284c7' : '1px solid #cbd5e1',
+                      background: !formData.is_pj ? '#f0f9ff' : '#ffffff',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      boxShadow: !formData.is_pj ? '0 4px 12px rgba(2, 132, 199, 0.12)' : 'none',
+                    }}
                   >
-                    <option value="KASIR">Kasir / Karyawan</option>
-                    <option value="PJ">PJ / Penanggung Jawab</option>
-                  </select>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                      <span style={{ fontSize: '1.25rem' }}>👤</span>
+                      <strong style={{ fontSize: '0.875rem', color: !formData.is_pj ? '#0369a1' : '#334155' }}>
+                        Kasir Operasional
+                      </strong>
+                    </div>
+                    <p style={{ fontSize: '0.73rem', color: '#64748b', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
+                      Karyawan biasa: Melayani transaksi POS, mencatat pengeluaran, & transaksi personal.
+                    </p>
+                  </div>
+
+                  {/* Card 2: Penanggung Jawab (PJ) */}
+                  <div
+                    onClick={() => setFormData({ ...formData, is_pj: true })}
+                    style={{
+                      padding: '0.85rem 1rem',
+                      borderRadius: '14px',
+                      border: formData.is_pj ? '2px solid #9333ea' : '1px solid #cbd5e1',
+                      background: formData.is_pj ? '#faf5ff' : '#ffffff',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      boxShadow: formData.is_pj ? '0 4px 12px rgba(147, 51, 234, 0.15)' : 'none',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                      <span style={{ fontSize: '1.25rem' }}>🛡️</span>
+                      <strong style={{ fontSize: '0.875rem', color: formData.is_pj ? '#6b21a8' : '#334155' }}>
+                        Penanggung Jawab (PJ)
+                      </strong>
+                    </div>
+                    <p style={{ fontSize: '0.73rem', color: '#64748b', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
+                      Supervisor shift: Berwenang buka/tutup shift, rekonsiliasi laci kas, & mengawasi kasir.
+                    </p>
+                  </div>
                 </div>
 
-                <div>
+                {/* Status Selection */}
+                <div style={{ marginBottom: '0.5rem' }}>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
-                    Status Akun
+                    Status Akun Pegawai
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as UserStatus })}
                     style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600 }}
                   >
-                    <option value="ACTIVE">Aktif</option>
-                    <option value="INACTIVE">Nonaktif</option>
+                    <option value="ACTIVE">Aktif (Dapat Login & Transaksi)</option>
+                    <option value="INACTIVE">Nonaktif (Akses Dibekukan)</option>
                   </select>
                 </div>
               </div>
@@ -2027,32 +2159,73 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
-                    Role / Wewenang
-                  </label>
-                  <select
-                    value={formData.is_pj ? 'PJ' : 'KASIR'}
-                    onChange={(e) => setFormData({ ...formData, is_pj: e.target.value === 'PJ' })}
-                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600 }}
+              {/* Role & Status Selection Cards for Edit */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>
+                  Role & Wewenang Pegawai
+                </label>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.75rem', marginBottom: '1rem' }}>
+                  {/* Card 1: Kasir Biasa */}
+                  <div
+                    onClick={() => setFormData({ ...formData, is_pj: false })}
+                    style={{
+                      padding: '0.85rem 1rem',
+                      borderRadius: '14px',
+                      border: !formData.is_pj ? '2px solid #0284c7' : '1px solid #cbd5e1',
+                      background: !formData.is_pj ? '#f0f9ff' : '#ffffff',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      boxShadow: !formData.is_pj ? '0 4px 12px rgba(2, 132, 199, 0.12)' : 'none',
+                    }}
                   >
-                    <option value="KASIR">Kasir / Karyawan</option>
-                    <option value="PJ">PJ / Penanggung Jawab</option>
-                  </select>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                      <span style={{ fontSize: '1.25rem' }}>👤</span>
+                      <strong style={{ fontSize: '0.875rem', color: !formData.is_pj ? '#0369a1' : '#334155' }}>
+                        Kasir Operasional
+                      </strong>
+                    </div>
+                    <p style={{ fontSize: '0.73rem', color: '#64748b', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
+                      Karyawan biasa: Melayani penjualan POS, mencatat pengeluaran, & transaksi personal.
+                    </p>
+                  </div>
+
+                  {/* Card 2: Penanggung Jawab (PJ) */}
+                  <div
+                    onClick={() => setFormData({ ...formData, is_pj: true })}
+                    style={{
+                      padding: '0.85rem 1rem',
+                      borderRadius: '14px',
+                      border: formData.is_pj ? '2px solid #9333ea' : '1px solid #cbd5e1',
+                      background: formData.is_pj ? '#faf5ff' : '#ffffff',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      boxShadow: formData.is_pj ? '0 4px 12px rgba(147, 51, 234, 0.15)' : 'none',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.35rem' }}>
+                      <span style={{ fontSize: '1.25rem' }}>🛡️</span>
+                      <strong style={{ fontSize: '0.875rem', color: formData.is_pj ? '#6b21a8' : '#334155' }}>
+                        Penanggung Jawab (PJ)
+                      </strong>
+                    </div>
+                    <p style={{ fontSize: '0.73rem', color: '#64748b', margin: 0, lineHeight: 1.35, fontWeight: 500 }}>
+                      Supervisor shift: Berwenang buka/tutup shift, rekonsiliasi laci kas, & mengawasi kasir.
+                    </p>
+                  </div>
                 </div>
 
-                <div>
+                {/* Status Selection */}
+                <div style={{ marginBottom: '0.5rem' }}>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
-                    Status Akun
+                    Status Akun Pegawai
                   </label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.value as UserStatus })}
                     style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600 }}
                   >
-                    <option value="ACTIVE">Aktif</option>
-                    <option value="INACTIVE">Nonaktif</option>
+                    <option value="ACTIVE">Aktif (Dapat Login & Transaksi)</option>
+                    <option value="INACTIVE">Nonaktif (Akses Dibekukan)</option>
                   </select>
                 </div>
               </div>

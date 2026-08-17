@@ -290,6 +290,8 @@ export const App: React.FC = () => {
       onTabChange={setCashierTab}
       isShiftLeader={isShiftLeader}
       activeShiftId={activeShiftData?.shift?.shift_id}
+      storeName={storeProfile.name}
+      logoUrl={storeProfile.logoUrl}
     >
       <ToastNotification toasts={toasts} onClose={removeToast} />
 

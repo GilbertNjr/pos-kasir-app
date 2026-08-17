@@ -3,6 +3,7 @@ import {
   shiftRepository,
   shiftUserRepository,
   shiftCapitalContributionRepository as capitalRepository,
+  userRepository,
 } from '../repositories/sharedRepositories';
 import { ShiftService } from '../services/ShiftService';
 import { ShiftController } from '../controllers/ShiftController';
@@ -10,7 +11,7 @@ import { authMiddleware } from '../middlewares/AuthMiddleware';
 
 const router = Router();
 
-const shiftService = new ShiftService(shiftRepository, shiftUserRepository, capitalRepository);
+const shiftService = new ShiftService(shiftRepository, shiftUserRepository, capitalRepository, userRepository);
 const shiftController = new ShiftController(shiftService);
 
 // Authenticated Routes

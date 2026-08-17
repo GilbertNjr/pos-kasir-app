@@ -1,11 +1,24 @@
 import { ShiftRepository } from '../repositories/ShiftRepository';
 import { ShiftUserRepository } from '../repositories/ShiftUserRepository';
 import { ShiftCapitalContributionRepository } from '../repositories/ShiftCapitalContributionRepository';
+import { UserRepository } from '../repositories/UserRepository';
 import { ShiftEntity, ShiftCapitalContributionEntity, ReconciliationStatus } from '../types/domain';
+
+export interface ActiveShiftUserDetail {
+  shift_user_id: string;
+  shift_id: string;
+  user_id: string;
+  is_shift_leader: boolean;
+  joined_at: string;
+  full_name?: string;
+  username?: string;
+  role?: string;
+}
 
 export interface ActiveShiftDetails {
   shift: ShiftEntity;
   contributions: ShiftCapitalContributionEntity[];
+  shift_users?: ActiveShiftUserDetail[];
   usersCount: number;
 }
 
@@ -13,15 +26,18 @@ export class ShiftService {
   private shiftRepository: ShiftRepository;
   private shiftUserRepository: ShiftUserRepository;
   private capitalRepository: ShiftCapitalContributionRepository;
+  private userRepository?: UserRepository;
 
   constructor(
     shiftRepository: ShiftRepository,
     shiftUserRepository: ShiftUserRepository,
-    capitalRepository: ShiftCapitalContributionRepository
+    capitalRepository: ShiftCapitalContributionRepository,
+    userRepository?: UserRepository
   ) {
     this.shiftRepository = shiftRepository;
     this.shiftUserRepository = shiftUserRepository;
     this.capitalRepository = capitalRepository;
+    this.userRepository = userRepository;
   }
 
   async getActiveShift(): Promise<ActiveShiftDetails | null> {
@@ -30,11 +46,23 @@ export class ShiftService {
 
     const contributions = await this.capitalRepository.findByShiftId(shift.shift_id);
     const users = await this.shiftUserRepository.findByShiftId(shift.shift_id);
+    const allUsers = this.userRepository ? await this.userRepository.findAll() : [];
+
+    const detailedShiftUsers: ActiveShiftUserDetail[] = users.map((su) => {
+      const matchedUser = allUsers.find((u) => u.user_id === su.user_id);
+      return {
+        ...su,
+        full_name: matchedUser ? matchedUser.full_name : su.user_id,
+        username: matchedUser ? matchedUser.username : su.user_id,
+        role: matchedUser ? matchedUser.role : 'CASHIER',
+      };
+    });
 
     return {
       shift,
       contributions,
-      usersCount: users.length,
+      shift_users: detailedShiftUsers,
+      usersCount: detailedShiftUsers.length,
     };
   }
 

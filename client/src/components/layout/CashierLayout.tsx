@@ -23,6 +23,8 @@ interface CashierLayoutProps {
   isShiftLeader?: boolean;
   activeShiftId?: string | null;
   children: React.ReactNode;
+  storeName?: string;
+  logoUrl?: string;
 }
 
 export const CashierLayout: React.FC<CashierLayoutProps> = ({
@@ -33,6 +35,8 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
   isShiftLeader = false,
   activeShiftId,
   children,
+  storeName = 'Toko Utama',
+  logoUrl,
 }) => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
 
@@ -45,53 +49,78 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
         color: '#1e293b',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'space-between',
-        padding: '1.25rem 1rem',
         height: '100%',
         borderRight: '1px solid var(--sidebar-border, #e5e7eb)',
       }}
     >
-      <div>
-        {/* Brand Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.5rem 1.5rem 0.5rem', borderBottom: '1px solid #e5e7eb', marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-            <div
+      {/* Brand Header (Fixed at Top, Never Cut Off) */}
+      <div
+        style={{
+          padding: '1.25rem 1rem 1rem 1rem',
+          borderBottom: '1px solid #e5e7eb',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          flexShrink: 0,
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+          <div
+            style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              background: '#0f172a',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 10px rgba(15, 23, 42, 0.15)',
+              overflow: 'hidden',
+              flexShrink: 0,
+            }}
+          >
+            {logoUrl ? (
+              <img src={logoUrl} alt="Logo Toko" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : (
+              <Store size={22} />
+            )}
+          </div>
+          <div style={{ minWidth: 0 }}>
+            <h2
               style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '12px',
-                background: '#0f172a',
-                color: '#ffffff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 10px rgba(15, 23, 42, 0.15)',
+                fontSize: '1.05rem',
+                fontWeight: 800,
+                color: '#0f172a',
+                margin: 0,
+                letterSpacing: '-0.02em',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
-              <Store size={22} />
-            </div>
-            <div>
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
-                Main Branch
-              </h2>
-              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>
-                {isShiftLeader ? 'PJ Terminal Leader' : 'Kasir Operasional'}
-              </span>
-            </div>
+              {storeName}
+            </h2>
+            <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>
+              {isShiftLeader ? 'PJ Terminal Leader' : 'Kasir Operasional'}
+            </span>
           </div>
-
-          {isMobileOpen && (
-            <button
-              onClick={() => setIsMobileOpen(false)}
-              style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.25rem' }}
-            >
-              <X size={20} />
-            </button>
-          )}
         </div>
 
-        {/* Primary Call-to-Action Button (Tombol Aksi Utama: Slate Gelap #0F172A) */}
-        <div style={{ marginBottom: '1.5rem', padding: '0 0.25rem' }}>
+        {isMobileOpen && (
+          <button
+            onClick={() => setIsMobileOpen(false)}
+            style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.25rem', flexShrink: 0 }}
+          >
+            <X size={20} />
+          </button>
+        )}
+      </div>
+
+      {/* Middle Scrollable Section (CTA Button + Nav Links) */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 0.85rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+        {/* Primary Call-to-Action Button */}
+        <div style={{ marginBottom: '0.75rem' }}>
           <button
             onClick={() => {
               onTabChange('POS');
@@ -313,18 +342,67 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
         </nav>
       </div>
 
-      {/* Sidebar Footer */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem', background: '#f9fafb', padding: '1rem', borderRadius: '12px' }}>
+      {/* Sidebar Footer (Fixed at Bottom, Never Shrinks) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #e5e7eb', background: '#f9fafb', padding: '1rem', flexShrink: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.25rem' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
-            {currentUser.full_name.charAt(0).toUpperCase()}
+          <div style={{ position: 'relative', width: '38px', height: '38px', flexShrink: 0 }}>
+            <div
+              style={{
+                width: '38px',
+                height: '38px',
+                borderRadius: '50%',
+                background: isShiftLeader ? '#f3e8ff' : '#e0f2fe',
+                color: isShiftLeader ? '#6b21a8' : '#0369a1',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontWeight: 900,
+                fontSize: '0.875rem',
+                border: isShiftLeader ? '2px solid #9333ea' : '2px solid #38bdf8',
+                boxShadow: isShiftLeader ? '0 0 8px rgba(147, 51, 234, 0.35)' : 'none',
+              }}
+            >
+              {currentUser.full_name.charAt(0).toUpperCase()}
+            </div>
+            {isShiftLeader && (
+              <span
+                title="Penanggung Jawab Shift"
+                style={{
+                  position: 'absolute',
+                  bottom: '-2px',
+                  right: '-2px',
+                  background: '#7e22ce',
+                  color: '#ffffff',
+                  fontSize: '0.55rem',
+                  borderRadius: '50%',
+                  width: '15px',
+                  height: '15px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  border: '1.5px solid #ffffff',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                }}
+              >
+                ⭐
+              </span>
+            )}
           </div>
           <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
               {currentUser.full_name}
             </div>
-            <div style={{ fontSize: '0.7rem', color: isShiftLeader ? '#4f46e5' : '#059669', fontWeight: 700 }}>
-              {isShiftLeader ? 'Penanggung Jawab' : 'Kasir Operasional'}
+            <div
+              style={{
+                fontSize: '0.7rem',
+                color: isShiftLeader ? '#7e22ce' : '#0369a1',
+                fontWeight: 800,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+              }}
+            >
+              {isShiftLeader ? '⭐ Penanggung Jawab' : '👤 Kasir Operasional'}
             </div>
           </div>
         </div>

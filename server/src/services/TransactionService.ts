@@ -2,6 +2,7 @@ import { TransactionRepository } from '../repositories/TransactionRepository';
 import { TransactionItemRepository } from '../repositories/TransactionItemRepository';
 import { ShiftRepository } from '../repositories/ShiftRepository';
 import { ProductRepository } from '../repositories/ProductRepository';
+import { ShiftUserRepository } from '../repositories/ShiftUserRepository';
 import { StockService } from './StockService';
 import { TransactionEntity, TransactionItemEntity, PaymentMethod, ShiftEntity } from '../types/domain';
 
@@ -30,19 +31,22 @@ export class TransactionService {
   private shiftRepository: ShiftRepository;
   private productRepository: ProductRepository;
   private stockService?: StockService;
+  private shiftUserRepository?: ShiftUserRepository;
 
   constructor(
     transactionRepository: TransactionRepository,
     itemRepository: TransactionItemRepository,
     shiftRepository: ShiftRepository,
     productRepository: ProductRepository,
-    stockService?: StockService
+    stockService?: StockService,
+    shiftUserRepository?: ShiftUserRepository
   ) {
     this.transactionRepository = transactionRepository;
     this.itemRepository = itemRepository;
     this.shiftRepository = shiftRepository;
     this.productRepository = productRepository;
     this.stockService = stockService;
+    this.shiftUserRepository = shiftUserRepository;
   }
 
   async createTransaction(dto: CreateTransactionDTO): Promise<TransactionDetailsResult> {
@@ -50,6 +54,20 @@ export class TransactionService {
     const activeShift = await this.shiftRepository.findActiveShift();
     if (!activeShift) {
       throw new Error('Transaksi ditolak. Tidak ada sesi shift yang aktif (ACTIVE). Harap buka shift terlebih dahulu.');
+    }
+
+    // Auto-register cashier to shift_users if not registered yet
+    if (this.shiftUserRepository) {
+      const existingShiftUsers = await this.shiftUserRepository.findByShiftId(activeShift.shift_id);
+      if (!existingShiftUsers.some((u) => u.user_id === dto.user_id)) {
+        await this.shiftUserRepository.create({
+          shift_user_id: `su-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          shift_id: activeShift.shift_id,
+          user_id: dto.user_id,
+          is_shift_leader: false,
+          joined_at: new Date().toISOString(),
+        });
+      }
     }
 
     if (!dto.items || dto.items.length === 0) {

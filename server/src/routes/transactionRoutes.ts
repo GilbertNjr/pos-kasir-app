@@ -4,6 +4,7 @@ import {
   transactionItemRepository as itemRepository,
   shiftRepository,
   productRepository,
+  shiftUserRepository,
 } from '../repositories/sharedRepositories';
 import { TransactionService } from '../services/TransactionService';
 import { TransactionController } from '../controllers/TransactionController';
@@ -18,7 +19,8 @@ export const transactionService = new TransactionService(
   itemRepository,
   shiftRepository,
   productRepository,
-  stockService
+  stockService,
+  shiftUserRepository
 );
 
 const transactionController = new TransactionController(transactionService);

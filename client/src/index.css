@@ -569,27 +569,126 @@ html, body {
   }
 }
 
-/* RESPONSIVE STOCK GRID ENGINE (2x2 Grid di Ponsel/Tablet, 4 Kolom di Laptop) */
+/* RESPONSIVE STOCK GRID ENGINE (Adaptive: 1 Col on Mobile, 2 Cols on Tablet, 3-4 Cols on Laptop/Desktop) */
 .responsive-stock-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
+  grid-template-columns: 1fr;
+  gap: 0.85rem;
   padding: 0.75rem 0;
+  width: 100%;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 580px) {
   .responsive-stock-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 1rem;
+    padding: 0.85rem 0;
+  }
+}
+
+@media (min-width: 960px) {
+  .responsive-stock-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.15rem;
     padding: 1rem 0;
   }
 }
 
-@media (min-width: 1024px) {
+@media (min-width: 1280px) {
   .responsive-stock-grid {
     grid-template-columns: repeat(4, 1fr);
     gap: 1.25rem;
     padding: 1.25rem 0;
   }
 }
+
+/* RESPONSIVE SUMMARY METRIC CARDS (Always 2x2 Grid on Mobile, 4 Cols on Laptop/Desktop) */
+.responsive-summary-2x2-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 0.75rem !important;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .responsive-summary-2x2-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 1.15rem !important;
+  }
+}
+
+/* RESPONSIVE CONTROL BAR & SUB-TABS (No horizontal scroll, fluid wrap on mobile) */
+.responsive-control-bar {
+  background: #ffffff;
+  padding: 0.75rem 1rem;
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.responsive-tab-group {
+  display: flex;
+  gap: 0.35rem;
+  background: #f1f5f9;
+  padding: 0.25rem;
+  border-radius: 12px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+  .responsive-tab-group {
+    width: auto;
+    flex-wrap: nowrap;
+  }
+}
+
+.responsive-tab-button {
+  flex: 1 1 auto;
+  min-width: 130px;
+  padding: 0.55rem 0.75rem;
+  border-radius: 9px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+@media (min-width: 640px) {
+  .responsive-tab-button {
+    flex: initial;
+    padding: 0.5rem 0.95rem;
+    font-size: 0.825rem;
+  }
+}
+
+.responsive-action-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+@media (min-width: 640px) {
+  .responsive-action-group {
+    width: auto;
+  }
+}
+
+
 

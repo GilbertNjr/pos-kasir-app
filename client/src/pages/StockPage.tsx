@@ -1140,7 +1140,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                 </table>
               </div>
             ) : (
-              /* GRID VIEW MODE (2x2 Grid di Ponsel/Tablet, 4 Kolom di Laptop) */
+              /* GRID VIEW MODE (Responsive Cards: 1 Kolom di Ponsel, 2-4 Kolom di Tablet/Laptop) */
               <div className="responsive-stock-grid">
                 {paginatedStocks.map((item) => {
                   const isOut = item.current_stock === 0;
@@ -1160,18 +1160,24 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                         flexDirection: 'column',
                         justifyContent: 'space-between',
                         gap: '0.75rem',
+                        minWidth: 0,
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        overflow: 'hidden',
                       }}
                     >
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.25rem', flexWrap: 'wrap' }}>
+                      <div style={{ minWidth: 0 }}>
+                        {/* Header Badges */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', gap: '0.35rem', flexWrap: 'wrap' }}>
                           <span
                             style={{
-                              padding: '0.2rem 0.5rem',
+                              padding: '0.2rem 0.55rem',
                               borderRadius: '6px',
-                              fontSize: '0.65rem',
+                              fontSize: '0.675rem',
                               fontWeight: 900,
                               background: item.business_unit === 'FC_PRINT' ? '#eff6ff' : '#f0fdf4',
                               color: item.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#15803d',
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             {item.business_unit === 'FC_PRINT' ? '📄 FC / PRINT' : '🍧 F&B'}
@@ -1179,47 +1185,51 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
                           <span
                             style={{
-                              padding: '0.2rem 0.5rem',
+                              padding: '0.2rem 0.55rem',
                               borderRadius: '10px',
-                              fontSize: '0.65rem',
+                              fontSize: '0.675rem',
                               fontWeight: 900,
                               background: isOut ? '#fef2f2' : isLow ? '#fffbeb' : '#ecfdf5',
                               color: isOut ? '#dc2626' : isLow ? '#b45309' : '#047857',
                               border: `1px solid ${isOut ? '#fecaca' : isLow ? '#fde68a' : '#a7f3d0'}`,
+                              whiteSpace: 'nowrap',
                             }}
                           >
                             {isOut ? '🔴 HABIS' : isLow ? '⚠️ MENIPIS' : '🟢 AMAN'}
                           </span>
                         </div>
 
-                        <h3 style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.2rem 0', wordBreak: 'break-word' }}>
+                        {/* Title & Category */}
+                        <h3 style={{ fontSize: '0.975rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.2rem 0', wordBreak: 'break-word', lineHeight: 1.3 }}>
                           {item.product_name}
                         </h3>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem' }}>
-                          Kategori: <strong>{catName}</strong>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem', wordBreak: 'break-word' }}>
+                          Kategori: <strong style={{ color: '#334155' }}>{catName}</strong>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem', background: '#f8fafc', padding: '0.4rem 0.6rem', borderRadius: '8px' }}>
-                          <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Harga:</span>
-                          <span style={{ fontSize: '0.9rem', fontWeight: 900, color: '#2563eb' }}>
+                        {/* Price Box */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', background: '#f8fafc', padding: '0.45rem 0.65rem', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+                          <span style={{ fontSize: '0.725rem', color: '#64748b', fontWeight: 700 }}>Harga:</span>
+                          <span style={{ fontSize: '0.925rem', fontWeight: 900, color: '#2563eb' }}>
                             {formatRupiah(item.selling_price || 0)}
                           </span>
                         </div>
 
+                        {/* Stock Information Box */}
                         <div>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', background: '#f8fafc', padding: '0.5rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 800 }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', background: '#f8fafc', padding: '0.55rem 0.65rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.775rem', fontWeight: 800 }}>
                               <span style={{ color: '#475569' }}>Total Stok Fisik:</span>
-                              <span style={{ color: isOut ? '#dc2626' : isLow ? '#d97706' : '#047857', fontSize: '0.9rem', fontWeight: 900 }}>
+                              <span style={{ color: isOut ? '#dc2626' : isLow ? '#d97706' : '#047857', fontSize: '0.925rem', fontWeight: 900 }}>
                                 {item.current_stock} <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>pcs</span>
                               </span>
                             </div>
 
-                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', fontWeight: 800, borderTop: '1px dashed #cbd5e1', paddingTop: '0.25rem' }}>
-                              <span style={{ color: '#1d4ed8' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.35rem', fontSize: '0.7rem', fontWeight: 800, borderTop: '1px dashed #cbd5e1', paddingTop: '0.35rem' }}>
+                              <span style={{ color: '#1d4ed8', whiteSpace: 'nowrap' }}>
                                 🏭 Gudang: <strong>{item.stock_gudang ?? Math.max(0, item.current_stock - 5)}</strong> pcs
                               </span>
-                              <span style={{ color: '#059669' }}>
+                              <span style={{ color: '#059669', whiteSpace: 'nowrap' }}>
                                 🏪 Etalase: <strong>{item.stock_etalase ?? Math.min(item.current_stock, 5)}</strong> pcs
                               </span>
                             </div>
@@ -1227,30 +1237,33 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                         </div>
                       </div>
 
+                      {/* Quick Restock (+5 Pcs, +10 Pcs) */}
                       {currentUser.role !== 'OWNER' && (
                         <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}>
                           <button
                             onClick={() => handleDirectQuickAdd(item, 5)}
-                            style={{ flex: 1, padding: '0.3rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}
+                            style={{ flex: 1, minWidth: 0, padding: '0.35rem 0.25rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', fontSize: '0.725rem', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}
                           >
                             +5 Pcs
                           </button>
                           <button
                             onClick={() => handleDirectQuickAdd(item, 10)}
-                            style={{ flex: 1, padding: '0.3rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}
+                            style={{ flex: 1, minWidth: 0, padding: '0.35rem 0.25rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', fontSize: '0.725rem', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}
                           >
                             +10 Pcs
                           </button>
                         </div>
                       )}
 
-                      <div style={{ display: 'flex', gap: '0.35rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}>
+                      {/* Action Buttons: Detail, Koreksi, Hapus */}
+                      <div style={{ display: 'flex', gap: '0.35rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem', alignItems: 'center', minWidth: 0 }}>
                         <button
                           onClick={() => handleOpenEditProductModal(item)}
                           title="Lihat Detail Produk"
                           style={{
                             flex: 1,
-                            padding: '0.4rem',
+                            minWidth: 0,
+                            padding: '0.45rem 0.35rem',
                             borderRadius: '8px',
                             border: '1px solid #cbd5e1',
                             background: '#ffffff',
@@ -1262,9 +1275,11 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '0.25rem',
+                            whiteSpace: 'nowrap',
                           }}
                         >
-                          <Eye size={13} /> Detail
+                          <Eye size={13} style={{ flexShrink: 0 }} />
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>Detail</span>
                         </button>
 
                         {currentUser.role !== 'OWNER' && (
@@ -1273,7 +1288,8 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                             title="Koreksi Stok Fisik"
                             style={{
                               flex: 1,
-                              padding: '0.4rem',
+                              minWidth: 0,
+                              padding: '0.45rem 0.35rem',
                               borderRadius: '8px',
                               border: 'none',
                               background: '#4f46e5',
@@ -1285,9 +1301,11 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '0.25rem',
+                              whiteSpace: 'nowrap',
                             }}
                           >
-                            <TrendingUp size={13} /> Koreksi
+                            <TrendingUp size={13} style={{ flexShrink: 0 }} />
+                            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>Koreksi</span>
                           </button>
                         )}
 
@@ -1295,7 +1313,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                           onClick={() => setDeleteConfirmItem(item)}
                           title="Hapus Stok & Produk"
                           style={{
-                            padding: '0.4rem 0.55rem',
+                            padding: '0.45rem 0.55rem',
                             borderRadius: '8px',
                             border: 'none',
                             background: '#fee2e2',
@@ -1306,6 +1324,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
+                            flexShrink: 0,
                           }}
                         >
                           <Trash2 size={14} />
@@ -1315,6 +1334,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                   );
                 })}
               </div>
+
             )}
 
             {/* Footer Pagination Bar */}
