@@ -92,7 +92,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               style={{
                 fontSize: '1.05rem',
                 fontWeight: 800,
-                color: 'var(--sidebar-text, #0f172a)',
+                color: '#ffffff',
                 margin: 0,
                 lineHeight: 1.3,
                 letterSpacing: '-0.02em',

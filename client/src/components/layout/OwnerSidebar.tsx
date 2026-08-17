@@ -106,7 +106,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 letterSpacing: '-0.02em',
                 margin: 0,
                 lineHeight: 1.3,
-                color: 'var(--sidebar-text, #0f172a)',
+                color: '#ffffff',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
