@@ -8,7 +8,10 @@ export class StockRepository implements IRepository<StockEntity> {
   async findAll(): Promise<StockEntity[]> {
     try {
       const res = await pool.query(
-        `SELECT stock_id, product_id, current_stock::float, last_updated::text 
+        `SELECT stock_id, product_id, current_stock::float, 
+                COALESCE(stock_gudang, 0)::float as stock_gudang, 
+                COALESCE(stock_etalase, 0)::float as stock_etalase, 
+                last_updated::text 
          FROM stocks 
          ORDER BY last_updated DESC`
       );
@@ -26,7 +29,10 @@ export class StockRepository implements IRepository<StockEntity> {
   async findById(stock_id: string): Promise<StockEntity | null> {
     try {
       const res = await pool.query(
-        `SELECT stock_id, product_id, current_stock::float, last_updated::text 
+        `SELECT stock_id, product_id, current_stock::float, 
+                COALESCE(stock_gudang, 0)::float as stock_gudang, 
+                COALESCE(stock_etalase, 0)::float as stock_etalase, 
+                last_updated::text 
          FROM stocks 
          WHERE stock_id = $1`,
         [stock_id]
@@ -43,7 +49,10 @@ export class StockRepository implements IRepository<StockEntity> {
   async findByProductId(product_id: string): Promise<StockEntity | null> {
     try {
       const res = await pool.query(
-        `SELECT stock_id, product_id, current_stock::float, last_updated::text 
+        `SELECT stock_id, product_id, current_stock::float, 
+                COALESCE(stock_gudang, 0)::float as stock_gudang, 
+                COALESCE(stock_etalase, 0)::float as stock_etalase, 
+                last_updated::text 
          FROM stocks 
          WHERE product_id = $1`,
         [product_id]
@@ -65,12 +74,15 @@ export class StockRepository implements IRepository<StockEntity> {
   async create(stock: StockEntity): Promise<StockEntity> {
     try {
       const res = await pool.query(
-        `INSERT INTO stocks (stock_id, product_id, current_stock, last_updated)
-         VALUES ($1, $2, $3, $4)
+        `INSERT INTO stocks (stock_id, product_id, current_stock, stock_gudang, stock_etalase, last_updated)
+         VALUES ($1, $2, $3, $4, $5, $6)
          ON CONFLICT (product_id) DO UPDATE 
-         SET current_stock = EXCLUDED.current_stock, last_updated = EXCLUDED.last_updated
-         RETURNING stock_id, product_id, current_stock::float, last_updated::text`,
-        [stock.stock_id, stock.product_id, stock.current_stock, stock.last_updated || new Date().toISOString()]
+         SET current_stock = EXCLUDED.current_stock, 
+             stock_gudang = EXCLUDED.stock_gudang, 
+             stock_etalase = EXCLUDED.stock_etalase, 
+             last_updated = EXCLUDED.last_updated
+         RETURNING stock_id, product_id, current_stock::float, COALESCE(stock_gudang, 0)::float as stock_gudang, COALESCE(stock_etalase, 0)::float as stock_etalase, last_updated::text`,
+        [stock.stock_id, stock.product_id, stock.current_stock, stock.stock_gudang ?? 0, stock.stock_etalase ?? 0, stock.last_updated || new Date().toISOString()]
       );
       const created = res.rows[0];
       const memIdx = this.inMemoryStocks.findIndex((s) => s.product_id === stock.product_id);
@@ -91,11 +103,13 @@ export class StockRepository implements IRepository<StockEntity> {
       let idx = 1;
 
       if (item.current_stock !== undefined) { fields.push(`current_stock = $${idx++}`); values.push(item.current_stock); }
+      if (item.stock_gudang !== undefined) { fields.push(`stock_gudang = $${idx++}`); values.push(item.stock_gudang); }
+      if (item.stock_etalase !== undefined) { fields.push(`stock_etalase = $${idx++}`); values.push(item.stock_etalase); }
       fields.push(`last_updated = CURRENT_TIMESTAMP`);
 
       values.push(stock_id);
       const queryStr = `UPDATE stocks SET ${fields.join(', ')} WHERE stock_id = $${idx} 
-                        RETURNING stock_id, product_id, current_stock::float, last_updated::text`;
+                        RETURNING stock_id, product_id, current_stock::float, COALESCE(stock_gudang, 0)::float as stock_gudang, COALESCE(stock_etalase, 0)::float as stock_etalase, last_updated::text`;
       const res = await pool.query(queryStr, values);
 
       if (res.rows.length > 0) {

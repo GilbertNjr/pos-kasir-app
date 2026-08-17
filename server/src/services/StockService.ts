@@ -37,12 +37,21 @@ export class StockService {
             stock_id: `stk-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
             product_id: prod.product_id,
             current_stock: 0,
+            stock_gudang: 0,
+            stock_etalase: 0,
             last_updated: new Date().toISOString(),
           });
         }
 
+        const totalStock = stock.current_stock;
+        const etalase = stock.stock_etalase !== undefined ? stock.stock_etalase : Math.min(totalStock, 5);
+        const gudang = stock.stock_gudang !== undefined ? stock.stock_gudang : Math.max(0, totalStock - etalase);
+
         result.push({
           ...stock,
+          current_stock: totalStock,
+          stock_gudang: gudang,
+          stock_etalase: etalase,
           product_name: prod.product_name,
           business_unit: prod.business_unit,
           manage_stock: prod.manage_stock,
@@ -66,13 +75,31 @@ export class StockService {
         stock_id: `stk-${Date.now()}`,
         product_id,
         current_stock: 0,
+        stock_gudang: 0,
+        stock_etalase: 0,
         last_updated: new Date().toISOString(),
       });
     }
 
-    const newStockAmount = Math.max(0, stock.current_stock - qty);
+    // Deduct primarily from etalase, then from gudang
+    let etalase = stock.stock_etalase !== undefined ? stock.stock_etalase : Math.min(stock.current_stock, 5);
+    let gudang = stock.stock_gudang !== undefined ? stock.stock_gudang : Math.max(0, stock.current_stock - etalase);
+
+    let remainingDeduct = qty;
+    if (etalase >= remainingDeduct) {
+      etalase -= remainingDeduct;
+      remainingDeduct = 0;
+    } else {
+      remainingDeduct -= etalase;
+      etalase = 0;
+      gudang = Math.max(0, gudang - remainingDeduct);
+    }
+
+    const newStockAmount = gudang + etalase;
     return this.stockRepository.update(stock.stock_id, {
       current_stock: newStockAmount,
+      stock_gudang: gudang,
+      stock_etalase: etalase,
     });
   }
 
@@ -85,13 +112,19 @@ export class StockService {
     let stock = await this.stockRepository.findByProductId(product_id);
     if (!stock) return null;
 
-    const newStockAmount = stock.current_stock + qty;
+    let etalase = stock.stock_etalase !== undefined ? stock.stock_etalase : Math.min(stock.current_stock, 5);
+    let gudang = stock.stock_gudang !== undefined ? stock.stock_gudang : Math.max(0, stock.current_stock - etalase);
+    etalase += qty; // Kembalikan stok ke etalase
+
+    const newStockAmount = gudang + etalase;
     return this.stockRepository.update(stock.stock_id, {
       current_stock: newStockAmount,
+      stock_gudang: gudang,
+      stock_etalase: etalase,
     });
   }
 
-  async updateStockQuantity(product_id: string, newQuantity: number): Promise<StockEntity> {
+  async updateStockQuantity(product_id: string, newQuantity: number, inputGudang?: number, inputEtalase?: number): Promise<StockEntity> {
     if (newQuantity < 0) {
       throw new Error('Jumlah stok tidak boleh kurang dari 0.');
     }
@@ -101,18 +134,32 @@ export class StockService {
       throw new Error('Item ini tidak dikonfigurasi untuk mengelola stok fisik.');
     }
 
+    let gudang = inputGudang;
+    let etalase = inputEtalase;
+
+    if (gudang === undefined || etalase === undefined) {
+      etalase = Math.min(newQuantity, 5);
+      gudang = Math.max(0, newQuantity - etalase);
+    } else {
+      newQuantity = gudang + etalase;
+    }
+
     let stock = await this.stockRepository.findByProductId(product_id);
     if (!stock) {
       return this.stockRepository.create({
         stock_id: `stk-${Date.now()}`,
         product_id,
         current_stock: newQuantity,
+        stock_gudang: gudang,
+        stock_etalase: etalase,
         last_updated: new Date().toISOString(),
       });
     }
 
     const updated = await this.stockRepository.update(stock.stock_id, {
       current_stock: newQuantity,
+      stock_gudang: gudang,
+      stock_etalase: etalase,
     });
 
     return updated!;

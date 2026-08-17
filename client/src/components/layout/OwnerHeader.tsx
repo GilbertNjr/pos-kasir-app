@@ -31,8 +31,9 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
         justifyContent: 'space-between',
         position: 'sticky',
         top: 0,
-        zIndex: 40,
-        boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)',
+        zIndex: 100,
+        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
+        flexShrink: 0,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>

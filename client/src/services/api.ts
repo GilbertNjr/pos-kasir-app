@@ -334,6 +334,20 @@ export const apiService = {
     return result.data;
   },
 
+  async deleteProduct(productId: string): Promise<boolean> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/products/${productId}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal menghapus produk dan stok');
+    return true;
+  },
+
   /* SHIFT API SERVICES */
   async getActiveShift(): Promise<ActiveShiftDetailsData | null> {
     const token = this.getToken();
@@ -513,7 +527,7 @@ export const apiService = {
     return result.data;
   },
 
-  async updateStock(productId: string, currentStock: number): Promise<any> {
+  async updateStock(productId: string, currentStock: number, stockGudang?: number, stockEtalase?: number): Promise<any> {
     const token = this.getToken();
     const response = await fetch(`${API_BASE}/stocks/update`, {
       method: 'POST',
@@ -521,7 +535,12 @@ export const apiService = {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ product_id: productId, current_stock: currentStock }),
+      body: JSON.stringify({
+        product_id: productId,
+        current_stock: currentStock,
+        stock_gudang: stockGudang,
+        stock_etalase: stockEtalase,
+      }),
     });
 
     const result = await response.json();

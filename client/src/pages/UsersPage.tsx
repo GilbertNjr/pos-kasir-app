@@ -96,9 +96,11 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
     try {
       setLoading(true);
       const data = await apiService.getUsers();
-      setUsers(data || []);
-    } catch {
-      setUsers([]);
+      if (Array.isArray(data)) {
+        setUsers(data);
+      }
+    } catch (err: any) {
+      console.error('Gagal memuat pengguna:', err);
     } finally {
       setLoading(false);
     }
@@ -205,9 +207,11 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
 
     let matchesStatus = true;
     if (statusFilter === 'ACTIVE') {
-      matchesStatus = u.status === 'ACTIVE';
+      matchesStatus = u.status === 'ACTIVE' || u.status === 'PENDING_ACTIVATION';
     } else if (statusFilter === 'INACTIVE') {
-      matchesStatus = u.status === 'INACTIVE';
+      matchesStatus = u.status === 'INACTIVE' || u.status === 'SUSPENDED';
+    } else if (statusFilter === 'PENDING') {
+      matchesStatus = u.status === 'PENDING_ACTIVATION';
     }
 
     let matchesShift = true;
@@ -220,10 +224,10 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
 
   // Calculate Metrics from Employee Dataset (excluding OWNER)
   const totalPegawaiCount = employeeUsers.length;
-  const pjCount = employeeUsers.filter((u) => u.is_pj && u.status === 'ACTIVE').length;
-  const kasirCount = employeeUsers.filter((u) => !u.is_pj && u.status === 'ACTIVE').length;
-  const activeCount = employeeUsers.filter((u) => u.status === 'ACTIVE').length;
-  const inactiveCount = employeeUsers.filter((u) => u.status === 'INACTIVE').length;
+  const pjCount = employeeUsers.filter((u) => u.is_pj && (u.status === 'ACTIVE' || u.status === 'PENDING_ACTIVATION')).length;
+  const kasirCount = employeeUsers.filter((u) => !u.is_pj && (u.status === 'ACTIVE' || u.status === 'PENDING_ACTIVATION')).length;
+  const activeCount = employeeUsers.filter((u) => u.status === 'ACTIVE' || u.status === 'PENDING_ACTIVATION').length;
+  const inactiveCount = employeeUsers.filter((u) => u.status === 'INACTIVE' || u.status === 'SUSPENDED').length;
 
   // Pagination Calculations
   const totalPages = Math.ceil(filteredUsers.length / rowsPerPage) || 1;
@@ -256,8 +260,14 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
         avatar_url: formData.avatar_url || PRESET_AVATARS[0].url,
       }) as any;
 
-      if (created && created.activation_code) {
-        setGeneratedCode({ username: formData.username || formData.full_name, code: created.activation_code });
+      if (created) {
+        setUsers((prev) => {
+          const exists = prev.some((u) => u.user_id === created.user_id);
+          return exists ? prev : [created, ...prev];
+        });
+        if (created.activation_code) {
+          setGeneratedCode({ username: formData.username || formData.full_name, code: created.activation_code });
+        }
       }
 
       if (onTriggerToast) {
@@ -265,7 +275,8 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       }
       setIsAddModalOpen(false);
       resetForm();
-      loadUsers();
+      setCurrentPage(1);
+      await loadUsers();
     } catch (err: any) {
       if (onTriggerToast) {
         onTriggerToast('danger', 'Gagal Menambah Pegawai', err.message || 'Terjadi kesalahan sistem.');
@@ -802,7 +813,8 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
             }}
           >
             <option value="ALL">Semua Status</option>
-            <option value="ACTIVE">Aktif</option>
+            <option value="ACTIVE">Aktif & Pending</option>
+            <option value="PENDING">Menunggu Aktivasi</option>
             <option value="INACTIVE">Nonaktif</option>
           </select>
 

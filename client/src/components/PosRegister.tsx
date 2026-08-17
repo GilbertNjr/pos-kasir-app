@@ -23,7 +23,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
-  const [cashTendered, setCashTendered] = useState<number>(0);
+  const [cashTendered, setCashTendered] = useState<number | string>(0);
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,8 +54,20 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const data = await apiService.getProducts(selectedUnit);
-      setProducts(data);
+      const [prodsData, stocksData] = await Promise.all([
+        apiService.getProducts(selectedUnit),
+        apiService.getStocks(),
+      ]);
+
+      const stockMap = new Map<string, number>();
+      (stocksData || []).forEach((s) => stockMap.set(s.product_id, s.current_stock));
+
+      const mergedProducts = (prodsData || []).map((p) => ({
+        ...p,
+        stock: stockMap.has(p.product_id) ? stockMap.get(p.product_id)! : (p.stock ?? 0),
+      }));
+
+      setProducts(mergedProducts);
     } catch (err: any) {
       setError(err.message || 'Gagal memuat katalog POS');
     } finally {
@@ -68,8 +80,25 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   }, [selectedUnit]);
 
   const addToCart = (product: Product) => {
+    const existing = cart.find((item) => item.product.product_id === product.product_id);
+    const currentInCart = existing ? existing.qty : 0;
+
+    // Batasi jika produk mengelola stok fisik
+    if (product.manage_stock) {
+      const maxStock = product.stock ?? 0;
+
+      if (maxStock <= 0) {
+        alert(`🔴 STOK HABIS!\n\nProduk "${product.product_name}" saat ini 0 Pcs dan tidak dapat ditambahkan ke keranjang kasir.`);
+        return;
+      }
+
+      if (currentInCart + 1 > maxStock) {
+        alert(`⚠️ STOK TERBATAS!\n\nProduk "${product.product_name}" hanya tersisa ${maxStock} Pcs.\n\nJumlah di keranjang kasir telah mencapai batas maksimal stok yang tersedia (${maxStock} Pcs).`);
+        return;
+      }
+    }
+
     setCart((prev) => {
-      const existing = prev.find((item) => item.product.product_id === product.product_id);
       if (existing) {
         return prev.map((item) =>
           item.product.product_id === product.product_id ? { ...item, qty: item.qty + 1 } : item
@@ -80,6 +109,17 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   };
 
   const updateCartQty = (productId: string, delta: number) => {
+    if (delta > 0) {
+      const item = cart.find((i) => i.product.product_id === productId);
+      if (item && item.product.manage_stock) {
+        const maxStock = item.product.stock ?? 0;
+        if (item.qty + delta > maxStock) {
+          alert(`⚠️ STOK TERBATAS!\n\nProduk "${item.product.product_name}" hanya tersisa ${maxStock} Pcs.\n\nKuantitas tidak dapat melebihi stok fisik yang tersedia.`);
+          return;
+        }
+      }
+    }
+
     setCart((prev) =>
       prev
         .map((item) => {
@@ -106,7 +146,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   const totalAmount = storePreferences.total_rounding ? Math.round(rawTotal / 100) * 100 : rawTotal;
 
   useEffect(() => {
-    if (cashTendered < totalAmount) {
+    if ((Number(cashTendered) || 0) < totalAmount) {
       setCashTendered(totalAmount);
     }
   }, [totalAmount]);
@@ -131,7 +171,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         qty: item.qty,
       }));
 
-      const result = await apiService.createTransaction(paymentMethod, itemsDto, cashTendered);
+      const result = await apiService.createTransaction(paymentMethod, itemsDto, Number(cashTendered) || 0);
       setLastReceipt(result);
       clearCart();
 
@@ -252,39 +292,56 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
           {loading ? (
             <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>Memuat produk POS...</div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(135px, 1fr))', gap: '0.75rem', maxHeight: '520px', overflowY: 'auto', paddingRight: '0.25rem' }}>
-              {filteredProducts.map((p) => (
-                <div
-                  key={p.product_id}
-                  onClick={() => addToCart(p)}
-                  style={{
-                    background: '#ffffff',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: 'var(--radius-md)',
-                    padding: '0.85rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    boxShadow: 'var(--shadow-sm)',
-                  }}
-                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#5b21b6')}
-                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'var(--border-color)')}
-                >
-                  <div>
-                    <span className={p.business_unit === 'FC_PRINT' ? 'badge badge-fc' : 'badge badge-fnb'} style={{ fontSize: '0.65rem', marginBottom: '0.35rem' }}>
-                      {p.business_unit}
-                    </span>
-                    <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.25, marginBottom: '0.5rem' }}>
-                      {p.product_name}
-                    </h4>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '0.75rem', maxHeight: '520px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+              {filteredProducts.map((p) => {
+                const isOutOfStock = p.manage_stock && (p.stock ?? 0) <= 0;
+                return (
+                  <div
+                    key={p.product_id}
+                    onClick={() => addToCart(p)}
+                    style={{
+                      background: isOutOfStock ? '#fef2f2' : '#ffffff',
+                      border: isOutOfStock ? '1px solid #fecaca' : '1px solid var(--border-color)',
+                      borderRadius: 'var(--radius-md)',
+                      padding: '0.85rem',
+                      cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                      opacity: isOutOfStock ? 0.75 : 1,
+                      transition: 'all 0.15s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      boxShadow: 'var(--shadow-sm)',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isOutOfStock) e.currentTarget.style.borderColor = '#5b21b6';
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isOutOfStock) e.currentTarget.style.borderColor = 'var(--border-color)';
+                    }}
+                  >
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
+                        <span className={p.business_unit === 'FC_PRINT' ? 'badge badge-fc' : 'badge badge-fnb'} style={{ fontSize: '0.65rem' }}>
+                          {p.business_unit}
+                        </span>
+                        {p.manage_stock ? (
+                          <span style={{ fontSize: '0.68rem', fontWeight: 800, color: (p.stock ?? 0) === 0 ? '#dc2626' : (p.stock ?? 0) <= 5 ? '#d97706' : '#059669' }}>
+                            {(p.stock ?? 0) === 0 ? '🔴 Habis' : `📦 ${(p.stock ?? 0)} Pcs`}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#64748b' }}>⚡ Jasa</span>
+                        )}
+                      </div>
+                      <h4 style={{ fontSize: '0.85rem', fontWeight: 700, color: isOutOfStock ? '#991b1b' : '#0f172a', lineHeight: 1.25, marginBottom: '0.5rem' }}>
+                        {p.product_name}
+                      </h4>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 800, color: isOutOfStock ? '#991b1b' : '#4f46e5' }}>
+                      {formatRupiah(p.selling_price)}
+                    </div>
                   </div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#4f46e5' }}>
-                    {formatRupiah(p.selling_price)}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -451,13 +508,13 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 <input
                   type="number"
                   value={cashTendered}
-                  onChange={(e) => setCashTendered(Number(e.target.value))}
+                  onChange={(e) => setCashTendered(e.target.value === '' ? '' : Number(e.target.value))}
                   style={{ width: '100%', padding: '0.45rem 0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '0.95rem', fontWeight: 700 }}
                   min={totalAmount}
                   step={1000}
                 />
-                <div style={{ fontSize: '0.8rem', marginTop: '0.25rem', color: cashTendered >= totalAmount ? '#16a34a' : '#dc2626', fontWeight: 700 }}>
-                  Kembalian: {formatRupiah(Math.max(0, cashTendered - totalAmount))}
+                <div style={{ fontSize: '0.8rem', marginTop: '0.25rem', color: (Number(cashTendered) || 0) >= totalAmount ? '#16a34a' : '#dc2626', fontWeight: 700 }}>
+                  Kembalian: {formatRupiah(Math.max(0, (Number(cashTendered) || 0) - totalAmount))}
                 </div>
               </div>
             )}

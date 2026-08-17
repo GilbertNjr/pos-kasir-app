@@ -17,15 +17,15 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   const [error, setError] = useState<string | null>(null);
 
   // Form State Buka Shift
-  const [openInitialCash, setOpenInitialCash] = useState<number>(50000);
+  const [openInitialCash, setOpenInitialCash] = useState<number | string>(50000);
   const [openLoading, setOpenLoading] = useState(false);
 
   // Form State Setor Modal Tambahan
-  const [addCapitalAmount, setAddCapitalAmount] = useState<number>(50000);
+  const [addCapitalAmount, setAddCapitalAmount] = useState<number | string>(50000);
   const [capitalLoading, setCapitalLoading] = useState(false);
 
   // Form State Tutup Shift & Rekonsiliasi
-  const [physicalCash, setPhysicalCash] = useState<number>(0);
+  const [physicalCash, setPhysicalCash] = useState<number | string>(0);
   const [closeLoading, setCloseLoading] = useState(false);
 
   // Status Setelah Tutup Shift (Rincian Return Capital)
@@ -148,30 +148,30 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
           </div>
         )}
 
-        {/* Dynamic Metric Cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
-            <span style={{ fontSize: '0.8rem', color: '#4b5563', fontWeight: 700 }}>Total Modal Kas Awal Bersama</span>
-            <h3 style={{ fontSize: '1.35rem', color: '#4f46e5', marginTop: '0.25rem', fontWeight: 800 }}>{formatRupiah(shift.total_initial_cash)}</h3>
-            <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>{contributions.length} Setoran Karyawan</p>
+        {/* Dynamic Metric Cards (2x2 RESPONSIVE GRID) */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '0.85rem', marginBottom: '1.5rem' }}>
+          <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '0.78rem', color: '#4b5563', fontWeight: 700 }}>Modal Kas Awal</span>
+            <h3 style={{ fontSize: '1.25rem', color: '#4f46e5', marginTop: '0.25rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(shift.total_initial_cash)}</h3>
+            <p style={{ fontSize: '0.72rem', color: '#6b7280' }}>{contributions.length} Setoran Karyawan</p>
           </div>
 
-          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
-            <span style={{ fontSize: '0.8rem', color: '#4b5563', fontWeight: 700 }}>Penjualan Tunai Bersih</span>
-            <h3 style={{ fontSize: '1.35rem', color: '#059669', marginTop: '0.25rem', fontWeight: 800 }}>{formatRupiah(shift.net_cash_sales)}</h3>
-            <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>Seluruh Transaksi Shift</p>
+          <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '0.78rem', color: '#4b5563', fontWeight: 700 }}>Penjualan Tunai</span>
+            <h3 style={{ fontSize: '1.25rem', color: '#059669', marginTop: '0.25rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(shift.net_cash_sales)}</h3>
+            <p style={{ fontSize: '0.72rem', color: '#6b7280' }}>Seluruh Transaksi Shift</p>
           </div>
 
-          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
-            <span style={{ fontSize: '0.8rem', color: '#4b5563', fontWeight: 700 }}>Total Pengeluaran Kas</span>
-            <h3 style={{ fontSize: '1.35rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: 800 }}>{formatRupiah(shift.total_cash_expenses)}</h3>
-            <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>Biaya Operasional Toko</p>
+          <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '0.78rem', color: '#4b5563', fontWeight: 700 }}>Pengeluaran Kas</span>
+            <h3 style={{ fontSize: '1.25rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(shift.total_cash_expenses)}</h3>
+            <p style={{ fontSize: '0.72rem', color: '#6b7280' }}>Biaya Operasional Toko</p>
           </div>
 
-          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '14px', border: '2px solid #5b21b6', boxShadow: 'var(--shadow-sm)' }}>
-            <span style={{ fontSize: '0.8rem', color: '#5b21b6', fontWeight: 800 }}>Saldo Kas Teoritis Bersama</span>
-            <h3 style={{ fontSize: '1.35rem', color: '#5b21b6', marginTop: '0.25rem', fontWeight: 900 }}>{formatRupiah(shift.theoretical_cash)}</h3>
-            <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>Uang Fisik Wajib Ada di Laci</p>
+          <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '2px solid #5b21b6', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '0.78rem', color: '#5b21b6', fontWeight: 800 }}>Kas Teoritis</span>
+            <h3 style={{ fontSize: '1.25rem', color: '#5b21b6', marginTop: '0.25rem', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(shift.theoretical_cash)}</h3>
+            <p style={{ fontSize: '0.72rem', color: '#6b7280' }}>Uang Fisik di Laci</p>
           </div>
         </div>
 
@@ -221,7 +221,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 <input
                   type="number"
                   value={addCapitalAmount}
-                  onChange={(e) => setAddCapitalAmount(Number(e.target.value))}
+                  onChange={(e) => setAddCapitalAmount(e.target.value === '' ? '' : Number(e.target.value))}
                   style={{ flex: 1, padding: '0.45rem 0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.95rem', fontWeight: 700 }}
                   min={1000}
                   step={5000}
@@ -276,7 +276,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   <input
                     type="number"
                     value={physicalCash}
-                    onChange={(e) => setPhysicalCash(Number(e.target.value))}
+                    onChange={(e) => setPhysicalCash(e.target.value === '' ? '' : Number(e.target.value))}
                     style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '1.1rem', fontWeight: 800 }}
                     min={0}
                     required
@@ -290,8 +290,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Proyeksi Selisih Kas:</span>
-                    <strong style={{ color: physicalCash - shift.theoretical_cash >= 0 ? '#16a34a' : '#dc2626' }}>
-                      {formatRupiah(physicalCash - shift.theoretical_cash)}
+                    <strong style={{ color: (Number(physicalCash) || 0) - shift.theoretical_cash >= 0 ? '#16a34a' : '#dc2626' }}>
+                      {formatRupiah((Number(physicalCash) || 0) - shift.theoretical_cash)}
                     </strong>
                   </div>
                 </div>
@@ -435,7 +435,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             <input
               type="number"
               value={openInitialCash}
-              onChange={(e) => setOpenInitialCash(Number(e.target.value))}
+              onChange={(e) => setOpenInitialCash(e.target.value === '' ? '' : Number(e.target.value))}
               style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}
               min={0}
               step={5000}

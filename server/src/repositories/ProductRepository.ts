@@ -139,5 +139,16 @@ export class ProductRepository implements IRepository<ProductEntity> {
     this.inMemoryProducts[index] = { ...this.inMemoryProducts[index], ...item };
     return { ...this.inMemoryProducts[index] };
   }
+
+  async delete(product_id: string): Promise<boolean> {
+    try {
+      await pool.query('DELETE FROM stock_balances WHERE product_id = $1', [product_id]);
+      await pool.query('DELETE FROM products WHERE product_id = $1', [product_id]);
+    } catch (err) {
+      console.warn('[ProductRepository] Database delete fallback to memory:', (err as Error).message);
+    }
+    this.inMemoryProducts = this.inMemoryProducts.filter((p) => p.product_id !== product_id);
+    return true;
+  }
 }
 

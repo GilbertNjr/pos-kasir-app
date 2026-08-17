@@ -15,5 +15,6 @@ router.get('/', authMiddleware, productController.getProducts);
 // Authenticated Product Mutation Routes (Owner & PJ Shift)
 router.post('/', authMiddleware, productController.createProduct);
 router.put('/:id', authMiddleware, productController.updateProduct);
+router.delete('/:id', authMiddleware, productController.deleteProduct);
 
 export default router;

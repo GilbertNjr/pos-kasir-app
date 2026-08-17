@@ -51,7 +51,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   const [newProductName, setNewProductName] = useState('');
   const [newCategoryId, setNewCategoryId] = useState('');
   const [newBusinessUnit, setNewBusinessUnit] = useState<BusinessUnit>('FC_PRINT');
-  const [newPrice, setNewPrice] = useState<number>(5000);
+  const [newPrice, setNewPrice] = useState<number | string>(5000);
   const [newManageStock, setNewManageStock] = useState(true);
   const [formLoading, setFormLoading] = useState(false);
 
@@ -61,7 +61,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   const [editProductName, setEditProductName] = useState('');
   const [editCategoryId, setEditCategoryId] = useState('');
   const [editBusinessUnit, setEditBusinessUnit] = useState<BusinessUnit>('FC_PRINT');
-  const [editPrice, setEditPrice] = useState<number>(0);
+  const [editPrice, setEditPrice] = useState<number | string>(0);
   const [editManageStock, setEditManageStock] = useState(true);
 
   const loadData = async () => {
@@ -227,12 +227,18 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
     });
   }, [products, searchQuery, selectedStockFilter, categoryMap]);
 
+  // Auto reset page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedStockFilter]);
+
   // Pagination Logic
-  const totalPages = Math.ceil(filteredProducts.length / pageSize) || 1;
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / pageSize));
+  const activePage = Math.min(Math.max(1, currentPage), totalPages);
   const paginatedProducts = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
+    const start = (activePage - 1) * pageSize;
     return filteredProducts.slice(start, start + pageSize);
-  }, [filteredProducts, currentPage, pageSize]);
+  }, [filteredProducts, activePage, pageSize]);
 
   // Dynamic Dashboard Metrics (100% Real-Time & Accurate)
   const totalProductCount = products.length;
@@ -1080,20 +1086,66 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
 
             <form onSubmit={handleCreateProduct} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>
-                  Bidang Usaha (Unit)
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.4rem' }}>
+                  Pilih Bidang Usaha:
                 </label>
-                <select
-                  value={newBusinessUnit}
-                  onChange={(e) => {
-                    setNewBusinessUnit(e.target.value as BusinessUnit);
-                    setNewCategoryId('');
-                  }}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontWeight: 700, outline: 'none' }}
-                >
-                  <option value="FC_PRINT">📄 FC_PRINT (Fotokopi & Printing)</option>
-                  <option value="FNB">🍧 FNB (Food & Beverage)</option>
-                </select>
+                <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.3rem', borderRadius: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewBusinessUnit('FNB');
+                      const fnbCats = categories.filter((c) => c.business_unit === 'FNB');
+                      setNewCategoryId(fnbCats.length > 0 ? fnbCats[0].category_id : '');
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '0.65rem 0.5rem',
+                      borderRadius: '9px',
+                      border: 'none',
+                      background: newBusinessUnit === 'FNB' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'transparent',
+                      color: newBusinessUnit === 'FNB' ? '#ffffff' : '#475569',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                      boxShadow: newBusinessUnit === 'FNB' ? '0 2px 8px rgba(16, 185, 129, 0.3)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    🍧 Food & Beverage (FNB)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewBusinessUnit('FC_PRINT');
+                      const fcCats = categories.filter((c) => c.business_unit === 'FC_PRINT');
+                      setNewCategoryId(fcCats.length > 0 ? fcCats[0].category_id : '');
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '0.65rem 0.5rem',
+                      borderRadius: '9px',
+                      border: 'none',
+                      background: newBusinessUnit === 'FC_PRINT' ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : 'transparent',
+                      color: newBusinessUnit === 'FC_PRINT' ? '#ffffff' : '#475569',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                      boxShadow: newBusinessUnit === 'FC_PRINT' ? '0 2px 8px rgba(37, 99, 235, 0.3)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    📄 FC / Printing & ATK
+                  </button>
+                </div>
               </div>
 
               <div>
@@ -1138,7 +1190,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                 <input
                   type="number"
                   value={newPrice}
-                  onChange={(e) => setNewPrice(Number(e.target.value))}
+                  onChange={(e) => setNewPrice(e.target.value === '' ? '' : Number(e.target.value))}
                   style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid #cbd5e1', fontSize: '0.875rem', outline: 'none' }}
                   min={1}
                   required
@@ -1255,7 +1307,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                 <input
                   type="number"
                   value={editPrice}
-                  onChange={(e) => setEditPrice(Number(e.target.value))}
+                  onChange={(e) => setEditPrice(e.target.value === '' ? '' : Number(e.target.value))}
                   style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '1px solid #cbd5e1', fontSize: '0.875rem', outline: 'none' }}
                   min={1}
                   required

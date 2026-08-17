@@ -15,6 +15,7 @@ import {
   BarChart2,
   ChevronLeft,
   ChevronRight,
+  Trash2,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { User, Category, Product } from '../types';
@@ -28,6 +29,8 @@ interface StockItem {
   product_name: string;
   business_unit: string;
   current_stock: number;
+  stock_gudang?: number;
+  stock_etalase?: number;
   last_updated: string;
   manage_stock: boolean;
   category_name?: string;
@@ -61,7 +64,8 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
   // Modal 1: Edit/Restock Stock Quantity Modal State (Penyesuaian Stok)
   const [editingStock, setEditingStock] = useState<StockItem | null>(null);
-  const [newStockQty, setNewStockQty] = useState<number>(0);
+  const [editStockGudang, setEditStockGudang] = useState<number | string>(0);
+  const [editStockEtalase, setEditStockEtalase] = useState<number | string>(0);
   const [adjustReason, setAdjustReason] = useState<string>('');
   const [submitLoading, setSubmitLoading] = useState(false);
 
@@ -70,18 +74,23 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   const [newProductName, setNewProductName] = useState('');
   const [newBusinessUnit, setNewBusinessUnit] = useState<'FC_PRINT' | 'FNB'>('FNB');
   const [newCategoryId, setNewCategoryId] = useState('');
-  const [newSellingPrice, setNewSellingPrice] = useState<number>(5000);
-  const [newInitialStock, setNewInitialStock] = useState<number>(10);
+  const [newSellingPrice, setNewSellingPrice] = useState<number | string>(5000);
+  const [newInitialStockGudang, setNewInitialStockGudang] = useState<number | string>(10);
+  const [newInitialStockEtalase, setNewInitialStockEtalase] = useState<number | string>(2);
   const [createLoading, setCreateLoading] = useState(false);
 
   // Modal 3: Edit Product Details Modal State (Koreksi Detail Produk)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editProdName, setEditProdName] = useState('');
-  const [editProdPrice, setEditProdPrice] = useState<number>(0);
+  const [editProdPrice, setEditProdPrice] = useState<number | string>(0);
   const [editProdUnit, setEditProdUnit] = useState<'FC_PRINT' | 'FNB'>('FNB');
   const [editProdCatId, setEditProdCatId] = useState('');
   const [updateProdLoading, setUpdateProdLoading] = useState(false);
   const [recentMovements, setRecentMovements] = useState<any[]>([]);
+
+  // Modal 4: Konfirmasi Peringatan Hapus Stok & Produk
+  const [deleteConfirmItem, setDeleteConfirmItem] = useState<StockItem | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const loadData = async () => {
     try {
@@ -195,17 +204,24 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   // Modal 1 Trigger: Koreksi / Penyesuaian Stok
   const handleOpenEditModal = (item: StockItem) => {
     setEditingStock(item);
-    setNewStockQty(item.current_stock);
-    setAdjustReason('Koreksi / Penyesuaian Stok Shift');
+    const etalase = item.stock_etalase !== undefined ? item.stock_etalase : Math.min(item.current_stock, 5);
+    const gudang = item.stock_gudang !== undefined ? item.stock_gudang : Math.max(0, item.current_stock - etalase);
+    setEditStockGudang(gudang);
+    setEditStockEtalase(etalase);
+    setAdjustReason('Koreksi Stok Gudang Utama & Etalase Toko');
   };
 
   // Quick Add Direct Restock (e.g. +5, +10)
   const handleDirectQuickAdd = async (item: StockItem, addQty: number) => {
-    const updatedQty = item.current_stock + addQty;
+    const currentEtalase = item.stock_etalase !== undefined ? item.stock_etalase : Math.min(item.current_stock, 5);
+    const currentGudang = item.stock_gudang !== undefined ? item.stock_gudang : Math.max(0, item.current_stock - currentEtalase);
+    const newGudang = currentGudang + addQty;
+    const totalQty = newGudang + currentEtalase;
+
     try {
-      await apiService.updateStock(item.product_id, updatedQty);
+      await apiService.updateStock(item.product_id, totalQty, newGudang, currentEtalase);
       if (onTriggerToast) {
-        onTriggerToast('success', 'Stok Diperbarui', `Stok "${item.product_name}" +${addQty} (Total: ${updatedQty} pcs)`);
+        onTriggerToast('success', 'Stok Diperbarui', `Stok Gudang "${item.product_name}" +${addQty} (Total: ${totalQty} pcs)`);
       }
       await loadData();
     } catch (err: any) {
@@ -218,15 +234,19 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     e.preventDefault();
     if (!editingStock) return;
 
+    const gNum = Number(editStockGudang) || 0;
+    const eNum = Number(editStockEtalase) || 0;
+    const totalNum = gNum + eNum;
+
     try {
       setSubmitLoading(true);
       setError(null);
-      await apiService.updateStock(editingStock.product_id, Number(newStockQty));
+      await apiService.updateStock(editingStock.product_id, totalNum, gNum, eNum);
       if (onTriggerToast) {
         onTriggerToast(
           'success',
           'Penyesuaian Stok Berhasil',
-          `Stok "${editingStock.product_name}" dikoreksi menjadi ${newStockQty} pcs.`
+          `Stok "${editingStock.product_name}" dikoreksi (Gudang: ${gNum}, Etalase: ${eNum}, Total: ${totalNum} pcs).`
         );
       }
       setEditingStock(null);
@@ -239,8 +259,23 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     }
   };
 
-  const handleQuickAddModal = (addedQty: number) => {
-    setNewStockQty((prev) => Math.max(0, prev + addedQty));
+  // Quick Transfer Gudang <-> Etalase
+  const handleTransferToEtalase = (qty: number) => {
+    setEditStockGudang((prevG) => {
+      const g = Number(prevG) || 0;
+      const move = Math.min(g, qty);
+      setEditStockEtalase((prevE) => (Number(prevE) || 0) + move);
+      return g - move;
+    });
+  };
+
+  const handleTransferToGudang = (qty: number) => {
+    setEditStockEtalase((prevE) => {
+      const e = Number(prevE) || 0;
+      const move = Math.min(e, qty);
+      setEditStockGudang((prevG) => (Number(prevG) || 0) + move);
+      return e - move;
+    });
   };
 
   // Modal 3 Trigger: Koreksi Detail Barang (Nama, Harga, Kategori)
@@ -302,10 +337,35 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     }
   };
 
+  // Handler Hapus Stok & Produk Dengan Peringatan Konfirmasi
+  const handleConfirmDeleteProduct = async () => {
+    if (!deleteConfirmItem) return;
+    try {
+      setDeleteLoading(true);
+      await apiService.deleteProduct(deleteConfirmItem.product_id);
+      if (onTriggerToast) {
+        onTriggerToast('success', 'Stok & Produk Dihapus', `Produk "${deleteConfirmItem.product_name}" berhasil dihapus dari sistem stok.`);
+      }
+      setDeleteConfirmItem(null);
+      await loadData();
+    } catch (err: any) {
+      if (onTriggerToast) {
+        onTriggerToast('danger', 'Gagal Menghapus', err.message || 'Terjadi kesalahan saat menghapus stok & produk.');
+      }
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   // Submit Handler Modal 2: Membuat Produk & Stok Baru
   const handleCreateProductAndStock = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProductName.trim() || newSellingPrice <= 0 || newInitialStock < 0) {
+    const priceNum = Number(newSellingPrice) || 0;
+    const gNum = Number(newInitialStockGudang) || 0;
+    const eNum = Number(newInitialStockEtalase) || 0;
+    const totalStock = gNum + eNum;
+
+    if (!newProductName.trim() || priceNum <= 0 || totalStock < 0) {
       if (onTriggerToast) onTriggerToast('danger', 'Input Tidak Valid', 'Mohon lengkapi seluruh field dengan benar.');
       return;
     }
@@ -314,29 +374,34 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       setCreateLoading(true);
       setError(null);
 
+      // Filter categories for the selected business unit
+      const unitCats = categories.filter((c) => c.business_unit === newBusinessUnit);
+      const categoryToUse = newCategoryId || (unitCats.length > 0 ? unitCats[0].category_id : (newBusinessUnit === 'FC_PRINT' ? 'cat-fc-001' : 'cat-fnb-001'));
+
       // 1. Create Product
       const newProduct = await apiService.createProduct({
         product_name: newProductName.trim(),
         business_unit: newBusinessUnit,
-        category_id: newCategoryId || (newBusinessUnit === 'FC_PRINT' ? 'cat-fc-001' : 'cat-fnb-001'),
-        selling_price: Number(newSellingPrice),
+        category_id: categoryToUse,
+        selling_price: priceNum,
         manage_stock: true,
         is_active: true,
       });
 
-      // 2. Set Initial Stock
+      // 2. Set Initial Stock with Gudang & Etalase breakdown
       if (newProduct && newProduct.product_id) {
-        await apiService.updateStock(newProduct.product_id, Number(newInitialStock));
+        await apiService.updateStock(newProduct.product_id, totalStock, gNum, eNum);
       }
 
       if (onTriggerToast) {
-        onTriggerToast('success', 'Produk & Stok Berhasil Dibuat', `Item "${newProductName}" telah ditambahkan ke sistem stok.`);
+        onTriggerToast('success', 'Produk & Stok Berhasil Dibuat', `Item "${newProductName}" telah ditambahkan ke sistem (Gudang: ${gNum}, Etalase: ${eNum}).`);
       }
 
       // Reset form
       setNewProductName('');
       setNewSellingPrice(5000);
-      setNewInitialStock(10);
+      setNewInitialStockGudang(10);
+      setNewInitialStockEtalase(2);
       setShowCreateModal(false);
 
       await loadData();
@@ -397,10 +462,17 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   }, [stocks]);
   const totalValuation = stocks.reduce((acc, s) => acc + (s.current_stock * (s.selling_price || 0)), 0);
 
+  // Auto reset pagination page when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategory, filterStatus, selectedWarehouse, selectedUnit]);
+
   const totalItems = filteredStocks.length;
-  const totalPages = Math.ceil(totalItems / itemsPerPage) || 1;
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedStocks = filteredStocks.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+  const activePage = Math.min(Math.max(1, currentPage), totalPages);
+  const startIndex = totalItems === 0 ? 0 : (activePage - 1) * itemsPerPage;
+  const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+  const paginatedStocks = filteredStocks.slice(startIndex, endIndex);
 
   // Category Stock Summary Aggregation (Stok per Kategori - Fully Real-time DB)
   const categoryStockSummary = React.useMemo(() => {
@@ -990,13 +1062,15 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                             {catName}
                           </td>
 
-                          {/* Stok Saat Ini */}
+                          {/* Stok Saat Ini & Lokasi Breakdown */}
                           <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
                             <div style={{ fontSize: '1.1rem', fontWeight: 900, color: isOut ? '#dc2626' : isLow ? '#d97706' : '#059669' }}>
-                              {item.current_stock}
+                              {item.current_stock} <span style={{ fontSize: '0.7rem', color: isOut ? '#dc2626' : '#64748b', fontWeight: 700 }}>pcs</span>
                             </div>
-                            <div style={{ fontSize: '0.7rem', color: isOut ? '#dc2626' : '#64748b', fontWeight: 700 }}>
-                              pcs
+                            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 800, display: 'flex', gap: '0.35rem', justifyContent: 'center', marginTop: '0.15rem' }}>
+                              <span style={{ color: '#1d4ed8' }}>🏭 G: {item.stock_gudang ?? Math.max(0, item.current_stock - 5)}</span>
+                              <span>•</span>
+                              <span style={{ color: '#059669' }}>🏪 E: {item.stock_etalase ?? Math.min(item.current_stock, 5)}</span>
                             </div>
                           </td>
 
@@ -1049,6 +1123,14 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                                   Koreksi
                                 </button>
                               )}
+
+                              <button
+                                onClick={() => setDeleteConfirmItem(item)}
+                                title="Hapus Stok & Produk"
+                                style={{ padding: '0.4rem 0.55rem', borderRadius: '8px', border: 'none', background: '#fee2e2', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                              >
+                                <Trash2 size={15} />
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -1058,8 +1140,8 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                 </table>
               </div>
             ) : (
-              /* GRID VIEW MODE */
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.25rem', padding: '1.25rem' }}>
+              /* GRID VIEW MODE (2x2 Grid di Ponsel/Tablet, 4 Kolom di Laptop) */
+              <div className="responsive-stock-grid">
                 {paginatedStocks.map((item) => {
                   const isOut = item.current_stock === 0;
                   const isLow = item.current_stock > 0 && item.current_stock < 10;
@@ -1072,21 +1154,21 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                         background: '#ffffff',
                         borderRadius: '18px',
                         border: isOut ? '2px solid #fecaca' : isLow ? '2px solid #fde68a' : '1px solid #e2e8f0',
-                        padding: '1.25rem',
+                        padding: '1rem',
                         boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        gap: '1rem',
+                        gap: '0.75rem',
                       }}
                     >
                       <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.25rem', flexWrap: 'wrap' }}>
                           <span
                             style={{
-                              padding: '0.25rem 0.65rem',
-                              borderRadius: '8px',
-                              fontSize: '0.7rem',
+                              padding: '0.2rem 0.5rem',
+                              borderRadius: '6px',
+                              fontSize: '0.65rem',
                               fontWeight: 900,
                               background: item.business_unit === 'FC_PRINT' ? '#eff6ff' : '#f0fdf4',
                               color: item.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#15803d',
@@ -1097,9 +1179,9 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
                           <span
                             style={{
-                              padding: '0.25rem 0.65rem',
-                              borderRadius: '12px',
-                              fontSize: '0.7rem',
+                              padding: '0.2rem 0.5rem',
+                              borderRadius: '10px',
+                              fontSize: '0.65rem',
                               fontWeight: 900,
                               background: isOut ? '#fef2f2' : isLow ? '#fffbeb' : '#ecfdf5',
                               color: isOut ? '#dc2626' : isLow ? '#b45309' : '#047857',
@@ -1110,91 +1192,124 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                           </span>
                         </div>
 
-                        <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.25rem 0' }}>
+                        <h3 style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.2rem 0', wordBreak: 'break-word' }}>
                           {item.product_name}
                         </h3>
-                        <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '0.75rem' }}>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '0.5rem' }}>
                           Kategori: <strong>{catName}</strong>
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.75rem', background: '#f8fafc', padding: '0.5rem 0.75rem', borderRadius: '10px' }}>
-                          <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Harga Jual:</span>
-                          <span style={{ fontSize: '1rem', fontWeight: 900, color: '#2563eb' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '0.5rem', background: '#f8fafc', padding: '0.4rem 0.6rem', borderRadius: '8px' }}>
+                          <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 600 }}>Harga:</span>
+                          <span style={{ fontSize: '0.9rem', fontWeight: 900, color: '#2563eb' }}>
                             {formatRupiah(item.selling_price || 0)}
                           </span>
                         </div>
 
                         <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 800, marginBottom: '0.35rem' }}>
-                            <span style={{ color: '#475569' }}>Stok Fisik Saat Ini:</span>
-                            <span style={{ color: isOut ? '#dc2626' : isLow ? '#d97706' : '#047857', fontSize: '1.05rem' }}>
-                              {item.current_stock} <span style={{ fontSize: '0.75rem', fontWeight: 600 }}>pcs</span>
-                            </span>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', background: '#f8fafc', padding: '0.5rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', fontWeight: 800 }}>
+                              <span style={{ color: '#475569' }}>Total Stok Fisik:</span>
+                              <span style={{ color: isOut ? '#dc2626' : isLow ? '#d97706' : '#047857', fontSize: '0.9rem', fontWeight: 900 }}>
+                                {item.current_stock} <span style={{ fontSize: '0.7rem', fontWeight: 600 }}>pcs</span>
+                              </span>
+                            </div>
+
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', fontWeight: 800, borderTop: '1px dashed #cbd5e1', paddingTop: '0.25rem' }}>
+                              <span style={{ color: '#1d4ed8' }}>
+                                🏭 Gudang: <strong>{item.stock_gudang ?? Math.max(0, item.current_stock - 5)}</strong> pcs
+                              </span>
+                              <span style={{ color: '#059669' }}>
+                                🏪 Etalase: <strong>{item.stock_etalase ?? Math.min(item.current_stock, 5)}</strong> pcs
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
 
                       {currentUser.role !== 'OWNER' && (
-                        <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '0.65rem' }}>
+                        <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'center', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}>
                           <button
                             onClick={() => handleDirectQuickAdd(item, 5)}
-                            style={{ flex: 1, padding: '0.3rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer' }}
+                            style={{ flex: 1, padding: '0.3rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}
                           >
                             +5 Pcs
                           </button>
                           <button
                             onClick={() => handleDirectQuickAdd(item, 10)}
-                            style={{ flex: 1, padding: '0.3rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', fontSize: '0.72rem', fontWeight: 800, cursor: 'pointer' }}
+                            style={{ flex: 1, padding: '0.3rem', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}
                           >
                             +10 Pcs
                           </button>
                         </div>
                       )}
 
-                      <div style={{ display: 'flex', gap: '0.4rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem' }}>
+                      <div style={{ display: 'flex', gap: '0.35rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem' }}>
                         <button
                           onClick={() => handleOpenEditProductModal(item)}
+                          title="Lihat Detail Produk"
                           style={{
                             flex: 1,
-                            padding: '0.45rem',
+                            padding: '0.4rem',
                             borderRadius: '8px',
                             border: '1px solid #cbd5e1',
                             background: '#ffffff',
                             color: '#334155',
                             fontWeight: 700,
-                            fontSize: '0.78rem',
+                            fontSize: '0.75rem',
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '0.3rem',
+                            gap: '0.25rem',
                           }}
                         >
-                          <Eye size={14} /> Detail
+                          <Eye size={13} /> Detail
                         </button>
 
                         {currentUser.role !== 'OWNER' && (
                           <button
                             onClick={() => handleOpenEditModal(item)}
+                            title="Koreksi Stok Fisik"
                             style={{
                               flex: 1,
-                              padding: '0.45rem',
+                              padding: '0.4rem',
                               borderRadius: '8px',
                               border: 'none',
                               background: '#4f46e5',
                               color: '#ffffff',
                               fontWeight: 800,
-                              fontSize: '0.78rem',
+                              fontSize: '0.75rem',
                               cursor: 'pointer',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              gap: '0.3rem',
+                              gap: '0.25rem',
                             }}
                           >
-                            <TrendingUp size={14} /> Koreksi
+                            <TrendingUp size={13} /> Koreksi
                           </button>
                         )}
+
+                        <button
+                          onClick={() => setDeleteConfirmItem(item)}
+                          title="Hapus Stok & Produk"
+                          style={{
+                            padding: '0.4rem 0.55rem',
+                            borderRadius: '8px',
+                            border: 'none',
+                            background: '#fee2e2',
+                            color: '#dc2626',
+                            fontWeight: 800,
+                            fontSize: '0.75rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   );
@@ -1206,21 +1321,21 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             {filteredStocks.length > 0 && (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', padding: '1rem 1.5rem', background: '#ffffff', borderTop: '1px solid #e2e8f0' }}>
                 <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
-                  Menampilkan {startIndex + 1} - {Math.min(startIndex + itemsPerPage, totalItems)} dari {totalItems} produk
+                  Menampilkan {totalItems === 0 ? 0 : startIndex + 1} - {endIndex} dari {totalItems} produk
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(Math.max(1, activePage - 1))}
+                    disabled={activePage === 1}
                     style={{
                       width: '36px',
                       height: '36px',
                       borderRadius: '10px',
                       border: '1px solid #cbd5e1',
                       background: '#ffffff',
-                      color: currentPage === 1 ? '#cbd5e1' : '#334155',
-                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                      color: activePage === 1 ? '#cbd5e1' : '#334155',
+                      cursor: activePage === 1 ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1237,9 +1352,9 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                         width: '36px',
                         height: '36px',
                         borderRadius: '10px',
-                        border: pageNum === currentPage ? 'none' : '1px solid #cbd5e1',
-                        background: pageNum === currentPage ? '#2563eb' : '#ffffff',
-                        color: pageNum === currentPage ? '#ffffff' : '#334155',
+                        border: pageNum === activePage ? 'none' : '1px solid #cbd5e1',
+                        background: pageNum === activePage ? '#2563eb' : '#ffffff',
+                        color: pageNum === activePage ? '#ffffff' : '#334155',
                         fontWeight: 800,
                         fontSize: '0.85rem',
                         cursor: 'pointer',
@@ -1250,16 +1365,16 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                   ))}
 
                   <button
-                    onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(Math.min(totalPages, activePage + 1))}
+                    disabled={activePage === totalPages}
                     style={{
                       width: '36px',
                       height: '36px',
                       borderRadius: '10px',
                       border: '1px solid #cbd5e1',
                       background: '#ffffff',
-                      color: currentPage === totalPages ? '#cbd5e1' : '#334155',
-                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                      color: activePage === totalPages ? '#cbd5e1' : '#334155',
+                      cursor: activePage === totalPages ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -1292,6 +1407,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                     <option value={10}>10 / halaman</option>
                     <option value={25}>25 / halaman</option>
                     <option value={50}>50 / halaman</option>
+                    <option value={1000}>Semua ({totalItems})</option>
                   </select>
                 </div>
               </div>
@@ -1511,64 +1627,110 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       </div>
 
       {/* ======================================================== */}
-      {/* MODAL 1: KOREKSI / PENYESUAIAN STOK FISIK */}
+      {/* MODAL 1: KOREKSI / PENYESUAIAN STOK GUDANG & ETALASE */}
       {/* ======================================================== */}
       {editingStock && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '480px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '500px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>Koreksi Stok Fisik</h3>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, margin: 0 }}>Koreksi & Transfer Lokasi Stok</h3>
                 <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>{editingStock.product_name}</p>
               </div>
               <button onClick={() => setEditingStock(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
             </div>
 
-            <form onSubmit={handleSaveStockUpdate} style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.4rem' }}>
-                  Jumlah Stok Fisik Benar (Pcs):
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  value={newStockQty}
-                  onChange={(e) => setNewStockQty(Number(e.target.value))}
-                  style={{ width: '100%', padding: '0.75rem 1rem', borderRadius: '12px', border: '2px solid #6366f1', fontSize: '1.25rem', fontWeight: 900, outline: 'none' }}
-                  required
-                />
+            <form onSubmit={handleSaveStockUpdate} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+              {/* Card Ringkasan Total */}
+              <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700 }}>Total Stok Fisik:</span>
+                  <div style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a' }}>
+                    {(Number(editStockGudang) || 0) + (Number(editStockEtalase) || 0)} <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 600 }}>pcs</span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '0.725rem', color: '#166534', background: '#dcfce7', padding: '0.2rem 0.55rem', borderRadius: '6px', fontWeight: 900 }}>
+                    🏭 Gudang: {editStockGudang} | 🏪 Etalase: {editStockEtalase}
+                  </span>
+                </div>
               </div>
 
-              <div>
-                <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, display: 'block', marginBottom: '0.4rem' }}>Quick Restock Chips:</span>
-                <div style={{ display: 'flex', gap: '0.4rem' }}>
-                  {[5, 10, 25, 50].map((qty) => (
-                    <button
-                      key={qty}
-                      type="button"
-                      onClick={() => handleQuickAddModal(qty)}
-                      style={{ flex: 1, padding: '0.45rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#0f172a', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}
-                    >
-                      +{qty}
-                    </button>
-                  ))}
+              {/* Grid 2 Input Lokasi */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>
+                    🏭 Stok Gudang Utama:
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editStockGudang}
+                    onChange={(e) => setEditStockGudang(e.target.value === '' ? '' : Number(e.target.value))}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '2px solid #3b82f6', fontSize: '1.1rem', fontWeight: 900, outline: 'none' }}
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>
+                    🏪 Stok Etalase Toko:
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    value={editStockEtalase}
+                    onChange={(e) => setEditStockEtalase(e.target.value === '' ? '' : Number(e.target.value))}
+                    style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '12px', border: '2px solid #10b981', fontSize: '1.1rem', fontWeight: 900, outline: 'none' }}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Quick Transfer Buttons */}
+              <div style={{ background: '#eff6ff', padding: '0.85rem', borderRadius: '12px', border: '1px solid #bfdbfe' }}>
+                <span style={{ fontSize: '0.75rem', color: '#1e40af', fontWeight: 800, display: 'block', marginBottom: '0.4rem' }}>
+                  🔁 Quick Transfer (Gudang ↔ Etalase Toko):
+                </span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.4rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => handleTransferToEtalase(1)}
+                    style={{ padding: '0.45rem', borderRadius: '8px', border: 'none', background: '#ffffff', color: '#1d4ed8', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
+                  >
+                    ➡️ Etalase +1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleTransferToEtalase(5)}
+                    style={{ padding: '0.45rem', borderRadius: '8px', border: 'none', background: '#ffffff', color: '#1d4ed8', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
+                  >
+                    ➡️ Etalase +5
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleTransferToGudang(1)}
+                    style={{ padding: '0.45rem', borderRadius: '8px', border: 'none', background: '#ffffff', color: '#475569', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}
+                  >
+                    ⬅️ Gudang +1
+                  </button>
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.4rem' }}>
-                  Alasan Koreksi / Catatan:
+                <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>
+                  Alasan Koreksi / Catatan Restock:
                 </label>
                 <input
                   type="text"
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
-                  placeholder="Misal: Salah hitung saat restock / Barang rusak"
+                  placeholder="Misal: Penyesuaian stok etalase toko / Barang rusak"
                   style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
                 />
               </div>
 
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.35rem' }}>
                 <button
                   type="button"
                   onClick={() => setEditingStock(null)}
@@ -1581,7 +1743,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                   disabled={submitLoading}
                   style={{ flex: 1, padding: '0.75rem', borderRadius: '12px', border: 'none', background: '#4f46e5', color: '#ffffff', fontWeight: 900, cursor: 'pointer' }}
                 >
-                  {submitLoading ? 'Menyimpan...' : 'Simpan Koreksi'}
+                  {submitLoading ? 'Menyimpan...' : 'Simpan Lokasi Stok'}
                 </button>
               </div>
             </form>
@@ -1594,7 +1756,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       {/* ======================================================== */}
       {showCreateModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '520px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '540px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>Tambah Produk & Stok Baru</h3>
@@ -1616,68 +1778,148 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Bidang Usaha:</label>
-                  <select
-                    value={newBusinessUnit}
-                    onChange={(e) => setNewBusinessUnit(e.target.value as any)}
-                    style={{ width: '100%', padding: '0.7rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+              {/* 1. BUTTON PILIH BIDANG USAHA (2 BUTTON SEPARATE: FNB vs FC_PRINT) */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.4rem' }}>
+                  Pilih Bidang Usaha:
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.3rem', borderRadius: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewBusinessUnit('FNB');
+                      const fnbCats = categories.filter((c) => c.business_unit === 'FNB');
+                      if (fnbCats.length > 0) setNewCategoryId(fnbCats[0].category_id);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '0.65rem 0.5rem',
+                      borderRadius: '9px',
+                      border: 'none',
+                      background: newBusinessUnit === 'FNB' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'transparent',
+                      color: newBusinessUnit === 'FNB' ? '#ffffff' : '#475569',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                      boxShadow: newBusinessUnit === 'FNB' ? '0 2px 8px rgba(16, 185, 129, 0.3)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
                   >
-                    <option value="FNB">Food & Beverage (F&B)</option>
-                    <option value="FC_PRINT">FC / Printing & ATK</option>
-                  </select>
-                </div>
+                    🍧 Food & Beverage (FNB)
+                  </button>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Kategori Barang:</label>
-                  <select
-                    value={newCategoryId}
-                    onChange={(e) => setNewCategoryId(e.target.value)}
-                    style={{ width: '100%', padding: '0.7rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewBusinessUnit('FC_PRINT');
+                      const fcCats = categories.filter((c) => c.business_unit === 'FC_PRINT');
+                      if (fcCats.length > 0) setNewCategoryId(fcCats[0].category_id);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '0.65rem 0.5rem',
+                      borderRadius: '9px',
+                      border: 'none',
+                      background: newBusinessUnit === 'FC_PRINT' ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : 'transparent',
+                      color: newBusinessUnit === 'FC_PRINT' ? '#ffffff' : '#475569',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                      boxShadow: newBusinessUnit === 'FC_PRINT' ? '0 2px 8px rgba(37, 99, 235, 0.3)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
                   >
-                    {categories.length > 0 ? (
-                      categories.map((c) => (
-                        <option key={c.category_id} value={c.category_id}>{c.category_name} ({c.business_unit})</option>
+                    📄 FC / Printing & ATK
+                  </button>
+                </div>
+              </div>
+
+              {/* 2. KATEGORI BARANG (DI-FILTER SESUAI BIDANG USAHA YANG DIPILIH) */}
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>
+                  Kategori Barang ({newBusinessUnit === 'FNB' ? 'Khusus F&B' : 'Khusus FC / Print & ATK'}):
+                </label>
+                <select
+                  value={newCategoryId}
+                  onChange={(e) => setNewCategoryId(e.target.value)}
+                  style={{ width: '100%', padding: '0.7rem 0.85rem', borderRadius: '10px', border: '2px solid #cbd5e1', fontSize: '0.875rem', fontWeight: 700 }}
+                >
+                  {categories.filter((c) => c.business_unit === newBusinessUnit).length > 0 ? (
+                    categories
+                      .filter((c) => c.business_unit === newBusinessUnit)
+                      .map((c) => (
+                        <option key={c.category_id} value={c.category_id}>
+                          {c.category_name}
+                        </option>
                       ))
-                    ) : (
-                      <>
-                        <option value="cat-fnb-001">Makanan & Beverage</option>
-                        <option value="cat-fc-001">Fotokopi & Printing</option>
-                      </>
-                    )}
-                  </select>
+                  ) : (
+                    <option value="">(Belum ada kategori terdaftar untuk unit ini)</option>
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Harga Jual Kasir (Rp):</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="500"
+                  value={newSellingPrice}
+                  onChange={(e) => setNewSellingPrice(e.target.value === '' ? '' : Number(e.target.value))}
+                  style={{ width: '100%', padding: '0.7rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 800 }}
+                  required
+                />
+              </div>
+
+              {/* 3. ALOKASI LOKASI STOK INITIAL (GUDANG UTAMA & ETALASE TOKO) */}
+              <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span>Alokasi Lokasi Stok Awal:</span>
+                  <span style={{ fontSize: '0.75rem', background: '#dbeafe', color: '#1e40af', padding: '0.25rem 0.6rem', borderRadius: '8px', fontWeight: 900 }}>
+                    Total: {(Number(newInitialStockGudang) || 0) + (Number(newInitialStockEtalase) || 0)} Pcs
+                  </span>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', marginBottom: '0.3rem' }}>
+                      🏭 Stok Gudang Utama (Pcs):
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newInitialStockGudang}
+                      onChange={(e) => setNewInitialStockGudang(e.target.value === '' ? '' : Number(e.target.value))}
+                      style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 800 }}
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 800, color: '#475569', marginBottom: '0.3rem' }}>
+                      🏪 Stok Etalase Toko (Pcs):
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      value={newInitialStockEtalase}
+                      onChange={(e) => setNewInitialStockEtalase(e.target.value === '' ? '' : Number(e.target.value))}
+                      style={{ width: '100%', padding: '0.65rem 0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 800 }}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Harga Jual Kasir (Rp):</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="500"
-                    value={newSellingPrice}
-                    onChange={(e) => setNewSellingPrice(Number(e.target.value))}
-                    style={{ width: '100%', padding: '0.7rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 800 }}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Stok Awal Physical (Pcs):</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={newInitialStock}
-                    onChange={(e) => setNewInitialStock(Number(e.target.value))}
-                    style={{ width: '100%', padding: '0.7rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 800 }}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
@@ -1703,7 +1945,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       {/* ======================================================== */}
       {editingProduct && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '500px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '520px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
             <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>Koreksi Detail Barang</h3>
@@ -1724,6 +1966,69 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                 />
               </div>
 
+              <div>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.4rem' }}>
+                  Pilih Bidang Usaha:
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.3rem', borderRadius: '12px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditProdUnit('FNB');
+                      const fnbCats = categories.filter((c) => c.business_unit === 'FNB');
+                      if (fnbCats.length > 0) setEditProdCatId(fnbCats[0].category_id);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '0.65rem 0.5rem',
+                      borderRadius: '9px',
+                      border: 'none',
+                      background: editProdUnit === 'FNB' ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)' : 'transparent',
+                      color: editProdUnit === 'FNB' ? '#ffffff' : '#475569',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                      boxShadow: editProdUnit === 'FNB' ? '0 2px 8px rgba(16, 185, 129, 0.3)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    🍧 Food & Beverage (FNB)
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setEditProdUnit('FC_PRINT');
+                      const fcCats = categories.filter((c) => c.business_unit === 'FC_PRINT');
+                      if (fcCats.length > 0) setEditProdCatId(fcCats[0].category_id);
+                    }}
+                    style={{
+                      flex: 1,
+                      padding: '0.65rem 0.5rem',
+                      borderRadius: '9px',
+                      border: 'none',
+                      background: editProdUnit === 'FC_PRINT' ? 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)' : 'transparent',
+                      color: editProdUnit === 'FC_PRINT' ? '#ffffff' : '#475569',
+                      fontWeight: 800,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.35rem',
+                      boxShadow: editProdUnit === 'FC_PRINT' ? '0 2px 8px rgba(37, 99, 235, 0.3)' : 'none',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    📄 FC / Printing & ATK
+                  </button>
+                </div>
+              </div>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Harga Jual Kasir (Rp):</label>
@@ -1732,36 +2037,24 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                     min="0"
                     step="500"
                     value={editProdPrice}
-                    onChange={(e) => setEditProdPrice(Number(e.target.value))}
+                    onChange={(e) => setEditProdPrice(e.target.value === '' ? '' : Number(e.target.value))}
                     style={{ width: '100%', padding: '0.7rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 800 }}
                     required
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Bidang Usaha:</label>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Kategori Barang:</label>
                   <select
-                    value={editProdUnit}
-                    onChange={(e) => setEditProdUnit(e.target.value as any)}
-                    style={{ width: '100%', padding: '0.7rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                    value={editProdCatId}
+                    onChange={(e) => setEditProdCatId(e.target.value)}
+                    style={{ width: '100%', padding: '0.7rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontWeight: 700 }}
                   >
-                    <option value="FNB">Food & Beverage (F&B)</option>
-                    <option value="FC_PRINT">FC / Printing & ATK</option>
+                    {categories.filter((c) => c.business_unit === editProdUnit).map((c) => (
+                      <option key={c.category_id} value={c.category_id}>{c.category_name}</option>
+                    ))}
                   </select>
                 </div>
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Kategori Barang:</label>
-                <select
-                  value={editProdCatId}
-                  onChange={(e) => setEditProdCatId(e.target.value)}
-                  style={{ width: '100%', padding: '0.7rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
-                >
-                  {categories.map((c) => (
-                    <option key={c.category_id} value={c.category_id}>{c.category_name} ({c.business_unit})</option>
-                  ))}
-                </select>
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
@@ -1785,8 +2078,59 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         </div>
       )}
 
+      {/* MODAL 4: PERINGATAN KONFIRMASI HAPUS STOK & PRODUK */}
+      {deleteConfirmItem && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '20px', maxWidth: '440px', width: '100%', padding: '1.75rem', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', border: '1px solid #fee2e2' }}>
+            <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem auto' }}>
+              <AlertTriangle size={32} />
+            </div>
+
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', textAlign: 'center', margin: '0 0 0.5rem 0' }}>
+              Peringatan: Hapus Stok & Produk
+            </h3>
+
+            <p style={{ fontSize: '0.875rem', color: '#475569', textAlign: 'center', margin: '0 0 1.25rem 0', lineHeight: 1.5 }}>
+              Apakah Anda yakin ingin menghapus produk <strong style={{ color: '#0f172a' }}>"{deleteConfirmItem.product_name}"</strong> dari inventaris stok?
+            </p>
+
+            <div style={{ background: '#f8fafc', borderRadius: '12px', padding: '0.85rem 1rem', marginBottom: '1.5rem', border: '1px dashed #cbd5e1', fontSize: '0.825rem', color: '#64748b' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
+                <span>Kode ID Produk:</span>
+                <strong style={{ color: '#0f172a' }}>{deleteConfirmItem.product_id}</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Stok Fisik Saat Ini:</span>
+                <strong style={{ color: '#dc2626' }}>{deleteConfirmItem.current_stock} pcs</strong>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmItem(null)}
+                disabled={deleteLoading}
+                style={{ flex: 1, padding: '0.7rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', fontWeight: 700, fontSize: '0.875rem', cursor: deleteLoading ? 'not-allowed' : 'pointer' }}
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={handleConfirmDeleteProduct}
+                disabled={deleteLoading}
+                style={{ flex: 1, padding: '0.7rem', borderRadius: '10px', border: 'none', background: '#dc2626', color: '#ffffff', fontWeight: 800, fontSize: '0.875rem', cursor: deleteLoading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)' }}
+              >
+                <Trash2 size={16} />
+                {deleteLoading ? 'Menghapus...' : 'Ya, Hapus Stok'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ActionLoadingModal
-        isOpen={submitLoading || createLoading || updateProdLoading}
+        isOpen={submitLoading || createLoading || updateProdLoading || deleteLoading}
         message="Memproses pembaruan stok & data inventaris backend..."
         submessage="Mencegah duplikasi entri stok & menyelaraskan database..."
       />

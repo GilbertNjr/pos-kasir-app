@@ -75,6 +75,16 @@ export class TransactionService {
         throw new Error(`Jumlah kuantitas (qty) untuk ${product.product_name} harus minimal 1.`);
       }
 
+      // Validasi ketersediaan stok fisik jika produk mengelola stok
+      if (product.manage_stock && this.stockService) {
+        const stocks = await this.stockService.getAllStocksWithProducts();
+        const currentStockItem = stocks.find((s) => s.product_id === product.product_id);
+        const availableStock = currentStockItem ? currentStockItem.current_stock : 0;
+        if (availableStock < itemDto.qty) {
+          throw new Error(`Stok tidak mencukupi. Produk "${product.product_name}" hanya tersisa ${availableStock} Pcs, transaksi meminta ${itemDto.qty} Pcs.`);
+        }
+      }
+
       const unitPrice = Math.round(product.selling_price);
       const itemDiscount = Math.round(itemDto.discount_amount ?? 0);
       const itemSubtotal = Math.round(unitPrice * itemDto.qty - itemDiscount);

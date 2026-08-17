@@ -569,3 +569,27 @@ html, body {
   }
 }
 
+/* RESPONSIVE STOCK GRID ENGINE (2x2 Grid di Ponsel/Tablet, 4 Kolom di Laptop) */
+.responsive-stock-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+  padding: 0.75rem 0;
+}
+
+@media (min-width: 640px) {
+  .responsive-stock-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .responsive-stock-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    padding: 1.25rem 0;
+  }
+}
+

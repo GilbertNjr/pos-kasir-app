@@ -141,6 +141,8 @@ export interface StockEntity {
   stock_id: string;
   product_id: string;
   current_stock: number;
+  stock_gudang?: number;
+  stock_etalase?: number;
   last_updated: string;
 }
 

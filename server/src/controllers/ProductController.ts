@@ -39,4 +39,16 @@ export class ProductController {
       return res.status(400).json({ error: error.message || 'Gagal memperbarui detail produk' });
     }
   };
+
+  public deleteProduct = async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      await this.productService.deleteProduct(id);
+      sseManager.broadcast('PRODUCT_UPDATED', { action: 'DELETED', product_id: id });
+      sseManager.broadcast('STOCK_UPDATED', { action: 'DELETED', product_id: id });
+      return res.status(200).json({ message: 'Produk dan stok berhasil dihapus.' });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message || 'Gagal menghapus produk' });
+    }
+  };
 }

@@ -51,7 +51,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
   const [showModal, setShowModal] = useState(false);
   const [category, setCategory] = useState('BAHAN_BAKU');
   const [description, setDescription] = useState('');
-  const [amount, setAmount] = useState<number>(10000);
+  const [amount, setAmount] = useState<number | string>(10000);
 
   const loadExpenses = async () => {
     try {
@@ -695,7 +695,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                 <input
                   type="number"
                   value={amount}
-                  onChange={(e) => setAmount(Number(e.target.value))}
+                  onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
                   style={{
                     width: '100%',
                     padding: '0.75rem 1rem',

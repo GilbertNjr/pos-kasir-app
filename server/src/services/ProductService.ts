@@ -53,4 +53,12 @@ export class ProductService {
     const updated = await this.productRepository.update(product_id, data);
     return updated!;
   }
+
+  async deleteProduct(product_id: string): Promise<boolean> {
+    const existing = await this.productRepository.findById(product_id);
+    if (!existing) {
+      throw new Error('Produk tidak ditemukan.');
+    }
+    return this.productRepository.delete(product_id);
+  }
 }

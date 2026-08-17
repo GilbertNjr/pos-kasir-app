@@ -21,17 +21,23 @@ export class StockController {
 
   public updateStock = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { product_id, current_stock } = req.body;
-      if (!product_id || current_stock === undefined) {
-        return res.status(400).json({ error: 'Parameter product_id dan current_stock wajib diisi.' });
+      const { product_id, current_stock, stock_gudang, stock_etalase } = req.body;
+      if (!product_id || (current_stock === undefined && stock_gudang === undefined && stock_etalase === undefined)) {
+        return res.status(400).json({ error: 'Parameter product_id dan jumlah stok wajib diisi.' });
       }
 
-      const updated = await this.stockService.updateStockQuantity(product_id, Number(current_stock));
+      const gNum = stock_gudang !== undefined ? Number(stock_gudang) : undefined;
+      const eNum = stock_etalase !== undefined ? Number(stock_etalase) : undefined;
+      const totalNum = current_stock !== undefined ? Number(current_stock) : 0;
+
+      const updated = await this.stockService.updateStockQuantity(product_id, totalNum, gNum, eNum);
 
       // Broadcast SSE event for real-time stock sync across all connected clients
       sseManager.broadcast('STOCK_UPDATED', {
         product_id,
-        current_stock: Number(current_stock),
+        current_stock: updated.current_stock,
+        stock_gudang: updated.stock_gudang,
+        stock_etalase: updated.stock_etalase,
         updated_at: new Date().toISOString(),
       });
 

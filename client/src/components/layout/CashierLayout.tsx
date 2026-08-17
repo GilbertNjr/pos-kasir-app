@@ -402,7 +402,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
       </div>
 
       {/* 2. RIGHT MAIN WRAPPER (TOP BAR HEADER + CONTENT BODY) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflow: 'hidden' }}>
         {/* Top Header Bar */}
         <header
           style={{
@@ -415,9 +415,10 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             padding: '0.4rem 0.75rem',
             position: 'sticky',
             top: 0,
-            zIndex: 40,
-            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+            zIndex: 100,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
             gap: '0.5rem',
+            flexShrink: 0,
           }}
         >
           {/* App Title & Hamburger */}
@@ -475,7 +476,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
         </header>
 
         {/* Content Body Canvas */}
-        <main style={{ padding: '2rem', flex: 1, maxWidth: '1400px', width: '100%', margin: '0 auto' }}>
+        <main style={{ padding: '1.25rem', flex: 1, maxWidth: '1400px', width: '100%', margin: '0 auto', overflowY: 'auto' }}>
           {children}
         </main>
       </div>

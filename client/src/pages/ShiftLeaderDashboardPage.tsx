@@ -150,66 +150,66 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
         </div>
       </div>
 
-      {/* 2. TOP 4 METRICS CARDS (SESUAI GAMBAR REFERENSI: Total Pegawai, Kasir Aktif, Transaksi Shift Ini, Saldo Kas) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem' }}>
+      {/* 2. TOP 4 METRICS CARDS (2x2 RESPONSIVE GRID LAYOUT) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '0.85rem' }}>
         {/* Card 1: Total Pegawai */}
-        <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Total Pegawai</span>
-            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#e0e7ff', color: '#4338ca', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Users size={20} />
+        <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>Total Pegawai</span>
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#e0e7ff', color: '#4338ca', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Users size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem', letterSpacing: '-0.03em' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.03em' }}>
             {shiftData?.usersCount || 1}
           </div>
-          <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>Staff terdaftar di shift</span>
+          <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>Staff terdaftar di shift</span>
         </div>
 
         {/* Card 2: Kasir Aktif */}
-        <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Kasir Aktif</span>
-            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#f0fdf4', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <UserCheck size={20} />
+        <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>Kasir Aktif</span>
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#f0fdf4', color: '#16a34a', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <UserCheck size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem', letterSpacing: '-0.03em' }}>
-            {shiftData?.usersCount || 1} <span style={{ fontSize: '1rem', color: '#94a3b8', fontWeight: 600 }}>/ 4</span>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.03em' }}>
+            {shiftData?.usersCount || 1} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>/ 4</span>
           </div>
-          <span style={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-            <CheckCircle2 size={13} /> Status: Optimal
+          <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+            <CheckCircle2 size={12} /> Status: Optimal
           </span>
         </div>
 
         {/* Card 3: Transaksi Shift Ini */}
-        <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Transaksi Shift Ini</span>
-            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#ffedd5', color: '#c2410c', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Receipt size={20} />
+        <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>Transaksi Shift Ini</span>
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#ffedd5', color: '#c2410c', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Receipt size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '1.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem', letterSpacing: '-0.03em' }}>
+          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.2rem', letterSpacing: '-0.03em' }}>
             {transactions.length}
           </div>
-          <span style={{ fontSize: '0.78rem', color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-            <TrendingUp size={14} /> Total Omzet: {formatRupiah(totalSalesRevenue)}
+          <span style={{ fontSize: '0.72rem', color: '#16a34a', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <TrendingUp size={12} /> Total Omzet: {formatRupiah(totalSalesRevenue)}
           </span>
         </div>
 
-        {/* Card 4: Saldo Kas Teoritis */}
-        <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: '#64748b' }}>Saldo Kas Laci Teoritis</span>
-            <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: '#fef3c7', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <DollarSign size={20} />
+        {/* Card 4: Saldo Kas Laci Teoritis */}
+        <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b' }}>Saldo Kas Laci Teoritis</span>
+            <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: '#fef3c7', color: '#b45309', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <DollarSign size={16} />
             </div>
           </div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#4338ca', marginBottom: '0.25rem', letterSpacing: '-0.02em' }}>
+          <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#4338ca', marginBottom: '0.2rem', letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {formatRupiah(shift?.theoretical_cash || 0)}
           </div>
-          <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 500 }}>Target Fisik Uang di Laci</span>
+          <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>Target Uang di Laci</span>
         </div>
       </div>
 
