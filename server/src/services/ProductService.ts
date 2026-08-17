@@ -1,4 +1,5 @@
 import { ProductRepository, ProductEntity } from '../repositories/ProductRepository';
+import { stockRepository } from '../repositories/sharedRepositories';
 
 export class ProductService {
   private productRepository: ProductRepository;
@@ -59,6 +60,7 @@ export class ProductService {
     if (!existing) {
       throw new Error('Produk tidak ditemukan.');
     }
+    await stockRepository.deleteByProductId(product_id);
     return this.productRepository.delete(product_id);
   }
 }

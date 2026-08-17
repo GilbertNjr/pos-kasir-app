@@ -340,11 +340,21 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   // Handler Hapus Stok & Produk Dengan Peringatan Konfirmasi
   const handleConfirmDeleteProduct = async () => {
     if (!deleteConfirmItem) return;
+    const targetProdId = deleteConfirmItem.product_id;
     try {
       setDeleteLoading(true);
-      await apiService.deleteProduct(deleteConfirmItem.product_id);
+      await apiService.deleteProduct(targetProdId);
+
+      // Instant state update: Hapus langsung dari memori UI agar baris langsung hilang
+      setStocks((prev) => prev.filter((s) => s.product_id !== targetProdId));
+      setProductsMap((prev) => {
+        const next = new Map(prev);
+        next.delete(targetProdId);
+        return next;
+      });
+
       if (onTriggerToast) {
-        onTriggerToast('success', 'Stok & Produk Dihapus', `Produk "${deleteConfirmItem.product_name}" berhasil dihapus dari sistem stok.`);
+        onTriggerToast('success', 'Stok & Produk Dihapus', `Produk "${deleteConfirmItem.product_name}" berhasil dihapus secara permanen dari sistem.`);
       }
       setDeleteConfirmItem(null);
       await loadData();

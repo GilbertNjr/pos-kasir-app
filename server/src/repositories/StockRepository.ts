@@ -127,5 +127,15 @@ export class StockRepository implements IRepository<StockEntity> {
     this.inMemoryStocks[index] = { ...this.inMemoryStocks[index], ...item, last_updated: new Date().toISOString() };
     return { ...this.inMemoryStocks[index] };
   }
+
+  async deleteByProductId(product_id: string): Promise<boolean> {
+    try {
+      await pool.query('DELETE FROM stocks WHERE product_id = $1', [product_id]);
+    } catch (err) {
+      console.warn('[StockRepository] Database delete fallback to memory:', (err as Error).message);
+    }
+    this.inMemoryStocks = this.inMemoryStocks.filter((s) => s.product_id !== product_id);
+    return true;
+  }
 }
 

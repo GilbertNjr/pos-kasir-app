@@ -143,6 +143,7 @@ export class ProductRepository implements IRepository<ProductEntity> {
   async delete(product_id: string): Promise<boolean> {
     try {
       await pool.query('DELETE FROM stock_balances WHERE product_id = $1', [product_id]);
+      await pool.query('DELETE FROM stocks WHERE product_id = $1', [product_id]);
       await pool.query('DELETE FROM products WHERE product_id = $1', [product_id]);
     } catch (err) {
       console.warn('[ProductRepository] Database delete fallback to memory:', (err as Error).message);
