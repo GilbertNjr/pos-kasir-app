@@ -120,14 +120,22 @@ input, select, textarea {
 /* SISTEM WARNA TOMBOL & AKSI (BUTTONS DESIGN SYSTEM) */
 
 /* 1. Tombol Tambah Stok / Action Utama (Aksi Utama): Background #0F172A (Slate Gelap), Teks/Ikon #FFFFFF (Putih) */
+.btn-primary,
 .btn-action-primary,
 .btn-primary-slate {
   background-color: #0F172A !important;
   color: #FFFFFF !important;
   border: none !important;
   font-weight: 800 !important;
+  border-radius: var(--radius-md) !important;
+  padding: 0.65rem 1.25rem !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem !important;
   transition: all 0.15s ease !important;
 }
+.btn-primary:hover,
 .btn-action-primary:hover,
 .btn-primary-slate:hover {
   background-color: #1E293B !important;

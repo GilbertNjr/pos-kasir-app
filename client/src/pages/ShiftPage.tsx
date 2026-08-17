@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, DollarSign, Lock, CheckCircle2, UserCheck, ShieldAlert, ArrowDownLeft, RotateCcw } from 'lucide-react';
+import { ShoppingBag, DollarSign, Lock, CheckCircle2, UserCheck, ShieldAlert, RotateCcw, PlayCircle } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
@@ -132,8 +132,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <span className="badge badge-fc" style={{ marginBottom: '0.25rem' }}>SHIFT SESI ACTIVE</span>
-            <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ShoppingBag color="var(--success)" />
+            <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', fontWeight: 800 }}>
+              <ShoppingBag color="#059669" />
               Laci Kas Bersama (Shift #{shift.shift_id.slice(-6)})
             </h2>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
@@ -150,36 +150,36 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
         {/* Dynamic Metric Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-          <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Total Modal Kas Awal Bersama</span>
-            <h3 style={{ fontSize: '1.35rem', color: 'var(--primary-600)', marginTop: '0.25rem' }}>{formatRupiah(shift.total_initial_cash)}</h3>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{contributions.length} Setoran Karyawan</p>
+          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '0.8rem', color: '#4b5563', fontWeight: 700 }}>Total Modal Kas Awal Bersama</span>
+            <h3 style={{ fontSize: '1.35rem', color: '#4f46e5', marginTop: '0.25rem', fontWeight: 800 }}>{formatRupiah(shift.total_initial_cash)}</h3>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>{contributions.length} Setoran Karyawan</p>
           </div>
 
-          <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Penjualan Tunai Bersih</span>
-            <h3 style={{ fontSize: '1.35rem', color: 'var(--success)', marginTop: '0.25rem' }}>{formatRupiah(shift.net_cash_sales)}</h3>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Seluruh Transaksi Shift</p>
+          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '0.8rem', color: '#4b5563', fontWeight: 700 }}>Penjualan Tunai Bersih</span>
+            <h3 style={{ fontSize: '1.35rem', color: '#059669', marginTop: '0.25rem', fontWeight: 800 }}>{formatRupiah(shift.net_cash_sales)}</h3>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>Seluruh Transaksi Shift</p>
           </div>
 
-          <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Total Pengeluaran Kas</span>
-            <h3 style={{ fontSize: '1.35rem', color: 'var(--danger)', marginTop: '0.25rem' }}>{formatRupiah(shift.total_cash_expenses)}</h3>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Biaya Operasional Toko</p>
+          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '0.8rem', color: '#4b5563', fontWeight: 700 }}>Total Pengeluaran Kas</span>
+            <h3 style={{ fontSize: '1.35rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: 800 }}>{formatRupiah(shift.total_cash_expenses)}</h3>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>Biaya Operasional Toko</p>
           </div>
 
-          <div style={{ background: 'var(--bg-card)', padding: '1.25rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--primary-500)' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--primary-700)', fontWeight: 700 }}>Saldo Kas Teoritis Bersama</span>
-            <h3 style={{ fontSize: '1.35rem', color: 'var(--primary-700)', marginTop: '0.25rem' }}>{formatRupiah(shift.theoretical_cash)}</h3>
-            <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>Uang Fisik Wajib Ada di Laci</p>
+          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '14px', border: '2px solid #5b21b6', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '0.8rem', color: '#5b21b6', fontWeight: 800 }}>Saldo Kas Teoritis Bersama</span>
+            <h3 style={{ fontSize: '1.35rem', color: '#5b21b6', marginTop: '0.25rem', fontWeight: 900 }}>{formatRupiah(shift.theoretical_cash)}</h3>
+            <p style={{ fontSize: '0.75rem', color: '#6b7280' }}>Uang Fisik Wajib Ada di Laci</p>
           </div>
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
           {/* Panel Left: Tabel Setoran Modal Multi-User */}
-          <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <DollarSign size={20} color="var(--primary-500)" />
+          <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a' }}>
+              <DollarSign size={20} color="#5b21b6" />
               Rincian Setoran Modal Karyawan (Multi-User)
             </h3>
 
@@ -189,7 +189,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               <div style={{ overflowX: 'auto', marginBottom: '1.25rem' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
+                    <tr style={{ borderBottom: '1px solid #cbd5e1', color: '#4b5563' }}>
                       <th style={{ padding: '0.5rem', textAlign: 'left' }}>User ID</th>
                       <th style={{ padding: '0.5rem', textAlign: 'right' }}>Nominal Setoran</th>
                       <th style={{ padding: '0.5rem', textAlign: 'center' }}>Status</th>
@@ -197,9 +197,9 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   </thead>
                   <tbody>
                     {contributions.map((c) => (
-                      <tr key={c.contribution_id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                        <td style={{ padding: '0.5rem', fontWeight: 600 }}>{c.user_id}</td>
-                        <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 700, color: 'var(--primary-600)' }}>
+                      <tr key={c.contribution_id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                        <td style={{ padding: '0.5rem', fontWeight: 700, color: '#0f172a' }}>{c.user_id}</td>
+                        <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800, color: '#4f46e5' }}>
                           {formatRupiah(c.amount)}
                         </td>
                         <td style={{ padding: '0.5rem', textAlign: 'center' }}>
@@ -213,8 +213,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             )}
 
             {/* Form Input Modal Tambahan */}
-            <form onSubmit={handleAddCapital} style={{ borderTop: '1px dashed var(--border-color)', paddingTop: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+            <form onSubmit={handleAddCapital} style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '1rem' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 700, marginBottom: '0.35rem', color: '#0f172a' }}>
                 Tambah Setoran Modal Saya ({currentUser.username}):
               </label>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -222,12 +222,28 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   type="number"
                   value={addCapitalAmount}
                   onChange={(e) => setAddCapitalAmount(Number(e.target.value))}
-                  style={{ flex: 1, padding: '0.45rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)' }}
+                  style={{ flex: 1, padding: '0.45rem 0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.95rem', fontWeight: 700 }}
                   min={1000}
                   step={5000}
                   required
                 />
-                <button type="submit" className="btn-primary" disabled={capitalLoading} style={{ fontSize: '0.85rem', padding: '0.45rem 0.85rem' }}>
+                <button
+                  type="submit"
+                  disabled={capitalLoading}
+                  style={{
+                    fontSize: '0.85rem',
+                    fontWeight: 800,
+                    padding: '0.45rem 0.9rem',
+                    color: '#ffffff',
+                    background: '#4f46e5',
+                    border: 'none',
+                    borderRadius: '8px',
+                    cursor: capitalLoading ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.35rem',
+                  }}
+                >
                   {capitalLoading ? 'Menyimpan...' : '+ Setor Modal'}
                 </button>
               </div>
@@ -235,18 +251,18 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
           </div>
 
           {/* Panel Right: Rekonsiliasi & Closing Shift (PJ Shift / Owner Only) */}
-          <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)' }}>
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Lock size={20} color="var(--primary-500)" />
+          <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a' }}>
+              <Lock size={20} color="#dc2626" />
               Tutup Shift & Rekonsiliasi Kas Bersama
             </h3>
 
-            <div style={{ marginBottom: '1rem', padding: '0.75rem', background: 'var(--bg-main)', borderRadius: 'var(--radius-md)', fontSize: '0.85rem' }}>
-              <p style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: 'var(--text-secondary)', marginBottom: '0.25rem' }}>
-                <UserCheck size={16} color="var(--primary-600)" />
+            <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f8fafc', borderRadius: '10px', fontSize: '0.85rem', border: '1px solid #e2e8f0' }}>
+              <p style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#0f172a', marginBottom: '0.25rem', fontWeight: 700 }}>
+                <UserCheck size={16} color="#4f46e5" />
                 Penanggung Jawab Shift: <strong>{shift.shift_leader_user_id}</strong>
               </p>
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>
                 {isPJ ? '✅ Anda bertugas sebagai Penanggung Jawab Shift ini.' : isOwner ? '👑 Anda dapat melakukan override sebagai Owner.' : '⚠️ Hanya PJ Shift yang diizinkan melakukan closing.'}
               </p>
             </div>
@@ -254,33 +270,54 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             {canClose ? (
               <form onSubmit={handleCloseShift}>
                 <div style={{ marginBottom: '1rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.35rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, marginBottom: '0.35rem', color: '#0f172a' }}>
                     Hitung Uang Fisik Aktual di Laci Kas (Rp):
                   </label>
                   <input
                     type="number"
                     value={physicalCash}
                     onChange={(e) => setPhysicalCash(Number(e.target.value))}
-                    style={{ width: '100%', padding: '0.6rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '1.1rem', fontWeight: 700 }}
+                    style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '1.1rem', fontWeight: 800 }}
                     min={0}
                     required
                   />
                 </div>
 
-                <div style={{ padding: '0.75rem', background: 'var(--bg-main)', borderRadius: 'var(--radius-md)', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                <div style={{ padding: '0.75rem', background: '#f8fafc', borderRadius: '10px', marginBottom: '1.25rem', fontSize: '0.85rem', border: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem' }}>
                     <span>Kas Teoritis System:</span>
-                    <strong style={{ color: 'var(--primary-600)' }}>{formatRupiah(shift.theoretical_cash)}</strong>
+                    <strong style={{ color: '#4f46e5' }}>{formatRupiah(shift.theoretical_cash)}</strong>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span>Proyeksi Selisih Kas:</span>
-                    <strong style={{ color: physicalCash - shift.theoretical_cash >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+                    <strong style={{ color: physicalCash - shift.theoretical_cash >= 0 ? '#16a34a' : '#dc2626' }}>
                       {formatRupiah(physicalCash - shift.theoretical_cash)}
                     </strong>
                   </div>
                 </div>
 
-                <button type="submit" className="btn-primary" disabled={closeLoading} style={{ width: '100%', padding: '0.75rem', fontSize: '0.95rem' }}>
+                <button
+                  type="submit"
+                  disabled={closeLoading}
+                  style={{
+                    width: '100%',
+                    padding: '0.85rem 1.25rem',
+                    fontSize: '0.95rem',
+                    fontWeight: 800,
+                    color: '#ffffff',
+                    background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
+                    cursor: closeLoading ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Lock size={18} />
                   {closeLoading ? 'Memproses Closing & Rekonsiliasi...' : 'Tutup Shift & Eksekusi Rekonsiliasi'}
                 </button>
               </form>
@@ -301,11 +338,11 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <ShoppingBag color="var(--primary-500)" />
+          <h2 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <ShoppingBag color="#059669" />
             Manajemen Sesi Shift & Modal Awal
           </h2>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>
             Model Shared Cash Drawer dengan Dukungan Kontribusi Modal Multi-User
           </p>
         </div>
@@ -319,19 +356,19 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
       {/* Rincian Pengembalian Modal setelah Closing Shift */}
       {closedShiftResult && (
-        <div style={{ background: 'var(--bg-card)', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--success)', marginBottom: '2rem' }}>
-          <h3 style={{ fontSize: '1.15rem', color: 'var(--success)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+        <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '1px solid #16a34a', marginBottom: '2rem', boxShadow: 'var(--shadow-sm)' }}>
+          <h3 style={{ fontSize: '1.15rem', color: '#16a34a', fontWeight: 800, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <CheckCircle2 size={22} />
             Rekonsiliasi Shift Selesai - Prosedur Pengembalian Modal Awal
           </h3>
-          <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
+          <p style={{ fontSize: '0.875rem', color: '#4b5563', marginBottom: '1rem' }}>
             Kas bersama telah direkonsiliasi. Harap kembalikan uang modal fisik kepada masing-masing penyetor di bawah ini:
           </p>
 
           <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-color)', color: 'var(--text-secondary)' }}>
+                <tr style={{ borderBottom: '1px solid #cbd5e1', color: '#4b5563' }}>
                   <th style={{ padding: '0.5rem', textAlign: 'left' }}>User Penyetor</th>
                   <th style={{ padding: '0.5rem', textAlign: 'right' }}>Nominal Modal Wajib Dikembalikan</th>
                   <th style={{ padding: '0.5rem', textAlign: 'center' }}>Status Modal</th>
@@ -340,9 +377,9 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               </thead>
               <tbody>
                 {closedShiftResult.contributions.map((c) => (
-                  <tr key={c.contribution_id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                    <td style={{ padding: '0.5rem', fontWeight: 600 }}>{c.user_id}</td>
-                    <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 700, color: 'var(--primary-600)' }}>
+                  <tr key={c.contribution_id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                    <td style={{ padding: '0.5rem', fontWeight: 700, color: '#0f172a' }}>{c.user_id}</td>
+                    <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800, color: '#4f46e5' }}>
                       {formatRupiah(c.amount)}
                     </td>
                     <td style={{ padding: '0.5rem', textAlign: 'center' }}>
@@ -354,14 +391,22 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                       {c.status === 'HELD' ? (
                         <button
                           onClick={() => handleReturnCapital(c.contribution_id)}
-                          className="btn-primary"
-                          style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem' }}
+                          style={{
+                            fontSize: '0.75rem',
+                            fontWeight: 800,
+                            padding: '0.35rem 0.75rem',
+                            borderRadius: '8px',
+                            background: '#059669',
+                            color: '#ffffff',
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
                         >
                           <RotateCcw size={14} style={{ display: 'inline', marginRight: '4px' }} />
                           Tandai Dikembalikan
                         </button>
                       ) : (
-                        <span style={{ color: 'var(--success)', fontSize: '0.8rem', fontWeight: 600 }}>✓ Returned</span>
+                        <span style={{ color: '#16a34a', fontSize: '0.8rem', fontWeight: 800 }}>✓ Returned</span>
                       )}
                     </td>
                   </tr>
@@ -373,35 +418,56 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       )}
 
       {/* Form Buka Shift Baru */}
-      <div className="card-glass" style={{ maxWidth: '540px', margin: '0 auto', padding: '2rem' }}>
-        <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <ArrowDownLeft size={22} color="var(--primary-500)" />
+      <div style={{ maxWidth: '540px', margin: '0 auto', padding: '2rem', background: '#ffffff', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.06)' }}>
+        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <PlayCircle size={24} color="#059669" />
           Buka Shift Sesi Baru
         </h3>
-        <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-          Anda ({currentUser.full_name}) akan terdaftar sebagai <strong>Penanggung Jawab Shift</strong> dan memasukkan setoran modal kas awal pertama.
+        <p style={{ fontSize: '0.875rem', color: '#4b5563', marginBottom: '1.5rem', lineHeight: 1.4 }}>
+          Anda (<strong>{currentUser.full_name}</strong>) akan terdaftar sebagai <strong>Penanggung Jawab Shift</strong> dan memasukkan setoran modal kas awal pertama.
         </p>
 
         <form onSubmit={handleOpenShift}>
           <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.5rem' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, marginBottom: '0.5rem', color: '#0f172a' }}>
               Setoran Modal Kas Awal Saya (Rp):
             </label>
             <input
               type="number"
               value={openInitialCash}
               onChange={(e) => setOpenInitialCash(Number(e.target.value))}
-              style={{ width: '100%', padding: '0.65rem', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-color)', fontSize: '1.1rem', fontWeight: 700 }}
+              style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}
               min={0}
               step={5000}
               required
             />
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.25rem' }}>
+            <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', marginTop: '0.4rem' }}>
               Karyawan lain yang bergabung di shift ini dapat menambah modal tambahan kemudian.
             </span>
           </div>
 
-          <button type="submit" className="btn-primary" disabled={openLoading} style={{ width: '100%', padding: '0.75rem', fontSize: '1rem' }}>
+          <button
+            type="submit"
+            disabled={openLoading}
+            style={{
+              width: '100%',
+              padding: '0.85rem 1.25rem',
+              fontSize: '1rem',
+              fontWeight: 800,
+              color: '#ffffff',
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              border: 'none',
+              borderRadius: '12px',
+              boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
+              cursor: openLoading ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <PlayCircle size={20} />
             {openLoading ? 'Membuka Shift...' : 'Buka Shift Baru Sekarang'}
           </button>
         </form>
@@ -415,3 +481,4 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     </div>
   );
 };
+
