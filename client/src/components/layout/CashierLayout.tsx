@@ -56,19 +56,19 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
       {/* Brand Header (Fixed at Top, Never Cut Off) */}
       <div
         style={{
-          padding: '1.25rem 1rem 1rem 1rem',
-          borderBottom: '1px solid #e5e7eb',
+          padding: '1.5rem 1.25rem 1.15rem 1.25rem',
+          borderBottom: '1px solid var(--sidebar-border, #e5e7eb)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0, width: '100%' }}>
           <div
             style={{
-              width: '40px',
-              height: '40px',
+              width: '42px',
+              height: '42px',
               borderRadius: '12px',
               background: '#0f172a',
               color: '#ffffff',
@@ -86,22 +86,35 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               <Store size={22} />
             )}
           </div>
-          <div style={{ minWidth: 0 }}>
+          <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h2
               style={{
                 fontSize: '1.05rem',
                 fontWeight: 800,
                 color: '#0f172a',
                 margin: 0,
+                lineHeight: 1.3,
                 letterSpacing: '-0.02em',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
               }}
             >
-              {storeName}
+              {storeName || 'Pos Kasir'}
             </h2>
-            <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>
+            <span
+              style={{
+                fontSize: '0.75rem',
+                color: '#64748b',
+                fontWeight: 700,
+                lineHeight: 1.3,
+                marginTop: '0.15rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: 'block',
+              }}
+            >
               {isShiftLeader ? 'PJ Terminal Leader' : 'Kasir Operasional'}
             </span>
           </div>
@@ -110,7 +123,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
         {isMobileOpen && (
           <button
             onClick={() => setIsMobileOpen(false)}
-            style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.25rem', flexShrink: 0 }}
+            style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.35rem', flexShrink: 0 }}
           >
             <X size={20} />
           </button>

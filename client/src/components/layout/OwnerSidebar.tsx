@@ -63,19 +63,20 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
       {/* Brand Logo & Store Name */}
       <div
         style={{
-          padding: '1.25rem 1.5rem',
+          padding: '1.5rem 1.25rem 1.15rem 1.25rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           borderBottom: '1px solid var(--sidebar-border, #e5e7eb)',
+          flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0, width: '100%' }}>
           <div
             style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '10px',
+              width: '42px',
+              height: '42px',
+              borderRadius: '12px',
               background: '#0f172a',
               display: 'flex',
               alignItems: 'center',
@@ -91,32 +92,47 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
             {logoUrl ? (
               <img src={logoUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <span>{storeName.charAt(0).toUpperCase()}</span>
+              <span>{(storeName || 'P').charAt(0).toUpperCase()}</span>
             )}
           </div>
-          <div style={{ minWidth: 0 }}>
+          <div style={{ minWidth: 0, flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h2
               style={{
                 fontSize: '1.05rem',
                 fontWeight: 800,
                 letterSpacing: '-0.02em',
                 margin: 0,
+                lineHeight: 1.3,
                 color: '#0f172a',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
               }}
             >
-              {storeName}
+              {storeName || 'Pos Kasir'}
             </h2>
-            <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: 600 }}>Business Analytics</span>
+            <span
+              style={{
+                fontSize: '0.75rem',
+                color: '#64748b',
+                fontWeight: 700,
+                lineHeight: 1.3,
+                marginTop: '0.15rem',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: 'block',
+              }}
+            >
+              Owner / Pemilik Toko
+            </span>
           </div>
         </div>
 
         {isOpenMobile && (
           <button
             onClick={onCloseMobile}
-            style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.25rem' }}
+            style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '0.35rem', flexShrink: 0 }}
           >
             <X size={20} />
           </button>
