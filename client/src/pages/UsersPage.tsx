@@ -97,7 +97,16 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       setLoading(true);
       const data = await apiService.getUsers();
       if (Array.isArray(data)) {
-        setUsers(data);
+        setUsers((prev) => {
+          const map = new Map<string, UserType>();
+          data.forEach((u) => map.set(u.user_id, u));
+          prev.forEach((u) => {
+            if (!map.has(u.user_id)) {
+              map.set(u.user_id, u);
+            }
+          });
+          return Array.from(map.values());
+        });
       }
     } catch (err: any) {
       console.error('Gagal memuat pengguna:', err);
@@ -261,12 +270,28 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       }) as any;
 
       if (created) {
+        const newUserObj: UserType & { activation_code?: string } = {
+          user_id: created.user_id || 'usr-' + Date.now(),
+          full_name: formData.full_name,
+          username: created.username || formData.username || formData.full_name.toLowerCase().replace(/\s+/g, ''),
+          role: (formData.is_pj ? 'PENANGGUNG_JAWAB' : 'KARYAWAN') as any,
+          phone: formData.phone || '',
+          is_pj: Boolean(formData.is_pj),
+          shift: finalShift,
+          status: created.status || formData.status || 'PENDING_ACTIVATION',
+          avatar_url: formData.avatar_url || PRESET_AVATARS[0].url,
+          activation_code: created.activation_code || undefined,
+          last_login: '-',
+          created_at: created.created_at || new Date().toISOString(),
+        };
+
         setUsers((prev) => {
-          const exists = prev.some((u) => u.user_id === created.user_id);
-          return exists ? prev : [created, ...prev];
+          const exists = prev.some((u) => u.user_id === newUserObj.user_id);
+          return exists ? prev : [newUserObj, ...prev];
         });
+
         if (created.activation_code) {
-          setGeneratedCode({ username: formData.username || formData.full_name, code: created.activation_code });
+          setGeneratedCode({ username: newUserObj.username, code: created.activation_code });
         }
       }
 
