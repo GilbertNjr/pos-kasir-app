@@ -112,27 +112,105 @@ const SVGDonutChart: React.FC<{ segments: DonutSegment[] }> = ({ segments }) => 
   );
 };
 
-const SVGLineChart: React.FC = () => {
-  const pointsCurrent = [0.4, 0.6, 0.5, 0.9, 1.8, 1.6, 2.4, 3.2, 2.8, 4.2, 5.0];
-  const pointsPrev = [0.3, 0.4, 0.3, 0.7, 1.1, 0.9, 1.5, 1.8, 2.2, 3.1, 4.6];
+interface SVGLineChartProps {
+  transactions?: any[];
+  chartMode?: 'Per Jam' | 'Harian';
+}
 
+const SVGLineChart: React.FC<SVGLineChartProps> = ({ transactions = [], chartMode = 'Per Jam' }) => {
   const width = 360;
   const height = 145;
 
+  const now = new Date();
+  const todayStr = now.toISOString().split('T')[0];
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+  const formatShortDate = (d: Date) => {
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  };
+
+  let labels: string[] = [];
+  let pointsCurrent: number[] = [];
+  let pointsPrev: number[] = [];
+
+  if (chartMode === 'Per Jam') {
+    labels = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
+    pointsCurrent = new Array(8).fill(0);
+    pointsPrev = new Array(8).fill(0);
+
+    transactions.forEach((tx: any) => {
+      if (!tx.transaction_time && !tx.created_at) return;
+      const txDateObj = new Date(tx.transaction_time || tx.created_at);
+      const dateStr = txDateObj.toISOString().split('T')[0];
+      const hour = txDateObj.getHours();
+      const amount = Number(tx.final_total || tx.subtotal_amount || 0);
+
+      const slotIndex = Math.min(Math.floor(hour / 3), 7);
+
+      if (dateStr === todayStr) {
+        pointsCurrent[slotIndex] += amount;
+      } else if (dateStr === yesterdayStr) {
+        pointsPrev[slotIndex] += amount;
+      } else {
+        pointsCurrent[slotIndex] += amount;
+      }
+    });
+  } else {
+    const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
+    labels = [];
+    pointsCurrent = new Array(7).fill(0);
+    pointsPrev = new Array(7).fill(0);
+
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(now.getDate() - i);
+      labels.push(dayNames[d.getDay()]);
+    }
+
+    transactions.forEach((tx: any) => {
+      if (!tx.transaction_time && !tx.created_at) return;
+      const txDateObj = new Date(tx.transaction_time || tx.created_at);
+      const amount = Number(tx.final_total || tx.subtotal_amount || 0);
+      const diffDays = Math.floor((now.getTime() - txDateObj.getTime()) / (1000 * 3600 * 24));
+      
+      if (diffDays >= 0 && diffDays < 7) {
+        const index = 6 - diffDays;
+        pointsCurrent[index] += amount;
+      } else if (diffDays >= 7 && diffDays < 14) {
+        const index = 13 - diffDays;
+        pointsPrev[index] += amount;
+      }
+    });
+  }
+
+  const maxRaw = Math.max(...pointsCurrent, ...pointsPrev, 100000);
+  const isMillions = maxRaw >= 1000000;
+  const divisor = isMillions ? 1000000 : 1000;
+  const unitLabel = isMillions ? 'Jt' : 'Rb';
+
+  const pointsCurrentScaled = pointsCurrent.map((v) => v / divisor);
+  const pointsPrevScaled = pointsPrev.map((v) => v / divisor);
+  const maxScaled = Math.max(...pointsCurrentScaled, ...pointsPrevScaled, 1);
+  const roundedMaxY = Math.ceil(maxScaled * 1.15);
+
   const getCoordinates = (pts: number[]) => {
     const maxX = pts.length - 1;
-    const maxY = 6;
     return pts
       .map((val, idx) => {
-        const x = (idx / maxX) * (width - 40) + 35;
-        const y = height - 25 - (val / maxY) * (height - 35);
+        const x = (idx / (maxX || 1)) * (width - 45) + 40;
+        const y = height - 25 - (val / (roundedMaxY || 1)) * (height - 35);
         return `${x},${y}`;
       })
       .join(' ');
   };
 
-  const pathCurrent = getCoordinates(pointsCurrent);
-  const pathPrev = getCoordinates(pointsPrev);
+  const pathCurrent = getCoordinates(pointsCurrentScaled);
+  const pathPrev = getCoordinates(pointsPrevScaled);
 
   return (
     <div style={{ width: '100%' }}>
@@ -145,32 +223,33 @@ const SVGLineChart: React.FC = () => {
             </linearGradient>
           </defs>
 
-          {[0, 1, 2, 3, 4, 5, 6].map((val) => {
-            const y = height - 25 - (val / 6) * (height - 35);
+          {[0, 0.25, 0.5, 0.75, 1].map((step, idx) => {
+            const valNum = Math.round(roundedMaxY * step * 10) / 10;
+            const y = height - 25 - step * (height - 35);
             return (
-              <g key={val}>
-                <line x1="35" y1={y} x2={width} y2={y} stroke="#f1f5f9" strokeDasharray="3 3" />
-                <text x="0" y={y + 3} fontSize="7.5" fill="#94a3b8" fontWeight="600">
-                  {val === 0 ? 'Rp 0' : `Rp ${val} Jt`}
+              <g key={idx}>
+                <line x1="40" y1={y} x2={width} y2={y} stroke="#f1f5f9" strokeDasharray="3 3" />
+                <text x="0" y={y + 3} fontSize="7" fill="#94a3b8" fontWeight="700">
+                  {valNum === 0 ? 'Rp 0' : `Rp ${valNum} ${unitLabel}`}
                 </text>
               </g>
             );
           })}
 
           <polyline fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4 4" points={pathPrev} />
-          <polygon fill="url(#chartGrad)" points={`35,${height - 25} ${pathCurrent} ${width},${height - 25}`} />
+          <polygon fill="url(#chartGrad)" points={`40,${height - 25} ${pathCurrent} ${width},${height - 25}`} />
           <polyline fill="none" stroke="#2563eb" strokeWidth="2.5" points={pathCurrent} />
 
-          {pointsCurrent.map((val, idx) => {
-            const x = (idx / (pointsCurrent.length - 1)) * (width - 40) + 35;
-            const y = height - 25 - (val / 6) * (height - 35);
-            return <circle key={idx} cx={x} cy={y} r="3" fill="#2563eb" stroke="#ffffff" strokeWidth="1.5" />;
+          {pointsCurrentScaled.map((val, idx) => {
+            const x = (idx / (pointsCurrentScaled.length - 1 || 1)) * (width - 45) + 40;
+            const y = height - 25 - (val / (roundedMaxY || 1)) * (height - 35);
+            return <circle key={idx} cx={x} cy={y} r="3.5" fill="#2563eb" stroke="#ffffff" strokeWidth="1.5" />;
           })}
 
-          {['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'].map((label, idx) => {
-            const x = (idx / 7) * (width - 40) + 35;
+          {labels.map((label, idx) => {
+            const x = (idx / (labels.length - 1 || 1)) * (width - 45) + 40;
             return (
-              <text key={idx} x={x} y={height - 6} fontSize="7.5" fill="#94a3b8" textAnchor="middle" fontWeight="600">
+              <text key={idx} x={x} y={height - 6} fontSize="7.5" fill="#64748b" textAnchor="middle" fontWeight="700">
                 {label}
               </text>
             );
@@ -181,11 +260,11 @@ const SVGLineChart: React.FC = () => {
       <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', fontSize: '0.725rem', marginTop: '0.2rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700, color: '#2563eb' }}>
           <span style={{ width: '12px', height: '3px', background: '#2563eb', borderRadius: '2px' }} />
-          16/08/2026 (Hari Ini)
+          {formatShortDate(now)} ({chartMode === 'Per Jam' ? 'Hari Ini' : 'Minggu Ini'})
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600, color: '#94a3b8' }}>
           <span style={{ width: '12px', height: '2px', borderTop: '2px dashed #cbd5e1' }} />
-          15/08/2026 (Kemarin)
+          {formatShortDate(yesterday)} ({chartMode === 'Per Jam' ? 'Kemarin' : 'Minggu Lalu'})
         </div>
       </div>
     </div>
@@ -203,6 +282,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
   const [selectedUser, setSelectedUser] = useState<string>('');
   const [selectedBusinessUnit, setSelectedBusinessUnit] = useState<string>('ALL');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('ALL');
+  const [lineChartMode, setLineChartMode] = useState<'Per Jam' | 'Harian'>('Per Jam');
 
   // Sub-Tab Switcher State: Laporan Shift & Penjualan vs Laporan Stok & Inventaris
   const [activeReportSubTab, setActiveReportSubTab] = useState<'SHIFT_SALES' | 'STOCKS_LOG'>('SHIFT_SALES');
@@ -1240,13 +1320,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
             {/* ROW 1 CARD 1: Grafik Omzet */}
             <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <h4 style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Grafik Omzet</h4>
-                <select style={{ padding: '0.3rem 0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.75rem', fontWeight: 700, color: '#475569', background: '#f8fafc' }}>
-                  <option>Per Jam</option>
-                  <option>Harian</option>
+                <h4 style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Grafik Omzet Real-time</h4>
+                <select
+                  value={lineChartMode}
+                  onChange={(e) => setLineChartMode(e.target.value as 'Per Jam' | 'Harian')}
+                  style={{ padding: '0.3rem 0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.75rem', fontWeight: 700, color: '#475569', background: '#f8fafc', cursor: 'pointer' }}
+                >
+                  <option value="Per Jam">Per Jam</option>
+                  <option value="Harian">Harian</option>
                 </select>
               </div>
-              <SVGLineChart />
+              <SVGLineChart transactions={transactions} chartMode={lineChartMode} />
             </div>
 
             {/* ROW 1 CARD 2: Omzet per Kategori (Diagram Lingkaran 1) */}
