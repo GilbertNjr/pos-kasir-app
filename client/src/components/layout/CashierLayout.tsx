@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -8,8 +8,9 @@ import {
   LogOut,
   Store,
   PlusCircle,
-  Search,
   Package,
+  Menu,
+  X,
 } from 'lucide-react';
 import { NotificationPopover } from '../common/NotificationPopover';
 import { User } from '../../types';
@@ -33,30 +34,27 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
   activeShiftId,
   children,
 }) => {
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--dashboard-bg, #f8fafc)', transition: 'background 0.3s ease', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      {/* 1. LEFT SIDEBAR */}
-      <aside
-        style={{
-          width: '260px',
-          background: 'var(--sidebar-bg, #1c140e)',
-          transition: 'background 0.3s ease',
-          color: '#a2a5b9',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'space-between',
-          padding: '1.25rem 1rem',
-          position: 'sticky',
-          top: 0,
-          height: '100vh',
-          boxShadow: '4px 0 12px rgba(0, 0, 0, 0.1)',
-          flexShrink: 0,
-          zIndex: 50,
-        }}
-      >
-        <div>
-          {/* Brand Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0.5rem 1.5rem 0.5rem' }}>
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const sidebarContent = (
+    <div
+      style={{
+        width: '260px',
+        background: 'var(--sidebar-bg, #1c140e)',
+        transition: 'background 0.3s ease',
+        color: '#a2a5b9',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'space-between',
+        padding: '1.25rem 1rem',
+        height: '100%',
+        boxShadow: '4px 0 12px rgba(0, 0, 0, 0.1)',
+      }}
+    >
+      <div>
+        {/* Brand Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.5rem 1.5rem 0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div
               style={{
                 width: '42px',
@@ -84,245 +82,325 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             </div>
           </div>
 
-          {/* Primary Call-to-Action Button */}
-          <div style={{ marginBottom: '1.5rem', padding: '0 0.25rem' }}>
+          {isMobileOpen && (
             <button
-              onClick={() => onTabChange('POS')}
-              style={{
-                width: '100%',
-                padding: '0.8rem 1rem',
-                borderRadius: '10px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
-                color: '#ffffff',
-                fontWeight: 700,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)',
-                transition: 'transform 0.15s ease',
-              }}
+              onClick={() => setIsMobileOpen(false)}
+              style={{ background: 'none', border: 'none', color: '#a8a29e', cursor: 'pointer', padding: '0.25rem' }}
             >
-              <PlusCircle size={18} />
-              + Entri Transaksi Baru
+              <X size={20} />
             </button>
-          </div>
-
-          {/* Navigation Links */}
-          <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-            {/* Overview / Dashboard */}
-            <button
-              onClick={() => onTabChange('DASHBOARD')}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'DASHBOARD' ? '#4f46e5' : 'transparent',
-                color: activeTab === 'DASHBOARD' ? '#ffffff' : '#a2a5b9',
-                fontWeight: activeTab === 'DASHBOARD' ? 700 : 600,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                textAlign: 'left',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <LayoutDashboard size={18} color={activeTab === 'DASHBOARD' ? '#ffffff' : '#6c7293'} />
-              Overview Shift
-            </button>
-
-            {/* Live Terminals / POS Register */}
-            <button
-              onClick={() => onTabChange('POS')}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'POS' ? '#4f46e5' : 'transparent',
-                color: activeTab === 'POS' ? '#ffffff' : '#a2a5b9',
-                fontWeight: activeTab === 'POS' ? 700 : 600,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                textAlign: 'left',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <ShoppingCart size={18} color={activeTab === 'POS' ? '#ffffff' : '#6c7293'} />
-              Live Kasir Register
-            </button>
-
-            {/* Sesi Shift Logs */}
-            <button
-              onClick={() => onTabChange('SHIFT')}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'SHIFT' ? '#4f46e5' : 'transparent',
-                color: activeTab === 'SHIFT' ? '#ffffff' : '#a2a5b9',
-                fontWeight: activeTab === 'SHIFT' ? 700 : 600,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                textAlign: 'left',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <Clock size={18} color={activeTab === 'SHIFT' ? '#ffffff' : '#6c7293'} />
-              Shift Logs & Modal
-            </button>
-
-            {/* Kelola Stok Barang (Akses Penanggung Jawab & Kasir) */}
-            <button
-              onClick={() => onTabChange('STOCKS')}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'STOCKS' ? '#4f46e5' : 'transparent',
-                color: activeTab === 'STOCKS' ? '#ffffff' : '#a2a5b9',
-                fontWeight: activeTab === 'STOCKS' ? 700 : 600,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                textAlign: 'left',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <Package size={18} color={activeTab === 'STOCKS' ? '#ffffff' : '#6c7293'} />
-              Kelola Stok Barang
-            </button>
-
-            {/* Catat Pengeluaran */}
-            <button
-              onClick={() => onTabChange('EXPENSES')}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'EXPENSES' ? '#4f46e5' : 'transparent',
-                color: activeTab === 'EXPENSES' ? '#ffffff' : '#a2a5b9',
-                fontWeight: activeTab === 'EXPENSES' ? 700 : 600,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                textAlign: 'left',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <Receipt size={18} color={activeTab === 'EXPENSES' ? '#ffffff' : '#6c7293'} />
-              Catat Pengeluaran
-            </button>
-
-            {/* Rekap Pembayaran */}
-            <button
-              onClick={() => onTabChange('PAYMENT')}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'PAYMENT' ? '#4f46e5' : 'transparent',
-                color: activeTab === 'PAYMENT' ? '#ffffff' : '#a2a5b9',
-                fontWeight: activeTab === 'PAYMENT' ? 700 : 600,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                textAlign: 'left',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <CreditCard size={18} color={activeTab === 'PAYMENT' ? '#ffffff' : '#6c7293'} />
-              Rekap Pembayaran
-            </button>
-
-            {/* Pusat Laporan Penjualan & Stok */}
-            <button
-              onClick={() => onTabChange('REPORTS')}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                border: 'none',
-                background: activeTab === 'REPORTS' ? '#4f46e5' : 'transparent',
-                color: activeTab === 'REPORTS' ? '#ffffff' : '#a2a5b9',
-                fontWeight: activeTab === 'REPORTS' ? 700 : 600,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.75rem',
-                textAlign: 'left',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              <Receipt size={18} color={activeTab === 'REPORTS' ? '#ffffff' : '#6c7293'} />
-              Pusat Laporan & Shift
-            </button>
-          </nav>
+          )}
         </div>
 
-        {/* Sidebar Footer */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #2b2b40', paddingTop: '1rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.5rem' }}>
-            <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#32324a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
-              {currentUser.full_name.charAt(0).toUpperCase()}
-            </div>
-            <div style={{ overflow: 'hidden' }}>
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-                {currentUser.full_name}
-              </div>
-              <div style={{ fontSize: '0.7rem', color: isShiftLeader ? '#818cf8' : '#34d399', fontWeight: 600 }}>
-                {isShiftLeader ? 'Penanggung Jawab' : 'Kasir Operasional'}
-              </div>
-            </div>
-          </div>
-
+        {/* Primary Call-to-Action Button */}
+        <div style={{ marginBottom: '1.5rem', padding: '0 0.25rem' }}>
           <button
-            onClick={onLogout}
+            onClick={() => {
+              onTabChange('POS');
+              setIsMobileOpen(false);
+            }}
             style={{
               width: '100%',
-              padding: '0.6rem 0.75rem',
-              borderRadius: '8px',
-              border: '1px solid rgba(239, 68, 68, 0.3)',
-              background: 'rgba(239, 68, 68, 0.1)',
-              color: '#fca5a5',
+              padding: '0.8rem 1rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+              color: '#ffffff',
               fontWeight: 700,
-              fontSize: '0.8rem',
+              fontSize: '0.875rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.5rem',
-              marginTop: '0.25rem',
+              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)',
+              transition: 'transform 0.15s ease',
             }}
           >
-            <LogOut size={16} />
-            Log Out Sesi Kasir
+            <PlusCircle size={18} />
+            + Entri Transaksi Baru
           </button>
         </div>
+
+        {/* Navigation Links */}
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          {/* Overview / Dashboard */}
+          <button
+            onClick={() => {
+              onTabChange('DASHBOARD');
+              setIsMobileOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'DASHBOARD' ? '#4f46e5' : 'transparent',
+              color: activeTab === 'DASHBOARD' ? '#ffffff' : '#a2a5b9',
+              fontWeight: activeTab === 'DASHBOARD' ? 700 : 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textAlign: 'left',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <LayoutDashboard size={18} color={activeTab === 'DASHBOARD' ? '#ffffff' : '#6c7293'} />
+            Overview Shift
+          </button>
+
+          {/* Live Terminals / POS Register */}
+          <button
+            onClick={() => {
+              onTabChange('POS');
+              setIsMobileOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'POS' ? '#4f46e5' : 'transparent',
+              color: activeTab === 'POS' ? '#ffffff' : '#a2a5b9',
+              fontWeight: activeTab === 'POS' ? 700 : 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textAlign: 'left',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <ShoppingCart size={18} color={activeTab === 'POS' ? '#ffffff' : '#6c7293'} />
+            Live Kasir Register
+          </button>
+
+          {/* Sesi Shift Logs */}
+          <button
+            onClick={() => {
+              onTabChange('SHIFT');
+              setIsMobileOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'SHIFT' ? '#4f46e5' : 'transparent',
+              color: activeTab === 'SHIFT' ? '#ffffff' : '#a2a5b9',
+              fontWeight: activeTab === 'SHIFT' ? 700 : 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textAlign: 'left',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Clock size={18} color={activeTab === 'SHIFT' ? '#ffffff' : '#6c7293'} />
+            Shift Logs & Modal
+          </button>
+
+          {/* Kelola Stok Barang */}
+          <button
+            onClick={() => {
+              onTabChange('STOCKS');
+              setIsMobileOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'STOCKS' ? '#4f46e5' : 'transparent',
+              color: activeTab === 'STOCKS' ? '#ffffff' : '#a2a5b9',
+              fontWeight: activeTab === 'STOCKS' ? 700 : 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textAlign: 'left',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Package size={18} color={activeTab === 'STOCKS' ? '#ffffff' : '#6c7293'} />
+            Kelola Stok Barang
+          </button>
+
+          {/* Catat Pengeluaran */}
+          <button
+            onClick={() => {
+              onTabChange('EXPENSES');
+              setIsMobileOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'EXPENSES' ? '#4f46e5' : 'transparent',
+              color: activeTab === 'EXPENSES' ? '#ffffff' : '#a2a5b9',
+              fontWeight: activeTab === 'EXPENSES' ? 700 : 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textAlign: 'left',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Receipt size={18} color={activeTab === 'EXPENSES' ? '#ffffff' : '#6c7293'} />
+            Catat Pengeluaran
+          </button>
+
+          {/* Rekap Pembayaran */}
+          <button
+            onClick={() => {
+              onTabChange('PAYMENT');
+              setIsMobileOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'PAYMENT' ? '#4f46e5' : 'transparent',
+              color: activeTab === 'PAYMENT' ? '#ffffff' : '#a2a5b9',
+              fontWeight: activeTab === 'PAYMENT' ? 700 : 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textAlign: 'left',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <CreditCard size={18} color={activeTab === 'PAYMENT' ? '#ffffff' : '#6c7293'} />
+            Rekap Pembayaran
+          </button>
+
+          {/* Pusat Laporan Penjualan & Stok */}
+          <button
+            onClick={() => {
+              onTabChange('REPORTS');
+              setIsMobileOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'REPORTS' ? '#4f46e5' : 'transparent',
+              color: activeTab === 'REPORTS' ? '#ffffff' : '#a2a5b9',
+              fontWeight: activeTab === 'REPORTS' ? 700 : 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textAlign: 'left',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Receipt size={18} color={activeTab === 'REPORTS' ? '#ffffff' : '#6c7293'} />
+            Pusat Laporan & Shift
+          </button>
+        </nav>
+      </div>
+
+      {/* Sidebar Footer */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #2b2b40', paddingTop: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.5rem' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#32324a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
+            {currentUser.full_name.charAt(0).toUpperCase()}
+          </div>
+          <div style={{ overflow: 'hidden' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+              {currentUser.full_name}
+            </div>
+            <div style={{ fontSize: '0.7rem', color: isShiftLeader ? '#818cf8' : '#34d399', fontWeight: 600 }}>
+              {isShiftLeader ? 'Penanggung Jawab' : 'Kasir Operasional'}
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={onLogout}
+          style={{
+            width: '100%',
+            padding: '0.6rem 0.75rem',
+            borderRadius: '8px',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            background: 'rgba(239, 68, 68, 0.1)',
+            color: '#fca5a5',
+            fontWeight: 700,
+            fontSize: '0.8rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            marginTop: '0.25rem',
+          }}
+        >
+          <LogOut size={16} />
+          Log Out Sesi Kasir
+        </button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--dashboard-bg, #f8fafc)', transition: 'background 0.3s ease', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      {/* Desktop Sidebar */}
+      <aside
+        className="desktop-sidebar-container"
+        style={{
+          position: 'sticky',
+          top: 0,
+          height: '100vh',
+          flexShrink: 0,
+          zIndex: 50,
+        }}
+      >
+        {sidebarContent}
       </aside>
+
+      {/* Mobile Drawer Overlay */}
+      {isMobileOpen && (
+        <div
+          onClick={() => setIsMobileOpen(false)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.6)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 90,
+          }}
+        />
+      )}
+
+      {/* Mobile Sidebar Drawer */}
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          bottom: 0,
+          zIndex: 100,
+          transform: isMobileOpen ? 'translateX(0)' : 'translateX(-100%)',
+          transition: 'transform 0.3s ease',
+        }}
+      >
+        {sidebarContent}
+      </div>
 
       {/* 2. RIGHT MAIN WRAPPER (TOP BAR HEADER + CONTENT BODY) */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
@@ -335,35 +413,33 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            padding: '0 2rem',
+            padding: '0 1rem',
             position: 'sticky',
             top: 0,
             zIndex: 40,
             boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
           }}
         >
-          {/* App Title & Quick Search */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '2rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#4f46e5', letterSpacing: '-0.03em' }}>ShiftMaster</span>
-              <span style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a' }}>POS</span>
-            </div>
-
-            <div style={{ position: 'relative', width: '280px' }}>
-              <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-              <input
-                type="text"
-                placeholder="Cari transaksi, produk, kasir..."
-                style={{
-                  width: '100%',
-                  padding: '0.45rem 1rem 0.45rem 2.2rem',
-                  borderRadius: '20px',
-                  border: '1px solid #e2e8f0',
-                  background: '#f8fafc',
-                  fontSize: '0.85rem',
-                  outline: 'none',
-                }}
-              />
+          {/* App Title & Hamburger */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button
+              onClick={() => setIsMobileOpen(true)}
+              className="mobile-hamburger-btn"
+              style={{
+                background: 'none',
+                border: 'none',
+                color: '#64748b',
+                cursor: 'pointer',
+                padding: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+              }}
+            >
+              <Menu size={24} />
+            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+              <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#4f46e5', letterSpacing: '-0.03em' }}>ShiftMaster</span>
+              <span style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}>POS</span>
             </div>
           </div>
 

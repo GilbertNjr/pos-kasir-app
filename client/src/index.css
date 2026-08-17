@@ -188,3 +188,39 @@ input, select, textarea {
   animation: spin 0.8s linear infinite;
 }
 
+/* GLOBAL MOBILE RESPONSIVE ENGINE */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+.mobile-hamburger-btn {
+  display: none !important;
+}
+
+@media (max-width: 768px) {
+  .desktop-sidebar-container,
+  aside.desktop-sidebar {
+    display: none !important;
+  }
+
+  .mobile-hamburger-btn {
+    display: flex !important;
+  }
+
+  main {
+    padding: 0.85rem !important;
+  }
+
+  header {
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Table & scroll containers touch optimization */
+  div[style*="overflowX: auto"],
+  div[style*="overflow-x: auto"] {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+}
+

@@ -53,12 +53,12 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
           <Menu size={24} />
         </button>
 
-        <div>
-          <h1 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-            Selamat datang, {currentUser.full_name} ({currentUser.role})
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.25rem)', fontWeight: 800, color: '#0f172a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            Selamat datang, {currentUser.full_name}
           </h1>
-          <p style={{ fontSize: '0.775rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
-            {formatWaktuIndo(new Date().toISOString())} • Monitoring Realtime Bisnis
+          <p style={{ fontSize: '0.725rem', color: '#64748b', margin: '0.15rem 0 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {formatWaktuIndo(new Date().toISOString())} • POS Realtime
           </p>
         </div>
       </div>
