@@ -204,6 +204,11 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
   const [selectedBusinessUnit, setSelectedBusinessUnit] = useState<string>('ALL');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('ALL');
 
+  // Sub-Tab Switcher State: Laporan Shift & Penjualan vs Laporan Stok & Inventaris
+  const [activeReportSubTab, setActiveReportSubTab] = useState<'SHIFT_SALES' | 'STOCKS_LOG'>('SHIFT_SALES');
+  const [stockList, setStockList] = useState<any[]>([]);
+  const [stockAuditLogs, setStockAuditLogs] = useState<any[]>([]);
+
   const [usersList, setUsersList] = useState<User[]>([]);
   const [reportData, setReportData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -552,8 +557,15 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         if (endDate) params.end_date = endDate;
       }
 
-      const data = await apiService.getSalesReport(params);
+      const [data, stocksData, logsData] = await Promise.all([
+        apiService.getSalesReport(params),
+        apiService.getStocks().catch(() => []),
+        apiService.getAuditLogs().catch(() => []),
+      ]);
+
       setReportData(data);
+      setStockList(stocksData || []);
+      setStockAuditLogs(logsData || []);
     } catch (err: any) {
       setError(err.message || 'Gagal memuat laporan penjualan');
     } finally {
@@ -711,7 +723,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         </p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
             <FileText color="#2563eb" />
@@ -766,6 +778,55 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
             Cetak / Ekspor PDF Laporan
           </button>
         </div>
+      </div>
+
+      {/* Sub-Tab Navigation: Laporan Shift/Sales vs Laporan Stok/Inventaris */}
+      <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.5rem', background: '#f1f5f9', padding: '0.35rem', borderRadius: '14px', width: 'fit-content' }}>
+        <button
+          type="button"
+          onClick={() => setActiveReportSubTab('SHIFT_SALES')}
+          style={{
+            padding: '0.6rem 1.2rem',
+            borderRadius: '10px',
+            border: 'none',
+            background: activeReportSubTab === 'SHIFT_SALES' ? '#ffffff' : 'transparent',
+            color: activeReportSubTab === 'SHIFT_SALES' ? '#2563eb' : '#64748b',
+            fontWeight: 800,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            boxShadow: activeReportSubTab === 'SHIFT_SALES' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <FileText size={16} />
+          📊 1. Laporan Shift & Penjualan Transaksi
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveReportSubTab('STOCKS_LOG')}
+          style={{
+            padding: '0.6rem 1.2rem',
+            borderRadius: '10px',
+            border: 'none',
+            background: activeReportSubTab === 'STOCKS_LOG' ? '#ffffff' : 'transparent',
+            color: activeReportSubTab === 'STOCKS_LOG' ? '#2563eb' : '#64748b',
+            fontWeight: 800,
+            fontSize: '0.85rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            boxShadow: activeReportSubTab === 'STOCKS_LOG' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <ShoppingBag size={16} />
+          📦 2. Laporan Stok & Histori Restok Inventaris
+        </button>
       </div>
 
       {error && (
@@ -886,7 +947,118 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         </form>
       </div>
 
-      {loading && !reportData ? (
+      {activeReportSubTab === 'STOCKS_LOG' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {/* Stock Metrics 4-Cards */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Total Item Terdaftar</span>
+              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', marginTop: '0.25rem' }}>{stockList.length} Item</div>
+            </div>
+
+            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Estimasi Nilai Aset Stok</span>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#059669', marginTop: '0.25rem' }}>
+                {formatRupiah(stockList.reduce((acc, s) => acc + (Number(s.current_stock || 0) * Number(s.selling_price || 0)), 0))}
+              </div>
+            </div>
+
+            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase' }}>Stok Menipis (&lt;10 Pcs)</span>
+              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#d97706', marginTop: '0.25rem' }}>
+                {stockList.filter((s) => Number(s.current_stock) > 0 && Number(s.current_stock) < 10).length} Item
+              </div>
+            </div>
+
+            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
+              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#dc2626', textTransform: 'uppercase' }}>Stok Habis (0 Pcs)</span>
+              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#dc2626', marginTop: '0.25rem' }}>
+                {stockList.filter((s) => Number(s.current_stock) === 0).length} Item
+              </div>
+            </div>
+          </div>
+
+          {/* Tabel Status Inventory & Restok */}
+          <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginBottom: '1rem' }}>
+              📋 Laporan Inventaris Stok & Pergerakan Barang Supabase
+            </h3>
+            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textTransform: 'uppercase', fontSize: '0.75rem', color: '#64748b' }}>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Nama Produk</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>Unit Usaha</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>Stok Fisik</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>Status</th>
+                  <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Terakhir Diperbarui</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stockList.length > 0 ? (
+                  stockList.map((item, idx) => {
+                    const st = Number(item.current_stock || 0);
+                    return (
+                      <tr key={item.stock_id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '0.75rem 1rem', fontWeight: 700, color: '#0f172a' }}>{item.product_name}</td>
+                        <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 700, color: '#64748b' }}>
+                          {item.business_unit === 'FC_PRINT' ? 'FC & Print' : 'FNB'}
+                        </td>
+                        <td style={{ padding: '0.75rem 1rem', textAlign: 'center', fontWeight: 900, color: '#0f172a' }}>{st} pcs</td>
+                        <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
+                          {st >= 10 ? (
+                            <span style={{ padding: '0.25rem 0.65rem', background: '#ecfdf5', color: '#047857', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800 }}>Aman</span>
+                          ) : st > 0 ? (
+                            <span style={{ padding: '0.25rem 0.65rem', background: '#fffbeb', color: '#b45309', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800 }}>Menipis</span>
+                          ) : (
+                            <span style={{ padding: '0.25rem 0.65rem', background: '#fef2f2', color: '#dc2626', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800 }}>Habis</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '0.75rem 1rem', textAlign: 'right', color: '#64748b', fontSize: '0.8rem' }}>
+                          {item.last_updated ? formatWaktuIndo(item.last_updated) : '-'}
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8' }}>Tidak ada data stok di database</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Audit Log Histori Pergerakan Stok */}
+          <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginBottom: '1rem' }}>
+              📜 Audit Log & Histori Pergerakan Stok Real-time (Supabase Cloud)
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {stockAuditLogs.filter((l: any) => (l.action || '').includes('STOCK') || (l.action || '').includes('TRANSACTION') || (l.action || '').includes('PRODUCT')).length > 0 ? (
+                stockAuditLogs
+                  .filter((l: any) => (l.action || '').includes('STOCK') || (l.action || '').includes('TRANSACTION') || (l.action || '').includes('PRODUCT'))
+                  .slice(0, 10)
+                  .map((log: any, idx: number) => (
+                    <div key={log.log_id || idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9', fontSize: '0.825rem' }}>
+                      <div>
+                        <span style={{ fontWeight: 800, color: '#0f172a' }}>{log.affected_entity || log.action}</span>
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.15rem' }}>{log.details}</div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2563eb' }}>{log.username ? `User: ${log.username}` : 'Kasir'}</span>
+                        <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{formatWaktuIndo(log.timestamp)}</div>
+                      </div>
+                    </div>
+                  ))
+              ) : (
+                <div style={{ padding: '1.5rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                  Belum ada aktivitas audit log pergerakan stok
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : loading && !reportData ? (
         <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontWeight: 600 }}>Mengkalkulasi data laporan...</div>
       ) : summary ? (
         <>

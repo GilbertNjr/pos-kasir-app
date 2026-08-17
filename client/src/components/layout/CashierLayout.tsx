@@ -256,6 +256,30 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               <CreditCard size={18} color={activeTab === 'PAYMENT' ? '#ffffff' : '#6c7293'} />
               Rekap Pembayaran
             </button>
+
+            {/* Pusat Laporan Penjualan & Stok */}
+            <button
+              onClick={() => onTabChange('REPORTS')}
+              style={{
+                width: '100%',
+                padding: '0.75rem 1rem',
+                borderRadius: '10px',
+                border: 'none',
+                background: activeTab === 'REPORTS' ? '#4f46e5' : 'transparent',
+                color: activeTab === 'REPORTS' ? '#ffffff' : '#a2a5b9',
+                fontWeight: activeTab === 'REPORTS' ? 700 : 600,
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.75rem',
+                textAlign: 'left',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <Receipt size={18} color={activeTab === 'REPORTS' ? '#ffffff' : '#6c7293'} />
+              Pusat Laporan & Shift
+            </button>
           </nav>
         </div>
 

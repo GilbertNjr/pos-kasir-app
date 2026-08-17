@@ -346,6 +346,11 @@ export const App: React.FC = () => {
       {cashierTab === 'PAYMENT' && (
         <PaymentSummaryPage activeShift={activeShiftData?.shift ?? null} />
       )}
+
+      {/* REPORTS DASHBOARD TAB (PENANGGUNG JAWAB & KASIR) */}
+      {cashierTab === 'REPORTS' && (
+        <ReportsPage currentUser={currentUser} />
+      )}
     </CashierLayout>
   );
 };
