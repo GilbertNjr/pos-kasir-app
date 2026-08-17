@@ -880,7 +880,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       {/* ======================================================== */}
       {/* 3. MAIN DASHBOARD CONTENT GRID (LEFT: TABLE & LOGS | RIGHT: SIDEBAR ANALYTICS) */}
       {/* ======================================================== */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, 320px)', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="responsive-main-grid">
         {/* -------------------------------------------------------- */}
         {/* LEFT COLUMN: DAFTAR STOK TABLE + MOVEMENT LOGS + ALERTS */}
         {/* -------------------------------------------------------- */}

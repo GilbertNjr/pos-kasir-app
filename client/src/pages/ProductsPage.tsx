@@ -349,20 +349,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
       </div>
 
       {/* 2. UNIFIED ACTION TOOLBAR CARD BAR (REFRESH & ADD PRODUCT) */}
-      <div
-        style={{
-          background: '#ffffff',
-          borderRadius: '20px',
-          border: '1px solid #e2e8f0',
-          padding: '0.85rem 1.35rem',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1rem',
-        }}
-      >
+      <div className="responsive-action-bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
           <div style={{ padding: '0.45rem', borderRadius: '10px', background: '#e0e7ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <Package size={20} />
@@ -373,7 +360,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+        <div className="responsive-btn-group">
           <button
             onClick={loadData}
             disabled={loading}
@@ -424,7 +411,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
       </div>
 
       {/* 3. MAIN DASHBOARD CONTENT GRID (LEFT: MAIN TABLE/GRID | RIGHT: ANALYTICS SIDEBAR) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(280px, 320px)', gap: '1.5rem', alignItems: 'start' }}>
+      <div className="responsive-main-grid">
         {/* LEFT COLUMN: PRODUCT LIST TABLE & CONTROLS */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
           {/* CONTROL TOOLBAR CARD */}

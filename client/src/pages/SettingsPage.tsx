@@ -575,7 +575,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
       )}
 
       {/* 2. MAIN CONTENT GRID (2 COLUMNS LAYOUT MATCHING IMAGE 2) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.8fr) minmax(0, 1fr)', gap: '1.25rem', alignItems: 'start' }}>
+      <div className="responsive-main-grid">
         
         {/* LEFT COLUMN: Informasi Toko, Logo & Branding, Preferensi Toko, Alamat & Kontak */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>

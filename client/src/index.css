@@ -1,34 +1,52 @@
 /* Design System & Tokens - POS Kasir Usaha Campuran */
 :root {
-  /* Primary & Accent Palettes (Curated HSL) */
-  --primary-50: hsl(220, 100%, 97%);
-  --primary-100: hsl(220, 95%, 92%);
-  --primary-500: hsl(220, 85%, 55%);
-  --primary-600: hsl(220, 90%, 45%);
-  --primary-700: hsl(220, 95%, 35%);
+  /* Design System Palette (Sesuai Spesifikasi Gambar User) */
+  --bg-main: #F9FAFB;            /* Latar Belakang Utama (Putih abu-abu netral) */
+  --dashboard-bg: #F9FAFB;       /* Latar Belakang Dashboard */
+  --sidebar-bg: #FFFFFF;         /* Background Sidebar (Putih bersih) */
+  --sidebar-border: #E5E7EB;     /* Garis Pembatas Divider */
+  --sidebar-active-bg: #DDD6FE;  /* Menu Sidebar Aktif (Lavender pastel) */
+  --sidebar-active-text: #5B21B6;/* Teks Menu Aktif (Ungu tua) */
+  --sidebar-text: #4B5563;       /* Teks Menu Normal */
+  --border-color: #E5E7EB;       /* Garis Pembatas (Abu-abu tipis) */
+
+  /* Button Tokens */
+  --btn-primary-bg: #0F172A;     /* Slate Gelap */
+  --btn-primary-text: #FFFFFF;   /* Putih */
+  --btn-secondary-bg: #FFFFFF;   /* Putih */
+  --btn-secondary-border: #6B7280;/* Abu-abu */
+  --btn-secondary-hover-bg: #DDD6FE; /* Lavender Pastel */
+  --btn-secondary-hover-text: #5B21B6;
+  --btn-danger-bg: #FEE2E2;      /* Merah pastel lembut */
+  --btn-danger-text: #991B1B;    /* Merah tua */
+
+  /* Primary & Accent Palettes */
+  --primary-50: #f8fafc;
+  --primary-100: #f1f5f9;
+  --primary-500: #0f172a;
+  --primary-600: #1e293b;
+  --primary-700: #334155;
 
   --accent-fnb: hsl(28, 95%, 53%);   /* Warm Orange for FNB */
   --accent-fc: hsl(190, 90%, 45%);   /* Cyan Teal for FC/Printing */
 
   /* Neutral Light Mode */
-  --bg-main: hsl(220, 20%, 97%);
-  --bg-card: hsl(0, 0%, 100%);
-  --bg-glass: rgba(255, 255, 255, 0.75);
-  --border-color: hsl(220, 15%, 88%);
+  --bg-card: #FFFFFF;
+  --bg-glass: rgba(255, 255, 255, 0.85);
   
-  --text-primary: hsl(220, 25%, 12%);
-  --text-secondary: hsl(220, 10%, 45%);
-  --text-muted: hsl(220, 10%, 65%);
+  --text-primary: #0F172A;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
 
   /* Status Colors */
-  --success: hsl(150, 75%, 38%);
-  --warning: hsl(38, 92%, 50%);
-  --danger: hsl(355, 80%, 55%);
+  --success: #16a34a;
+  --warning: #d97706;
+  --danger: #dc2626;
 
   /* Shadows & Glassmorphism */
-  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 6px 16px rgba(0, 0, 0, 0.08);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.08);
   --backdrop-blur: blur(12px);
 
   /* Fonts */
@@ -99,19 +117,52 @@ input, select, textarea {
   box-shadow: var(--shadow-md);
 }
 
-.btn-primary {
-  background: linear-gradient(135deg, var(--primary-500), var(--primary-600));
-  color: #fff;
-  padding: 0.65rem 1.25rem;
-  border-radius: var(--radius-md);
-  font-weight: 600;
-  transition: transform var(--transition-fast), box-shadow var(--transition-fast);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+/* SISTEM WARNA TOMBOL & AKSI (BUTTONS DESIGN SYSTEM) */
+
+/* 1. Tombol Tambah Stok / Action Utama (Aksi Utama): Background #0F172A (Slate Gelap), Teks/Ikon #FFFFFF (Putih) */
+.btn-action-primary,
+.btn-primary-slate {
+  background-color: #0F172A !important;
+  color: #FFFFFF !important;
+  border: none !important;
+  font-weight: 800 !important;
+  transition: all 0.15s ease !important;
+}
+.btn-action-primary:hover,
+.btn-primary-slate:hover {
+  background-color: #1E293B !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.25) !important;
 }
 
-.btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+/* 2. Tombol Filter & Refresh (Aksi Sekunder): Background #FFFFFF (Putih), Border & Teks #6B7280 (Abu-abu), Hover #DDD6FE (Lavender) */
+.btn-action-secondary,
+.btn-secondary-filter {
+  background-color: #FFFFFF !important;
+  border: 1px solid #6B7280 !important;
+  color: #6B7280 !important;
+  font-weight: 700 !important;
+  transition: all 0.15s ease !important;
+}
+.btn-action-secondary:hover,
+.btn-secondary-filter:hover {
+  background-color: #DDD6FE !important;
+  color: #5B21B6 !important;
+  border-color: #5B21B6 !important;
+}
+
+/* 3. Tombol Hapus (Aksi Bahaya/Destruktif): Background #FEE2E2 (Merah pastel lembut), Teks/Ikon #991B1B (Merah tua) */
+.btn-action-danger,
+.btn-danger-pastel {
+  background-color: #FEE2E2 !important;
+  color: #991B1B !important;
+  border: none !important;
+  font-weight: 700 !important;
+  transition: all 0.15s ease !important;
+}
+.btn-action-danger:hover,
+.btn-danger-pastel:hover {
+  background-color: #FCA5A5 !important;
+  color: #7F1D1D !important;
 }
 
 .badge {
@@ -275,6 +326,62 @@ html, body {
   }
 }
 
+/* RESPONSIVE LAYOUT ENGINE CLASSES */
+.responsive-main-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.responsive-action-bar {
+  background: #ffffff;
+  padding: 0.85rem 1.25rem;
+  border-radius: 16px;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.responsive-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+@media (max-width: 960px) {
+  .responsive-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .responsive-action-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 0.75rem !important;
+    padding: 0.85rem !important;
+  }
+
+  .responsive-btn-group {
+    margin-left: 0 !important;
+    width: 100% !important;
+    justify-content: space-between !important;
+  }
+
+  .responsive-btn-group > button {
+    flex: 1 !important;
+    justify-content: center !important;
+  }
+}
+
 @media (max-width: 520px) {
   .header-hide-mobile {
     display: none !important;
@@ -282,6 +389,14 @@ html, body {
   
   .header-text-responsive {
     font-size: 0.85rem !important;
+  }
+
+  .responsive-btn-group {
+    flex-direction: column !important;
+  }
+
+  .responsive-btn-group > button {
+    width: 100% !important;
   }
 
   /* Force 1 column layout for wider action cards & filter cards on small mobile screens */

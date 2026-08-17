@@ -178,131 +178,116 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
       )}
 
       {/* 1. TOP METRIC CARDS BAR (4 DYNAMIC REAL-TIME CARDS - GAMBAR 2) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
         {/* CARD 1: TOTAL PENGELUARAN */}
-        <div style={{ background: '#ffffff', padding: '1.35rem 1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <TrendingDown size={24} />
+        <div style={{ background: '#ffffff', padding: '1rem 1.15rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <TrendingDown size={22} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.775rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Total Pengeluaran</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{formatRupiah(totalExpensesAmount)}</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2 }}>Total Pengeluaran</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(totalExpensesAmount)}</div>
           </div>
         </div>
 
         {/* CARD 2: PENGELUARAN HARI INI */}
-        <div style={{ background: '#ffffff', padding: '1.35rem 1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Calendar size={24} />
+        <div style={{ background: '#ffffff', padding: '1rem 1.15rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Calendar size={22} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.775rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pengeluaran Hari Ini</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{formatRupiah(todayExpensesAmount)}</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2 }}>Pengeluaran Hari Ini</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(todayExpensesAmount)}</div>
           </div>
         </div>
 
         {/* CARD 3: TRANSAKSI PENGELUARAN */}
-        <div style={{ background: '#ffffff', padding: '1.35rem 1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <FileText size={24} />
+        <div style={{ background: '#ffffff', padding: '1rem 1.15rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <FileText size={22} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.775rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Transaksi Pengeluaran</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{expenses.length} <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#94a3b8' }}>Item</span></div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2 }}>Transaksi Pengeluaran</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{expenses.length} <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8' }}>Item</span></div>
           </div>
         </div>
 
         {/* CARD 4: KATEGORI TERBANYAK */}
-        <div style={{ background: '#ffffff', padding: '1.35rem 1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1.1rem' }}>
-          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Tag size={24} />
+        <div style={{ background: '#ffffff', padding: '1rem 1.15rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Tag size={22} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.775rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Kategori Dominan</div>
-            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, textTransform: 'uppercase' }}>{topCategoryName}</div>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2 }}>Kategori Dominan</div>
+            <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{topCategoryName}</div>
           </div>
         </div>
       </div>
 
       {/* 2. UNIFIED SINGLE-ROW CONTROL ACTION CARD (DITARUH DI BAWAH GAMBAR 2) */}
-      <div
-        style={{
-          background: '#ffffff',
-          padding: '0.85rem 1.25rem',
-          borderRadius: '16px',
-          border: '1px solid #cbd5e1',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'nowrap',
-          overflowX: 'auto',
-          gap: '0.75rem',
-          width: '100%',
-        }}
-      >
+      <div className="responsive-action-bar">
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <div style={{ padding: '0.4rem 0.65rem', background: '#fef2f2', borderRadius: '10px', color: '#dc2626', fontSize: '0.8rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-            <DollarSign size={16} color="#dc2626" />
+          <div style={{ padding: '0.35rem 0.6rem', background: '#fef2f2', borderRadius: '8px', color: '#dc2626', fontSize: '0.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
+            <DollarSign size={15} color="#dc2626" />
             <span>Kas Toko</span>
           </div>
-          <span style={{ fontSize: '0.875rem', fontWeight: 800, color: '#1e293b' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b' }}>
             Pencatatan & Manajemen Pengeluaran Kas Operasional
           </span>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0, marginLeft: 'auto' }}>
+        <div className="responsive-btn-group">
           <button
             onClick={loadExpenses}
             disabled={loading}
             style={{
-              padding: '0.55rem 1.1rem',
-              borderRadius: '10px',
+              padding: '0.5rem 1rem',
+              borderRadius: '9px',
               border: '1px solid #cbd5e1',
               background: '#ffffff',
               color: '#334155',
               fontWeight: 700,
-              fontSize: '0.825rem',
+              fontSize: '0.8rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.45rem',
+              gap: '0.4rem',
               whiteSpace: 'nowrap',
               transition: 'all 0.15s ease',
               boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
             }}
           >
-            <RefreshCw size={15} color="#475569" className={loading ? 'spinning' : ''} />
+            <RefreshCw size={14} color="#475569" className={loading ? 'spinning' : ''} />
             Refresh Data
           </button>
 
           <button
             onClick={() => setShowModal(true)}
             style={{
-              padding: '0.55rem 1.15rem',
-              borderRadius: '10px',
+              padding: '0.5rem 1.1rem',
+              borderRadius: '9px',
               border: 'none',
               background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
               color: '#ffffff',
               fontWeight: 800,
-              fontSize: '0.825rem',
+              fontSize: '0.8rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.45rem',
+              gap: '0.4rem',
               whiteSpace: 'nowrap',
               boxShadow: '0 3px 10px rgba(239, 68, 68, 0.25)',
               transition: 'all 0.15s ease',
             }}
           >
-            <PlusCircle size={16} />
+            <PlusCircle size={15} />
             Catat Pengeluaran Baru
           </button>
         </div>
       </div>
 
       {/* 3. MAIN DASHBOARD CONTENT (2 COLUMNS: LEFT TABLE + RIGHT SIDE PANEL) */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '1.75rem', alignItems: 'start' }}>
+      <div className="responsive-main-grid">
         {/* LEFT COLUMN: TOOLBAR & TABLE */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {/* SEARCH & FILTER BAR */}
@@ -320,11 +305,11 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
               justifyContent: 'space-between',
             }}
           >
-            <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: '180px', width: '100%' }}>
               <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input
                 type="text"
-                placeholder="Cari berdasarkan keterangan, pencatatan, atau kategori..."
+                placeholder="Cari keterangan, user, atau kategori..."
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
@@ -332,10 +317,10 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                 }}
                 style={{
                   width: '100%',
-                  padding: '0.7rem 1rem 0.7rem 2.6rem',
-                  borderRadius: '14px',
+                  padding: '0.65rem 1rem 0.65rem 2.5rem',
+                  borderRadius: '12px',
                   border: '1px solid #cbd5e1',
-                  fontSize: '0.875rem',
+                  fontSize: '0.85rem',
                   outline: 'none',
                   background: '#f8fafc',
                 }}

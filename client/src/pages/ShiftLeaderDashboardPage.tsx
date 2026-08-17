@@ -214,7 +214,7 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
       </div>
 
       {/* 3. MIDDLE SECTION GRID (MONITOR TERMINAL AKTIF VS LOG AKTIVITAS SHIFT) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)', gap: '1.5rem' }}>
+      <div className="responsive-main-grid">
         {/* LEFT COLUMN: MONITOR TERMINAL KASIR AKTIF */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>

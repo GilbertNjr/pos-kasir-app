@@ -40,43 +40,41 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
     <div
       style={{
         width: '260px',
-        background: 'var(--sidebar-bg, #1c140e)',
+        background: 'var(--sidebar-bg, #ffffff)',
         transition: 'background 0.3s ease',
-        color: '#a2a5b9',
+        color: '#1e293b',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
         padding: '1.25rem 1rem',
         height: '100%',
-        boxShadow: '4px 0 12px rgba(0, 0, 0, 0.1)',
+        borderRight: '1px solid var(--sidebar-border, #e5e7eb)',
       }}
     >
       <div>
         {/* Brand Header */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.5rem 1.5rem 0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.5rem 1.5rem 0.5rem', borderBottom: '1px solid #e5e7eb', marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
             <div
               style={{
                 width: '42px',
                 height: '42px',
                 borderRadius: '12px',
-                background: isShiftLeader
-                  ? 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)'
-                  : 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
+                background: '#0f172a',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '0 4px 10px rgba(0,0,0,0.3)',
+                boxShadow: '0 4px 10px rgba(15, 23, 42, 0.15)',
               }}
             >
               <Store size={22} />
             </div>
             <div>
-              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#ffffff', margin: 0, letterSpacing: '-0.02em' }}>
+              <h2 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
                 Main Branch
               </h2>
-              <span style={{ fontSize: '0.75rem', color: '#6c7293', fontWeight: 600 }}>
+              <span style={{ fontSize: '0.75rem', color: '#6b7280', fontWeight: 600 }}>
                 {isShiftLeader ? 'PJ Terminal Leader' : 'Kasir Operasional'}
               </span>
             </div>
@@ -85,14 +83,14 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
           {isMobileOpen && (
             <button
               onClick={() => setIsMobileOpen(false)}
-              style={{ background: 'none', border: 'none', color: '#a8a29e', cursor: 'pointer', padding: '0.25rem' }}
+              style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.25rem' }}
             >
               <X size={20} />
             </button>
           )}
         </div>
 
-        {/* Primary Call-to-Action Button */}
+        {/* Primary Call-to-Action Button (Tombol Aksi Utama: Slate Gelap #0F172A) */}
         <div style={{ marginBottom: '1.5rem', padding: '0 0.25rem' }}>
           <button
             onClick={() => {
@@ -104,17 +102,17 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               padding: '0.8rem 1rem',
               borderRadius: '10px',
               border: 'none',
-              background: 'linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)',
+              background: '#0f172a',
               color: '#ffffff',
-              fontWeight: 700,
+              fontWeight: 800,
               fontSize: '0.875rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               gap: '0.5rem',
-              boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)',
-              transition: 'transform 0.15s ease',
+              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
+              transition: 'all 0.15s ease',
             }}
           >
             <PlusCircle size={18} />
@@ -135,9 +133,9 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               padding: '0.75rem 1rem',
               borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'DASHBOARD' ? '#4f46e5' : 'transparent',
-              color: activeTab === 'DASHBOARD' ? '#ffffff' : '#a2a5b9',
-              fontWeight: activeTab === 'DASHBOARD' ? 700 : 600,
+              background: activeTab === 'DASHBOARD' ? '#ddd6fe' : 'transparent',
+              color: activeTab === 'DASHBOARD' ? '#5b21b6' : '#4b5563',
+              fontWeight: activeTab === 'DASHBOARD' ? 800 : 600,
               fontSize: '0.875rem',
               cursor: 'pointer',
               display: 'flex',
@@ -147,7 +145,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               transition: 'all 0.15s ease',
             }}
           >
-            <LayoutDashboard size={18} color={activeTab === 'DASHBOARD' ? '#ffffff' : '#6c7293'} />
+            <LayoutDashboard size={18} color={activeTab === 'DASHBOARD' ? '#5b21b6' : '#6b7280'} />
             Overview Shift
           </button>
 
@@ -162,9 +160,9 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               padding: '0.75rem 1rem',
               borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'POS' ? '#4f46e5' : 'transparent',
-              color: activeTab === 'POS' ? '#ffffff' : '#a2a5b9',
-              fontWeight: activeTab === 'POS' ? 700 : 600,
+              background: activeTab === 'POS' ? '#ddd6fe' : 'transparent',
+              color: activeTab === 'POS' ? '#5b21b6' : '#4b5563',
+              fontWeight: activeTab === 'POS' ? 800 : 600,
               fontSize: '0.875rem',
               cursor: 'pointer',
               display: 'flex',
@@ -174,7 +172,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               transition: 'all 0.15s ease',
             }}
           >
-            <ShoppingCart size={18} color={activeTab === 'POS' ? '#ffffff' : '#6c7293'} />
+            <ShoppingCart size={18} color={activeTab === 'POS' ? '#5b21b6' : '#6b7280'} />
             Live Kasir Register
           </button>
 
@@ -189,9 +187,9 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               padding: '0.75rem 1rem',
               borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'SHIFT' ? '#4f46e5' : 'transparent',
-              color: activeTab === 'SHIFT' ? '#ffffff' : '#a2a5b9',
-              fontWeight: activeTab === 'SHIFT' ? 700 : 600,
+              background: activeTab === 'SHIFT' ? '#ddd6fe' : 'transparent',
+              color: activeTab === 'SHIFT' ? '#5b21b6' : '#4b5563',
+              fontWeight: activeTab === 'SHIFT' ? 800 : 600,
               fontSize: '0.875rem',
               cursor: 'pointer',
               display: 'flex',
@@ -201,7 +199,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               transition: 'all 0.15s ease',
             }}
           >
-            <Clock size={18} color={activeTab === 'SHIFT' ? '#ffffff' : '#6c7293'} />
+            <Clock size={18} color={activeTab === 'SHIFT' ? '#5b21b6' : '#6b7280'} />
             Shift Logs & Modal
           </button>
 
@@ -216,9 +214,9 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               padding: '0.75rem 1rem',
               borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'STOCKS' ? '#4f46e5' : 'transparent',
-              color: activeTab === 'STOCKS' ? '#ffffff' : '#a2a5b9',
-              fontWeight: activeTab === 'STOCKS' ? 700 : 600,
+              background: activeTab === 'STOCKS' ? '#ddd6fe' : 'transparent',
+              color: activeTab === 'STOCKS' ? '#5b21b6' : '#4b5563',
+              fontWeight: activeTab === 'STOCKS' ? 800 : 600,
               fontSize: '0.875rem',
               cursor: 'pointer',
               display: 'flex',
@@ -228,7 +226,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               transition: 'all 0.15s ease',
             }}
           >
-            <Package size={18} color={activeTab === 'STOCKS' ? '#ffffff' : '#6c7293'} />
+            <Package size={18} color={activeTab === 'STOCKS' ? '#5b21b6' : '#6b7280'} />
             Kelola Stok Barang
           </button>
 
@@ -243,9 +241,9 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               padding: '0.75rem 1rem',
               borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'EXPENSES' ? '#4f46e5' : 'transparent',
-              color: activeTab === 'EXPENSES' ? '#ffffff' : '#a2a5b9',
-              fontWeight: activeTab === 'EXPENSES' ? 700 : 600,
+              background: activeTab === 'EXPENSES' ? '#ddd6fe' : 'transparent',
+              color: activeTab === 'EXPENSES' ? '#5b21b6' : '#4b5563',
+              fontWeight: activeTab === 'EXPENSES' ? 800 : 600,
               fontSize: '0.875rem',
               cursor: 'pointer',
               display: 'flex',
@@ -255,7 +253,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               transition: 'all 0.15s ease',
             }}
           >
-            <Receipt size={18} color={activeTab === 'EXPENSES' ? '#ffffff' : '#6c7293'} />
+            <Receipt size={18} color={activeTab === 'EXPENSES' ? '#5b21b6' : '#6b7280'} />
             Catat Pengeluaran
           </button>
 
@@ -270,9 +268,9 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               padding: '0.75rem 1rem',
               borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'PAYMENT' ? '#4f46e5' : 'transparent',
-              color: activeTab === 'PAYMENT' ? '#ffffff' : '#a2a5b9',
-              fontWeight: activeTab === 'PAYMENT' ? 700 : 600,
+              background: activeTab === 'PAYMENT' ? '#ddd6fe' : 'transparent',
+              color: activeTab === 'PAYMENT' ? '#5b21b6' : '#4b5563',
+              fontWeight: activeTab === 'PAYMENT' ? 800 : 600,
               fontSize: '0.875rem',
               cursor: 'pointer',
               display: 'flex',
@@ -282,7 +280,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               transition: 'all 0.15s ease',
             }}
           >
-            <CreditCard size={18} color={activeTab === 'PAYMENT' ? '#ffffff' : '#6c7293'} />
+            <CreditCard size={18} color={activeTab === 'PAYMENT' ? '#5b21b6' : '#6b7280'} />
             Rekap Pembayaran
           </button>
 
@@ -297,9 +295,9 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               padding: '0.75rem 1rem',
               borderRadius: '10px',
               border: 'none',
-              background: activeTab === 'REPORTS' ? '#4f46e5' : 'transparent',
-              color: activeTab === 'REPORTS' ? '#ffffff' : '#a2a5b9',
-              fontWeight: activeTab === 'REPORTS' ? 700 : 600,
+              background: activeTab === 'REPORTS' ? '#ddd6fe' : 'transparent',
+              color: activeTab === 'REPORTS' ? '#5b21b6' : '#4b5563',
+              fontWeight: activeTab === 'REPORTS' ? 800 : 600,
               fontSize: '0.875rem',
               cursor: 'pointer',
               display: 'flex',
@@ -309,23 +307,23 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               transition: 'all 0.15s ease',
             }}
           >
-            <Receipt size={18} color={activeTab === 'REPORTS' ? '#ffffff' : '#6c7293'} />
+            <Receipt size={18} color={activeTab === 'REPORTS' ? '#5b21b6' : '#6b7280'} />
             Pusat Laporan & Shift
           </button>
         </nav>
       </div>
 
       {/* Sidebar Footer */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #2b2b40', paddingTop: '1rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.5rem' }}>
-          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#32324a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', borderTop: '1px solid #e5e7eb', paddingTop: '1rem', background: '#f9fafb', padding: '1rem', borderRadius: '12px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.25rem' }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#0f172a', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
             {currentUser.full_name.charAt(0).toUpperCase()}
           </div>
           <div style={{ overflow: 'hidden' }}>
-            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#ffffff', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
+            <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
               {currentUser.full_name}
             </div>
-            <div style={{ fontSize: '0.7rem', color: isShiftLeader ? '#818cf8' : '#34d399', fontWeight: 600 }}>
+            <div style={{ fontSize: '0.7rem', color: isShiftLeader ? '#4f46e5' : '#059669', fontWeight: 700 }}>
               {isShiftLeader ? 'Penanggung Jawab' : 'Kasir Operasional'}
             </div>
           </div>
@@ -335,11 +333,11 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
           onClick={onLogout}
           style={{
             width: '100%',
-            padding: '0.6rem 0.75rem',
+            padding: '0.55rem 0.75rem',
             borderRadius: '8px',
-            border: '1px solid rgba(239, 68, 68, 0.3)',
-            background: 'rgba(239, 68, 68, 0.1)',
-            color: '#fca5a5',
+            border: 'none',
+            background: '#fee2e2',
+            color: '#991b1b',
             fontWeight: 700,
             fontSize: '0.8rem',
             cursor: 'pointer',
@@ -348,6 +346,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             justifyContent: 'center',
             gap: '0.5rem',
             marginTop: '0.25rem',
+            transition: 'all 0.15s ease',
           }}
         >
           <LogOut size={16} />

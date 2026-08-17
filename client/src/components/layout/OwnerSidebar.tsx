@@ -53,10 +53,10 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        background: 'var(--sidebar-bg, #1c140e)',
-        color: '#f8fafc',
+        background: 'var(--sidebar-bg, #ffffff)',
+        color: '#1e293b',
         width: '260px',
-        borderRight: '1px solid var(--sidebar-border, rgba(255,255,255,0.1))',
+        borderRight: '1px solid var(--sidebar-border, #e5e7eb)',
         transition: 'background 0.3s ease',
       }}
     >
@@ -67,7 +67,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          borderBottom: '1px solid var(--sidebar-border, rgba(255,255,255,0.1))',
+          borderBottom: '1px solid var(--sidebar-border, #e5e7eb)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', overflow: 'hidden' }}>
@@ -76,14 +76,14 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
               width: '40px',
               height: '40px',
               borderRadius: '10px',
-              background: 'var(--primary-gradient)',
+              background: '#0f172a',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 800,
               fontSize: '1.2rem',
               color: '#ffffff',
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.25)',
+              boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
               overflow: 'hidden',
               flexShrink: 0,
             }}
@@ -101,7 +101,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 fontWeight: 800,
                 letterSpacing: '-0.02em',
                 margin: 0,
-                color: '#ffffff',
+                color: '#0f172a',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -109,14 +109,14 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
             >
               {storeName}
             </h2>
-            <span style={{ fontSize: '0.7rem', color: '#a8a29e', fontWeight: 500 }}>Business Analytics</span>
+            <span style={{ fontSize: '0.7rem', color: '#6b7280', fontWeight: 600 }}>Business Analytics</span>
           </div>
         </div>
 
         {isOpenMobile && (
           <button
             onClick={onCloseMobile}
-            style={{ background: 'none', border: 'none', color: '#a8a29e', cursor: 'pointer', padding: '0.25rem' }}
+            style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.25rem' }}
           >
             <X size={20} />
           </button>
@@ -144,17 +144,16 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 padding: '0.75rem 1rem',
                 borderRadius: '10px',
                 border: 'none',
-                background: isActive ? 'var(--primary-gradient)' : 'transparent',
-                color: isActive ? '#ffffff' : '#a8a29e',
-                fontWeight: isActive ? 800 : 500,
+                background: isActive ? '#ddd6fe' : 'transparent',
+                color: isActive ? '#5b21b6' : '#4b5563',
+                fontWeight: isActive ? 800 : 600,
                 fontSize: '0.875rem',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'all 0.15s ease',
-                boxShadow: isActive ? '0 4px 14px rgba(0,0,0,0.3)' : 'none',
               }}
             >
-              <Icon size={18} color={isActive ? '#ffffff' : '#a8a29e'} />
+              <Icon size={18} color={isActive ? '#5b21b6' : '#6b7280'} />
               <span>{item.label}</span>
             </button>
           );
@@ -162,7 +161,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
       </nav>
 
       {/* User Profile & Logout Bottom Section */}
-      <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--sidebar-border, rgba(255,255,255,0.1))', background: 'rgba(0,0,0,0.25)' }}>
+      <div style={{ padding: '1rem 1.25rem', borderTop: '1px solid var(--sidebar-border, #e5e7eb)', background: '#f9fafb' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
             <div
@@ -170,7 +169,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 width: '36px',
                 height: '36px',
                 borderRadius: '50%',
-                background: 'var(--primary-gradient)',
+                background: '#0f172a',
                 color: '#fff',
                 display: 'flex',
                 alignItems: 'center',
@@ -179,7 +178,6 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 fontSize: '0.85rem',
                 overflow: 'hidden',
                 flexShrink: 0,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.2)',
               }}
             >
               {logoUrl ? (
@@ -189,8 +187,8 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
               )}
             </div>
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser.full_name}</div>
-              <div style={{ fontSize: '0.7rem', color: '#a8a29e' }}>Role: {currentUser.role}</div>
+              <div style={{ fontSize: '0.825rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{currentUser.full_name}</div>
+              <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>Role: {currentUser.role}</div>
             </div>
           </div>
         </div>
@@ -203,14 +201,15 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
             alignItems: 'center',
             justifyContent: 'center',
             gap: '0.5rem',
-            padding: '0.5rem',
-            borderRadius: '6px',
-            border: '1px solid #334155',
-            background: 'rgba(239, 68, 68, 0.1)',
-            color: '#ef4444',
+            padding: '0.55rem',
+            borderRadius: '8px',
+            border: 'none',
+            background: '#fee2e2',
+            color: '#991b1b',
             fontSize: '0.8rem',
-            fontWeight: 600,
+            fontWeight: 700,
             cursor: 'pointer',
+            transition: 'all 0.15s ease',
           }}
         >
           <LogOut size={16} />
