@@ -91,7 +91,7 @@ export const App: React.FC = () => {
           }
         }
         if (s?.theme_settings?.theme_color) {
-          applyGlobalTheme(s.theme_settings.theme_color, s.theme_settings.sidebar_color);
+          applyGlobalTheme(s.theme_settings.theme_color, s.theme_settings.sidebar_color, s.theme_settings.dashboard_bg);
         } else {
           applyGlobalTheme('brown');
         }
@@ -117,7 +117,11 @@ export const App: React.FC = () => {
           }
         }
         if (payload?.settings?.theme_settings?.theme_color) {
-          applyGlobalTheme(payload.settings.theme_settings.theme_color, payload.settings.theme_settings.sidebar_color);
+          applyGlobalTheme(
+            payload.settings.theme_settings.theme_color,
+            payload.settings.theme_settings.sidebar_color,
+            payload.settings.theme_settings.dashboard_bg
+          );
           addToast('info', 'Tema Sistem Diperbarui', 'Pemilik toko baru saja mengubah preferensi/warna tema secara real-time.');
         }
       } catch {
@@ -133,7 +137,7 @@ export const App: React.FC = () => {
             }
           }
           if (s?.theme_settings?.theme_color) {
-            applyGlobalTheme(s.theme_settings.theme_color, s.theme_settings.sidebar_color);
+            applyGlobalTheme(s.theme_settings.theme_color, s.theme_settings.sidebar_color, s.theme_settings.dashboard_bg);
           }
         });
       }

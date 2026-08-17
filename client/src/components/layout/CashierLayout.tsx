@@ -34,12 +34,13 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
   children,
 }) => {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: '#f4f6f9', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      {/* 1. LEFT DARK SIDEBAR (SESUAI DENGAN REFERENSI DESAIN DESKTOPSHIFT) */}
+    <div style={{ display: 'flex', minHeight: '100vh', background: 'var(--dashboard-bg, #f8fafc)', transition: 'background 0.3s ease', color: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
+      {/* 1. LEFT SIDEBAR */}
       <aside
         style={{
           width: '260px',
-          background: '#1b1b28', // Dark Navy theme from screenshot reference
+          background: 'var(--sidebar-bg, #1c140e)',
+          transition: 'background 0.3s ease',
           color: '#a2a5b9',
           display: 'flex',
           flexDirection: 'column',

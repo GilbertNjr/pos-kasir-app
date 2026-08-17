@@ -392,7 +392,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
       };
 
       await apiService.updateSettings(payload);
-      applyGlobalTheme(selectedThemeColor, sidebarColor);
+      applyGlobalTheme(selectedThemeColor, sidebarColor, dashboardBgColor);
 
       if (onStoreProfileUpdate) {
         onStoreProfileUpdate({ name: storeName, ownerName, logoUrl });
@@ -491,7 +491,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
     setIsOpHoursEnabled(true);
     setOpenTime('07:00');
     setCloseTime('22:00');
-    applyGlobalTheme('brown', '#1c140e');
+    applyGlobalTheme('brown', '#1c140e', '#fcf8f6');
     handleSaveAllSettings('Reset Pengaturan');
     if (onTriggerToast) {
       onTriggerToast('warning', 'Pengaturan Direset', 'Preferensi toko berhasil dikembalikan ke default.');
@@ -502,7 +502,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
   const handleClearCache = () => {
     localStorage.clear();
     sessionStorage.clear();
-    applyGlobalTheme(selectedThemeColor, sidebarColor);
+    applyGlobalTheme(selectedThemeColor, sidebarColor, dashboardBgColor);
     if (onTriggerToast) {
       onTriggerToast('info', 'Cache Dibersihkan', 'Penyimpanan lokal browser telah disegarkan.');
     }
