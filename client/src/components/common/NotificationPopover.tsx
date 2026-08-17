@@ -327,24 +327,7 @@ export const NotificationPopover: React.FC = () => {
 
       {/* Popover Dropdown Panel */}
       {isOpen && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '48px',
-            right: 0,
-            width: '380px',
-            maxHeight: '520px',
-            background: '#ffffff',
-            borderRadius: '20px',
-            boxShadow: '0 20px 40px rgba(0, 0, 0, 0.18)',
-            border: '1px solid #e2e8f0',
-            zIndex: 9999,
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            animation: 'fadeIn 0.2s ease',
-          }}
-        >
+        <div className="notification-popover-panel">
           {/* Header */}
           <div
             style={{
@@ -425,20 +408,22 @@ export const NotificationPopover: React.FC = () => {
           {/* Filter Tabs & Bulk Actions */}
           <div
             style={{
-              padding: '0.5rem 1.25rem',
+              padding: '0.5rem 0.85rem',
               borderBottom: '1px solid #f1f5f9',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.4rem',
               background: '#ffffff',
             }}
           >
-            <div style={{ display: 'flex', gap: '0.4rem' }}>
+            <div style={{ display: 'flex', gap: '0.35rem', flexWrap: 'wrap' }}>
               <button
                 type="button"
                 onClick={() => setFilterType('all')}
                 style={{
-                  padding: '0.2rem 0.65rem',
+                  padding: '0.25rem 0.6rem',
                   borderRadius: '12px',
                   border: 'none',
                   background: filterType === 'all' ? 'var(--color-primary)' : '#f1f5f9',
@@ -454,7 +439,7 @@ export const NotificationPopover: React.FC = () => {
                 type="button"
                 onClick={() => setFilterType('unread')}
                 style={{
-                  padding: '0.2rem 0.65rem',
+                  padding: '0.25rem 0.6rem',
                   borderRadius: '12px',
                   border: 'none',
                   background: filterType === 'unread' ? 'var(--color-primary)' : '#f1f5f9',
@@ -468,7 +453,7 @@ export const NotificationPopover: React.FC = () => {
               </button>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: 'auto' }}>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllAsRead}
