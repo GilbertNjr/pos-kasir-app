@@ -334,7 +334,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               Memuat katalog produk...
             </div>
           ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '0.85rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.65rem' }}>
               {filteredProducts.map((p) => {
               const isOutOfStock = p.manage_stock && p.stock === 0;
 

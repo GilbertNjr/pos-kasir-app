@@ -570,36 +570,36 @@ html, body {
   }
 }
 
-/* RESPONSIVE STOCK GRID ENGINE (Adaptive: 1 Col on Mobile, 2 Cols on Tablet, 3-4 Cols on Laptop/Desktop) */
+/* RESPONSIVE STOCK GRID ENGINE (Selalu 2 Kolom di Ponsel, 2-4 Kolom di Tablet/Laptop) */
 .responsive-stock-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.85rem;
-  padding: 0.75rem 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  padding: 0.5rem 0;
   width: 100%;
 }
 
-@media (min-width: 580px) {
+@media (min-width: 640px) {
   .responsive-stock-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    padding: 0.85rem 0;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.85rem;
+    padding: 0.75rem 0;
   }
 }
 
 @media (min-width: 960px) {
   .responsive-stock-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.15rem;
-    padding: 1rem 0;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    padding: 0.85rem 0;
   }
 }
 
 @media (min-width: 1280px) {
   .responsive-stock-grid {
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.25rem;
-    padding: 1.25rem 0;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1.15rem;
+    padding: 1rem 0;
   }
 }
 

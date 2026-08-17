@@ -1152,14 +1152,14 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                       key={item.stock_id || item.product_id}
                       style={{
                         background: '#ffffff',
-                        borderRadius: '18px',
+                        borderRadius: '16px',
                         border: isOut ? '2px solid #fecaca' : isLow ? '2px solid #fde68a' : '1px solid #e2e8f0',
-                        padding: '1rem',
+                        padding: '0.75rem 0.65rem',
                         boxShadow: '0 4px 15px rgba(0,0,0,0.02)',
                         display: 'flex',
                         flexDirection: 'column',
                         justifyContent: 'space-between',
-                        gap: '0.75rem',
+                        gap: '0.5rem',
                         minWidth: 0,
                         width: '100%',
                         boxSizing: 'border-box',
