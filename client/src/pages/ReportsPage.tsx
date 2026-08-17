@@ -803,27 +803,82 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         </p>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
-            <FileText color="#2563eb" />
-            Pusat Laporan Penjualan & Performa Kasir
-          </h2>
-          <p style={{ fontSize: '0.875rem', color: '#64748b', margin: '0.25rem 0 0 0' }}>
-            Filter dan analisis laporan harian, mingguan, bulanan, tahunan, serta performa karyawan
-          </p>
+      {/* UNIFIED SINGLE-ROW CONTROL CARD BAR: Sub-Tabs & Export Actions */}
+      <div
+        style={{
+          background: '#ffffff',
+          padding: '0.85rem 1.25rem',
+          borderRadius: '20px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+          marginBottom: '1.5rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+        }}
+      >
+        {/* Left Side: Sub-Tab Navigation Switcher */}
+        <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.3rem', borderRadius: '14px', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            onClick={() => setActiveReportSubTab('SHIFT_SALES')}
+            style={{
+              padding: '0.55rem 1.15rem',
+              borderRadius: '10px',
+              border: activeReportSubTab === 'SHIFT_SALES' ? '1px solid #cbd5e1' : 'none',
+              background: activeReportSubTab === 'SHIFT_SALES' ? '#ffffff' : 'transparent',
+              color: activeReportSubTab === 'SHIFT_SALES' ? '#2563eb' : '#64748b',
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              boxShadow: activeReportSubTab === 'SHIFT_SALES' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <FileText size={16} color={activeReportSubTab === 'SHIFT_SALES' ? '#2563eb' : '#64748b'} />
+            📊 1. Laporan Shift & Penjualan Transaksi
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveReportSubTab('STOCKS_LOG')}
+            style={{
+              padding: '0.55rem 1.15rem',
+              borderRadius: '10px',
+              border: activeReportSubTab === 'STOCKS_LOG' ? '1px solid #cbd5e1' : 'none',
+              background: activeReportSubTab === 'STOCKS_LOG' ? '#ffffff' : 'transparent',
+              color: activeReportSubTab === 'STOCKS_LOG' ? '#2563eb' : '#64748b',
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              boxShadow: activeReportSubTab === 'STOCKS_LOG' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <ShoppingBag size={16} color={activeReportSubTab === 'STOCKS_LOG' ? '#2563eb' : '#64748b'} />
+            📦 2. Laporan Stok & Histori Restok Inventaris
+          </button>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+        {/* Right Side: Export & Print Action Buttons */}
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
           <button
             onClick={handleExportExcel}
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
-              fontSize: '0.875rem',
+              fontSize: '0.85rem',
               fontWeight: 800,
-              padding: '0.6rem 1.25rem',
+              padding: '0.55rem 1.15rem',
               background: '#ffffff',
               color: '#059669',
               border: '1.5px solid #10b981',
@@ -833,7 +888,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
               transition: 'all 0.15s ease',
             }}
           >
-            <FileText size={16} />
+            <FileText size={15} />
             Ekspor Excel (.CSV)
           </button>
 
@@ -843,70 +898,22 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
-              fontSize: '0.875rem',
+              fontSize: '0.85rem',
               fontWeight: 800,
-              padding: '0.6rem 1.25rem',
+              padding: '0.55rem 1.15rem',
               background: 'linear-gradient(135deg, #059669, #10b981)',
               color: '#ffffff',
               border: 'none',
               borderRadius: '12px',
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+              transition: 'all 0.15s ease',
             }}
           >
-            <Printer size={16} />
+            <Printer size={15} />
             Cetak / Ekspor PDF Laporan
           </button>
         </div>
-      </div>
-
-      {/* Sub-Tab Navigation: Laporan Shift/Sales vs Laporan Stok/Inventaris */}
-      <div style={{ display: 'flex', gap: '0.65rem', marginBottom: '1.5rem', background: '#f1f5f9', padding: '0.35rem', borderRadius: '14px', width: 'fit-content' }}>
-        <button
-          type="button"
-          onClick={() => setActiveReportSubTab('SHIFT_SALES')}
-          style={{
-            padding: '0.6rem 1.2rem',
-            borderRadius: '10px',
-            border: 'none',
-            background: activeReportSubTab === 'SHIFT_SALES' ? '#ffffff' : 'transparent',
-            color: activeReportSubTab === 'SHIFT_SALES' ? '#2563eb' : '#64748b',
-            fontWeight: 800,
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            boxShadow: activeReportSubTab === 'SHIFT_SALES' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <FileText size={16} />
-          📊 1. Laporan Shift & Penjualan Transaksi
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveReportSubTab('STOCKS_LOG')}
-          style={{
-            padding: '0.6rem 1.2rem',
-            borderRadius: '10px',
-            border: 'none',
-            background: activeReportSubTab === 'STOCKS_LOG' ? '#ffffff' : 'transparent',
-            color: activeReportSubTab === 'STOCKS_LOG' ? '#2563eb' : '#64748b',
-            fontWeight: 800,
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.5rem',
-            boxShadow: activeReportSubTab === 'STOCKS_LOG' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
-            transition: 'all 0.15s ease',
-          }}
-        >
-          <ShoppingBag size={16} />
-          📦 2. Laporan Stok & Histori Restok Inventaris
-        </button>
       </div>
 
       {error && (
