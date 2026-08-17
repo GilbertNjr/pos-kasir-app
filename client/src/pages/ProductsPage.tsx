@@ -290,84 +290,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', paddingBottom: '3rem' }}>
-      {/* 1. HEADER SECTION WITH ACTIONS */}
-      <div
-        style={{
-          background: 'var(--primary-gradient, linear-gradient(135deg, #0f172a 0%, #1e293b 100%))',
-          borderRadius: '24px',
-          padding: '2rem 2.25rem',
-          color: '#ffffff',
-          boxShadow: '0 20px 25px -5px rgba(15, 23, 42, 0.15)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1.25rem',
-        }}
-      >
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' }}>
-            <div style={{ padding: '0.5rem', borderRadius: '12px', background: 'rgba(99, 102, 241, 0.2)', color: '#818cf8' }}>
-              <Package size={26} />
-            </div>
-            <h1 style={{ fontSize: '1.6rem', fontWeight: 900, margin: 0, letterSpacing: '-0.02em', color: '#ffffff' }}>
-              Katalog & Manajemen Produk Master
-            </h1>
-          </div>
-          <p style={{ fontSize: '0.875rem', color: '#94a3b8', margin: 0, maxWidth: '600px' }}>
-            Pengelolaan item produk fisik & jasa non-hardcoded terintegrasi dengan database real-time.
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-          <button
-            onClick={loadData}
-            disabled={loading}
-            style={{
-              padding: '0.65rem 1.1rem',
-              borderRadius: '14px',
-              border: '1px solid rgba(255, 255, 255, 0.15)',
-              background: 'rgba(255, 255, 255, 0.08)',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              backdropFilter: 'blur(10px)',
-            }}
-          >
-            <RefreshCw size={16} className={loading ? 'spinning' : ''} />
-            Refresh Data
-          </button>
-
-          <RoleGuard userRole={currentUser.role} allow={['OWNER']}>
-            <button
-              onClick={() => setShowAddModal(true)}
-              style={{
-                padding: '0.65rem 1.25rem',
-                borderRadius: '14px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
-                color: '#ffffff',
-                fontWeight: 900,
-                fontSize: '0.85rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.4)',
-              }}
-            >
-              <PlusCircle size={18} />
-              + Tambah Produk Master Baru
-            </button>
-          </RoleGuard>
-        </div>
-      </div>
-
-      {/* 2. TOP METRIC CARDS BAR (5 DYNAMIC REAL-TIME GRID COLUMNS) */}
+      {/* 1. TOP METRIC CARDS BAR (5 DYNAMIC REAL-TIME GRID COLUMNS) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1.1rem' }}>
         {/* CARD 1: TOTAL PRODUK */}
         <div style={{ background: '#ffffff', padding: '1.25rem 1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -422,6 +345,81 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
             <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Stok Habis</div>
             <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{outOfStockCount} <span style={{ fontSize: '0.775rem', fontWeight: 700, color: '#e11d48' }}>Habis</span></div>
           </div>
+        </div>
+      </div>
+
+      {/* 2. UNIFIED ACTION TOOLBAR CARD BAR (REFRESH & ADD PRODUCT) */}
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: '20px',
+          border: '1px solid #e2e8f0',
+          padding: '0.85rem 1.35rem',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <div style={{ padding: '0.45rem', borderRadius: '10px', background: '#e0e7ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Package size={20} />
+          </div>
+          <div>
+            <div style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a' }}>Katalog Produk Master</div>
+            <div style={{ fontSize: '0.775rem', fontWeight: 700, color: '#64748b' }}>Kelola daftar item produk fisik & jasa terdaftar</div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={loadData}
+            disabled={loading}
+            style={{
+              padding: '0.6rem 1.15rem',
+              borderRadius: '12px',
+              border: '1px solid #cbd5e1',
+              background: '#ffffff',
+              color: '#334155',
+              fontWeight: 800,
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <RefreshCw size={15} className={loading ? 'spinning' : ''} color="#4f46e5" />
+            Refresh Data
+          </button>
+
+          <RoleGuard userRole={currentUser.role} allow={['OWNER']}>
+            <button
+              onClick={() => setShowAddModal(true)}
+              style={{
+                padding: '0.6rem 1.25rem',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)',
+                color: '#ffffff',
+                fontWeight: 900,
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <PlusCircle size={17} />
+              + Tambah Produk Master Baru
+            </button>
+          </RoleGuard>
         </div>
       </div>
 
