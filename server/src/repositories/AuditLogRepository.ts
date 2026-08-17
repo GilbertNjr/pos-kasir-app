@@ -7,10 +7,16 @@ export class AuditLogRepository {
   async findAll(): Promise<AuditLogEntity[]> {
     try {
       const res = await pool.query(
-        `SELECT a.log_id as audit_id, a.user_id, COALESCE(u.username, 'System') as username, 
-                a.action, a.affected_entity, a.entity_id, a.details, a.created_at::text as timestamp
+        `SELECT COALESCE(a.log_id, a.audit_id) as audit_id, 
+                COALESCE(a.user_id, a.actor_user_id) as user_id, 
+                COALESCE(u.username, 'System') as username, 
+                a.action, 
+                COALESCE(a.affected_entity, a.entity_type) as affected_entity, 
+                a.entity_id, 
+                COALESCE(a.details, a.metadata::text, '') as details, 
+                a.created_at::text as timestamp
          FROM audit_logs a
-         LEFT JOIN users u ON a.user_id = u.user_id
+         LEFT JOIN users u ON COALESCE(a.user_id, a.actor_user_id) = u.user_id
          ORDER BY a.created_at DESC`
       );
       if (res.rows.length > 0) {
@@ -48,8 +54,8 @@ export class AuditLogRepository {
 
     try {
       await pool.query(
-        `INSERT INTO audit_logs (log_id, user_id, action, affected_entity, entity_id, details, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        `INSERT INTO audit_logs (audit_id, log_id, actor_user_id, user_id, action, affected_entity, entity_type, entity_id, details, created_at)
+         VALUES ($1, $1, $2, $2, $3, $4, $4, $5, $6, $7)`,
         [audit_id, userId, action, affectedEntity, entityId, details, timestamp]
       );
     } catch (err) {
