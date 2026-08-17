@@ -36,7 +36,6 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
   // Recovery Modal State
   const [showRecoverModal, setShowRecoverModal] = useState(false);
-  const [recoverTab, setRecoverTab] = useState<'OWNER' | 'EMPLOYEE'>('OWNER');
   const [recoverUsername, setRecoverUsername] = useState('owner');
   const [recoverNewPassword, setRecoverNewPassword] = useState('');
   const [recoverConfirmPassword, setRecoverConfirmPassword] = useState('');
@@ -730,212 +729,91 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
         </div>
       </div>
 
-      {/* EMERGENCY & EMPLOYEE PASSWORD RECOVERY MODAL */}
+      {/* SIMPLE DIRECT PASSWORD RESET MODAL */}
       {showRecoverModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: '#ffffff', borderRadius: '24px', padding: '1.75rem', maxWidth: '480px', width: '100%', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #e2e8f0' }}>
+          <div style={{ background: '#ffffff', borderRadius: '24px', padding: '1.75rem', maxWidth: '440px', width: '100%', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)', border: '1px solid #e2e8f0' }}>
             
             {/* Modal Header */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-              <div style={{ width: '38px', height: '38px', borderRadius: '12px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
-                <ShieldCheck size={22} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
+              <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#2563eb' }}>
+                <ShieldCheck size={24} />
               </div>
               <div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Pemulihan & Reset Password</h3>
-                <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Pilih opsi pemulihan sesuai role akun Anda</div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>Reset Password Akun</h3>
+                <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Masukkan username & password baru untuk memperbarui akun</div>
               </div>
             </div>
 
-            {/* TAB SELECTOR BUTTONS */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', background: '#f1f5f9', padding: '0.3rem', borderRadius: '14px', marginBottom: '1.25rem' }}>
-              <button
-                type="button"
-                onClick={() => { setRecoverTab('OWNER'); setRecoverError(null); setRecoverSuccess(null); }}
-                style={{
-                  padding: '0.55rem',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: recoverTab === 'OWNER' ? '#ffffff' : 'transparent',
-                  color: recoverTab === 'OWNER' ? '#2563eb' : '#64748b',
-                  fontWeight: 800,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                  boxShadow: recoverTab === 'OWNER' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.35rem',
-                }}
-              >
-                <span>👑 Pemulihan Owner</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => { setRecoverTab('EMPLOYEE'); setRecoverError(null); setRecoverSuccess(null); }}
-                style={{
-                  padding: '0.55rem',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: recoverTab === 'EMPLOYEE' ? '#ffffff' : 'transparent',
-                  color: recoverTab === 'EMPLOYEE' ? '#2563eb' : '#64748b',
-                  fontWeight: 800,
-                  fontSize: '0.82rem',
-                  cursor: 'pointer',
-                  boxShadow: recoverTab === 'EMPLOYEE' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
-                  transition: 'all 0.2s',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.35rem',
-                }}
-              >
-                <span>👤 Lupa Password Pegawai</span>
-              </button>
-            </div>
-
-            {/* TAB 1: OWNER DIRECT RECOVERY */}
-            {recoverTab === 'OWNER' && (
-              <>
-                <p style={{ fontSize: '0.8rem', color: '#475569', marginBottom: '1.15rem', lineHeight: 1.4 }}>
-                  Masukkan <strong>Username Owner</strong> dan <strong>Password Baru</strong> yang Anda inginkan untuk memperbarui password secara langsung.
-                </p>
-
-                {recoverSuccess && (
-                  <div style={{ padding: '0.75rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', color: '#166534', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                    <CheckCircle2 size={16} color="#16a34a" />
-                    <span>{recoverSuccess}</span>
-                  </div>
-                )}
-
-                {recoverError && (
-                  <div style={{ padding: '0.75rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', color: '#991b1b', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                    <AlertCircle size={16} color="#dc2626" />
-                    <span>{recoverError}</span>
-                  </div>
-                )}
-
-                <form onSubmit={handleRecoverSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>Username Owner</label>
-                    <input
-                      type="text"
-                      value={recoverUsername}
-                      onChange={(e) => setRecoverUsername(e.target.value)}
-                      placeholder="e.g. owner"
-                      required
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a', fontWeight: 700 }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>Password Baru (Min 6 Karakter)</label>
-                    <input
-                      type="password"
-                      value={recoverNewPassword}
-                      onChange={(e) => setRecoverNewPassword(e.target.value)}
-                      placeholder="Masukkan password baru"
-                      required
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a' }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>Konfirmasi Password Baru</label>
-                    <input
-                      type="password"
-                      value={recoverConfirmPassword}
-                      onChange={(e) => setRecoverConfirmPassword(e.target.value)}
-                      placeholder="Ulangi password baru"
-                      required
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                    <button
-                      type="button"
-                      onClick={() => setShowRecoverModal(false)}
-                      style={{ flex: 1, padding: '0.65rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
-                    >
-                      Batal
-                    </button>
-                    <button
-                      type="submit"
-                      disabled={recovering}
-                      style={{ flex: 1.2, padding: '0.65rem', borderRadius: '10px', border: 'none', background: '#2563eb', color: '#ffffff', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
-                    >
-                      {recovering ? <Loader2 size={16} className="spin-icon" /> : null}
-                      <span>{recovering ? 'Memulihkan...' : 'Pulihkan Akun'}</span>
-                    </button>
-                  </div>
-                </form>
-              </>
-            )}
-
-            {/* TAB 2: EMPLOYEE PASSWORD RESET INSTRUCTIONS */}
-            {recoverTab === 'EMPLOYEE' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '16px', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#dbeafe', color: '#1d4ed8', fontWeight: 900, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      1
-                    </div>
-                    <div>
-                      <strong style={{ fontSize: '0.85rem', color: '#0f172a', display: 'block' }}>Minta Kode Aktivasi ke Owner / PJ Toko</strong>
-                      <span style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.4 }}>
-                        Hubungi Owner untuk menerbitkan <strong>Kode Aktivasi 6-Digit Baru</strong> melalui tombol <em>"+ Minta Kode"</em> di menu Manajemen Pegawai.
-                      </span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#dbeafe', color: '#1d4ed8', fontWeight: 900, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      2
-                    </div>
-                    <div>
-                      <strong style={{ fontSize: '0.85rem', color: '#0f172a', display: 'block' }}>Buka Halaman Reset / Aktivasi Pegawai</strong>
-                      <span style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.4 }}>
-                        Klik tombol biru di bawah ini untuk menuju portal Aktivasi & Reset Password Pegawai.
-                      </span>
-                    </div>
-                  </div>
-
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
-                    <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: '#dbeafe', color: '#1d4ed8', fontWeight: 900, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      3
-                    </div>
-                    <div>
-                      <strong style={{ fontSize: '0.85rem', color: '#0f172a', display: 'block' }}>Masukkan Kode & Buat Password Baru</strong>
-                      <span style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.4 }}>
-                        Masukkan Kode Aktivasi Baru & buat Password Baru Anda. Anda akan <strong>langsung otomatis masuk ke sistem kasir</strong> tanpa perlu input ulang!
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowRecoverModal(false)}
-                    style={{ flex: 1, padding: '0.7rem', borderRadius: '12px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
-                  >
-                    Tutup
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowRecoverModal(false);
-                      window.location.hash = '#activate';
-                    }}
-                    style={{ flex: 1.5, padding: '0.7rem', borderRadius: '12px', border: 'none', background: '#2563eb', color: '#ffffff', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(37,99,235,0.25)' }}
-                  >
-                    <span>Buka Halaman Reset →</span>
-                  </button>
-                </div>
+            {recoverSuccess && (
+              <div style={{ padding: '0.75rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', color: '#166534', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <CheckCircle2 size={16} color="#16a34a" />
+                <span>{recoverSuccess}</span>
               </div>
             )}
 
+            {recoverError && (
+              <div style={{ padding: '0.75rem', background: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', color: '#991b1b', fontSize: '0.8rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <AlertCircle size={16} color="#dc2626" />
+                <span>{recoverError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleRecoverSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>Username Akun *</label>
+                <input
+                  type="text"
+                  value={recoverUsername}
+                  onChange={(e) => setRecoverUsername(e.target.value)}
+                  placeholder="e.g. owner / budi"
+                  required
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a', fontWeight: 700 }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>Password Baru * (Min 6 Karakter)</label>
+                <input
+                  type="password"
+                  value={recoverNewPassword}
+                  onChange={(e) => setRecoverNewPassword(e.target.value)}
+                  placeholder="Masukkan password baru"
+                  required
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 700, color: '#334155', marginBottom: '0.3rem' }}>Konfirmasi Password Baru *</label>
+                <input
+                  type="password"
+                  value={recoverConfirmPassword}
+                  onChange={(e) => setRecoverConfirmPassword(e.target.value)}
+                  placeholder="Ulangi password baru"
+                  required
+                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a' }}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setShowRecoverModal(false)}
+                  style={{ flex: 1, padding: '0.65rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer' }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={recovering}
+                  style={{ flex: 1.3, padding: '0.65rem', borderRadius: '10px', border: 'none', background: '#2563eb', color: '#ffffff', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(37,99,235,0.25)' }}
+                >
+                  {recovering ? <Loader2 size={16} className="spin-icon" /> : null}
+                  <span>{recovering ? 'Memproses...' : 'Simpan Password Baru'}</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

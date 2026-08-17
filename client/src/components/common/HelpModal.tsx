@@ -114,14 +114,13 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
     },
     {
       id: 'security',
-      title: 'Keamanan & Reset Password Owner',
+      title: 'Keamanan & Reset Password',
       icon: <Key size={20} color="#2563eb" />,
-      description: 'Pengaturan kata sandi rahasia dan PIN Pemulihan Darurat.',
+      description: 'Pengaturan kata sandi rahasia & pemulihan password akun.',
       steps: [
         'Di menu Pengaturan > tab "Keamanan & Akun", Owner dapat mengganti password kapan saja.',
-        'Pastikan mengisi 6-digit "PIN Pemulihan Darurat" (Emergency Recovery Key).',
-        'Jika lupa kata sandi di halaman Login Owner, klik "Lupa Password?".',
-        'Masukkan PIN Pemulihan Darurat untuk membuka akun dan mereset password baru secara instant.',
+        'Jika lupa kata sandi di halaman Login, klik "Lupa Password?".',
+        'Masukkan Username Akun dan Password Baru untuk mereset password secara langsung.',
       ],
     },
     {
@@ -141,8 +140,8 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
   const faqs: FaqItem[] = [
     {
       category: 'security',
-      question: 'Bagaimana jika Owner lupa kata sandi untuk masuk ke aplikasi?',
-      answer: 'Di halaman login utama Owner, terdapat opsi "Lupa Kata Sandi / PIN Pemulihan". Masukkan PIN Pemulihan Darurat 6-digit yang telah Anda set sebelumnya di Pengaturan Toko untuk mereset kata sandi secara instant.',
+      question: 'Bagaimana jika lupa kata sandi untuk masuk ke aplikasi?',
+      answer: 'Di halaman login utama, klik "Lupa Password?". Masukkan username Anda dan buat password baru secara langsung tanpa syarat PIN.',
     },
     {
       category: 'branding',
