@@ -25,6 +25,8 @@ import {
 import { apiService } from '../services/api';
 import { User } from '../types';
 import { formatWaktuIndo } from '../utils/formatters';
+import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+
 
 interface BackupRestorePageProps {
   currentUser: User;
@@ -805,6 +807,12 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
           </div>
         )}
       </div>
+
+      <ActionLoadingModal
+        isOpen={syncingSheets || restoreLoading}
+        message={syncingSheets ? 'Menyinkronkan database dengan Google Sheets cloud...' : 'Memproses pemulihan data snapshot...'}
+        submessage="Mencegah interupsi & memastikan integritas data..."
+      />
     </div>
   );
 };

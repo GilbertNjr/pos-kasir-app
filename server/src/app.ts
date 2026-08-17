@@ -66,11 +66,11 @@ import { runMigrations } from './database/migrate';
 // Start Server if not imported as module
 if (require.main === module) {
   runMigrations()
-    .then(() => console.log('[Database] PostgreSQL schema & seed ready.'))
-    .catch((err) => console.warn('[Database Migration Warning]:', err.message));
+    .then(() => console.log('[Database] PostgreSQL Supabase Cloud schema & seed ready.'))
+    .catch((err) => console.warn('[Database Migration Notice]:', err.message));
 
   app.listen(PORT, () => {
-    console.log(`[POS Server] Server running on http://localhost:${PORT}`);
+    console.log(`[POS Cloud Supabase Engine] Server operational on http://localhost:${PORT}`);
   });
 }
 

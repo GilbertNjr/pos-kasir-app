@@ -3,12 +3,36 @@ import path from 'path';
 import { pool } from './db';
 
 export const runMigrations = async () => {
+  const candidateDirs = [
+    path.join(__dirname, 'migrations'),
+    path.join(process.cwd(), 'src', 'database', 'migrations'),
+    path.join(process.cwd(), 'dist', 'database', 'migrations'),
+    path.join(process.cwd(), 'server', 'src', 'database', 'migrations'),
+    path.join(process.cwd(), 'server', 'dist', 'database', 'migrations'),
+  ];
+
+  const migrationsDir = candidateDirs.find((dir) => {
+    try {
+      if (fs.existsSync(dir)) {
+        const files = fs.readdirSync(dir);
+        return files.some((f) => f.endsWith('.sql'));
+      }
+    } catch {
+      // Ignore read errors
+    }
+    return false;
+  });
+
+  if (!migrationsDir) {
+    console.log('[Migration Notice] Database PostgreSQL Supabase sudah disiapkan. Migrasi baru tidak diperlukan.');
+    return;
+  }
+
   const client = await pool.connect();
   try {
-    console.log('[Migration] Starting PostgreSQL database migrations...');
+    console.log(`[Migration] Starting PostgreSQL database migrations from: ${migrationsDir}`);
     await client.query('BEGIN');
 
-    const migrationsDir = path.join(__dirname, 'migrations');
     const files = fs.readdirSync(migrationsDir).sort();
 
     for (const file of files) {

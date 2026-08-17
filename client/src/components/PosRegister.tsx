@@ -3,6 +3,8 @@ import { ShoppingCart, Search, Plus, Minus, Trash2, CheckCircle, Printer, AlertC
 import { apiService, CreateTransactionResultData } from '../services/api';
 import { Product, User, PaymentMethod } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
+import { ActionLoadingModal } from './common/ActionLoadingModal';
+
 
 interface PosRegisterProps {
   currentUser: User;
@@ -528,6 +530,12 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
           </div>
         </div>
       )}
+
+      <ActionLoadingModal
+        isOpen={submitLoading}
+        message="Memproses pembayaran & transaksi kasir ke backend POS..."
+        submessage="Mencegah duplikasi pesanan & mengurangi stok barang..."
+      />
     </div>
   );
 };

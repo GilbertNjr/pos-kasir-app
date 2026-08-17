@@ -1,8 +1,13 @@
 import { ActivationTokenEntity } from '../types/domain';
 import { pool } from '../database/db';
+import { FileStorageAdapter } from '../database/fileStorage';
 
 export class ActivationTokenRepository {
-  private inMemoryTokens: ActivationTokenEntity[] = [];
+  private static inMemoryTokens: ActivationTokenEntity[] = FileStorageAdapter.readData<ActivationTokenEntity>('activation_tokens.json', []);
+
+  private saveFileCache() {
+    FileStorageAdapter.saveData('activation_tokens.json', ActivationTokenRepository.inMemoryTokens);
+  }
 
   async createToken(token: ActivationTokenEntity): Promise<ActivationTokenEntity> {
     try {
@@ -24,27 +29,41 @@ export class ActivationTokenRepository {
       const res = await pool.query(query, values);
       if (res.rows && res.rows.length > 0) {
         const created = this.mapRowToEntity(res.rows[0]);
-        this.inMemoryTokens.push(created);
+        ActivationTokenRepository.inMemoryTokens.push(created);
+        this.saveFileCache();
         return created;
       }
     } catch {
       // Fallback
     }
-    this.inMemoryTokens.push(token);
+    ActivationTokenRepository.inMemoryTokens.push(token);
+    this.saveFileCache();
     return { ...token };
   }
 
   async findByCodeDisplay(code: string): Promise<ActivationTokenEntity | null> {
-    const formatted = code.trim().toUpperCase();
+    const rawFormatted = code.trim().toUpperCase();
+    const cleanCode = code.replace(/[\s\-]/g, '').toUpperCase();
     try {
-      const res = await pool.query('SELECT * FROM activation_tokens WHERE UPPER(activation_code_display) = $1', [formatted]);
+      // Try exact or space/hyphen normalized query first
+      const res = await pool.query(
+        "SELECT * FROM activation_tokens WHERE UPPER(REPLACE(REPLACE(activation_code_display, ' ', ''), '-', '')) = $1 ORDER BY created_at DESC LIMIT 1",
+        [cleanCode]
+      );
       if (res.rows && res.rows.length > 0) {
         return this.mapRowToEntity(res.rows[0]);
       }
     } catch {
       // Fallback
     }
-    const mem = this.inMemoryTokens.find((t) => t.activation_code_display.toUpperCase() === formatted);
+
+    const mem = ActivationTokenRepository.inMemoryTokens
+      .filter((t) => {
+        const tClean = t.activation_code_display.replace(/[\s\-]/g, '').toUpperCase();
+        return tClean === cleanCode || t.activation_code_display.toUpperCase() === rawFormatted;
+      })
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+
     return mem ? { ...mem } : null;
   }
 
@@ -55,10 +74,11 @@ export class ActivationTokenRepository {
     } catch {
       // Fallback
     }
-    const mem = this.inMemoryTokens.find((t) => t.token_id === token_id);
+    const mem = ActivationTokenRepository.inMemoryTokens.find((t) => t.token_id === token_id);
     if (mem) {
       mem.status = 'USED';
       mem.used_at = now;
+      this.saveFileCache();
     }
     return true;
   }
@@ -75,7 +95,7 @@ export class ActivationTokenRepository {
     } catch {
       // Fallback
     }
-    const mem = this.inMemoryTokens
+    const mem = ActivationTokenRepository.inMemoryTokens
       .filter((t) => t.user_id === user_id && t.status === 'PENDING')
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
     return mem ? { ...mem } : null;

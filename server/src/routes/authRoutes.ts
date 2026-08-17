@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { userRepository } from '../repositories/sharedRepositories';
+import { userRepository, activationTokenRepository } from '../repositories/sharedRepositories';
 import { AuthService } from '../services/AuthService';
 import { AuthController } from '../controllers/AuthController';
 import { authMiddleware } from '../middlewares/AuthMiddleware';
@@ -8,8 +8,8 @@ import { requireOwner } from '../middlewares/rbacMiddleware';
 const router = Router();
 
 // Inisialisasi Dependensi (Dependency Injection)
-const authService = new AuthService(userRepository);
-const authController = new AuthController(authService, userRepository);
+const authService = new AuthService(userRepository, undefined, activationTokenRepository);
+const authController = new AuthController(authService, userRepository, undefined, activationTokenRepository);
 
 // Route Auth Public
 router.post('/login', authController.login);

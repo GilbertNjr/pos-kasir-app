@@ -18,6 +18,8 @@ import {
 import { apiService } from '../services/api';
 import { THEME_PALETTES, applyGlobalTheme } from '../utils/themeHelper';
 import { HelpModal } from '../components/common/HelpModal';
+import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+
 
 interface SettingsPageProps {
   onTriggerToast?: (type: 'success' | 'danger' | 'info' | 'warning', title: string, message: string) => void;
@@ -1601,6 +1603,12 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
 
       {/* Help Center Modal */}
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
+      <ActionLoadingModal
+        isOpen={saving || restoring}
+        message={saving ? 'Menyimpan preferensi & konfigurasi toko ke backend...' : 'Memproses restore database ke server...'}
+        submessage="Mencegah konflik data & memperbarui tampilan..."
+      />
     </div>
   );
 };

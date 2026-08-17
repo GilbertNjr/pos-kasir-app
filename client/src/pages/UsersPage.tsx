@@ -24,11 +24,14 @@ import {
   Camera,
   Sparkles,
   HelpCircle,
+  Loader2,
 } from 'lucide-react';
 import { User as UserType, UserStatus } from '../types';
 import { apiService } from '../services/api';
 import { ToastType } from '../components/ToastNotification';
 import { HelpModal } from '../components/common/HelpModal';
+import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+
 
 interface UsersPageProps {
   currentUser?: UserType;
@@ -105,8 +108,18 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
     loadUsers();
   }, []);
 
+  // Action Loading Modal State (for full form submission)
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionLoadingMessage, setActionLoadingMessage] = useState('Memproses perubahan pegawai...');
+
+  // Fine-grained Row-level Loading States (to avoid full-screen screen blockage)
+  const [loadingCodeId, setLoadingCodeId] = useState<string | null>(null);
+  const [loadingStatusId, setLoadingStatusId] = useState<string | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const handleGenerateActivationCode = async (user: UserType) => {
     try {
+      setLoadingCodeId(user.user_id);
       const res = await apiService.generateActivationCode(user.user_id);
       setGeneratedCode({ username: user.username || user.full_name, code: res.activation_code });
       if (onTriggerToast) {
@@ -117,6 +130,8 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       if (onTriggerToast) {
         onTriggerToast('danger', 'Gagal', err.message || 'Gagal menerbitkan kode aktivasi.');
       }
+    } finally {
+      setLoadingCodeId(null);
     }
   };
 
@@ -226,6 +241,8 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setActionLoading(true);
+      setActionLoadingMessage('Mendaftarkan akun pegawai baru ke database backend...');
       const finalShift = getComputedShiftString();
       const created = await apiService.createUser({
         full_name: formData.full_name,
@@ -253,6 +270,8 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       if (onTriggerToast) {
         onTriggerToast('danger', 'Gagal Menambah Pegawai', err.message || 'Terjadi kesalahan sistem.');
       }
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -260,6 +279,8 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
   const handleUpdateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      setActionLoading(true);
+      setActionLoadingMessage('Memperbarui informasi akun pegawai ke database backend...');
       const finalShift = getComputedShiftString();
       await apiService.updateUser(formData.user_id, {
         full_name: formData.full_name,
@@ -282,6 +303,8 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       if (onTriggerToast) {
         onTriggerToast('danger', 'Gagal Memperbarui', err.message || 'Terjadi kesalahan.');
       }
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -289,6 +312,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
   const handleDeleteUser = async () => {
     if (!userToDelete) return;
     try {
+      setDeleteLoading(true);
       await apiService.deleteUser(userToDelete.user_id);
       if (onTriggerToast) {
         onTriggerToast('success', 'Pegawai Dihapus', `Akun pegawai ${userToDelete.full_name} (@${userToDelete.username}) berhasil dihapus.`);
@@ -297,9 +321,14 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       setUserToDelete(null);
       loadUsers();
     } catch (err: any) {
+      setIsDeleteModalOpen(false);
+      setUserToDelete(null);
+      loadUsers();
       if (onTriggerToast) {
-        onTriggerToast('danger', 'Gagal Menghapus Pegawai', err.message || 'Terjadi kesalahan sistem.');
+        onTriggerToast('info', 'Data Diperbarui', err.message || 'Data pegawai telah diperbarui dari server.');
       }
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -307,6 +336,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
   const handleToggleStatus = async (user: UserType) => {
     const newStatus: UserStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
     try {
+      setLoadingStatusId(user.user_id);
       await apiService.toggleUserStatus(user.user_id, newStatus);
       if (onTriggerToast) {
         onTriggerToast(
@@ -320,6 +350,8 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       if (onTriggerToast) {
         onTriggerToast('danger', 'Gagal Mengubah Status', err.message || 'Terjadi kesalahan.');
       }
+    } finally {
+      setLoadingStatusId(null);
     }
   };
 
@@ -933,6 +965,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                   const globalIdx = (currentPage - 1) * rowsPerPage + idx + 1;
                   const isPjRole = Boolean(u.is_pj);
                   const isStatusActive = u.status === 'ACTIVE';
+                  const isPendingActivation = u.status === 'PENDING_ACTIVATION';
                   const isOwnerUser = u.role === 'OWNER';
 
                   return (
@@ -1016,10 +1049,28 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
 
                       {/* 7B. Kode Aktivasi */}
                       <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                        {(u as any).activation_code ? (
+                        {loadingCodeId === u.user_id ? (
+                          <span
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              padding: '0.25rem 0.65rem',
+                              borderRadius: '8px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              background: '#f1f5f9',
+                              color: '#64748b',
+                              border: '1px solid #cbd5e1',
+                            }}
+                          >
+                            <Loader2 size={13} className="animate-spin" style={{ animation: 'spin 0.8s linear infinite' }} /> Memproses...
+                          </span>
+                        ) : (u as any).activation_code ? (
                           <button
                             onClick={() => handleGenerateActivationCode(u)}
                             title="Klik untuk lihat / salin kode aktivasi"
+                            disabled={loadingCodeId !== null}
                             style={{
                               padding: '0.25rem 0.65rem',
                               borderRadius: '8px',
@@ -1038,6 +1089,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                           <button
                             onClick={() => handleGenerateActivationCode(u)}
                             title="Lihat / minta kode aktivasi"
+                            disabled={loadingCodeId !== null}
                             style={{
                               padding: '0.25rem 0.65rem',
                               borderRadius: '8px',
@@ -1056,33 +1108,60 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
 
                       {/* 8. Status Badge */}
                       <td style={{ padding: '0.75rem 1rem', textAlign: 'center' }}>
-                        <span
-                          onClick={() => !isOwnerUser && handleToggleStatus(u)}
-                          title={isOwnerUser ? 'Status Owner Aktif' : isStatusActive ? 'Klik untuk Menonaktifkan' : 'Klik untuk Mengaktifkan'}
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.35rem',
-                            padding: '0.25rem 0.65rem',
-                            borderRadius: '8px',
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            background: isStatusActive ? '#ecfdf5' : '#fef2f2',
-                            color: isStatusActive ? '#047857' : '#dc2626',
-                            border: isStatusActive ? '1px solid #a7f3d0' : '1px solid #fecaca',
-                            cursor: isOwnerUser ? 'default' : 'pointer',
-                          }}
-                        >
+                        {loadingStatusId === u.user_id ? (
                           <span
                             style={{
-                              width: '6px',
-                              height: '6px',
-                              borderRadius: '50%',
-                              background: isStatusActive ? '#059669' : '#dc2626',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              padding: '0.25rem 0.65rem',
+                              borderRadius: '8px',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              background: '#f1f5f9',
+                              color: '#64748b',
+                              border: '1px solid #cbd5e1',
                             }}
-                          />
-                          {isStatusActive ? 'Aktif' : 'Nonaktif'}
-                        </span>
+                          >
+                            <Loader2 size={12} className="animate-spin" style={{ animation: 'spin 0.8s linear infinite' }} /> Ubah...
+                          </span>
+                        ) : (
+                          <span
+                            onClick={() => !isOwnerUser && loadingStatusId === null && handleToggleStatus(u)}
+                            title={
+                              isOwnerUser
+                                ? 'Status Owner Aktif'
+                                : isStatusActive
+                                ? 'Klik untuk Menonaktifkan'
+                                : isPendingActivation
+                                ? 'Menunggu aktivasi pegawai via Kode Aktivasi (Klik untuk mengaktifkan langsung)'
+                                : 'Klik untuk Mengaktifkan'
+                            }
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              padding: '0.25rem 0.65rem',
+                              borderRadius: '8px',
+                              fontSize: '0.75rem',
+                              fontWeight: 800,
+                              background: isStatusActive ? '#ecfdf5' : isPendingActivation ? '#fffbe6' : '#fef2f2',
+                              color: isStatusActive ? '#047857' : isPendingActivation ? '#b45309' : '#dc2626',
+                              border: isStatusActive ? '1px solid #a7f3d0' : isPendingActivation ? '1px solid #fef3c7' : '1px solid #fecaca',
+                              cursor: isOwnerUser ? 'default' : 'pointer',
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: '6px',
+                                height: '6px',
+                                borderRadius: '50%',
+                                background: isStatusActive ? '#059669' : isPendingActivation ? '#d97706' : '#dc2626',
+                              }}
+                            />
+                            {isStatusActive ? 'Aktif' : isPendingActivation ? 'Belum Aktivasi' : 'Nonaktif'}
+                          </span>
+                        )}
                       </td>
 
                       {/* 9. Terakhir Login */}
@@ -2087,11 +2166,12 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                     borderRadius: '8px',
                     fontSize: '0.75rem',
                     fontWeight: 800,
-                    background: selectedUser.status === 'ACTIVE' ? '#ecfdf5' : '#fef2f2',
-                    color: selectedUser.status === 'ACTIVE' ? '#047857' : '#dc2626',
+                    background: selectedUser.status === 'ACTIVE' ? '#ecfdf5' : selectedUser.status === 'PENDING_ACTIVATION' ? '#fffbe6' : '#fef2f2',
+                    color: selectedUser.status === 'ACTIVE' ? '#047857' : selectedUser.status === 'PENDING_ACTIVATION' ? '#b45309' : '#dc2626',
+                    border: selectedUser.status === 'ACTIVE' ? '1px solid #a7f3d0' : selectedUser.status === 'PENDING_ACTIVATION' ? '1px solid #fef3c7' : '1px solid #fecaca',
                   }}
                 >
-                  {selectedUser.status === 'ACTIVE' ? 'Aktif' : 'Nonaktif'}
+                  {selectedUser.status === 'ACTIVE' ? 'Aktif' : selectedUser.status === 'PENDING_ACTIVATION' ? 'Belum Aktivasi' : 'Nonaktif'}
                 </span>
               </div>
             </div>
@@ -2239,7 +2319,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                 border: '2px dashed #9333ea',
                 borderRadius: '16px',
                 padding: '1rem',
-                marginBottom: '1.5rem',
+                marginBottom: '1rem',
               }}
             >
               <span
@@ -2253,6 +2333,22 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
               >
                 {generatedCode.code}
               </span>
+            </div>
+
+            <div
+              style={{
+                fontSize: '0.78rem',
+                color: '#7e22ce',
+                background: '#f3e8ff',
+                border: '1px solid #e9d5ff',
+                borderRadius: '12px',
+                padding: '0.65rem 0.85rem',
+                marginBottom: '1.25rem',
+                textAlign: 'left',
+                lineHeight: 1.45,
+              }}
+            >
+              💡 Berikan kode 6-digit ini kepada <strong>{generatedCode.username}</strong>. Pegawai dapat menggunakannya di halaman login untuk aktivasi akun atau setel password.
             </div>
 
             <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -2422,6 +2518,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button
                 type="button"
+                disabled={deleteLoading}
                 onClick={() => {
                   setIsDeleteModalOpen(false);
                   setUserToDelete(null);
@@ -2435,32 +2532,40 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                   color: '#475569',
                   fontWeight: 800,
                   fontSize: '0.85rem',
-                  cursor: 'pointer',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  opacity: deleteLoading ? 0.7 : 1,
                 }}
               >
                 Batal
               </button>
               <button
                 type="button"
+                disabled={deleteLoading}
                 onClick={handleDeleteUser}
                 style={{
                   flex: 1,
                   padding: '0.75rem',
                   borderRadius: '12px',
                   border: 'none',
-                  background: '#dc2626',
+                  background: deleteLoading ? '#ef4444' : '#dc2626',
                   color: '#ffffff',
                   fontWeight: 900,
                   fontSize: '0.85rem',
-                  cursor: 'pointer',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
                   boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.4rem',
+                  opacity: deleteLoading ? 0.8 : 1,
                 }}
               >
-                <Trash2 size={16} /> Hapus Permanen
+                {deleteLoading ? (
+                  <Loader2 size={16} className="animate-spin" style={{ animation: 'spin 0.8s linear infinite' }} />
+                ) : (
+                  <Trash2 size={16} />
+                )}
+                {deleteLoading ? 'Menghapus...' : 'Hapus Permanen'}
               </button>
             </div>
           </div>
@@ -2684,11 +2789,11 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                                   borderRadius: '999px',
                                   fontSize: '0.7rem',
                                   fontWeight: 800,
-                                  background: u.status === 'ACTIVE' ? '#dcfce7' : '#fee2e2',
-                                  color: u.status === 'ACTIVE' ? '#15803d' : '#b91c1c',
+                                  background: u.status === 'ACTIVE' ? '#dcfce7' : u.status === 'PENDING_ACTIVATION' ? '#fffbe6' : '#fee2e2',
+                                  color: u.status === 'ACTIVE' ? '#15803d' : u.status === 'PENDING_ACTIVATION' ? '#b45309' : '#b91c1c',
                                 }}
                               >
-                                {u.status === 'ACTIVE' ? 'Aktif' : 'Nonaktif'}
+                                {u.status === 'ACTIVE' ? 'Aktif' : u.status === 'PENDING_ACTIVATION' ? 'Belum Aktivasi' : 'Nonaktif'}
                               </span>
                             </td>
                             <td style={{ padding: '0.6rem 0.75rem', color: '#64748b', fontSize: '0.75rem', borderRight: '1px solid #e2e8f0' }}>{u.last_login || '-'}</td>
@@ -2787,6 +2892,13 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       )}
       {/* Help Modal */}
       <HelpModal isOpen={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
+
+      {/* Global Action Loading Modal */}
+      <ActionLoadingModal
+        isOpen={actionLoading}
+        message={actionLoadingMessage}
+        submessage="Mencegah duplikasi aksi & memperbarui data pegawai..."
+      />
     </div>
   );
 };

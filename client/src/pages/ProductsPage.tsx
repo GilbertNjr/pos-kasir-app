@@ -23,6 +23,8 @@ import { apiService } from '../services/api';
 import { Product, Category, User, BusinessUnit } from '../types';
 import { formatRupiah } from '../utils/formatters';
 import { RoleGuard } from '../components/RoleGuard';
+import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+
 
 interface ProductsPageProps {
   currentUser: User;
@@ -1308,6 +1310,12 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
           </div>
         </div>
       )}
+
+      <ActionLoadingModal
+        isOpen={formLoading}
+        message="Memproses data produk master ke server backend POS..."
+        submessage="Mencegah duplikasi data & memperbarui database..."
+      />
     </div>
   );
 };

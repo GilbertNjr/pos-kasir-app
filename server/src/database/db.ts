@@ -4,13 +4,14 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const connectionString = process.env.DATABASE_URL;
+const isCloudDb = Boolean(connectionString && !connectionString.includes('localhost') && !connectionString.includes('127.0.0.1'));
 
 export const pool = new Pool(
   connectionString
     ? {
         connectionString,
-        ssl: process.env.NODE_ENV === 'production' || connectionString.includes('render.com') || connectionString.includes('dpg-') ? { rejectUnauthorized: false } : false,
-        connectionTimeoutMillis: 1500,
+        ssl: isCloudDb || process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+        connectionTimeoutMillis: 10000,
       }
     : {
         host: process.env.DB_HOST || 'localhost',
@@ -20,7 +21,7 @@ export const pool = new Pool(
         password: process.env.DB_PASSWORD || 'postgres',
         max: 20,
         idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 1500,
+        connectionTimeoutMillis: 5000,
       }
 );
 

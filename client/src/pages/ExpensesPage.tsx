@@ -19,6 +19,8 @@ import {
 import { apiService } from '../services/api';
 import { Expense, User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
+import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+
 
 interface ExpensesPageProps {
   currentUser: User;
@@ -807,6 +809,12 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
           </div>
         </div>
       )}
+
+      <ActionLoadingModal
+        isOpen={submitLoading}
+        message="Mencatat pengeluaran kas toko ke server backend POS..."
+        submessage="Mencegah pencatatan ganda & menyelaraskan saldo shift..."
+      />
     </div>
   );
 };

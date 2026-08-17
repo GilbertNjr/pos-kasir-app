@@ -173,7 +173,11 @@ export class AuthController {
       }
 
       const activationCode = await this.authService.generateActivationToken(id);
-      await this.userRepository.update(id, { status: 'PENDING_ACTIVATION' });
+      
+      // Hanya ubah status ke PENDING_ACTIVATION jika akun belum aktif
+      if (user.status !== 'ACTIVE') {
+        await this.userRepository.update(id, { status: 'PENDING_ACTIVATION' });
+      }
 
       return res.status(200).json({
         message: 'Kode aktivasi baru berhasil dibuat',
@@ -254,7 +258,13 @@ export class AuthController {
       const { id } = req.params;
       const user = await this.userRepository.findById(id);
       if (!user) {
-        return res.status(404).json({ error: 'Pengguna tidak ditemukan' });
+        // Safe idempotent delete: ensure removed from any cache and broadcast update
+        await this.userRepository.delete(id);
+        sseManager.broadcast('USER_UPDATED', { action: 'DELETED', user_id: id });
+        return res.status(200).json({
+          message: 'Akun pegawai telah dihapus / disinkronkan.',
+          data: { user_id: id },
+        });
       }
 
       if (user.role === 'OWNER') {

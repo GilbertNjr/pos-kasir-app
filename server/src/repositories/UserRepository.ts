@@ -1,24 +1,26 @@
 import { IRepository } from './interfaces/IRepository';
 import { UserEntity } from '../types/domain';
 import { pool } from '../database/db';
+import { FileStorageAdapter } from '../database/fileStorage';
 import bcrypt from 'bcrypt';
 
 /**
  * UserRepository - Data Access Layer Abstraction untuk Entitas Users
- * Terhubung ke PostgreSQL Database utama (Source of Truth)
+ * Terhubung ke PostgreSQL Database utama (Source of Truth) & File Cache Fallback
  */
 export class UserRepository implements IRepository<UserEntity> {
-  private inMemoryUsers: UserEntity[] = [];
+  private static inMemoryUsers: UserEntity[] = [];
 
   constructor() {
     this.initSync();
   }
 
   private async initSync() {
+    if (UserRepository.inMemoryUsers.length > 0) return;
     const saltRounds = 10;
     const ownerPasswordHash = bcrypt.hashSync('owner123', saltRounds);
 
-    this.inMemoryUsers = [
+    const defaultSeed: UserEntity[] = [
       {
         user_id: 'usr-owner-001',
         username: 'owner',
@@ -34,6 +36,12 @@ export class UserRepository implements IRepository<UserEntity> {
         created_at: new Date('2026-01-01').toISOString(),
       },
     ];
+
+    UserRepository.inMemoryUsers = FileStorageAdapter.readData<UserEntity>('users.json', defaultSeed);
+  }
+
+  private saveFileCache() {
+    FileStorageAdapter.saveData('users.json', UserRepository.inMemoryUsers);
   }
 
   async findAll(): Promise<UserEntity[]> {
@@ -45,7 +53,7 @@ export class UserRepository implements IRepository<UserEntity> {
     } catch {
       // Fallback
     }
-    return [...this.inMemoryUsers];
+    return [...UserRepository.inMemoryUsers];
   }
 
   async findById(user_id: string): Promise<UserEntity | null> {
@@ -57,7 +65,7 @@ export class UserRepository implements IRepository<UserEntity> {
     } catch {
       // Fallback
     }
-    const mem = this.inMemoryUsers.find((u) => u.user_id === user_id);
+    const mem = UserRepository.inMemoryUsers.find((u) => u.user_id === user_id);
     return mem ? { ...mem } : null;
   }
 
@@ -70,7 +78,7 @@ export class UserRepository implements IRepository<UserEntity> {
     } catch {
       // Fallback
     }
-    const mem = this.inMemoryUsers.find((u) => u.username.toLowerCase() === username.toLowerCase());
+    const mem = UserRepository.inMemoryUsers.find((u) => u.username.toLowerCase() === username.toLowerCase());
     return mem ? { ...mem } : null;
   }
 
@@ -105,13 +113,15 @@ export class UserRepository implements IRepository<UserEntity> {
       const res = await pool.query(query, values);
       if (res.rows && res.rows.length > 0) {
         const created = this.mapRowToEntity(res.rows[0]);
-        this.inMemoryUsers.push(created);
+        UserRepository.inMemoryUsers.push(created);
+        this.saveFileCache();
         return created;
       }
     } catch {
       // Fallback in memory
     }
-    this.inMemoryUsers.push(user);
+    UserRepository.inMemoryUsers.push(user);
+    this.saveFileCache();
     return { ...user };
   }
 
@@ -136,8 +146,9 @@ export class UserRepository implements IRepository<UserEntity> {
         const res = await pool.query(query, values);
         if (res.rows && res.rows.length > 0) {
           const updated = this.mapRowToEntity(res.rows[0]);
-          const memIdx = this.inMemoryUsers.findIndex((u) => u.user_id === user_id);
-          if (memIdx !== -1) this.inMemoryUsers[memIdx] = updated;
+          const memIdx = UserRepository.inMemoryUsers.findIndex((u) => u.user_id === user_id);
+          if (memIdx !== -1) UserRepository.inMemoryUsers[memIdx] = updated;
+          this.saveFileCache();
           return updated;
         }
       }
@@ -145,10 +156,11 @@ export class UserRepository implements IRepository<UserEntity> {
       // Fallback
     }
 
-    const memIdx = this.inMemoryUsers.findIndex((u) => u.user_id === user_id);
+    const memIdx = UserRepository.inMemoryUsers.findIndex((u) => u.user_id === user_id);
     if (memIdx === -1) return null;
-    this.inMemoryUsers[memIdx] = { ...this.inMemoryUsers[memIdx], ...item };
-    return { ...this.inMemoryUsers[memIdx] };
+    UserRepository.inMemoryUsers[memIdx] = { ...UserRepository.inMemoryUsers[memIdx], ...item };
+    this.saveFileCache();
+    return { ...UserRepository.inMemoryUsers[memIdx] };
   }
 
   async delete(user_id: string): Promise<boolean> {
@@ -157,9 +169,10 @@ export class UserRepository implements IRepository<UserEntity> {
     } catch {
       // Fallback
     }
-    const memIdx = this.inMemoryUsers.findIndex((u) => u.user_id === user_id);
+    const memIdx = UserRepository.inMemoryUsers.findIndex((u) => u.user_id === user_id);
     if (memIdx !== -1) {
-      this.inMemoryUsers.splice(memIdx, 1);
+      UserRepository.inMemoryUsers.splice(memIdx, 1);
+      this.saveFileCache();
     }
     return true;
   }

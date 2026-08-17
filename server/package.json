@@ -4,7 +4,7 @@
   "private": true,
   "main": "dist/app.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"const fs=require('fs'); if(fs.existsSync('src/database/migrations')) fs.cpSync('src/database/migrations', 'dist/database/migrations', {recursive: true});\"",
     "start": "node dist/app.js",
     "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
     "migrate": "ts-node src/database/migrate.ts"

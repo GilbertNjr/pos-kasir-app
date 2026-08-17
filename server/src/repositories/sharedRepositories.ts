@@ -9,6 +9,7 @@ import { TransactionItemRepository } from './TransactionItemRepository';
 import { ExpenseRepository } from './ExpenseRepository';
 import { UserRepository } from './UserRepository';
 import { AuditLogRepository } from './AuditLogRepository';
+import { ActivationTokenRepository } from './ActivationTokenRepository';
 
 // Singleton Repositories Shared Across All Services & Routes
 export const productRepository = new ProductRepository();
@@ -22,3 +23,4 @@ export const transactionItemRepository = new TransactionItemRepository();
 export const expenseRepository = new ExpenseRepository();
 export const userRepository = new UserRepository();
 export const auditLogRepository = new AuditLogRepository();
+export const activationTokenRepository = new ActivationTokenRepository();

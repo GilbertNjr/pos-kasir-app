@@ -20,6 +20,8 @@ import {
 import { apiService } from '../services/api';
 import { User, Category, Product } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
+import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+
 
 interface StockItem {
   stock_id: string;
@@ -1829,6 +1831,12 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
           </div>
         </div>
       )}
+
+      <ActionLoadingModal
+        isOpen={submitLoading || createLoading || updateProdLoading}
+        message="Memproses pembaruan stok & data inventaris backend..."
+        submessage="Mencegah duplikasi entri stok & menyelaraskan database..."
+      />
     </div>
   );
 };

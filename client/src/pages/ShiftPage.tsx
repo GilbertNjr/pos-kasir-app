@@ -3,6 +3,8 @@ import { ShoppingBag, DollarSign, Lock, CheckCircle2, UserCheck, ShieldAlert, Ar
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
+import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+
 
 interface ShiftPageProps {
   currentUser: User;
@@ -404,6 +406,12 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
           </button>
         </form>
       </div>
+
+      <ActionLoadingModal
+        isOpen={openLoading || capitalLoading || closeLoading}
+        message="Memproses transaksi sesi shift ke backend POS..."
+        submessage="Menghubungi server untuk verifikasi laci kas..."
+      />
     </div>
   );
 };
