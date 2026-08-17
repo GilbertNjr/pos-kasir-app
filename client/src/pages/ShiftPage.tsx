@@ -139,8 +139,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   if (activeShiftData && activeShiftData.shift.shift_status === 'ACTIVE') {
     const { shift, contributions } = activeShiftData;
     const isPJ = shift.shift_leader_user_id === currentUser.user_id;
-    const isOwner = currentUser.role === 'OWNER';
-    const canClose = isPJ || isOwner;
+    const canClose = true; // Seluruh kasir / karyawan & PJ berwenang menutup shift
 
     return (
       <div>
@@ -281,8 +280,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 </span>
                 Penanggung Jawab: <strong style={{ color: '#6b21a8' }}>{getUserDisplayName(shift.shift_leader_user_id)}</strong>
               </p>
-              <p style={{ fontSize: '0.75rem', color: isPJ ? '#6b21a8' : '#64748b', fontWeight: 600, margin: 0 }}>
-                {isPJ ? '✅ Anda bertugas sebagai Penanggung Jawab Shift ini (Supervisor Terminal).' : isOwner ? '👑 Anda dapat melakukan override closing sebagai Owner.' : '⚠️ Hanya Penanggung Jawab Shift yang diizinkan menutup & merekonsiliasi kas.'}
+              <p style={{ fontSize: '0.75rem', color: '#6b21a8', fontWeight: 600, margin: 0 }}>
+                ✅ Seluruh staf kasir (PJ, Karyawan, & Owner) berwenang untuk menyetor modal dan menutup shift kasir.
               </p>
             </div>
 

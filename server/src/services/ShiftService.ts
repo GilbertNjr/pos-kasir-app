@@ -183,14 +183,6 @@ export class ShiftService {
       throw new Error('Shift tidak ditemukan atau telah ditutup.');
     }
 
-    // Constraint Hak Akses Closing: Hanya PJ Shift atau Owner
-    const isPJ = shift.shift_leader_user_id === executor_user_id;
-    const isOwner = executor_role === 'OWNER';
-
-    if (!isPJ && !isOwner) {
-      throw new Error('Akses ditolak. Penutupan shift & rekonsiliasi kas hanya boleh dilakukan oleh Penanggung Jawab Shift atau Owner.');
-    }
-
     if (actualPhysicalCash < 0) {
       throw new Error('Nominal uang fisik kas aktual tidak boleh negatif.');
     }

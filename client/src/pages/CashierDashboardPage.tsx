@@ -181,6 +181,28 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button
+            onClick={() => onNavigateTab('SHIFT')}
+            style={{
+              padding: '0.85rem 1.25rem',
+              borderRadius: '12px',
+              border: '1px solid #7e22ce',
+              background: 'linear-gradient(135deg, #7e22ce 0%, #6b21a8 100%)',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '0.95rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.55rem',
+              boxShadow: '0 4px 14px rgba(126, 34, 206, 0.3)',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Clock size={20} />
+            {shift?.shift_status === 'ACTIVE' ? 'Kelola / Tutup Shift' : 'Mulai / Buka Shift'}
+          </button>
+
+          <button
             onClick={() => onNavigateTab('POS')}
             style={{
               padding: '0.85rem 1.5rem',
