@@ -644,25 +644,10 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         </div>
       </div>
 
-      {/* 2.2 TOOLBAR SEARCH & FILTER BAR (SINGLE ROW WITH HORIZONTAL SCROLL) */}
-      <div
-        style={{
-          background: '#ffffff',
-          padding: '0.85rem 1.25rem',
-          borderRadius: '18px',
-          border: '1px solid #cbd5e1',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '0.65rem',
-          flexWrap: 'nowrap',
-          overflowX: 'auto',
-          scrollBehavior: 'smooth',
-          WebkitOverflowScrolling: 'touch',
-        }}
-      >
+      {/* 2.2 TOOLBAR SEARCH & FILTER BAR (RESPONSIVE ENGINE: CLEAN STACK ON MOBILE, SINGLE ROW ON LAPTOP) */}
+      <div className="responsive-toolbar-container">
         {/* Search Input Box */}
-        <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '180px' }}>
+        <div className="responsive-toolbar-search" style={{ position: 'relative' }}>
           <input
             type="text"
             placeholder="Cari produk, barcode, atau SKU..."
@@ -684,175 +669,150 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
           <Search size={16} style={{ position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', pointerEvents: 'none' }} />
         </div>
 
-        {/* Dropdown Semua Kategori */}
-        <select
-          value={selectedCategory}
-          onChange={(e) => setSelectedCategory(e.target.value)}
-          style={{
-            padding: '0.6rem 0.85rem',
-            borderRadius: '12px',
-            border: '1px solid #cbd5e1',
-            background: '#ffffff',
-            fontSize: '0.825rem',
-            fontWeight: 600,
-            color: '#334155',
-            cursor: 'pointer',
-            outline: 'none',
-            flexShrink: 0,
-          }}
-        >
-          <option value="ALL">Semua Kategori</option>
-          <option value="FC_PRINT">📄 FC / Printing & ATK</option>
-          <option value="FNB">🍧 Food & Beverage (FNB)</option>
-          <option value="Es Krim">🍨 Es Krim</option>
-          <option value="Gorengan">🍢 Gorengan</option>
-          <option value="Minuman">🥤 Minuman</option>
-          <option value="Seblak">🍲 Seblak</option>
-          <option value="Makanan & Snack">🍿 Makanan & Snack</option>
-          <option value="ATK & Persediaan">✏️ ATK & Persediaan</option>
-          <option value="Fotokopi & Print">📑 Fotokopi & Print</option>
-        </select>
+        {/* Dropdowns Group */}
+        <div className="responsive-toolbar-grid-selects">
+          {/* Dropdown Semua Kategori */}
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            style={{
+              padding: '0.6rem 0.85rem',
+              borderRadius: '12px',
+              border: '1px solid #cbd5e1',
+              background: '#ffffff',
+              fontSize: '0.825rem',
+              fontWeight: 600,
+              color: '#334155',
+              cursor: 'pointer',
+              outline: 'none',
+              width: '100%',
+            }}
+          >
+            <option value="ALL">Semua Kategori</option>
+            <option value="FC_PRINT">📄 FC / Printing & ATK</option>
+            <option value="FNB">🍧 Food & Beverage (FNB)</option>
+            <option value="Es Krim">🍨 Es Krim</option>
+            <option value="Gorengan">🍢 Gorengan</option>
+            <option value="Minuman">🥤 Minuman</option>
+            <option value="Seblak">🍲 Seblak</option>
+            <option value="Makanan & Snack">🍿 Makanan & Snack</option>
+            <option value="ATK & Persediaan">✏️ ATK & Persediaan</option>
+            <option value="Fotokopi & Print">📑 Fotokopi & Print</option>
+          </select>
 
-        {/* Dropdown Semua Status */}
-        <select
-          value={filterStatus}
-          onChange={(e) => setFilterStatus(e.target.value as any)}
-          style={{
-            padding: '0.6rem 0.85rem',
-            borderRadius: '12px',
-            border: '1px solid #cbd5e1',
-            background: '#ffffff',
-            fontSize: '0.825rem',
-            fontWeight: 600,
-            color: '#334155',
-            cursor: 'pointer',
-            outline: 'none',
-            flexShrink: 0,
-          }}
-        >
-          <option value="ALL">Semua Status</option>
-          <option value="SAFE">🟢 Stok Aman (≥10)</option>
-          <option value="LOW">⚠️ Stok Menipis (&lt;10)</option>
-          <option value="OUT">🔴 Stok Habis (0 Pcs)</option>
-        </select>
+          {/* Dropdown Semua Status */}
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as any)}
+            style={{
+              padding: '0.6rem 0.85rem',
+              borderRadius: '12px',
+              border: '1px solid #cbd5e1',
+              background: '#ffffff',
+              fontSize: '0.825rem',
+              fontWeight: 600,
+              color: '#334155',
+              cursor: 'pointer',
+              outline: 'none',
+              width: '100%',
+            }}
+          >
+            <option value="ALL">Semua Status</option>
+            <option value="SAFE">🟢 Stok Aman (≥10)</option>
+            <option value="LOW">⚠️ Stok Menipis (&lt;10)</option>
+            <option value="OUT">🔴 Stok Habis (0 Pcs)</option>
+          </select>
 
-        {/* Dropdown Semua Gudang */}
-        <select
-          value={selectedWarehouse}
-          onChange={(e) => setSelectedWarehouse(e.target.value)}
-          style={{
-            padding: '0.6rem 0.85rem',
-            borderRadius: '12px',
-            border: '1px solid #cbd5e1',
-            background: '#ffffff',
-            fontSize: '0.825rem',
-            fontWeight: 600,
-            color: '#334155',
-            cursor: 'pointer',
-            outline: 'none',
-            flexShrink: 0,
-          }}
-        >
-          <option value="ALL">Semua Gudang</option>
-          <option value="GUDANG_UTAMA">🏢 Gudang Utama</option>
-          <option value="ETALASE">🏪 Etalase Toko</option>
-          <option value="STORAGE_FC">🖨️ Storage FC / Print</option>
-        </select>
+          {/* Dropdown Semua Gudang */}
+          <select
+            value={selectedWarehouse}
+            onChange={(e) => setSelectedWarehouse(e.target.value)}
+            style={{
+              padding: '0.6rem 0.85rem',
+              borderRadius: '12px',
+              border: '1px solid #cbd5e1',
+              background: '#ffffff',
+              fontSize: '0.825rem',
+              fontWeight: 600,
+              color: '#334155',
+              cursor: 'pointer',
+              outline: 'none',
+              width: '100%',
+            }}
+          >
+            <option value="ALL">Semua Gudang</option>
+            <option value="GUDANG_UTAMA">🏢 Gudang Utama</option>
+            <option value="ETALASE">🏪 Etalase Toko</option>
+            <option value="STORAGE_FC">🖨️ Storage FC / Print</option>
+          </select>
+        </div>
 
-        {/* Button Filter Lainnya */}
-        <button
-          onClick={() => {
-            setSelectedCategory('ALL');
-            setFilterStatus('ALL');
-            setSelectedWarehouse('ALL');
-            setSearchQuery('');
-            setSelectedUnit('ALL');
-            if (onTriggerToast) onTriggerToast('info', 'Filter Direset', 'Semua filter pencarian telah dikembalikan ke kondisi awal.');
-          }}
-          title="Reset atau terapkan filter tambahan"
-          style={{
-            padding: '0.6rem 0.85rem',
-            borderRadius: '12px',
-            border: '1px solid #cbd5e1',
-            background: '#ffffff',
-            color: '#334155',
-            fontSize: '0.825rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          <Filter size={15} color="#64748b" />
-          Filter Lainnya
-        </button>
-
-        {/* Button Refresh Data (Pindahan dari Header, Typo Fixed) */}
-        <button
-          onClick={loadData}
-          disabled={loading}
-          style={{
-            padding: '0.6rem 0.95rem',
-            borderRadius: '12px',
-            border: '1px solid #cbd5e1',
-            background: '#ffffff',
-            color: '#334155',
-            fontSize: '0.825rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          <RefreshCw size={15} className={loading ? 'spinning' : ''} color="#2563eb" />
-          Refresh Data
-        </button>
-
-        {/* Button Update Stok */}
-        <button
-          onClick={async () => {
-            await loadData();
-            if (onTriggerToast) onTriggerToast('success', 'Stok Diperbarui', 'Data stok & inventaris berhasil disinkronisasi.');
-          }}
-          disabled={loading}
-          style={{
-            padding: '0.6rem 1.1rem',
-            borderRadius: '12px',
-            border: 'none',
-            background: 'var(--primary-gradient, linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%))',
-            color: '#ffffff',
-            fontSize: '0.825rem',
-            fontWeight: 800,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            boxShadow: '0 4px 14px rgba(37, 99, 235, 0.25)',
-            flexShrink: 0,
-            whiteSpace: 'nowrap',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          <RefreshCw size={15} className={loading ? 'spinning' : ''} />
-          Update Stok
-        </button>
-
-        {currentUser.role !== 'OWNER' && (
+        {/* Buttons Group */}
+        <div className="responsive-toolbar-actions">
           <button
-            onClick={() => setShowCreateModal(true)}
+            onClick={() => {
+              setSelectedCategory('ALL');
+              setFilterStatus('ALL');
+              setSelectedWarehouse('ALL');
+              setSearchQuery('');
+              setSelectedUnit('ALL');
+              if (onTriggerToast) onTriggerToast('info', 'Filter Direset', 'Semua filter pencarian telah dikembalikan ke kondisi awal.');
+            }}
+            title="Reset atau terapkan filter tambahan"
+            style={{
+              padding: '0.6rem 0.85rem',
+              borderRadius: '12px',
+              border: '1px solid #cbd5e1',
+              background: '#ffffff',
+              color: '#334155',
+              fontSize: '0.825rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <Filter size={15} color="#64748b" />
+            Filter
+          </button>
+
+          <button
+            onClick={loadData}
+            disabled={loading}
+            style={{
+              padding: '0.6rem 0.95rem',
+              borderRadius: '12px',
+              border: '1px solid #cbd5e1',
+              background: '#ffffff',
+              color: '#334155',
+              fontSize: '0.825rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s ease',
+            }}
+          >
+            <RefreshCw size={15} className={loading ? 'spinning' : ''} color="#2563eb" />
+            Refresh
+          </button>
+
+          <button
+            onClick={async () => {
+              await loadData();
+              if (onTriggerToast) onTriggerToast('success', 'Stok Diperbarui', 'Data stok & inventaris berhasil disinkronisasi.');
+            }}
+            disabled={loading}
             style={{
               padding: '0.6rem 1.1rem',
               borderRadius: '12px',
               border: 'none',
-              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+              background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
               color: '#ffffff',
               fontSize: '0.825rem',
               fontWeight: 800,
@@ -860,15 +820,39 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
-              boxShadow: '0 4px 14px rgba(5, 150, 105, 0.3)',
-              flexShrink: 0,
+              boxShadow: '0 4px 14px rgba(217, 119, 6, 0.3)',
               whiteSpace: 'nowrap',
+              transition: 'all 0.2s ease',
             }}
           >
-            <PlusCircle size={16} />
-            + Tambah Stok
+            <RefreshCw size={15} className={loading ? 'spinning' : ''} />
+            Update Stok
           </button>
-        )}
+
+          {currentUser.role !== 'OWNER' && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              style={{
+                padding: '0.6rem 1.1rem',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                color: '#ffffff',
+                fontSize: '0.825rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                boxShadow: '0 4px 14px rgba(5, 150, 105, 0.3)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              <PlusCircle size={16} />
+              + Tambah Stok
+            </button>
+          )}
+        </div>
       </div>
 
 
