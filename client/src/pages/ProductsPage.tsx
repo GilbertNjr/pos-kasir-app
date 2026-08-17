@@ -204,18 +204,27 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   // Handle Delete Product
   const handleDeleteProduct = async () => {
     if (!deleteConfirmItem) return;
+    const targetProdId = deleteConfirmItem.product_id;
+    const targetProdName = deleteConfirmItem.product_name;
+
     try {
       setDeleteLoading(true);
-      await apiService.deleteProduct(deleteConfirmItem.product_id);
+
+      // Instant state update: Hapus langsung dari UI memori seketika agar baris langsung hilang
+      setProducts((prev) => prev.filter((p) => p.product_id !== targetProdId));
+      setStocks((prev) => prev.filter((s) => s.product_id !== targetProdId));
+
+      await apiService.deleteProduct(targetProdId);
       if (onTriggerToast) {
-        onTriggerToast('success', 'Produk Dihapus', `Produk "${deleteConfirmItem.product_name}" berhasil dihapus dari database.`);
+        onTriggerToast('success', 'Produk Dihapus', `Produk "${targetProdName}" berhasil dihapus dari database.`);
       }
       setDeleteConfirmItem(null);
-      loadData();
+      await loadData();
     } catch (err: any) {
       if (onTriggerToast) {
         onTriggerToast('danger', 'Gagal Menghapus Produk', err.message || 'Terjadi kesalahan sistem.');
       }
+      await loadData();
     } finally {
       setDeleteLoading(false);
     }
