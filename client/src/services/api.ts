@@ -95,9 +95,13 @@ export const apiService = {
 
     const result = await response.json();
     if (!response.ok) {
-      this.clearAuth();
+      if (response.status === 401 || response.status === 403) {
+        this.clearAuth();
+        window.dispatchEvent(new Event('pos_auth_expired'));
+      }
       throw new Error(result.error || 'Gagal mengambil profil');
     }
+    this.setAuth(token, result.data);
     return result.data;
   },
 

@@ -155,7 +155,12 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const token = apiService.getToken();
+    const storedUser = apiService.getStoredUser();
+
     if (token) {
+      if (storedUser) {
+        setCurrentUser(storedUser);
+      }
       // Verifikasi token JWT dengan backend untuk memastikan role & profil 100% sinkron
       apiService
         .getProfile()
@@ -164,9 +169,12 @@ export const App: React.FC = () => {
           apiService.setAuth(token, user);
           loadActiveShift();
         })
-        .catch(() => {
-          apiService.clearAuth();
-          setCurrentUser(null);
+        .catch((err) => {
+          console.warn('[App] Profile fetch warning (cold start or temporary network lag):', err?.message);
+          if (!storedUser) {
+            apiService.clearAuth();
+            setCurrentUser(null);
+          }
         })
         .finally(() => setLoading(false));
     } else {

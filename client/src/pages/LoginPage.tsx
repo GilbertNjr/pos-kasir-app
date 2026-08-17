@@ -460,17 +460,41 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                 background: '#fef2f2',
                 border: '1px solid #fecaca',
                 color: '#dc2626',
-                padding: '0.75rem 1rem',
+                padding: '0.85rem 1rem',
                 borderRadius: '12px',
                 fontSize: '0.85rem',
                 fontWeight: 600,
                 display: 'flex',
-                alignItems: 'center',
-                gap: '0.65rem',
+                flexDirection: 'column',
+                gap: '0.5rem',
               }}
             >
-              <AlertCircle size={20} style={{ flexShrink: 0 }} />
-              <span>{error}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <AlertCircle size={20} style={{ flexShrink: 0 }} />
+                <span>{error}</span>
+              </div>
+              {error.toLowerCase().includes('aktivasi') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.location.hash = '#activate';
+                  }}
+                  style={{
+                    alignSelf: 'flex-start',
+                    background: '#2563eb',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '0.4rem 0.85rem',
+                    fontSize: '0.8rem',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    marginTop: '0.25rem',
+                  }}
+                >
+                  Aktivasi Akun Sekarang →
+                </button>
+              )}
             </div>
           )}
 
