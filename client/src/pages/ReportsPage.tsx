@@ -807,89 +807,93 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
       <div
         style={{
           background: '#ffffff',
-          padding: '0.85rem 1.25rem',
-          borderRadius: '20px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)',
+          padding: '0.75rem 1.25rem',
+          borderRadius: '16px',
+          border: '1px solid #cbd5e1',
+          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
           marginBottom: '1.5rem',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '1rem',
+          flexWrap: 'nowrap',
+          overflowX: 'auto',
+          gap: '0.75rem',
+          width: '100%',
         }}
       >
         {/* Left Side: Sub-Tab Navigation Switcher */}
-        <div style={{ display: 'flex', gap: '0.5rem', background: '#f1f5f9', padding: '0.3rem', borderRadius: '14px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '0.35rem', background: '#f1f5f9', padding: '0.25rem', borderRadius: '12px', flexShrink: 0 }}>
           <button
             type="button"
             onClick={() => setActiveReportSubTab('SHIFT_SALES')}
             style={{
-              padding: '0.55rem 1.15rem',
-              borderRadius: '10px',
+              padding: '0.5rem 0.95rem',
+              borderRadius: '9px',
               border: activeReportSubTab === 'SHIFT_SALES' ? '1px solid #cbd5e1' : 'none',
               background: activeReportSubTab === 'SHIFT_SALES' ? '#ffffff' : 'transparent',
               color: activeReportSubTab === 'SHIFT_SALES' ? '#2563eb' : '#64748b',
               fontWeight: 800,
-              fontSize: '0.85rem',
+              fontSize: '0.825rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.45rem',
-              boxShadow: activeReportSubTab === 'SHIFT_SALES' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+              gap: '0.4rem',
+              boxShadow: activeReportSubTab === 'SHIFT_SALES' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+              whiteSpace: 'nowrap',
               transition: 'all 0.15s ease',
             }}
           >
-            <FileText size={16} color={activeReportSubTab === 'SHIFT_SALES' ? '#2563eb' : '#64748b'} />
-            📊 1. Laporan Shift & Penjualan Transaksi
+            <FileText size={15} color={activeReportSubTab === 'SHIFT_SALES' ? '#2563eb' : '#64748b'} />
+            Laporan Shift & Penjualan
           </button>
 
           <button
             type="button"
             onClick={() => setActiveReportSubTab('STOCKS_LOG')}
             style={{
-              padding: '0.55rem 1.15rem',
-              borderRadius: '10px',
+              padding: '0.5rem 0.95rem',
+              borderRadius: '9px',
               border: activeReportSubTab === 'STOCKS_LOG' ? '1px solid #cbd5e1' : 'none',
               background: activeReportSubTab === 'STOCKS_LOG' ? '#ffffff' : 'transparent',
               color: activeReportSubTab === 'STOCKS_LOG' ? '#2563eb' : '#64748b',
               fontWeight: 800,
-              fontSize: '0.85rem',
+              fontSize: '0.825rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.45rem',
-              boxShadow: activeReportSubTab === 'STOCKS_LOG' ? '0 2px 8px rgba(0,0,0,0.06)' : 'none',
+              gap: '0.4rem',
+              boxShadow: activeReportSubTab === 'STOCKS_LOG' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+              whiteSpace: 'nowrap',
               transition: 'all 0.15s ease',
             }}
           >
-            <ShoppingBag size={16} color={activeReportSubTab === 'STOCKS_LOG' ? '#2563eb' : '#64748b'} />
-            📦 2. Laporan Stok & Histori Restok Inventaris
+            <ShoppingBag size={15} color={activeReportSubTab === 'STOCKS_LOG' ? '#2563eb' : '#64748b'} />
+            Laporan Stok & Restok
           </button>
         </div>
 
         {/* Right Side: Export & Print Action Buttons */}
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexShrink: 0, marginLeft: 'auto' }}>
           <button
             onClick={handleExportExcel}
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem',
-              fontSize: '0.85rem',
-              fontWeight: 800,
-              padding: '0.55rem 1.15rem',
+              gap: '0.35rem',
+              fontSize: '0.825rem',
+              fontWeight: 700,
+              padding: '0.5rem 0.9rem',
               background: '#ffffff',
-              color: '#059669',
-              border: '1.5px solid #10b981',
-              borderRadius: '12px',
+              color: '#334155',
+              border: '1px solid #cbd5e1',
+              borderRadius: '10px',
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+              whiteSpace: 'nowrap',
               transition: 'all 0.15s ease',
             }}
           >
-            <FileText size={15} />
-            Ekspor Excel (.CSV)
+            <FileText size={15} color="#059669" />
+            Export Excel
           </button>
 
           <button
@@ -897,21 +901,22 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '0.4rem',
-              fontSize: '0.85rem',
+              gap: '0.35rem',
+              fontSize: '0.825rem',
               fontWeight: 800,
-              padding: '0.55rem 1.15rem',
-              background: 'linear-gradient(135deg, #059669, #10b981)',
+              padding: '0.5rem 1rem',
+              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
               color: '#ffffff',
               border: 'none',
-              borderRadius: '12px',
+              borderRadius: '10px',
               cursor: 'pointer',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.25)',
+              boxShadow: '0 2px 8px rgba(5, 150, 105, 0.25)',
+              whiteSpace: 'nowrap',
               transition: 'all 0.15s ease',
             }}
           >
             <Printer size={15} />
-            Cetak / Ekspor PDF Laporan
+            Cetak PDF
           </button>
         </div>
       </div>
