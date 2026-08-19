@@ -49,7 +49,7 @@ export class UserRepository implements IRepository<UserEntity> {
     let dbSuccess = false;
     try {
       const res = await pool.query(
-        "SELECT * FROM users WHERE status != 'DELETED' AND (username IS NULL OR username NOT LIKE 'deleted_%') ORDER BY created_at ASC"
+        "SELECT * FROM users WHERE status::text != 'DELETED' AND (username IS NULL OR username NOT LIKE 'deleted_%') ORDER BY created_at ASC"
       );
       if (res.rows && Array.isArray(res.rows)) {
         dbUsers = res.rows.map((row) => this.mapRowToEntity(row));
@@ -250,7 +250,7 @@ export class UserRepository implements IRepository<UserEntity> {
       console.warn('[UserRepository.delete Notice] Database delete attempt:', err.message);
       try {
         await pool.query(
-          "UPDATE users SET status = 'DELETED', username = $1 WHERE user_id = $2",
+          "UPDATE users SET status = 'INACTIVE', username = $1 WHERE user_id = $2",
           [`deleted_${Date.now()}_${user_id}`, user_id]
         );
       } catch {
