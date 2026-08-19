@@ -18,6 +18,8 @@ import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { CashierBadge } from '../components/common/CashierBadge';
 import { TransactionDetailModal } from '../components/common/TransactionDetailModal';
+import { exportShiftToExcel, printShiftPDF } from '../utils/shiftReportExporter';
+import { exportStockToExcel, printStockPDF } from '../utils/stockReportExporter';
 
 interface DonutSegment {
   name: string;
@@ -287,6 +289,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
   const [activeReportSubTab, setActiveReportSubTab] = useState<'SHIFT_SALES' | 'STOCKS_LOG'>('SHIFT_SALES');
   const [stockList, setStockList] = useState<any[]>([]);
   const [stockAuditLogs, setStockAuditLogs] = useState<any[]>([]);
+  const [expenseList, setExpenseList] = useState<any[]>([]);
 
   const [usersList, setUsersList] = useState<User[]>([]);
   const [reportData, setReportData] = useState<any>(null);
@@ -311,312 +314,18 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
   };
 
   const handleExportExcel = () => {
-    const summaryData = reportData?.summary || {};
-    const txList = reportData?.transactions || [];
-
-    // 1. DYNAMIC SUMMARY CALCULATIONS FROM REAL DATABASE RECORDS
-    const totalSalesVal = Number(summaryData.total_net_sales ?? summaryData.total_gross_sales ?? txList.reduce((acc: number, t: any) => acc + Number(t.final_total || t.subtotal_amount || 0), 0));
-    const totalTxCount = Number(summaryData.total_transactions ?? txList.length);
-
-    const cashVal = txList.filter((t: any) => (t.payment_method || '').toUpperCase() === 'CASH').reduce((sum: number, t: any) => sum + Number(t.final_total || t.subtotal_amount || 0), 0);
-    const qrisVal = txList.filter((t: any) => (t.payment_method || '').toUpperCase() === 'QRIS').reduce((sum: number, t: any) => sum + Number(t.final_total || t.subtotal_amount || 0), 0);
-    const transferVal = txList.filter((t: any) => (t.payment_method || '').toUpperCase() === 'TRANSFER').reduce((sum: number, t: any) => sum + Number(t.final_total || t.subtotal_amount || 0), 0);
-    const debitVal = txList.filter((t: any) => ['DEBIT', 'CARD', 'KARTU'].includes((t.payment_method || '').toUpperCase())).reduce((sum: number, t: any) => sum + Number(t.final_total || t.subtotal_amount || 0), 0);
-
-    // Calculate COGS / HPP dynamically
-    let hppVal = Number(summaryData.total_cogs || summaryData.total_hpp || 0);
-    if (!hppVal && totalSalesVal > 0) {
-      let calcHpp = 0;
-      txList.forEach((tx: any) => {
-        if (tx.items && Array.isArray(tx.items)) {
-          tx.items.forEach((it: any) => {
-            calcHpp += Number(it.cost_price || it.harga_modal || 0) * Number(it.quantity || it.qty || 1);
-          });
-        }
+    if (activeReportSubTab === 'STOCKS_LOG') {
+      exportStockToExcel(stockList, stockAuditLogs);
+    } else {
+      exportShiftToExcel({
+        storeName: 'KEDAI KOPI SENJA & PRINTING',
+        dateStr: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        shiftId: periodType === 'DAILY' ? 'Hari Ini' : `Periode ${periodType}`,
+        dutyUsers: getDutyUsersList(),
+        transactions: reportData?.transactions || [],
+        expenses: expenseList || [],
       });
-      hppVal = calcHpp > 0 ? calcHpp : Math.round(totalSalesVal * 0.60);
     }
-
-    const expVal = Number(summaryData.total_expenses || 0);
-    const grossProfitVal = Math.max(0, totalSalesVal - hppVal);
-    const netProfitVal = Math.max(0, grossProfitVal - expVal);
-    const marginPctStr = totalSalesVal > 0 ? ((netProfitVal / totalSalesVal) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
-
-    // 2. DYNAMIC TRANSAKSI TERBESAR (TOP 5 REAL FROM DATABASE)
-    const sortedTx = [...txList].sort((a: any, b: any) => Number(b.final_total || 0) - Number(a.final_total || 0)).slice(0, 5);
-
-    // 3. DYNAMIC PRODUK TERLARIS (TOP 5 REAL AGGREGATION FROM DATABASE)
-    const productMap: Record<string, { name: string; qty: number; omzet: number }> = {};
-    txList.forEach((tx: any) => {
-      if (tx.items && Array.isArray(tx.items)) {
-        tx.items.forEach((it: any) => {
-          const name = it.product_name || it.name || 'Produk';
-          if (!productMap[name]) productMap[name] = { name, qty: 0, omzet: 0 };
-          const q = Number(it.quantity || it.qty || 1);
-          const sub = Number(it.subtotal || it.total_price || (Number(it.unit_price || 0) * q));
-          productMap[name].qty += q;
-          productMap[name].omzet += sub;
-        });
-      }
-    });
-    const topProducts = Object.values(productMap).sort((a, b) => b.qty - a.qty).slice(0, 5);
-
-    // 4. DYNAMIC OMZET PER JAM (HOURLY BREAKDOWN REAL FROM DATABASE)
-    const hourlyDataToday: number[] = Array(24).fill(0);
-    txList.forEach((tx: any) => {
-      if (tx.transaction_time) {
-        const h = new Date(tx.transaction_time).getHours();
-        if (h >= 0 && h < 24) {
-          hourlyDataToday[h] += Number(tx.final_total || tx.subtotal_amount || 0);
-        }
-      }
-    });
-
-    const hourlyRows = Array.from({ length: 24 }, (_, h) => {
-      const startH = h.toString().padStart(2, '0');
-      const endH = ((h + 1) % 24).toString().padStart(2, '0');
-      const label = `${startH}:00 - ${endH}:00`;
-      const todayVal = hourlyDataToday[h];
-      // Estimate yesterday baseline based on pattern or actual DB data
-      const prevVal = Math.round(todayVal * 0.85);
-      return { label, todayVal, prevVal };
-    });
-
-    const todayDateStr = new Date().toLocaleDateString('id-ID');
-
-    const htmlContent = `
-      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <meta charset="utf-8" />
-        <!--[if gte mso 9]>
-        <xml>
-          <x:ExcelWorkbook>
-            <x:ExcelWorksheets>
-              <x:ExcelWorksheet>
-                <x:Name>Laporan Penjualan Realtime</x:Name>
-                <x:WorksheetOptions>
-                  <x:DisplayGridlines/>
-                </x:WorksheetOptions>
-              </x:ExcelWorksheet>
-            </x:ExcelWorksheets>
-          </x:ExcelWorkbook>
-        </xml>
-        <![endif]-->
-        <style>
-          body { font-family: Arial, sans-serif; font-size: 11pt; color: #1e293b; }
-          .title { font-size: 14pt; font-weight: bold; color: #047857; margin-bottom: 5px; }
-          .subtitle { font-size: 10pt; color: #64748b; margin-bottom: 15px; }
-          .section-title { font-size: 11pt; font-weight: bold; color: #047857; margin-top: 20px; margin-bottom: 8px; }
-          table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
-          th { background-color: #047857; color: #ffffff; font-weight: bold; text-align: left; padding: 8px 12px; border: 1px solid #065f46; }
-          td { border: 1px solid #cbd5e1; padding: 6px 12px; }
-          .text-left { text-align: left; }
-          .text-center { text-align: center; }
-          .text-right { text-align: right; }
-          .bold { font-weight: bold; }
-          .bg-total { background-color: #f1f5f9; font-weight: bold; }
-        </style>
-      </head>
-      <body>
-        <div class="title">LAPORAN PENJUALAN REAL-TIME POS KASIR USAHA CAMPURAN</div>
-        <div class="subtitle">Tanggal Ekspor Database: ${todayDateStr} | Periode: ${periodType} | Unit: ${selectedBusinessUnit}</div>
-
-        <!-- 1. RINGKASAN (SUMMARY) -->
-        <div class="section-title">1. RINGKASAN (SUMMARY)</div>
-        <table>
-          <thead>
-            <tr>
-              <th class="text-left" style="width: 250px;">Keterangan</th>
-              <th class="text-right" style="width: 180px;">Nilai</th>
-              <th class="text-right" style="width: 120px;">Persentase</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="text-left bold">Total Omzet Penjualan</td>
-              <td class="text-right bold">${formatRupiah(totalSalesVal)}</td>
-              <td class="text-right">100,00%</td>
-            </tr>
-            <tr>
-              <td class="text-left">Total Transaksi</td>
-              <td class="text-right">${totalTxCount}</td>
-              <td class="text-right">-</td>
-            </tr>
-            <tr>
-              <td class="text-left">Pembayaran Tunai</td>
-              <td class="text-right">${formatRupiah(cashVal)}</td>
-              <td class="text-right">${totalSalesVal > 0 ? ((cashVal / totalSalesVal) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%'}</td>
-            </tr>
-            <tr>
-              <td class="text-left">QRIS Non-Tunai</td>
-              <td class="text-right">${formatRupiah(qrisVal)}</td>
-              <td class="text-right">${totalSalesVal > 0 ? ((qrisVal / totalSalesVal) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%'}</td>
-            </tr>
-            <tr>
-              <td class="text-left">Transfer Bank</td>
-              <td class="text-right">${formatRupiah(transferVal)}</td>
-              <td class="text-right">${totalSalesVal > 0 ? ((transferVal / totalSalesVal) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%'}</td>
-            </tr>
-            <tr>
-              <td class="text-left">Debit/Kartu</td>
-              <td class="text-right">${formatRupiah(debitVal)}</td>
-              <td class="text-right">${totalSalesVal > 0 ? ((debitVal / totalSalesVal) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%'}</td>
-            </tr>
-            <tr>
-              <td class="text-left">Harga Pokok Penjualan</td>
-              <td class="text-right">${formatRupiah(hppVal)}</td>
-              <td class="text-right">-</td>
-            </tr>
-            <tr>
-              <td class="text-left">Pengeluaran Operasional</td>
-              <td class="text-right">${formatRupiah(expVal)}</td>
-              <td class="text-right">-</td>
-            </tr>
-            <tr>
-              <td class="text-left bold">Laba Bersih</td>
-              <td class="text-right bold">${formatRupiah(netProfitVal)}</td>
-              <td class="text-right">-</td>
-            </tr>
-            <tr>
-              <td class="text-left bold">Margin Laba Bersih</td>
-              <td class="text-right bold">${marginPctStr}</td>
-              <td class="text-right">-</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- 2. TRANSAKSI TERBESAR -->
-        <div class="section-title">2. TRANSAKSI TERBESAR</div>
-        <table>
-          <thead>
-            <tr>
-              <th class="text-center" style="width: 50px;">No.</th>
-              <th class="text-left" style="width: 160px;">No. Transaksi</th>
-              <th class="text-left" style="width: 150px;">Waktu</th>
-              <th class="text-left" style="width: 100px;">Kasir</th>
-              <th class="text-left" style="width: 140px;">Pelanggan</th>
-              <th class="text-right" style="width: 130px;">Total</th>
-              <th class="text-center" style="width: 100px;">Metode</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${sortedTx.length > 0 ? sortedTx.map((tx: any, idx: number) => `
-              <tr>
-                <td class="text-center">${idx + 1}</td>
-                <td class="text-left bold">${tx.transaction_number || ('TRX-' + (tx.transaction_id || idx + 1))}</td>
-                <td class="text-left">${tx.transaction_time ? formatWaktuIndo(tx.transaction_time) : '-'}</td>
-                <td class="text-left">${tx.created_by_user_id || tx.user_name || 'Kasir'}</td>
-                <td class="text-left">${tx.customer_name || 'Pelanggan Umum'}</td>
-                <td class="text-right bold">${formatRupiah(Number(tx.final_total || tx.subtotal_amount || 0))}</td>
-                <td class="text-center">${(tx.payment_method || 'CASH').toUpperCase() === 'CASH' ? 'Tunai' : tx.payment_method}</td>
-              </tr>
-            `).join('') : `
-              <tr>
-                <td colspan="7" class="text-center">Belum ada data transaksi pada periode ini</td>
-              </tr>
-            `}
-          </tbody>
-        </table>
-
-        <!-- 3. PRODUK TERLARIS -->
-        <div class="section-title">3. PRODUK TERLARIS</div>
-        <table>
-          <thead>
-            <tr>
-              <th class="text-center" style="width: 50px;">No.</th>
-              <th class="text-left" style="width: 250px;">Nama Produk</th>
-              <th class="text-center" style="width: 120px;">Jumlah (pcs)</th>
-              <th class="text-right" style="width: 160px;">Total Penjualan</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${topProducts.length > 0 ? topProducts.map((p, idx) => `
-              <tr>
-                <td class="text-center">${idx + 1}</td>
-                <td class="text-left bold">${p.name}</td>
-                <td class="text-center">${p.qty}</td>
-                <td class="text-right bold">${formatRupiah(p.omzet)}</td>
-              </tr>
-            `).join('') : `
-              <tr>
-                <td colspan="4" class="text-center">Belum ada data produk terlampir pada transaksi</td>
-              </tr>
-            `}
-          </tbody>
-        </table>
-
-        <!-- 4. RINGKASAN METODE PEMBAYARAN -->
-        <div class="section-title">4. RINGKASAN METODE PEMBAYARAN</div>
-        <table>
-          <thead>
-            <tr>
-              <th class="text-left" style="width: 250px;">Metode Pembayaran</th>
-              <th class="text-right" style="width: 180px;">Total</th>
-              <th class="text-right" style="width: 120px;">Persentase</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="text-left">Tunai</td>
-              <td class="text-right">${formatRupiah(cashVal)}</td>
-              <td class="text-right">${totalSalesVal > 0 ? ((cashVal / totalSalesVal) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%'}</td>
-            </tr>
-            <tr>
-              <td class="text-left">QRIS Non-Tunai</td>
-              <td class="text-right">${formatRupiah(qrisVal)}</td>
-              <td class="text-right">${totalSalesVal > 0 ? ((qrisVal / totalSalesVal) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%'}</td>
-            </tr>
-            <tr>
-              <td class="text-left">Transfer Bank</td>
-              <td class="text-right">${formatRupiah(transferVal)}</td>
-              <td class="text-right">${totalSalesVal > 0 ? ((transferVal / totalSalesVal) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%'}</td>
-            </tr>
-            <tr>
-              <td class="text-left">Debit/Kartu</td>
-              <td class="text-right">${formatRupiah(debitVal)}</td>
-              <td class="text-right">${totalSalesVal > 0 ? ((debitVal / totalSalesVal) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%'}</td>
-            </tr>
-            <tr class="bg-total">
-              <td class="text-left bold">TOTAL</td>
-              <td class="text-right bold">${formatRupiah(totalSalesVal)}</td>
-              <td class="text-right bold">100,00%</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <!-- 5. OMZET PER JAM -->
-        <div class="section-title">5. OMZET PER JAM</div>
-        <table>
-          <thead>
-            <tr>
-              <th class="text-left" style="width: 180px;">Jam</th>
-              <th class="text-right" style="width: 200px;">${todayDateStr} (Hari Ini)</th>
-              <th class="text-right" style="width: 200px;">Kemarin</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${hourlyRows.map((row) => `
-              <tr>
-                <td class="text-left">${row.label}</td>
-                <td class="text-right">${formatRupiah(row.todayVal)}</td>
-                <td class="text-right">${formatRupiah(row.prevVal)}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </body>
-      </html>
-    `;
-
-    const blob = new Blob([htmlContent], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Laporan_Penjualan_${new Date().toISOString().slice(0, 10)}.xls`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   const loadReport = async () => {
@@ -635,15 +344,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         if (endDate) params.end_date = endDate;
       }
 
-      const [data, stocksData, logsData] = await Promise.all([
+      const [data, stocksData, logsData, expensesData] = await Promise.all([
         apiService.getSalesReport(params),
         apiService.getStocks().catch(() => []),
         apiService.getAuditLogs().catch(() => []),
+        apiService.getExpenses().catch(() => []),
       ]);
 
       setReportData(data);
       setStockList(stocksData || []);
       setStockAuditLogs(logsData || []);
+      setExpenseList(expensesData || []);
     } catch (err: any) {
       setError(err.message || 'Gagal memuat laporan penjualan');
     } finally {
@@ -661,8 +372,31 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
     loadReport();
   };
 
+  const getDutyUsersList = () => {
+    if (!reportData?.transactions || !Array.isArray(reportData.transactions)) return [currentUser.full_name];
+    const set = new Set<string>();
+    reportData.transactions.forEach((tx: any) => {
+      if (tx.created_by_user_id) {
+        const u = usersList.find((usr) => usr.user_id === tx.created_by_user_id);
+        set.add(u ? u.full_name : tx.created_by_user_id);
+      }
+    });
+    return set.size > 0 ? Array.from(set) : [currentUser.full_name];
+  };
+
   const handlePrintPDF = () => {
-    window.print();
+    if (activeReportSubTab === 'STOCKS_LOG') {
+      printStockPDF(stockList, stockAuditLogs);
+    } else {
+      printShiftPDF({
+        storeName: 'KEDAI KOPI SENJA & PRINTING',
+        dateStr: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        shiftId: periodType === 'DAILY' ? 'Hari Ini' : `Periode ${periodType}`,
+        dutyUsers: getDutyUsersList(),
+        transactions: reportData?.transactions || [],
+        expenses: expenseList || [],
+      });
+    }
   };
 
 
@@ -756,9 +490,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         </div>
       )}
 
-      {/* Form Bar Filter Laporan */}
-      <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', marginBottom: '1.5rem' }}>
-        <form onSubmit={handleApplyFilter} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', alignItems: 'end' }}>
+      {/* Form Bar Filter Laporan (RESPONSIVE: 2 ATAS 2 BAWAH DI HP, CENTERED BUTTON) */}
+      <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', marginBottom: '1.5rem' }}>
+        <form onSubmit={handleApplyFilter} className="responsive-filter-form">
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Periode Waktu:</label>
             <select
@@ -841,24 +575,25 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
             </select>
           </div>
 
-          <div>
+          <div className="responsive-filter-submit">
             <button
               type="submit"
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '0.6rem',
+                padding: '0.65rem 1.25rem',
                 fontSize: '0.85rem',
                 fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.4rem',
-                background: '#2563eb',
+                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
                 color: '#ffffff',
                 border: 'none',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
               }}
             >
               <Filter size={16} />
@@ -1093,9 +828,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         </div>
       )}
 
-      {/* Form Bar Filter Laporan */}
-      <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', marginBottom: '1.5rem' }}>
-        <form onSubmit={handleApplyFilter} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem', alignItems: 'end' }}>
+      {/* Form Bar Filter Laporan (RESPONSIVE: 2 ATAS 2 BAWAH DI HP, CENTERED BUTTON) */}
+      <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', marginBottom: '1.5rem' }}>
+        <form onSubmit={handleApplyFilter} className="responsive-filter-form">
           <div>
             <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Periode Waktu:</label>
             <select
@@ -1178,24 +913,25 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
             </select>
           </div>
 
-          <div>
+          <div className="responsive-filter-submit">
             <button
               type="submit"
               disabled={loading}
               style={{
                 width: '100%',
-                padding: '0.6rem',
+                padding: '0.65rem 1.25rem',
                 fontSize: '0.85rem',
                 fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '0.4rem',
-                background: '#2563eb',
+                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
                 color: '#ffffff',
                 border: 'none',
-                borderRadius: '10px',
+                borderRadius: '12px',
                 cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
               }}
             >
               <Filter size={16} />
@@ -1236,12 +972,57 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
             </div>
           </div>
 
-          {/* Tabel Status Inventory & Restok */}
-          <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
+          {/* Tabel Status Inventory & Restok (RESPONSIVE: MOBILE CARDS + DESKTOP TABLE) */}
+          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginBottom: '1rem' }}>
               📋 Laporan Inventaris Stok & Pergerakan Barang Supabase
             </h3>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+
+            {/* 1. MOBILE CARD VIEW (< 768px: Stacked Cards, No Horizontal Scrolling) */}
+            <div className="mobile-only-stock-list">
+              {stockList.length > 0 ? (
+                stockList.map((item, idx) => {
+                  const st = Number(item.current_stock || 0);
+                  return (
+                    <div key={item.stock_id || idx} style={{ background: '#ffffff', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                        <div>
+                          <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>{item.product_name}</div>
+                          <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, marginTop: '0.15rem' }}>
+                            Unit: {item.business_unit === 'FC_PRINT' ? 'FC & Print' : 'FNB'}
+                          </div>
+                        </div>
+                        <div>
+                          {st >= 10 ? (
+                            <span style={{ padding: '0.25rem 0.6rem', background: '#ecfdf5', color: '#047857', borderRadius: '8px', fontSize: '0.725rem', fontWeight: 800 }}>Aman</span>
+                          ) : st > 0 ? (
+                            <span style={{ padding: '0.25rem 0.6rem', background: '#fffbeb', color: '#b45309', borderRadius: '8px', fontSize: '0.725rem', fontWeight: 800 }}>Menipis</span>
+                          ) : (
+                            <span style={{ padding: '0.25rem 0.6rem', background: '#fef2f2', color: '#dc2626', borderRadius: '8px', fontSize: '0.725rem', fontWeight: 800 }}>Habis</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.4rem', borderTop: '1px dashed #f1f5f9', fontSize: '0.8rem' }}>
+                        <div style={{ color: '#475569', fontWeight: 700 }}>
+                          Stok Fisik: <strong style={{ fontSize: '0.95rem', color: st === 0 ? '#dc2626' : st < 5 ? '#d97706' : '#059669' }}>{st} pcs</strong>
+                        </div>
+                        <div style={{ color: '#94a3b8', fontSize: '0.72rem' }}>
+                          {item.last_updated ? formatWaktuIndo(item.last_updated) : '-'}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })
+              ) : (
+                <div style={{ padding: '1.5rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px' }}>
+                  Tidak ada data stok di database
+                </div>
+              )}
+            </div>
+
+            {/* 2. DESKTOP TABLE VIEW (>= 768px: Full Multi-Column Table) */}
+            <table className="desktop-only-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '2px solid #e2e8f0', textTransform: 'uppercase', fontSize: '0.75rem', color: '#64748b' }}>
                   <th style={{ padding: '0.75rem 1rem', textAlign: 'left' }}>Nama Produk</th>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Plus, Minus, Trash2, CheckCircle, AlertCircle } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Minus, Trash2, CheckCircle, AlertCircle, QrCode, Banknote, Landmark } from 'lucide-react';
 import { apiService, CreateTransactionResultData } from '../services/api';
-import { Product, User, PaymentMethod } from '../types';
+import { Product, User, PaymentMethod, Category } from '../types';
 import { formatRupiah } from '../utils/formatters';
 import { ActionLoadingModal } from './common/ActionLoadingModal';
 import { TransactionDetailModal } from './common/TransactionDetailModal';
@@ -11,6 +11,7 @@ interface PosRegisterProps {
   currentUser: User;
   activeShiftId?: string;
   onTransactionComplete?: () => void;
+  onShiftOpened?: () => void;
 }
 
 export interface CartItem {
@@ -18,9 +19,11 @@ export interface CartItem {
   qty: number;
 }
 
-export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShiftId, onTransactionComplete }) => {
+export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShiftId, onTransactionComplete, onShiftOpened }) => {
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedUnit, setSelectedUnit] = useState<string>('ALL');
+  const [selectedSubCategory, setSelectedSubCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [cart, setCart] = useState<CartItem[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('CASH');
@@ -29,8 +32,37 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Quick Buka Shift Modal State
+  const [isBukaShiftModalOpen, setIsBukaShiftModalOpen] = useState(false);
+  const [bukaShiftInitialCash, setBukaShiftInitialCash] = useState<number | ''>(50000);
+  const [bukaShiftLoading, setBukaShiftLoading] = useState(false);
+
+  const handleQuickOpenShift = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      setBukaShiftLoading(true);
+      await apiService.openShift(Number(bukaShiftInitialCash) || 0);
+      setIsBukaShiftModalOpen(false);
+      if (onShiftOpened) onShiftOpened();
+    } catch (err: any) {
+      alert(err.message || 'Gagal membuka shift');
+    } finally {
+      setBukaShiftLoading(false);
+    }
+  };
+
   // Struk Digital Modal State
   const [lastReceipt, setLastReceipt] = useState<CreateTransactionResultData | null>(null);
+
+  // Cart Panel Ref & Scroll Engine
+  const cartPanelRef = React.useRef<HTMLDivElement>(null);
+  const totalCartItemsCount = cart.reduce((acc, item) => acc + item.qty, 0);
+
+  const scrollToCart = () => {
+    if (cartPanelRef.current) {
+      cartPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // Store Preferences Logic State
   const [storePreferences, setStorePreferences] = useState<{
@@ -55,9 +87,10 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const [prodsData, stocksData] = await Promise.all([
+      const [prodsData, stocksData, catsData] = await Promise.all([
         apiService.getProducts(selectedUnit),
         apiService.getStocks(),
+        apiService.getCategories().catch(() => []),
       ]);
 
       const stockMap = new Map<string, number>();
@@ -69,6 +102,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       }));
 
       setProducts(mergedProducts);
+      setCategories(catsData || []);
     } catch (err: any) {
       setError(err.message || 'Gagal memuat katalog POS');
     } finally {
@@ -184,12 +218,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
   const handleCheckout = async () => {
     if (!activeShiftId) {
-      setStockAlert({
-        isOpen: true,
-        type: 'INFO',
-        title: 'SESI SHIFT OFFLINE',
-        message: 'Transaksi ditolak. Harap buka sesi shift terlebih dahulu pada tab Manajemen Shift.',
-      });
+      setIsBukaShiftModalOpen(true);
       return;
     }
 
@@ -229,22 +258,134 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     }
   };
 
-  // Logika Preferensi Toko: Show Zero Stock Filtering
+  const handleUnitChange = (unit: string) => {
+    setSelectedUnit(unit);
+    setSelectedSubCategory('ALL');
+  };
+
+  // Map kategori dari Database
+  const categoryMap = React.useMemo(() => {
+    const map = new Map<string, string>();
+    categories.forEach((c) => map.set(c.category_id, c.category_name));
+    return map;
+  }, [categories]);
+
+  // Daftar Sub-Kategori Cepat (Es Krim, Gorengan, Snack, Minuman, DLL / Makanan Utama, dll.)
+  const subCategoryFilters = React.useMemo(() => {
+    if (selectedUnit === 'FNB') {
+      return [
+        { id: 'ALL', name: 'Semua F&B', emoji: '🍽️' },
+        { id: 'es_krim', name: 'Es Krim', emoji: '🍦' },
+        { id: 'gorengan', name: 'Gorengan', emoji: '🥟' },
+        { id: 'snack', name: 'Snack', emoji: '🍿' },
+        { id: 'minuman', name: 'Minuman', emoji: '🥤' },
+        { id: 'dll_makanan', name: 'DLL / Makanan Utama', emoji: '🍱' },
+      ];
+    } else if (selectedUnit === 'FC_PRINT') {
+      return [
+        { id: 'ALL', name: 'Semua FC/Print', emoji: '🖨️' },
+        { id: 'atk', name: 'ATK', emoji: '✏️' },
+        { id: 'fotokopi', name: 'Fotokopi', emoji: '📄' },
+        { id: 'printing', name: 'Printing', emoji: '🖨️' },
+        { id: 'jasa', name: 'Jasa & Desain', emoji: '💼' },
+        { id: 'dll_fc', name: 'DLL / Lainnya', emoji: '📂' },
+      ];
+    } else {
+      return [
+        { id: 'ALL', name: 'Semua Item', emoji: '✨' },
+        { id: 'es_krim', name: 'Es Krim', emoji: '🍦' },
+        { id: 'gorengan', name: 'Gorengan', emoji: '🥟' },
+        { id: 'snack', name: 'Snack', emoji: '🍿' },
+        { id: 'minuman', name: 'Minuman', emoji: '🥤' },
+        { id: 'dll_makanan', name: 'DLL / Makanan', emoji: '🍱' },
+        { id: 'atk', name: 'ATK', emoji: '✏️' },
+        { id: 'fotokopi', name: 'Fotokopi', emoji: '📄' },
+        { id: 'printing', name: 'Printing', emoji: '🖨️' },
+        { id: 'jasa', name: 'Jasa', emoji: '💼' },
+      ];
+    }
+  }, [selectedUnit]);
+
+  // Logika Preferensi Toko & Sub-Kategori Filtering
   const filteredProducts = products.filter((p) => {
     const matchesSearch = p.product_name.toLowerCase().includes(searchQuery.toLowerCase());
     if (!matchesSearch) return false;
+
     if (storePreferences.show_zero_stock === false && p.manage_stock && p.stock === 0) {
       return false;
     }
+
+    if (selectedSubCategory !== 'ALL') {
+      const catName = (categoryMap.get(p.category_id) || '').toLowerCase();
+      const pName = p.product_name.toLowerCase();
+
+      if (selectedSubCategory === 'es_krim') {
+        const isMatch =
+          catName.includes('es krim') || catName.includes('eskrim') || catName.includes('ice') ||
+          pName.includes('es krim') || pName.includes('eskrim') || pName.includes('aice') ||
+          pName.includes('kul kul') || pName.includes('kul-kul') || pName.includes('kulkul') || pName.includes('kul_kul') ||
+          pName.includes('walls') || pName.includes('joyday') || pName.includes('campina') || pName.includes('ice');
+        if (!isMatch) return false;
+      } else if (selectedSubCategory === 'gorengan') {
+        const isMatch = catName.includes('gorengan') || pName.includes('gorengan') || pName.includes('tahu') || pName.includes('tempe') || pName.includes('pisang');
+        if (!isMatch) return false;
+      } else if (selectedSubCategory === 'snack') {
+        const isMatch = catName.includes('snack') || catName.includes('camilan') || pName.includes('chiki') || pName.includes('beng-beng') || pName.includes('choco') || pName.includes('coki') || pName.includes('wafel') || pName.includes('widaran') || pName.includes('zyluc') || pName.includes('duosus') || pName.includes('snack');
+        if (!isMatch) return false;
+      } else if (selectedSubCategory === 'minuman') {
+        const isMatch = catName.includes('minuman') || catName.includes('drink') || pName.includes('aquviva') || pName.includes('es teh') || pName.includes('kopi') || pName.includes('teh') || pName.includes('air') || pName.includes('jus');
+        if (!isMatch) return false;
+      } else if (selectedSubCategory === 'dll_makanan') {
+        const isEsKrim =
+          catName.includes('es krim') || catName.includes('eskrim') || catName.includes('ice') ||
+          pName.includes('es krim') || pName.includes('eskrim') || pName.includes('aice') ||
+          pName.includes('kul kul') || pName.includes('kul-kul') || pName.includes('kulkul') || pName.includes('kul_kul') ||
+          pName.includes('walls') || pName.includes('joyday') || pName.includes('campina');
+        const isGorengan = catName.includes('gorengan') || pName.includes('gorengan');
+        const isSnack = catName.includes('snack') || pName.includes('chiki') || pName.includes('beng-beng') || pName.includes('choco') || pName.includes('coki') || pName.includes('wafel') || pName.includes('widaran') || pName.includes('zyluc') || pName.includes('duosus');
+        const isMinuman = catName.includes('minuman') || pName.includes('aquviva') || pName.includes('es teh') || pName.includes('kopi');
+        if (isEsKrim || isGorengan || isSnack || isMinuman) return false;
+      } else if (selectedSubCategory === 'atk') {
+        const isMatch = catName.includes('atk') || pName.includes('pulpen') || pName.includes('buku') || pName.includes('pensil') || pName.includes('kertas');
+        if (!isMatch) return false;
+      } else if (selectedSubCategory === 'fotokopi') {
+        const isMatch = catName.includes('fotokopi') || catName.includes('copy') || pName.includes('fotokopi') || pName.includes('fc');
+        if (!isMatch) return false;
+      } else if (selectedSubCategory === 'printing') {
+        const isMatch = catName.includes('print') || catName.includes('cetak') || pName.includes('print');
+        if (!isMatch) return false;
+      } else if (selectedSubCategory === 'jasa') {
+        const isMatch = catName.includes('jasa') || catName.includes('desain') || catName.includes('ketik') || pName.includes('ketik') || pName.includes('desain') || pName.includes('laminasi');
+        if (!isMatch) return false;
+      } else if (selectedSubCategory === 'dll_fc') {
+        const isAtk = catName.includes('atk') || pName.includes('pulpen') || pName.includes('buku');
+        const isFc = catName.includes('fotokopi') || pName.includes('fotokopi');
+        const isPrint = catName.includes('print') || pName.includes('print');
+        const isJasa = catName.includes('jasa') || pName.includes('ketik') || pName.includes('desain');
+        if (isAtk || isFc || isPrint || isJasa) return false;
+      }
+    }
+
     return true;
   });
 
   return (
     <div>
       {!activeShiftId && (
-        <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(239,68,68,0.1)', color: 'var(--danger)', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem', border: '1px solid var(--danger)' }}>
-          <AlertCircle size={20} />
-          <span><strong>SESI SHIFT OFFLINE:</strong> Kasir belum membuka shift. Harap buka shift terlebih dahulu di tab <strong>Manajemen Shift</strong> sebelum melakukan transaksi.</span>
+        <div style={{ padding: '1rem 1.25rem', background: '#fef2f2', color: '#991b1b', borderRadius: '16px', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.75rem', border: '1.5px solid #fecaca', boxShadow: '0 4px 12px rgba(239,68,68,0.08)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+            <AlertCircle size={24} color="#dc2626" />
+            <div>
+              <div style={{ fontWeight: 800, fontSize: '0.95rem' }}>⚠️ SESI SHIFT BELUM DIBUKA</div>
+              <div style={{ fontSize: '0.8rem', color: '#7f1d1d', marginTop: '0.1rem' }}>Kasir tidak dapat bertransaksi sebelum shift dinyalakan dan modal kas diawal diinput.</div>
+            </div>
+          </div>
+          <button
+            onClick={() => setIsBukaShiftModalOpen(true)}
+            style={{ padding: '0.55rem 1.1rem', background: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 10px rgba(220,38,38,0.25)', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+          >
+            🚀 Buka Shift Baru Sekarang
+          </button>
         </div>
       )}
 
@@ -260,7 +401,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
               <button
-                onClick={() => setSelectedUnit('ALL')}
+                onClick={() => handleUnitChange('ALL')}
                 style={{
                   padding: '0.4rem 0.85rem',
                   borderRadius: 'var(--radius-md)',
@@ -276,7 +417,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 Semua
               </button>
               <button
-                onClick={() => setSelectedUnit('FC_PRINT')}
+                onClick={() => handleUnitChange('FC_PRINT')}
                 style={{
                   padding: '0.4rem 0.85rem',
                   borderRadius: 'var(--radius-md)',
@@ -292,7 +433,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 FC / Print
               </button>
               <button
-                onClick={() => setSelectedUnit('FNB')}
+                onClick={() => handleUnitChange('FNB')}
                 style={{
                   padding: '0.4rem 0.85rem',
                   borderRadius: 'var(--radius-md)',
@@ -327,6 +468,54 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 }}
               />
             </div>
+          </div>
+
+          {/* Sub-Category Quick Filter Pills Bar */}
+          <div
+            className="mobile-scroll-row"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              marginBottom: '1rem',
+              overflowX: 'auto',
+              paddingBottom: '0.35rem',
+            }}
+          >
+            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', flexShrink: 0, marginRight: '0.1rem' }}>
+              Filter Kategori:
+            </span>
+            {subCategoryFilters.map((sc) => {
+              const isSelected = selectedSubCategory === sc.id;
+              return (
+                <button
+                  key={sc.id}
+                  onClick={() => setSelectedSubCategory(sc.id)}
+                  style={{
+                    padding: '0.32rem 0.75rem',
+                    borderRadius: '20px',
+                    fontSize: '0.78rem',
+                    fontWeight: isSelected ? 800 : 700,
+                    border: isSelected ? 'none' : '1px solid #cbd5e1',
+                    background: isSelected
+                      ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
+                      : '#ffffff',
+                    color: isSelected ? '#ffffff' : '#475569',
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.3rem',
+                    boxShadow: isSelected ? '0 3px 10px rgba(15, 23, 42, 0.25)' : 'none',
+                    transition: 'all 0.15s ease',
+                    flexShrink: 0,
+                  }}
+                >
+                  <span>{sc.emoji}</span>
+                  <span>{sc.name}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Product Grid Cards */}
@@ -420,7 +609,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         </div>
 
         {/* Right Column: Cart & Checkout Panel */}
-        <div className="card-glass" style={{ padding: '1.25rem', background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div ref={cartPanelRef} className="card-glass" style={{ padding: '1.25rem', background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
@@ -505,69 +694,75 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                   type="button"
                   onClick={() => setPaymentMethod('CASH')}
                   style={{
-                    padding: '0.5rem 0.25rem',
-                    borderRadius: '8px',
-                    fontSize: '0.75rem',
+                    padding: '0.65rem 0.35rem',
+                    borderRadius: '10px',
+                    fontSize: '0.8rem',
                     fontWeight: 800,
-                    border: paymentMethod === 'CASH' ? '2px solid #047857' : '1px solid #a7f3d0',
+                    border: paymentMethod === 'CASH' ? '2px solid #047857' : '1px solid #cbd5e1',
                     background: paymentMethod === 'CASH' ? '#ecfdf5' : '#ffffff',
-                    color: '#047857',
-                    boxShadow: paymentMethod === 'CASH' ? '0 0 0 2px rgba(4,120,87,0.15)' : 'none',
+                    color: paymentMethod === 'CASH' ? '#047857' : '#475569',
+                    boxShadow: paymentMethod === 'CASH' ? '0 4px 10px rgba(4,120,87,0.15)' : 'none',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '0.15rem',
+                    justifyContent: 'center',
+                    gap: '0.35rem',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <span style={{ fontSize: '0.65rem', opacity: 0.85 }}>HIJAU</span>
-                  💵 TUNAI / CASH
+                  <Banknote size={20} color={paymentMethod === 'CASH' ? '#047857' : '#64748b'} />
+                  <span>TUNAI / CASH</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('QRIS')}
                   style={{
-                    padding: '0.5rem 0.25rem',
-                    borderRadius: '8px',
-                    fontSize: '0.75rem',
+                    padding: '0.65rem 0.35rem',
+                    borderRadius: '10px',
+                    fontSize: '0.8rem',
                     fontWeight: 800,
-                    border: paymentMethod === 'QRIS' ? '2px solid #1d4ed8' : '1px solid #bfdbfe',
+                    border: paymentMethod === 'QRIS' ? '2px solid #1d4ed8' : '1px solid #cbd5e1',
                     background: paymentMethod === 'QRIS' ? '#eff6ff' : '#ffffff',
-                    color: '#1d4ed8',
-                    boxShadow: paymentMethod === 'QRIS' ? '0 0 0 2px rgba(29,78,216,0.15)' : 'none',
+                    color: paymentMethod === 'QRIS' ? '#1d4ed8' : '#475569',
+                    boxShadow: paymentMethod === 'QRIS' ? '0 4px 10px rgba(29,78,216,0.15)' : 'none',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '0.15rem',
+                    justifyContent: 'center',
+                    gap: '0.35rem',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <span style={{ fontSize: '0.65rem', opacity: 0.85 }}>BIRU</span>
-                  📱 QRIS
+                  <QrCode size={20} color={paymentMethod === 'QRIS' ? '#1d4ed8' : '#64748b'} />
+                  <span>QRIS</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setPaymentMethod('TRANSFER')}
                   style={{
-                    padding: '0.5rem 0.25rem',
-                    borderRadius: '8px',
-                    fontSize: '0.75rem',
+                    padding: '0.65rem 0.35rem',
+                    borderRadius: '10px',
+                    fontSize: '0.8rem',
                     fontWeight: 800,
-                    border: paymentMethod === 'TRANSFER' ? '2px solid #b45309' : '1px solid #fde68a',
+                    border: paymentMethod === 'TRANSFER' ? '2px solid #b45309' : '1px solid #cbd5e1',
                     background: paymentMethod === 'TRANSFER' ? '#fffbeb' : '#ffffff',
-                    color: '#b45309',
-                    boxShadow: paymentMethod === 'TRANSFER' ? '0 0 0 2px rgba(180,83,9,0.15)' : 'none',
+                    color: paymentMethod === 'TRANSFER' ? '#b45309' : '#475569',
+                    boxShadow: paymentMethod === 'TRANSFER' ? '0 4px 10px rgba(180,83,9,0.15)' : 'none',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: '0.15rem',
+                    justifyContent: 'center',
+                    gap: '0.35rem',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <span style={{ fontSize: '0.65rem', opacity: 0.85 }}>KUNING</span>
-                  🏦 TRANSFER
+                  <Landmark size={20} color={paymentMethod === 'TRANSFER' ? '#b45309' : '#64748b'} />
+                  <span>TRANSFER</span>
                 </button>
               </div>
             </div>
@@ -787,6 +982,169 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
             >
               Saya Mengerti
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Tombol Kasir Cepat (FAB - Floating Action Button) */}
+      <div
+        style={{
+          position: 'fixed',
+          bottom: '1.75rem',
+          right: '1.75rem',
+          zIndex: 9999,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.6rem',
+        }}
+      >
+        <button
+          onClick={scrollToCart}
+          title="Tombol Kasir Cepat (FAB) — Langsung Buka Keranjang Order"
+          className="fab-pulse-effect"
+          style={{
+            position: 'relative',
+            width: '58px',
+            height: '58px',
+            borderRadius: '50%',
+            background: 'linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%)',
+            color: '#ffffff',
+            border: '2px solid #ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: '0 8px 24px rgba(79, 70, 229, 0.45)',
+            cursor: 'pointer',
+            transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        >
+          <ShoppingCart size={26} />
+          {totalCartItemsCount > 0 && (
+            <span
+              style={{
+                position: 'absolute',
+                top: '-4px',
+                right: '-4px',
+                background: '#ef4444',
+                color: '#ffffff',
+                fontSize: '0.75rem',
+                fontWeight: 900,
+                minWidth: '22px',
+                height: '22px',
+                borderRadius: '11px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0 5px',
+                border: '2px solid #ffffff',
+                boxShadow: '0 2px 6px rgba(239, 68, 68, 0.45)',
+              }}
+            >
+              {totalCartItemsCount}
+            </span>
+          )}
+        </button>
+      </div>
+
+      {/* QUICK BUKA SHIFT MODAL DI KASIR REGISTER */}
+      {isBukaShiftModalOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 99999, padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '20px', padding: '2rem', width: '100%', maxWidth: '480px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', border: '1px solid #cbd5e1' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <AlertCircle size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                    Buka Sesi Shift Kasir
+                  </h3>
+                  <div style={{ fontSize: '0.78rem', color: '#64748b' }}>Shift wajib dibuka sebelum bertransaksi</div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsBukaShiftModalOpen(false)}
+                style={{ background: 'none', border: 'none', fontSize: '1.25rem', color: '#64748b', cursor: 'pointer', fontWeight: 700 }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Informational Card (Kasir, Hari, Tanggal, Jam) */}
+            <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.25rem', fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Kasir Pembuka:</span>
+                <strong style={{ color: '#0f172a' }}>{currentUser.full_name} ({currentUser.role})</strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Hari & Tanggal:</span>
+                <strong style={{ color: '#4f46e5' }}>
+                  {['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][new Date().getDay()]}, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+                </strong>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span style={{ color: '#64748b' }}>Waktu Registrasi:</span>
+                <strong style={{ color: '#059669' }}>{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</strong>
+              </div>
+            </div>
+
+            <form onSubmit={handleQuickOpenShift}>
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.4rem' }}>
+                  Nominal Uang Modal Kas Awal (Rp):
+                </label>
+                <input
+                  type="number"
+                  value={bukaShiftInitialCash}
+                  onChange={(e) => setBukaShiftInitialCash(e.target.value === '' ? '' : Number(e.target.value))}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '2px solid #4f46e5', fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', outline: 'none' }}
+                  min={0}
+                  step={5000}
+                  required
+                />
+
+                {/* Preset Chips */}
+                <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+                  {[50000, 100000, 200000, 500000].map((amt) => (
+                    <button
+                      type="button"
+                      key={amt}
+                      onClick={() => setBukaShiftInitialCash(amt)}
+                      style={{
+                        padding: '0.3rem 0.6rem',
+                        borderRadius: '6px',
+                        border: bukaShiftInitialCash === amt ? '1.5px solid #4f46e5' : '1px solid #cbd5e1',
+                        background: bukaShiftInitialCash === amt ? '#eff6ff' : '#ffffff',
+                        color: bukaShiftInitialCash === amt ? '#1d4ed8' : '#334155',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {formatRupiah(amt)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setIsBukaShiftModalOpen(false)}
+                  style={{ flex: 1, padding: '0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={bukaShiftLoading}
+                  style={{ flex: 1.5, padding: '0.75rem', borderRadius: '10px', border: 'none', background: '#059669', color: '#ffffff', fontWeight: 800, cursor: bukaShiftLoading ? 'not-allowed' : 'pointer', boxShadow: '0 4px 12px rgba(5,150,105,0.25)' }}
+                >
+                  {bukaShiftLoading ? 'Membuka...' : '🚀 Buka Shift Sekarang'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

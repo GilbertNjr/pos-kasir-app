@@ -1,4 +1,5 @@
 import { User, UserStatus, Category, Product, BusinessUnit, Shift, ShiftCapitalContribution, Transaction, TransactionItem, PaymentMethod, Expense } from '../types';
+import { offlineQueue } from '../utils/offlineQueue';
 
 const API_BASE = '/api';
 
@@ -431,22 +432,52 @@ export const apiService = {
     cashTendered?: number
   ): Promise<CreateTransactionResultData> {
     const token = this.getToken();
-    const response = await fetch(`${API_BASE}/transactions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        payment_method: paymentMethod,
-        items,
-        cash_tendered: cashTendered,
-      }),
-    });
+    try {
+      const response = await fetch(`${API_BASE}/transactions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          payment_method: paymentMethod,
+          items,
+          cash_tendered: cashTendered,
+        }),
+      });
 
-    const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Gagal memproses transaksi');
-    return result.data;
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || 'Gagal memproses transaksi');
+      return result.data;
+    } catch (err: any) {
+      // If server is rebuilding/deploying (502/503/network error) or browser is offline
+      if (!navigator.onLine || err.message?.includes('fetch') || err.message?.includes('Failed') || err.message?.includes('Network')) {
+        const offlineTx = offlineQueue.enqueue(paymentMethod, items, cashTendered || 0, 0);
+
+        return {
+          transaction: {
+            transaction_id: offlineTx.id,
+            transaction_number: `OFF-${Date.now().toString().slice(-6)}`,
+            shift_id: 'offline_shift',
+            created_by_user_id: 'offline_user',
+            payment_method: paymentMethod,
+            total_amount: 0,
+            status: 'COMPLETED',
+            created_at: new Date().toISOString(),
+          } as any,
+          items: items.map((i) => ({
+            transaction_item_id: `item_${i.product_id}`,
+            transaction_id: offlineTx.id,
+            product_id: i.product_id,
+            qty: i.qty,
+            unit_price: 0,
+            subtotal: 0,
+          })) as any,
+          change_due: 0,
+        };
+      }
+      throw err;
+    }
   },
 
   async getTransactions(shiftId?: string): Promise<Transaction[]> {

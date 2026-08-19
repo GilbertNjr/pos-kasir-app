@@ -21,6 +21,7 @@ import { apiService } from '../services/api';
 import { User, Category, Product } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+import { exportStockToExcel, printStockPDF } from '../utils/stockReportExporter';
 
 
 interface StockItem {
@@ -134,16 +135,34 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             l.action.includes('TRANSACTION') ||
             l.action.includes('PRODUCT')
           )
-          .slice(0, 5)
-          .map((l: any) => ({
-            time: formatWaktuIndo(l.timestamp),
-            product: l.affected_entity || 'Stok Barang',
-            type: l.action.includes('TRANSACTION') ? 'Penjualan' : l.action.includes('STOCK') ? 'Koreksi Stok' : 'Produk',
-            qty: l.details.includes('+') ? '+' : l.details.includes('-') ? '-' : '•',
-            details: l.details,
-            warehouse: 'Gudang Utama',
-            user: l.username ? `User: ${l.username}` : 'Kasir',
-          }));
+          .slice(0, 8)
+          .map((l: any) => {
+            const isNeg = l.details.includes('-') || l.action.includes('DELETE') || l.action.includes('TRANSACTION');
+            const matchQty = l.details.match(/([+-]\d+)/);
+            const qtyStr = matchQty ? `${matchQty[0]} Pcs` : isNeg ? '-1 Pcs' : '+1 Pcs';
+            
+            let typeLabel = 'Koreksi Stok';
+            if (l.action.includes('TRANSACTION')) {
+              typeLabel = 'Penjualan POS';
+            } else if (l.action.includes('PRODUCT')) {
+              typeLabel = 'Produk Baru';
+            } else if (l.details.includes('+')) {
+              typeLabel = 'Restock / Masuk';
+            } else if (l.details.includes('-')) {
+              typeLabel = 'Pengurangan';
+            }
+
+            return {
+              time: formatWaktuIndo(l.timestamp),
+              product: l.affected_entity || 'Stok Barang',
+              type: typeLabel,
+              qty: qtyStr,
+              isNegative: isNeg,
+              details: l.details,
+              warehouse: 'Gudang Utama',
+              user: l.username || 'Kasir',
+            };
+          });
         setRecentMovements(relevantLogs);
       } else {
         setRecentMovements([]);
@@ -429,13 +448,25 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
   // Helper Kategori
   const getItemCategory = (item: StockItem): string => {
-    if (item.category_name) return item.category_name;
+    const catName = (item.category_name || '').toLowerCase();
     const name = item.product_name.toLowerCase();
-    if (name.includes('es krim') || name.includes('aice') || name.includes('walls')) return 'Es Krim';
+
+    // High Priority: Es Krim brands & keywords (Aice, Kul-kul, Walls, Joyday, Campina, etc.)
+    if (
+      catName.includes('es krim') || catName.includes('eskrim') || catName.includes('ice cream') ||
+      name.includes('es krim') || name.includes('eskrim') || name.includes('aice') ||
+      name.includes('kul kul') || name.includes('kul-kul') || name.includes('kulkul') || name.includes('kul_kul') ||
+      name.includes('walls') || name.includes('joyday') || name.includes('campina') || name.includes('glico') || name.includes('haku')
+    ) {
+      return 'Es Krim';
+    }
+
+    if (item.category_name) return item.category_name;
+
     if (name.includes('gorengan') || name.includes('tempe') || name.includes('tahu')) return 'Gorengan';
     if (name.includes('minuman') || name.includes('teh') || name.includes('kopi') || name.includes('es')) return 'Minuman';
     if (name.includes('seblak')) return 'Seblak';
-    if (name.includes('snack') || name.includes('keripik') || name.includes('roti') || name.includes('makanan') || name.includes('kul kul') || name.includes('lilit')) return 'Makanan & Snack';
+    if (name.includes('snack') || name.includes('keripik') || name.includes('roti') || name.includes('makanan') || name.includes('lilit')) return 'Makanan & Snack';
     if (name.includes('kertas') || name.includes('hvs') || name.includes('atk') || name.includes('pulpen')) return 'ATK & Persediaan';
     if (name.includes('print') || name.includes('foto') || name.includes('copy') || name.includes('laminasi')) return 'Fotokopi & Print';
     return item.business_unit === 'FC_PRINT' ? 'ATK & Persediaan' : 'Makanan & Snack';
@@ -445,14 +476,18 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   const getCategoryBadgeStyle = (categoryName: string) => {
     const cat = (categoryName || '').toLowerCase().trim();
 
-    if (cat.includes('es krim') || cat.includes('aice') || cat.includes('walls') || cat.includes('krim')) {
+    if (
+      cat.includes('es krim') || cat.includes('eskrim') || cat.includes('ice cream') ||
+      cat.includes('aice') || cat.includes('kul kul') || cat.includes('kul-kul') ||
+      cat.includes('kulkul') || cat.includes('walls') || cat.includes('joyday') || cat.includes('campina') || cat.includes('krim')
+    ) {
       return {
         bg: '#e0f2fe',       // Soft Pastel Cyan
         text: '#0284c7',
         border: '#bae6fd',
       };
     }
-    if (cat.includes('makanan') || cat.includes('snack') || cat.includes('kul kul') || cat.includes('gorengan') || cat.includes('lilit') || cat.includes('seblak')) {
+    if (cat.includes('makanan') || cat.includes('snack') || cat.includes('gorengan') || cat.includes('lilit') || cat.includes('seblak')) {
       return {
         bg: '#fff7ed',       // Soft Pastel Amber / Orange
         text: '#c2410c',
@@ -720,67 +755,67 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         </div>
       )}      {/* 2. EXECUTIVE METRICS CARDS (4 CARDS GRID: 2x2 ON MOBILE, 4 COLS ON DESKTOP) */}
       <div className="responsive-kpi-grid">
-        {/* Metric 1 */}
-        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TOTAL PRODUK</span>
-            <div className="kpi-icon" style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Package size={22} />
+        {/* Metric 1: Total Produk */}
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>TOTAL PRODUK</span>
+            <div className="kpi-icon" style={{ width: '34px', height: '34px', borderRadius: '10px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Package size={18} />
             </div>
           </div>
-          <div className="kpi-value" style={{ fontSize: '1.85rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
-            {stocks.length} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
+          <div className="kpi-value" style={{ fontSize: '1.45rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
+            {stocks.length} <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem', fontWeight: 600 }}>
-            Terdaftar di database inventaris
+          <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.2rem', fontWeight: 600 }}>
+            Terdaftar di inventaris
           </div>
         </div>
 
         {/* Metric 2: Asset Valuation */}
-        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>NILAI STOK</span>
-            <div className="kpi-icon" style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <DollarSign size={22} />
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>NILAI STOK</span>
+            <div className="kpi-icon" style={{ width: '34px', height: '34px', borderRadius: '10px', background: '#ecfdf5', color: '#059669', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <DollarSign size={18} />
             </div>
           </div>
-          <div className="kpi-value" style={{ fontSize: '1.5rem', fontWeight: 900, color: '#059669', letterSpacing: '-0.03em' }}>
+          <div className="kpi-value" style={{ fontSize: '1.25rem', fontWeight: 900, color: '#059669', letterSpacing: '-0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {formatRupiah(totalValuation)}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem', fontWeight: 600 }}>
-            Est. Nilai Aset Stok Fisik
+          <div style={{ fontSize: '0.7rem', color: '#64748b', marginTop: '0.2rem', fontWeight: 600 }}>
+            Est. Aset Stok Fisik
           </div>
         </div>
 
         {/* Metric 3: Stok Menipis */}
-        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>STOK MENIPIS</span>
-            <div className="kpi-icon" style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <AlertTriangle size={22} />
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>STOK MENIPIS</span>
+            <div className="kpi-icon" style={{ width: '34px', height: '34px', borderRadius: '10px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <AlertTriangle size={18} />
             </div>
           </div>
-          <div className="kpi-value" style={{ fontSize: '1.85rem', fontWeight: 900, color: '#d97706', letterSpacing: '-0.03em' }}>
-            {lowStockCount} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
+          <div className="kpi-value" style={{ fontSize: '1.45rem', fontWeight: 900, color: '#d97706', letterSpacing: '-0.03em' }}>
+            {lowStockCount} <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#b45309', marginTop: '0.35rem', fontWeight: 700 }}>
-            Perlu segera disiap/restock
+          <div style={{ fontSize: '0.7rem', color: '#b45309', marginTop: '0.2rem', fontWeight: 700 }}>
+            Perlu segera restock
           </div>
         </div>
 
         {/* Metric 4: Stok Habis */}
-        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
-            <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>STOK HABIS</span>
-            <div className="kpi-icon" style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <XCircle size={22} />
+        <div className="responsive-kpi-card" style={{ background: '#ffffff', padding: '1rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>STOK HABIS</span>
+            <div className="kpi-icon" style={{ width: '34px', height: '34px', borderRadius: '10px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <XCircle size={18} />
             </div>
           </div>
-          <div className="kpi-value" style={{ fontSize: '1.85rem', fontWeight: 900, color: '#dc2626', letterSpacing: '-0.03em' }}>
-            {outOfStockCount} <span style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
+          <div className="kpi-value" style={{ fontSize: '1.45rem', fontWeight: 900, color: '#dc2626', letterSpacing: '-0.03em' }}>
+            {outOfStockCount} <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 600 }}>Items</span>
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#dc2626', marginTop: '0.35rem', fontWeight: 700 }}>
-            Tidak dapat ditransaksikan
+          <div style={{ fontSize: '0.7rem', color: '#dc2626', marginTop: '0.2rem', fontWeight: 700 }}>
+            Tidak dapat dijual
           </div>
         </div>
       </div>
@@ -970,6 +1005,47 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             Update Stok
           </button>
 
+          <button
+            onClick={() => exportStockToExcel(stocks)}
+            style={{
+              padding: '0.6rem 0.95rem',
+              borderRadius: '12px',
+              border: '1px solid #cbd5e1',
+              background: '#ffffff',
+              color: '#059669',
+              fontSize: '0.825rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            📗 Export Excel Stok
+          </button>
+
+          <button
+            onClick={() => printStockPDF(stocks)}
+            style={{
+              padding: '0.6rem 0.95rem',
+              borderRadius: '12px',
+              border: 'none',
+              background: '#059669',
+              color: '#ffffff',
+              fontSize: '0.825rem',
+              fontWeight: 800,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            🖨️ Cetak PDF Stok
+          </button>
+
           {currentUser.role !== 'OWNER' && (
             <button
               onClick={() => setShowCreateModal(true)}
@@ -1077,8 +1153,94 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                 <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>Coba ubah kata kunci atau reset filter pencarian di atas.</p>
               </div>
             ) : viewMode === 'TABLE' ? (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+              <div style={{ padding: '0.75rem' }}>
+                {/* 1. MOBILE CARD VIEW (< 768px: Mobile Stacked Cards, No Horizontal Scrolling) */}
+                <div className="mobile-only-stock-list">
+                  {paginatedStocks.map((item) => {
+                    const isOut = item.current_stock === 0;
+                    const isLow = item.current_stock > 0 && item.current_stock < 5;
+                    const catName = getItemCategory(item);
+                    const location = item.business_unit === 'FC_PRINT' ? 'Storage FC' : 'Gudang Utama';
+
+                    return (
+                      <div
+                        key={item.stock_id || item.product_id}
+                        style={{
+                          background: '#ffffff',
+                          borderRadius: '16px',
+                          border: isOut ? '1.5px solid #fecaca' : isLow ? '1.5px solid #fde68a' : '1px solid #e2e8f0',
+                          padding: '0.85rem 1rem',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.6rem',
+                        }}
+                      >
+                        {/* Header: Product Name & Status Badge */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
+                          <div>
+                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.925rem' }}>{item.product_name}</div>
+                            <div style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '0.1rem', fontWeight: 600 }}>
+                              Kategori: <strong>{catName}</strong> • {item.business_unit === 'FC_PRINT' ? '📄 FC/Print' : '🍧 FNB'}
+                            </div>
+                          </div>
+
+                          <span style={{ padding: '0.25rem 0.65rem', borderRadius: '10px', fontSize: '0.725rem', fontWeight: 900, background: isOut ? '#fef2f2' : isLow ? '#fffbeb' : '#ecfdf5', color: isOut ? '#dc2626' : isLow ? '#b45309' : '#047857', border: `1px solid ${isOut ? '#fecaca' : isLow ? '#fde68a' : '#a7f3d0'}`, whiteSpace: 'nowrap' }}>
+                            {isOut ? 'Habis' : isLow ? 'Menipis' : 'Aman'}
+                          </span>
+                        </div>
+
+                        {/* Middle Info: Stock Count & Warehouse Breakdown */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '0.55rem 0.75rem', borderRadius: '10px', border: '1px solid #f1f5f9' }}>
+                          <div>
+                            <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>Stok Fisik</div>
+                            <div style={{ fontSize: '1.05rem', fontWeight: 900, color: isOut ? '#dc2626' : isLow ? '#d97706' : '#059669' }}>
+                              {item.current_stock} <span style={{ fontSize: '0.75rem', fontWeight: 700 }}>pcs</span>
+                            </div>
+                          </div>
+
+                          <div style={{ textAlign: 'right', fontSize: '0.725rem', color: '#475569', fontWeight: 700 }}>
+                            <div style={{ color: '#1d4ed8' }}>🏭 Gudang: {item.stock_gudang ?? Math.max(0, item.current_stock - 5)} pcs</div>
+                            <div style={{ color: '#059669', marginTop: '0.1rem' }}>🏪 Etalase: {item.stock_etalase ?? Math.min(item.current_stock, 5)} pcs</div>
+                          </div>
+                        </div>
+
+                        {/* Footer Actions */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.2rem' }}>
+                          <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 600 }}>📍 {location}</span>
+                          <div style={{ display: 'flex', gap: '0.35rem' }}>
+                            <button
+                              onClick={() => handleOpenEditProductModal(item)}
+                              title="Lihat Detail Produk"
+                              style={{ padding: '0.4rem 0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                            >
+                              <Eye size={14} /> Detail
+                            </button>
+
+                            {currentUser.role !== 'OWNER' && (
+                              <button
+                                onClick={() => handleOpenEditModal(item)}
+                                style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: 'none', background: '#4f46e5', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}
+                              >
+                                Koreksi
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => setDeleteConfirmItem(item)}
+                              style={{ padding: '0.4rem 0.55rem', borderRadius: '8px', border: 'none', background: '#fee2e2', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* 2. DESKTOP TABLE VIEW (>= 768px: Full Multi-Column Table) */}
+                <table className="desktop-only-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                   <thead>
                     <tr style={{ background: 'var(--accent-bg, #f8fafc)', borderBottom: '2px solid #e2e8f0', color: 'var(--color-primary, #0f172a)', textAlign: 'left', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                       <th style={{ padding: '0.85rem 1.25rem' }}>Produk</th>
@@ -1561,18 +1723,18 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                       ) : (
                         recentMovements.map((mv, idx) => (
                           <tr key={idx} style={{ borderBottom: '1px solid #f8fafc' }}>
-                            <td style={{ padding: '0.55rem 0', color: '#64748b', fontSize: '0.75rem' }}>{mv.time}</td>
+                            <td style={{ padding: '0.55rem 0', color: '#64748b', fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{mv.time}</td>
                             <td style={{ padding: '0.55rem 0', fontWeight: 800, color: '#0f172a' }}>{mv.product}</td>
                             <td style={{ padding: '0.55rem 0' }}>
-                              <span style={{ padding: '0.15rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, background: mv.qty === '-' || (typeof mv.qty === 'number' && mv.qty < 0) ? '#fef2f2' : '#f0fdf4', color: mv.qty === '-' || (typeof mv.qty === 'number' && mv.qty < 0) ? '#dc2626' : '#16a34a' }}>
+                              <span style={{ padding: '0.15rem 0.45rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, background: mv.isNegative ? '#fef2f2' : '#f0fdf4', color: mv.isNegative ? '#dc2626' : '#16a34a', border: `1px solid ${mv.isNegative ? '#fecaca' : '#bbf7d0'}` }}>
                                 {mv.type}
                               </span>
                             </td>
-                            <td style={{ padding: '0.55rem 0', textAlign: 'right', fontWeight: 900, color: mv.qty === '-' || (typeof mv.qty === 'number' && mv.qty < 0) ? '#dc2626' : '#16a34a' }}>
+                            <td style={{ padding: '0.55rem 0', textAlign: 'right', fontWeight: 900, color: mv.isNegative ? '#dc2626' : '#16a34a', whiteSpace: 'nowrap' }}>
                               {mv.qty}
                             </td>
                             <td style={{ padding: '0.55rem 0', color: '#475569', fontSize: '0.75rem' }}>{mv.warehouse}</td>
-                            <td style={{ padding: '0.55rem 0', color: '#64748b', fontSize: '0.75rem' }}>{mv.user}</td>
+                            <td style={{ padding: '0.55rem 0', color: '#64748b', fontSize: '0.75rem', fontWeight: 600 }}>{mv.user}</td>
                           </tr>
                         ))
                       )}

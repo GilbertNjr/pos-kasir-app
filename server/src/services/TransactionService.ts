@@ -5,6 +5,7 @@ import { ProductRepository } from '../repositories/ProductRepository';
 import { ShiftUserRepository } from '../repositories/ShiftUserRepository';
 import { StockService } from './StockService';
 import { TransactionEntity, TransactionItemEntity, PaymentMethod, ShiftEntity } from '../types/domain';
+import { auditLogRepository, userRepository } from '../repositories/sharedRepositories';
 
 export interface CreateTransactionItemDTO {
   product_id: string;
@@ -152,6 +153,22 @@ export class TransactionService {
       if (this.stockService) {
         await this.stockService.deductStock(itemEntity.product_id, itemEntity.qty);
       }
+    }
+
+    // Record Audit Log for completed POS Transaction
+    try {
+      const user = this.shiftUserRepository ? await userRepository.findById(dto.user_id) : null;
+      const username = user ? user.username : 'Kasir';
+      await auditLogRepository.logAction(
+        dto.user_id,
+        username,
+        'TRANSACTION_CREATE',
+        transaction_number,
+        transaction_id,
+        `Penjualan POS #${transaction_number} - ${itemEntities.length} Items (Total: Rp ${finalTotal.toLocaleString()} via ${dto.payment_method})`
+      );
+    } catch (err) {
+      console.warn('[TransactionService] Audit log creation notice:', (err as Error).message);
     }
 
     // 5. Update rekap pembayaran per metode pada Sesi Shift Aktif

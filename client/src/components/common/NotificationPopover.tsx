@@ -23,6 +23,25 @@ export interface NotificationItem {
   read: boolean;
 }
 
+// LocalStorage Persistence Helpers for Read & Deleted Notification IDs
+const getStoredSet = (key: string): Set<string> => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+};
+
+const saveStoredSet = (key: string, set: Set<string>) => {
+  try {
+    const arr = Array.from(set).slice(-300);
+    localStorage.setItem(key, JSON.stringify(arr));
+  } catch {
+    // Ignore storage quota error
+  }
+};
+
 export const NotificationPopover: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -125,14 +144,18 @@ export const NotificationPopover: React.FC = () => {
         });
       }
 
-      setNotifications((prev) => {
-        // Retain local read status for existing notification IDs
-        const readMap = new Map(prev.map((n) => [n.id, n.read]));
-        return items.map((n) => ({
+      // Filter out deleted items and hydrate read status from localStorage
+      const readSet = getStoredSet('pos_read_notifications');
+      const deletedSet = getStoredSet('pos_deleted_notifications');
+
+      const activeItems = items
+        .filter((n) => !deletedSet.has(n.id))
+        .map((n) => ({
           ...n,
-          read: readMap.has(n.id) ? readMap.get(n.id)! : n.read,
+          read: n.read || readSet.has(n.id),
         }));
-      });
+
+      setNotifications(activeItems);
     } catch {
       // Fallback
     } finally {
@@ -176,7 +199,11 @@ export const NotificationPopover: React.FC = () => {
           timestamp: new Date(),
           read: false,
         };
-        setNotifications((prev) => [newItem, ...prev.slice(0, 19)]);
+
+        const deletedSet = getStoredSet('pos_deleted_notifications');
+        if (!deletedSet.has(newItem.id)) {
+          setNotifications((prev) => [newItem, ...prev.slice(0, 19)]);
+        }
       } else {
         fetchNotifications();
       }
@@ -216,14 +243,31 @@ export const NotificationPopover: React.FC = () => {
   const unreadCount = notifications.filter((n) => !n.read).length;
 
   const markAllAsRead = () => {
+    const readSet = getStoredSet('pos_read_notifications');
+    notifications.forEach((n) => readSet.add(n.id));
+    saveStoredSet('pos_read_notifications', readSet);
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
   const markAsRead = (id: string) => {
+    const readSet = getStoredSet('pos_read_notifications');
+    readSet.add(id);
+    saveStoredSet('pos_read_notifications', readSet);
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
   };
 
+  const deleteNotification = (id: string, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    const deletedSet = getStoredSet('pos_deleted_notifications');
+    deletedSet.add(id);
+    saveStoredSet('pos_deleted_notifications', deletedSet);
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
   const clearAllNotifications = () => {
+    const deletedSet = getStoredSet('pos_deleted_notifications');
+    notifications.forEach((n) => deletedSet.add(n.id));
+    saveStoredSet('pos_deleted_notifications', deletedSet);
     setNotifications([]);
   };
 
@@ -537,9 +581,30 @@ export const NotificationPopover: React.FC = () => {
                       <span style={{ fontSize: '0.825rem', fontWeight: 800, color: item.read ? '#334155' : '#0f172a' }}>
                         {item.title}
                       </span>
-                      <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600 }}>
-                        {getRelativeTime(item.timestamp)}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                        <span style={{ fontSize: '0.68rem', color: '#94a3b8', fontWeight: 600 }}>
+                          {getRelativeTime(item.timestamp)}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={(e) => deleteNotification(item.id, e)}
+                          title="Hapus notifikasi ini"
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#94a3b8',
+                            cursor: 'pointer',
+                            padding: '0.1rem 0.2rem',
+                            borderRadius: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = '#ef4444')}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = '#94a3b8')}
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
                     </div>
                     <p style={{ fontSize: '0.775rem', color: '#64748b', margin: '0.25rem 0 0 0', lineHeight: 1.35 }}>
                       {item.message}

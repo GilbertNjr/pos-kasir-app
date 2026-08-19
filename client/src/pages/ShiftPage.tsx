@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle } from 'lucide-react';
+import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+import { exportShiftToExcel, printShiftPDF } from '../utils/shiftReportExporter';
 
 
 interface ShiftPageProps {
@@ -62,6 +63,58 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     loadShift();
   }, []);
 
+  const handlePrintShiftPDF = async () => {
+    if (!activeShiftData?.shift?.shift_id) return;
+    try {
+      setLoading(true);
+      const [salesReport, expensesData] = await Promise.all([
+        apiService.getSalesReport({ shift_id: activeShiftData.shift.shift_id }),
+        apiService.getExpenses(activeShiftData.shift.shift_id).catch(() => []),
+      ]);
+
+      const dutyUsers = activeShiftData.contributions.map((c) => getUserDisplayName(c.user_id));
+
+      printShiftPDF({
+        storeName: 'KEDAI KOPI SENJA & PRINTING',
+        dateStr: new Date(activeShiftData.shift.start_time).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        shiftId: `Shift #${activeShiftData.shift.shift_id.slice(-6)}`,
+        dutyUsers: dutyUsers.length > 0 ? dutyUsers : [currentUser.full_name],
+        transactions: salesReport?.transactions || [],
+        expenses: expensesData || [],
+      });
+    } catch (err: any) {
+      alert('Gagal memuat data shift untuk cetak PDF: ' + (err.message || err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleExportShiftExcel = async () => {
+    if (!activeShiftData?.shift?.shift_id) return;
+    try {
+      setLoading(true);
+      const [salesReport, expensesData] = await Promise.all([
+        apiService.getSalesReport({ shift_id: activeShiftData.shift.shift_id }),
+        apiService.getExpenses(activeShiftData.shift.shift_id).catch(() => []),
+      ]);
+
+      const dutyUsers = activeShiftData.contributions.map((c) => getUserDisplayName(c.user_id));
+
+      exportShiftToExcel({
+        storeName: 'KEDAI KOPI SENJA & PRINTING',
+        dateStr: new Date(activeShiftData.shift.start_time).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        shiftId: `Shift #${activeShiftData.shift.shift_id.slice(-6)}`,
+        dutyUsers: dutyUsers.length > 0 ? dutyUsers : [currentUser.full_name],
+        transactions: salesReport?.transactions || [],
+        expenses: expensesData || [],
+      });
+    } catch (err: any) {
+      alert('Gagal memuat data shift untuk ekspor Excel: ' + (err.message || err));
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleOpenShift = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -98,10 +151,12 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     try {
       await apiService.returnCapitalContribution(contributionId);
       if (closedShiftResult) {
-        const updated = closedShiftResult.contributions.map((c) =>
-          c.contribution_id === contributionId ? { ...c, status: 'RETURNED' as const } : c
-        );
-        setClosedShiftResult({ ...closedShiftResult, contributions: updated });
+        setClosedShiftResult({
+          ...closedShiftResult,
+          contributions: closedShiftResult.contributions.map((c) =>
+            c.contribution_id === contributionId ? { ...c, status: 'RETURNED' } : c
+          ),
+        });
       }
     } catch (err: any) {
       alert(err.message || 'Gagal memproses pengembalian modal');
@@ -128,6 +183,49 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
               Dimulai pada {formatWaktuIndo(shift.start_time)} | Dikelola secara kolektif
             </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={handlePrintShiftPDF}
+              style={{
+                padding: '0.55rem 1rem',
+                background: '#059669',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+              }}
+            >
+              <Printer size={16} />
+              Cetak PDF Shift
+            </button>
+            <button
+              onClick={handleExportShiftExcel}
+              style={{
+                padding: '0.55rem 1rem',
+                background: '#15803d',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                boxShadow: '0 4px 12px rgba(21, 128, 61, 0.25)',
+              }}
+            >
+              <FileSpreadsheet size={16} />
+              Export Excel Shift
+            </button>
           </div>
         </div>
 
@@ -332,31 +430,80 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       )}
 
       {/* Form Buka Shift Baru */}
-      <div style={{ maxWidth: '540px', margin: '0 auto', padding: '2rem', background: '#ffffff', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 10px 30px rgba(0, 0, 0, 0.06)' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.85rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <PlayCircle size={24} color="#059669" />
-          Buka Shift Sesi Baru
-        </h3>
-        <p style={{ fontSize: '0.875rem', color: '#4b5563', marginBottom: '1.5rem', lineHeight: 1.4 }}>
-          Anda (<strong>{currentUser.full_name}</strong>) akan terdaftar sebagai <strong>Penanggung Jawab Shift</strong> dan memasukkan setoran modal kas awal pertama.
-        </p>
+      <div style={{ maxWidth: '560px', margin: '0 auto', padding: '2rem', background: '#ffffff', borderRadius: '20px', border: '1px solid #cbd5e1', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.08)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+          <div style={{ width: '48px', height: '48px', borderRadius: '14px', background: '#ecfdf5', color: '#047857', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <PlayCircle size={28} />
+          </div>
+          <div>
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+              Buka Sesi Shift Baru
+            </h3>
+            <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
+              Shift tidak otomatis aktif. Buka shift untuk memulai transaksi kasir.
+            </p>
+          </div>
+        </div>
+
+        {/* Informational Card (Hari, Tanggal, Jam, Kasir Pembuka) */}
+        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '1.25rem', fontSize: '0.825rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155' }}>
+            <span>👤 Kasir Pembuka (PJ):</span>
+            <strong style={{ color: '#0f172a' }}>{currentUser.full_name} ({currentUser.role})</strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155' }}>
+            <span>📅 Hari & Tanggal:</span>
+            <strong style={{ color: '#4f46e5' }}>
+              {['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][new Date().getDay()]}, {new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+            </strong>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#334155' }}>
+            <span>⏰ Waktu Registrasi:</span>
+            <strong style={{ color: '#047857' }}>{new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</strong>
+          </div>
+        </div>
 
         <form onSubmit={handleOpenShift}>
-          <div style={{ marginBottom: '1.5rem' }}>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 700, marginBottom: '0.5rem', color: '#0f172a' }}>
-              Setoran Modal Kas Awal Saya (Rp):
+          <div style={{ marginBottom: '1.25rem' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, marginBottom: '0.5rem', color: '#0f172a' }}>
+              Nominal Uang Modal Kas Awal (Rp):
             </label>
             <input
               type="number"
               value={openInitialCash}
               onChange={(e) => setOpenInitialCash(e.target.value === '' ? '' : Number(e.target.value))}
-              style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '1.15rem', fontWeight: 800, color: '#0f172a' }}
+              style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', border: '2px solid #4f46e5', background: '#ffffff', fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', outline: 'none' }}
               min={0}
               step={5000}
               required
+              placeholder="Contoh: 50000"
             />
-            <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', marginTop: '0.4rem' }}>
-              Karyawan lain yang bergabung di shift ini dapat menambah modal tambahan kemudian.
+
+            {/* Quick Capital Preset Chips */}
+            <div style={{ display: 'flex', gap: '0.4rem', marginTop: '0.65rem', flexWrap: 'wrap' }}>
+              {[50000, 100000, 200000, 500000].map((amt) => (
+                <button
+                  type="button"
+                  key={amt}
+                  onClick={() => setOpenInitialCash(amt)}
+                  style={{
+                    padding: '0.35rem 0.65rem',
+                    borderRadius: '8px',
+                    border: openInitialCash === amt ? '1.5px solid #4f46e5' : '1px solid #cbd5e1',
+                    background: openInitialCash === amt ? '#eff6ff' : '#ffffff',
+                    color: openInitialCash === amt ? '#1d4ed8' : '#334155',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  {formatRupiah(amt)}
+                </button>
+              ))}
+            </div>
+
+            <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', marginTop: '0.65rem', lineHeight: 1.4 }}>
+              📌 Data tanggal, hari, waktu, dan modal awal kas ini akan disimpan secara otomatis di database untuk audit & laporan shift.
             </span>
           </div>
 
@@ -382,7 +529,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             }}
           >
             <PlayCircle size={20} />
-            {openLoading ? 'Membuka Shift...' : 'Buka Shift Baru Sekarang'}
+            {openLoading ? 'Membuka Shift...' : '🚀 Buka Shift Baru Sekarang'}
           </button>
         </form>
       </div>

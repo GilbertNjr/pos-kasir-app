@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { OwnerSidebar } from './OwnerSidebar';
 import { OwnerHeader } from './OwnerHeader';
+import { OfflineSyncBanner } from '../common/OfflineSyncBanner';
 import { User } from '../../types';
 
 interface OwnerLayoutProps {
@@ -51,6 +52,7 @@ export const OwnerLayout: React.FC<OwnerLayoutProps> = ({
         />
 
         <main style={{ flex: 1, padding: '1.5rem', overflowY: 'auto' }}>
+          <OfflineSyncBanner />
           {children}
         </main>
       </div>

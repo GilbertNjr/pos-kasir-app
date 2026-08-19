@@ -28,7 +28,14 @@ export const App: React.FC = () => {
   const [hash, setHash] = useState<string>(window.location.hash);
   const [ownerTabState, setOwnerTabState] = useState<string>(() => localStorage.getItem('pos_owner_tab') || 'DASHBOARD');
   const [cashierTabState, setCashierTabState] = useState<string>(() => localStorage.getItem('pos_cashier_tab') || 'DASHBOARD');
-  const [activeShiftData, setActiveShiftData] = useState<ActiveShiftDetailsData | null>(null);
+  const [activeShiftData, setActiveShiftData] = useState<ActiveShiftDetailsData | null>(() => {
+    try {
+      const cached = localStorage.getItem('pos_cached_active_shift');
+      return cached ? JSON.parse(cached) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const ownerTab = ownerTabState;
   const cashierTab = cashierTabState;
@@ -64,8 +71,18 @@ export const App: React.FC = () => {
   const loadActiveShift = () => {
     apiService
       .getActiveShift()
-      .then((data) => setActiveShiftData(data))
-      .catch(() => setActiveShiftData(null));
+      .then((data) => {
+        setActiveShiftData(data);
+        if (data && data.shift) {
+          localStorage.setItem('pos_cached_active_shift', JSON.stringify(data));
+        } else {
+          localStorage.removeItem('pos_cached_active_shift');
+        }
+      })
+      .catch(() => {
+        setActiveShiftData(null);
+        localStorage.removeItem('pos_cached_active_shift');
+      });
   };
 
   // Store Profile Realtime State
@@ -336,6 +353,10 @@ export const App: React.FC = () => {
             onTransactionComplete={() => {
               loadActiveShift();
               addToast('success', 'Transaksi Selesai', 'Transaksi kasir berhasil diproses');
+            }}
+            onShiftOpened={() => {
+              loadActiveShift();
+              addToast('success', 'Shift Berhasil Dibuka', 'Sesi shift baru telah aktif dan laci kas terdaftar.');
             }}
           />
         </div>

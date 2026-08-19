@@ -14,6 +14,7 @@ import {
   Crown,
 } from 'lucide-react';
 import { NotificationPopover } from '../common/NotificationPopover';
+import { OfflineSyncBanner } from '../common/OfflineSyncBanner';
 import { User } from '../../types';
 
 interface CashierLayoutProps {
@@ -621,6 +622,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
 
         {/* Content Body Canvas */}
         <main style={{ padding: '1.25rem', flex: 1, maxWidth: '1400px', width: '100%', margin: '0 auto', overflowY: 'auto' }}>
+          <OfflineSyncBanner />
           {children}
         </main>
       </div>

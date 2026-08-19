@@ -109,22 +109,23 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ currentUser }) => {
         </div>
       )}
 
-      {/* TOOLBAR SEARCH & FILTER */}
+      {/* TOOLBAR SEARCH & FILTER - CLEAN & RESPONSIVE */}
       <div
         style={{
           background: '#ffffff',
           padding: '1rem 1.25rem',
           borderRadius: '16px',
           border: '1px solid #e2e8f0',
-          display: 'flex',
-          gap: '1rem',
-          flexWrap: 'wrap',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+          gap: '0.75rem',
           alignItems: 'center',
-          justifyContent: 'space-between',
         }}
       >
-        <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
-          <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+        {/* Search Input */}
+        <div style={{ position: 'relative', width: '100%' }}>
+          <Search size={17} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
           <input
             type="text"
             placeholder="Cari berdasarkan user, action, atau detail log..."
@@ -132,31 +133,42 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ currentUser }) => {
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
               width: '100%',
-              padding: '0.5rem 0.75rem 0.5rem 2.4rem',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              fontSize: '0.85rem',
-              outline: 'none',
-              color: '#0f172a',
-            }}
-          />
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <Filter size={16} color="#64748b" />
-          <select
-            value={selectedAction}
-            onChange={(e) => setSelectedAction(e.target.value)}
-            style={{
-              padding: '0.5rem 0.85rem',
+              height: '42px',
+              padding: '0 0.85rem 0 2.5rem',
               borderRadius: '10px',
               border: '1px solid #cbd5e1',
               fontSize: '0.85rem',
               fontWeight: 600,
+              outline: 'none',
+              color: '#0f172a',
+              background: '#f8fafc',
+            }}
+          />
+        </div>
+
+        {/* Filter Action Select */}
+        <div style={{ position: 'relative', width: '100%' }}>
+          <Filter size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', pointerEvents: 'none' }} />
+          <select
+            value={selectedAction}
+            onChange={(e) => setSelectedAction(e.target.value)}
+            style={{
+              width: '100%',
+              height: '42px',
+              padding: '0 1.6rem 0 2.2rem',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              fontSize: '0.825rem',
+              fontWeight: 700,
               color: '#334155',
               background: '#ffffff',
               cursor: 'pointer',
               outline: 'none',
+              appearance: 'none',
+              backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%64748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'no-repeat',
+              backgroundPosition: 'right 0.65rem center',
+              backgroundSize: '14px',
             }}
           >
             <option value="ALL">Semua Aktivitas Log</option>

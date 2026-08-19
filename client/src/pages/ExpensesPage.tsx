@@ -290,23 +290,23 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
       <div className="responsive-main-grid">
         {/* LEFT COLUMN: TOOLBAR & TABLE */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-          {/* SEARCH & FILTER BAR */}
+          {/* SEARCH & FILTER BAR - CLEAN, MODERN & ULTRA RESPONSIVE */}
           <div
             style={{
               background: '#ffffff',
-              padding: '1.25rem 1.5rem',
-              borderRadius: '20px',
+              padding: '1rem 1.25rem',
+              borderRadius: '16px',
               border: '1px solid #e2e8f0',
-              boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-              display: 'flex',
-              gap: '1.25rem',
-              flexWrap: 'wrap',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gap: '0.75rem',
               alignItems: 'center',
-              justifyContent: 'space-between',
             }}
           >
-            <div style={{ position: 'relative', flex: 1, minWidth: '180px', width: '100%' }}>
-              <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+            {/* 1. Search Box with Icon */}
+            <div style={{ position: 'relative', width: '100%' }}>
+              <Search size={17} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
               <input
                 type="text"
                 placeholder="Cari keterangan, user, atau kategori..."
@@ -317,19 +317,25 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                 }}
                 style={{
                   width: '100%',
-                  padding: '0.65rem 1rem 0.65rem 2.5rem',
-                  borderRadius: '12px',
+                  height: '42px',
+                  padding: '0 0.85rem 0 2.5rem',
+                  borderRadius: '10px',
                   border: '1px solid #cbd5e1',
                   fontSize: '0.85rem',
+                  fontWeight: 600,
                   outline: 'none',
                   background: '#f8fafc',
+                  color: '#0f172a',
+                  transition: 'all 0.15s ease',
                 }}
               />
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Filter size={18} color="#64748b" />
+            {/* 2. Controls Group (Category Filter & Page Size Selector) */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem', width: '100%' }}>
+              {/* Filter Kategori Select */}
+              <div style={{ position: 'relative', width: '100%' }}>
+                <Filter size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', pointerEvents: 'none' }} />
                 <select
                   value={selectedCategoryFilter}
                   onChange={(e) => {
@@ -337,15 +343,22 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                     setCurrentPage(1);
                   }}
                   style={{
-                    padding: '0.65rem 1rem',
-                    borderRadius: '14px',
+                    width: '100%',
+                    height: '42px',
+                    padding: '0 1.6rem 0 2.2rem',
+                    borderRadius: '10px',
                     border: '1px solid #cbd5e1',
-                    fontSize: '0.875rem',
+                    fontSize: '0.825rem',
                     fontWeight: 700,
                     color: '#334155',
                     background: '#ffffff',
                     cursor: 'pointer',
                     outline: 'none',
+                    appearance: 'none',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%64748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 0.55rem center',
+                    backgroundSize: '14px',
                   }}
                 >
                   <option value="ALL">Semua Kategori</option>
@@ -357,8 +370,8 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                 </select>
               </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#64748b' }}>Baris:</span>
+              {/* Baris Per Halaman Select */}
+              <div style={{ position: 'relative', width: '100%' }}>
                 <select
                   value={pageSize}
                   onChange={(e) => {
@@ -366,19 +379,27 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                     setCurrentPage(1);
                   }}
                   style={{
-                    padding: '0.55rem 0.75rem',
-                    borderRadius: '12px',
+                    width: '100%',
+                    height: '42px',
+                    padding: '0 1.6rem 0 0.75rem',
+                    borderRadius: '10px',
                     border: '1px solid #cbd5e1',
-                    fontSize: '0.85rem',
+                    fontSize: '0.825rem',
                     fontWeight: 700,
                     color: '#0f172a',
                     background: '#ffffff',
                     cursor: 'pointer',
+                    outline: 'none',
+                    appearance: 'none',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%64748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 0.55rem center',
+                    backgroundSize: '14px',
                   }}
                 >
-                  <option value={10}>10 / hlm</option>
-                  <option value={25}>25 / hlm</option>
-                  <option value={50}>50 / hlm</option>
+                  <option value={10}>10 Baris / hlm</option>
+                  <option value={25}>25 Baris / hlm</option>
+                  <option value={50}>50 Baris / hlm</option>
                 </select>
               </div>
             </div>
