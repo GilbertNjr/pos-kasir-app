@@ -388,74 +388,56 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
         </div>
       </div>
 
-      {/* CONTROL BAR FILTER PERIODE (HARI, MINGGU, BULAN, CUSTOM) */}
-      <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '16px', border: '1px solid #cbd5e1', display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#475569', fontWeight: 800, fontSize: '0.825rem' }}>
+      {/* CONTROL BAR FILTER PERIODE (SINGLE ROW ON DESKTOP/TABLET, GRID STACK ON MOBILE) */}
+      <div className="payment-filter-bar">
+        <div className="payment-filter-label">
           <Filter size={16} color="#4f46e5" />
-          Filter Periode:
+          <span>Filter Periode:</span>
         </div>
 
-        <select
-          value={selectedPeriod}
-          onChange={(e) => setSelectedPeriod(e.target.value)}
-          style={{
-            padding: '0.5rem 0.85rem',
-            borderRadius: '10px',
-            border: '1px solid #cbd5e1',
-            background: '#ffffff',
-            fontSize: '0.825rem',
-            fontWeight: 700,
-            color: '#0f172a',
-            outline: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          {activeShift && <option value="ACTIVE_SHIFT">⚡ Shift Aktif Saat Ini</option>}
-          <option value="TODAY">📅 Hari Ini</option>
-          <option value="THIS_WEEK">📆 Minggu Ini (Senin - Minggu)</option>
-          <option value="THIS_MONTH">🗓️ Bulan Ini</option>
-          <option value="CUSTOM">🔍 Rentang Tanggal Custom</option>
-          <option value="ALL">📦 Semua Riwayat Transaksi</option>
-        </select>
+        <div className="payment-filter-controls">
+          <select
+            value={selectedPeriod}
+            onChange={(e) => setSelectedPeriod(e.target.value)}
+            className="payment-filter-select"
+          >
+            {activeShift && <option value="ACTIVE_SHIFT">⚡ Shift Aktif Saat Ini</option>}
+            <option value="TODAY">📅 Hari Ini</option>
+            <option value="THIS_WEEK">📆 Minggu Ini (Senin - Minggu)</option>
+            <option value="THIS_MONTH">🗓️ Bulan Ini</option>
+            <option value="CUSTOM">🔍 Rentang Tanggal Custom</option>
+            <option value="ALL">📦 Semua Riwayat Transaksi</option>
+          </select>
 
-        {selectedPeriod === 'CUSTOM' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              style={{ padding: '0.45rem 0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.825rem', fontWeight: 700 }}
-            />
-            <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>s/d</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              style={{ padding: '0.45rem 0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.825rem', fontWeight: 700 }}
-            />
-          </div>
-        )}
+          {selectedPeriod === 'CUSTOM' && (
+            <div className="payment-filter-custom-dates">
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="payment-date-input"
+              />
+              <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>s/d</span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="payment-date-input"
+              />
+            </div>
+          )}
 
-        <select
-          value={selectedPaymentMethod}
-          onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-          style={{
-            padding: '0.5rem 0.85rem',
-            borderRadius: '10px',
-            border: '1px solid #cbd5e1',
-            background: '#ffffff',
-            fontSize: '0.825rem',
-            fontWeight: 700,
-            color: '#0f172a',
-            outline: 'none',
-            cursor: 'pointer',
-          }}
-        >
-          <option value="ALL">Semua Metode Pembayaran</option>
-          <option value="CASH">💵 CASH / Tunai</option>
-          <option value="QRIS">📱 QRIS Non-Tunai</option>
-          <option value="TRANSFER">🏦 Transfer Bank</option>
-        </select>
+          <select
+            value={selectedPaymentMethod}
+            onChange={(e) => setSelectedPaymentMethod(e.target.value)}
+            className="payment-filter-select"
+          >
+            <option value="ALL">Semua Metode Pembayaran</option>
+            <option value="CASH">💵 CASH / Tunai</option>
+            <option value="QRIS">📱 QRIS Non-Tunai</option>
+            <option value="TRANSFER">🏦 Transfer Bank</option>
+          </select>
+        </div>
       </div>
 
       {error && (
