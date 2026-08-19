@@ -311,79 +311,39 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
         </div>
       )}
 
-      {/* HEADER BAR & PERIODE FILTER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', background: '#ffffff', padding: '1.25rem', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 2px 8px rgba(0,0,0,0.02)' }}>
-        <div>
-          <h2 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <TrendingUp color="#4f46e5" size={24} />
-            Rekap Pembayaran & Riwayat Transaksi
-          </h2>
-          <p style={{ fontSize: '0.825rem', color: '#64748b', marginTop: '0.2rem' }}>
-            Pemantauan omzet real-time, audit status transaksi, & ekspor riwayat harian/mingguan/bulanan
-          </p>
+      {/* HEADER BAR & ACTION BUTTONS */}
+      <div className="payment-header-card">
+        <div className="payment-header-title">
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#eef2ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <TrendingUp size={20} />
+          </div>
+          <h2>Rekap Pembayaran & Riwayat Transaksi</h2>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div className="payment-header-actions">
           <button
             onClick={handleExportExcel}
-            style={{
-              padding: '0.55rem 0.95rem',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              background: '#ffffff',
-              color: '#059669',
-              fontSize: '0.825rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
+            className="btn-toolbar-excel"
           >
-            <FileSpreadsheet size={16} />
-            Export Excel
+            <FileSpreadsheet size={15} />
+            <span>Export Excel</span>
           </button>
 
           <button
             onClick={handlePrintPDF}
-            style={{
-              padding: '0.55rem 1rem',
-              borderRadius: '10px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-              color: '#ffffff',
-              fontSize: '0.825rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
-            }}
+            className="btn-toolbar-pdf"
           >
-            <Printer size={16} />
-            Cetak PDF
+            <Printer size={15} />
+            <span>Cetak PDF</span>
           </button>
 
           <button
             onClick={loadSummary}
             disabled={loading}
-            style={{
-              padding: '0.55rem 0.95rem',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              background: '#ffffff',
-              color: '#334155',
-              fontSize: '0.825rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-            }}
+            className="btn-toolbar-refresh"
           >
-            <RefreshCw size={16} className={loading ? 'spinning' : ''} color="#4f46e5" />
-            Perbarui
+            <RefreshCw size={15} className={loading ? 'spinning' : ''} />
+            <span>Perbarui</span>
           </button>
         </div>
       </div>
