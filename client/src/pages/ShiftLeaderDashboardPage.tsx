@@ -146,34 +146,24 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-      {/* 1. HEADER SECTION */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.35rem 0', letterSpacing: '-0.03em' }}>
-            Manajemen & Monitoring Shift Real-Time
-          </h1>
-          <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>
-            Pantau aktivitas kasir aktif, kehadiran pegawai, dan transaksi shift secara langsung.
-          </p>
+      {/* 1. HEADER SECTION (CLEAN & ELEGANT) */}
+      <div className="payment-header-card">
+        <div className="payment-header-title">
+          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#e0e7ff', color: '#4338ca', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Activity size={22} />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+              Manajemen & Monitoring Shift
+            </h2>
+          </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+        <div className="payment-header-actions">
           <button
             onClick={() => onTriggerToast && onTriggerToast('info', 'Ekspor PDF', 'Fitur ekspor laporan PDF disiapkan.')}
-            style={{
-              padding: '0.65rem 1.15rem',
-              borderRadius: '8px',
-              border: '1px solid #cbd5e1',
-              background: '#ffffff',
-              color: '#334155',
-              fontWeight: 700,
-              fontSize: '0.85rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-            }}
+            className="btn-toolbar-secondary"
+            style={{ padding: '0.6rem 1.1rem' }}
           >
             <Download size={16} />
             Export Data
