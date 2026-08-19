@@ -2,7 +2,14 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
-## [v1.3.2] - 2026-08-19 - Single-Row & Responsive Payment Filter Bar
+## [v1.3.3] - 2026-08-19 - Clean Header Card & Responsive Payment Action Buttons
+
+### 🎨 Pembersihan Teks Header & Layout Tombol Aksi (`PaymentSummaryPage.tsx`)
+- **Pembersihan Teks Subtitle:**
+  - Menghapus teks subtitle panjang yang tidak diperlukan (`Pemantauan omzet real-time, audit status transaksi...`) agar kartu header tampil **super clean & modern**.
+- **Tombol Aksi Single-Row Sejajar:**
+  - Menata 3 tombol utama (`Export Excel`, `Cetak PDF`, dan `Perbarui`) agar tersusun sejajar rapi di sebelah kanan judul pada laptop/desktop.
+  - Pada layar ponsel, ketiga tombol otomatis menyesuaikan diri dalam **1 baris grid 3-kolom** yang rapi & simetris.
 
 ### 🎨 Optimasi Layout Card Filter Periode Transaksi (`PaymentSummaryPage.tsx`)
 - **Tampilan Single-Row Sleek (Laptop/Desktop/Tablet):**
