@@ -2,7 +2,15 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
-## [v1.3.1] - 2026-08-19 - Responsive Stock Toolbar & Modern Layout Polish
+## [v1.3.2] - 2026-08-19 - Single-Row & Responsive Payment Filter Bar
+
+### 🎨 Optimasi Layout Card Filter Periode Transaksi (`PaymentSummaryPage.tsx`)
+- **Tampilan Single-Row Sleek (Laptop/Desktop/Tablet):**
+  - Mengubah layout filter periode & metode pembayaran menjadi **1 baris card horizontal yang menyatu (*single-row flex*)**, menghilangkan ruang kosong (*empty space*) di sebelah kanan dropdown.
+- **Tampilan Grid Adaptif di HP/Ponsel:**
+  - Mengatur judul `Filter Periode:` berada di paling atas dengan garis pemisah yang bersih.
+  - Mengatur dropdown **Periode Shift** dan **Metode Pembayaran** tersusun **side-by-side dalam grid 2-kolom** yang simetris di ponsel.
+  - Jika tanggal custom dipilih, pemilih tanggal (`Mulai s/d Sampai`) langsung menyesuaikan diri secara otomatis.
 
 ### 🎨 Optimasi Layout & Responsivitas Filter Stok (`StockPage.tsx`)
 - **Pembersihan Teks Option Dropdown:**
