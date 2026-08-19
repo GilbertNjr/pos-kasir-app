@@ -3,7 +3,6 @@ import {
   Database,
   Download,
   Upload,
-  ShieldAlert,
   CheckCircle2,
   RefreshCw,
   AlertTriangle,
@@ -76,11 +75,9 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
   };
 
   useEffect(() => {
-    if (currentUser.role === 'OWNER') {
-      loadHistory();
-      loadSheetsStatus();
-    }
-  }, [currentUser.role]);
+    loadHistory();
+    loadSheetsStatus();
+  }, [currentUser]);
 
   // Handle Export Backup JSON
   const handleExportBackup = async () => {
@@ -214,17 +211,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
     );
   });
 
-  if (currentUser.role !== 'OWNER') {
-    return (
-      <div style={{ textAlign: 'center', padding: '4rem 2rem', color: '#64748b' }}>
-        <ShieldAlert size={48} color="#dc2626" style={{ marginBottom: '1rem' }} />
-        <h3 style={{ fontSize: '1.25rem', color: '#0f172a', marginBottom: '0.5rem', fontWeight: 800 }}>Akses Dibatasi (Khusus Owner)</h3>
-        <p style={{ maxWidth: '480px', margin: '0 auto', fontSize: '0.875rem' }}>
-          Mekanisme Backup & Restore Snapshot Database POS hanya berhak diakses oleh pemilik toko (<strong>OWNER</strong>).
-        </p>
-      </div>
-    );
-  }
+
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2rem' }}>

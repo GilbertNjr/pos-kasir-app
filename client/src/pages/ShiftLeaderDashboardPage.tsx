@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   DollarSign,
   AlertCircle,
+  Database,
 } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User, Transaction } from '../types';
@@ -23,6 +24,7 @@ interface ShiftLeaderDashboardPageProps {
 
 export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> = ({
   currentUser,
+  onNavigateTab,
   onTriggerToast,
 }) => {
   const [loading, setLoading] = useState(true);
@@ -160,6 +162,14 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
         </div>
 
         <div className="payment-header-actions">
+          <button
+            onClick={() => onNavigateTab && onNavigateTab('BACKUP')}
+            className="btn-toolbar-secondary"
+            style={{ padding: '0.6rem 1.1rem', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0' }}
+          >
+            <Database size={16} />
+            Backup & Restore
+          </button>
           <button
             onClick={() => onTriggerToast && onTriggerToast('info', 'Ekspor PDF', 'Fitur ekspor laporan PDF disiapkan.')}
             className="btn-toolbar-secondary"

@@ -12,6 +12,7 @@ import {
   Menu,
   X,
   Crown,
+  Database,
 } from 'lucide-react';
 import { NotificationPopover } from '../common/NotificationPopover';
 import { OfflineSyncBanner } from '../common/OfflineSyncBanner';
@@ -359,6 +360,33 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
           >
             <Receipt size={18} color={activeTab === 'REPORTS' ? '#5b21b6' : '#6b7280'} />
             Pusat Laporan & Shift
+          </button>
+
+          {/* Backup & Restore Data (Akses Kasir & PJ) */}
+          <button
+            onClick={() => {
+              onTabChange('BACKUP');
+              setIsMobileOpen(false);
+            }}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              borderRadius: '10px',
+              border: 'none',
+              background: activeTab === 'BACKUP' ? '#ddd6fe' : 'transparent',
+              color: activeTab === 'BACKUP' ? '#5b21b6' : '#4b5563',
+              fontWeight: activeTab === 'BACKUP' ? 800 : 600,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.75rem',
+              textAlign: 'left',
+              transition: 'all 0.15s ease',
+            }}
+          >
+            <Database size={18} color={activeTab === 'BACKUP' ? '#5b21b6' : '#6b7280'} />
+            Backup & Restore Data
           </button>
         </nav>
       </div>

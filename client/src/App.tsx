@@ -386,6 +386,11 @@ export const App: React.FC = () => {
       {cashierTab === 'REPORTS' && (
         <ReportsPage currentUser={currentUser} />
       )}
+
+      {/* BACKUP & RESTORE DATA TAB (PENANGGUNG JAWAB & KASIR) */}
+      {(cashierTab === 'BACKUP' || cashierTab === 'BACKUP_DATA') && (
+        <BackupRestorePage currentUser={currentUser} />
+      )}
     </CashierLayout>
   );
 };
