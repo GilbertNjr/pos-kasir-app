@@ -451,6 +451,13 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
   // Helper Kategori
   const getItemCategory = (item: StockItem): string => {
+    const rawCat = (item.category_name || '').toLowerCase().trim();
+
+    if (rawCat.includes('gorengan') || rawCat.includes('goreng')) return 'Gorengan';
+    if (rawCat.includes('seblak')) return 'Seblak';
+    if (rawCat.includes('es krim') || rawCat.includes('eskrim') || rawCat.includes('ice cream') || rawCat.includes('aice')) return 'Es Krim';
+    if (rawCat.includes('minuman') || rawCat.includes('kopi') || rawCat.includes('teh')) return 'Minuman';
+
     const bucket = getProductCategoryBucket(
       { product_name: item.product_name, business_unit: item.business_unit },
       item.category_name || ''

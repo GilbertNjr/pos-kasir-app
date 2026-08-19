@@ -64,15 +64,36 @@ export const getProductCategoryBucket = (
   // ----------------------------------------------------
   // 2. GORENGAN ('gorengan')
   // ----------------------------------------------------
-  const isGorenganCategory = catName.includes('gorengan');
+  const isGorenganCategory =
+    catName.includes('gorengan') ||
+    catName.includes('goreng') ||
+    catName.includes('jajan');
+
   const isGorenganProduct =
     normPName.includes('gorengan') ||
-    normPName.includes('tahu goreng') ||
-    normPName.includes('tempe goreng') ||
+    normPName.includes('goreng') ||
+    normPName.includes('tahu') ||
+    normPName.includes('tempe') ||
+    normPName.includes('mendoan') ||
     normPName.includes('bakwan') ||
-    normPName.includes('pisang goreng') ||
+    normPName.includes('bala') ||
+    normPName.includes('pisang') ||
     normPName.includes('cireng') ||
-    normPName.includes('risol');
+    normPName.includes('risol') ||
+    normPName.includes('molen') ||
+    normPName.includes('pastel') ||
+    normPName.includes('lumpia') ||
+    normPName.includes('martabak') ||
+    normPName.includes('sosis') ||
+    normPName.includes('nugget') ||
+    normPName.includes('otak') ||
+    normPName.includes('singkong') ||
+    normPName.includes('ubi') ||
+    normPName.includes('gandasturi') ||
+    normPName.includes('lilit') ||
+    normPName.includes('geprek') ||
+    normPName.includes('crispy') ||
+    normPName.includes('krispi');
 
   if (isGorenganCategory || isGorenganProduct) {
     return 'gorengan';

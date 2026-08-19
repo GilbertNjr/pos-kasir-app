@@ -2,6 +2,14 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.4] - 2026-08-19 - Optimasi & Perluasan Deteksi Filter Kategori Gorengan
+
+### 🍢 Perluasan Deteksi Kategori Gorengan (`categoryUtils.ts`, `StockPage.tsx`)
+- **Perluasan Kata Kunci Produk & Kategori Gorengan (`categoryUtils.ts`):**
+  - Mengembangkan cakupan kata kunci pencocokan produk Gorengan mencakup: `gorengan`, `goreng`, `tahu`, `tempe`, `mendoan`, `bakwan`, `bala`, `pisang`, `cireng`, `risol`, `molen`, `pastel`, `lumpia`, `martabak`, `sosis`, `nugget`, `otak`, `singkong`, `ubi`, `gandasturi`, `lilit`, `geprek`, `crispy`, `krispi`.
+- **Pre-checking Langsung Nama Kategori Database (`StockPage.tsx`):**
+  - Menambahkan *direct raw category check* pada `getItemCategory` di halaman Stok sehingga jika nama kategori di database mengandung kata `"Gorengan"` atau `"Goreng"`, produk tersebut secara langsung terpetakan ke filter **Gorengan**.
+
 ## [v1.4.3] - 2026-08-19 - Penambahan Pengelompokan & Filter Kategori Seblak
 
 ### 🍲 Dukungan Kategori Eksklusif Seblak (`categoryUtils.ts`, `StockPage.tsx`, `PosRegister.tsx`, `stockReportExporter.ts`)
