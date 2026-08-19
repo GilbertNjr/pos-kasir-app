@@ -2,9 +2,17 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
-## [v1.3.0] - 2026-08-19 - Manual Shift Activation, QRIS Logo & Persistent Real-time Notifications
+## [v1.3.1] - 2026-08-19 - Responsive Stock Toolbar & Modern Layout Polish
 
-### 🚀 Fitur Perbaikan Persistensi Notifikasi & Anti-Flicker Status Header
+### 🎨 Optimasi Layout & Responsivitas Filter Stok (`StockPage.tsx`)
+- **Pembersihan Teks Option Dropdown:**
+  - Mengubah teks opsi dropdown status dari `⚠️ Stok Menipis (<10)` menjadi `⚠️ Stok Menipis` agar teks **tidak terpotong** pada layar HP.
+- **Grid Layout 3-Kolom Rapi pada Layar HP:**
+  - Mengatur 3 dropdown filter (`Kategori`, `Status`, `Gudang`) agar tersusun sejajar rapi dalam 1 baris grid 3-kolom pada tampilan mobile (tanpa menyisakan 1 dropdown terpisah di bawah).
+- **Penataan Ulang Tombol Aksi (Action Buttons):**
+  - Menggabungkan tombol duplikat `Update Stok` & `Refresh` menjadi 1 tombol yang modern & responsif (`🔄 Refresh`).
+  - Tombol **`+ Tambah Stok`** kini tampil menonjol (*full width*) di bagian paling atas grid tombol mobile agar mudah ditekan kasir/pegawai.
+  - Menata tombol pendukung (`📄 Cetak PDF`, `📗 Export Excel`, dan `🧹 Reset`) dalam grid 2-kolom yang simetris dan rapi di semua perangkat (ponsel, tablet, laptop).
 - **Persistensi Status Notifikasi (Read & Delete Persistence):**
   - Notifikasi yang telah **ditandai dibaca** atau **dihapus** kini tersimpan di `localStorage` (`pos_read_notifications`, `pos_deleted_notifications`).
   - Saat web apps di-refresh, notifikasi yang sudah dibaca/dihapus **TIDAK AKAN muncul kembali**, sehingga tidak membingungkan kasir/karyawan.
