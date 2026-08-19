@@ -29,9 +29,10 @@ import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
 
 interface BackupRestorePageProps {
   currentUser: User;
+  onTriggerToast?: (type: 'success' | 'danger' | 'warning' | 'info', title: string, message: string) => void;
 }
 
-export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUser }) => {
+export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUser, onTriggerToast }) => {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,14 +53,21 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
   // Search Filter in History Log
   const [searchQuery, setSearchQuery] = useState('');
 
-  const loadHistory = async () => {
+  const loadHistory = async (isManualRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
       const data = await apiService.getBackupHistory();
       setHistory(data || []);
+      if (isManualRefresh) {
+        if (onTriggerToast) {
+          onTriggerToast('success', 'Status Diperbarui', 'Riwayat & status backup berhasil disinkronkan.');
+        }
+        setSuccessMsg('Status backup & riwayat berhasil diperbarui.');
+        setTimeout(() => setSuccessMsg(null), 3000);
+      }
     } catch (err: any) {
-      setError(err.message || 'Gagal mengambil riwayat backup.');
+      setError(err.message || 'Gagal memuat riwayat backup');
     } finally {
       setLoading(false);
     }
@@ -229,7 +237,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
 
         <button
           type="button"
-          onClick={loadHistory}
+          onClick={() => loadHistory(true)}
           disabled={loading}
           style={{
             padding: '0.65rem 1.15rem',

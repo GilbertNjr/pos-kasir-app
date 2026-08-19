@@ -402,7 +402,12 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
 
         <div className="responsive-btn-group">
           <button
-            onClick={loadData}
+            onClick={async () => {
+              await loadData();
+              if (onTriggerToast) {
+                onTriggerToast('success', 'Data Diperbarui', 'Daftar produk & katalog berhasil disinkronkan.');
+              }
+            }}
             disabled={loading}
             style={{
               padding: '0.6rem 1.15rem',
@@ -412,7 +417,8 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
               color: '#334155',
               fontWeight: 800,
               fontSize: '0.85rem',
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
               display: 'flex',
               alignItems: 'center',
               gap: '0.45rem',
@@ -421,7 +427,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
             }}
           >
             <RefreshCw size={15} className={loading ? 'spinning' : ''} color="#4f46e5" />
-            Refresh Data
+            {loading ? 'Memperbarui...' : 'Refresh Data'}
           </button>
 
           <RoleGuard userRole={currentUser.role} allow={['OWNER']}>

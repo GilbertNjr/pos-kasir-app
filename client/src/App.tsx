@@ -374,12 +374,12 @@ export const App: React.FC = () => {
 
       {/* EXPENSES TAB */}
       {cashierTab === 'EXPENSES' && (
-        <ExpensesPage currentUser={currentUser} activeShiftId={activeShiftData?.shift?.shift_id} />
+        <ExpensesPage currentUser={currentUser} activeShiftId={activeShiftData?.shift?.shift_id} onTriggerToast={addToast} />
       )}
 
       {/* PAYMENT SUMMARY TAB */}
       {cashierTab === 'PAYMENT' && (
-        <PaymentSummaryPage activeShift={activeShiftData?.shift ?? null} />
+        <PaymentSummaryPage activeShift={activeShiftData?.shift ?? null} onTriggerToast={addToast} />
       )}
 
       {/* REPORTS DASHBOARD TAB (PENANGGUNG JAWAB & KASIR) */}
@@ -389,7 +389,7 @@ export const App: React.FC = () => {
 
       {/* BACKUP & RESTORE DATA TAB (PENANGGUNG JAWAB & KASIR) */}
       {(cashierTab === 'BACKUP' || cashierTab === 'BACKUP_DATA') && (
-        <BackupRestorePage currentUser={currentUser} />
+        <BackupRestorePage currentUser={currentUser} onTriggerToast={addToast} />
       )}
     </CashierLayout>
   );

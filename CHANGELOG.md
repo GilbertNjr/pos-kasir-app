@@ -2,6 +2,14 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.5] - 2026-08-19 - Notifikasi Feedback & Pencegahan Spamming Tombol Perbarui
+
+### 🔄 Feedback Notifikasi & Penguncian Status Tombol (`PaymentSummaryPage.tsx`, `ExpensesPage.tsx`, `ProductsPage.tsx`, `BackupRestorePage.tsx`, `App.tsx`)
+- **Visual Feedback & Notification Toast:**
+  - Menambahkan notifikasi toast (*Pop-up Alert Toast*) dan banner informasi saat pegawai mengklik tombol **Perbarui / Refresh** untuk mengonfirmasi bahwa data berhasil disegarkan secara real-time.
+- **Pencegahan Penumpukan Aksi (Debounce / Action Lock):**
+  - Mengubah teks tombol secara otomatis menjadi `"Memperbarui..."` dan menonaktifkan tombol (`disabled={loading}`) selama proses pemuatan data berlangsung untuk mencegah pegawai melakukan penekanan berulang (*spamming click*).
+
 ## [v1.4.4] - 2026-08-19 - Optimasi & Perluasan Deteksi Filter Kategori Gorengan
 
 ### 🍢 Perluasan Deteksi Kategori Gorengan (`categoryUtils.ts`, `StockPage.tsx`)

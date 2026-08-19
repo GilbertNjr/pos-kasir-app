@@ -21,9 +21,10 @@ import { PaymentMethodBadge } from '../components/common/PaymentMethodBadge';
 
 interface PaymentSummaryPageProps {
   activeShift: Shift | null;
+  onTriggerToast?: (type: 'success' | 'danger' | 'info' | 'warning', title: string, message: string) => void;
 }
 
-export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeShift }) => {
+export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeShift, onTriggerToast }) => {
   const [summary, setSummary] = useState<PaymentSummaryData | null>(null);
   const [allHistoricalTransactions, setAllHistoricalTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,7 +41,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
   const [cancelLoading, setCancelLoading] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 
-  const loadSummary = async () => {
+  const loadSummary = async (isManualRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
@@ -54,8 +55,23 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
 
       setSummary(summaryData);
       setAllHistoricalTransactions(txData || []);
+
+      if (isManualRefresh) {
+        if (onTriggerToast) {
+          onTriggerToast('success', 'Data Diperbarui', 'Data rekap pembayaran & riwayat transaksi berhasil disinkronkan.');
+        }
+        setToastMessage({ type: 'success', text: 'Data rekap pembayaran berhasil diperbarui!' });
+        setTimeout(() => setToastMessage(null), 3000);
+      }
     } catch (err: any) {
       setError(err.message || 'Gagal memuat rekap pembayaran');
+      if (isManualRefresh) {
+        if (onTriggerToast) {
+          onTriggerToast('danger', 'Gagal Memperbarui', err.message || 'Terjadi kesalahan saat menyegarkan data.');
+        }
+        setToastMessage({ type: 'danger', text: 'Gagal memperbarui data rekap.' });
+        setTimeout(() => setToastMessage(null), 3000);
+      }
     } finally {
       setLoading(false);
     }
@@ -364,12 +380,14 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
           </button>
 
           <button
-            onClick={loadSummary}
+            onClick={() => loadSummary(true)}
             disabled={loading}
             className="btn-toolbar-refresh"
+            style={{ opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+            title="Klik untuk memperbarui data rekap pembayaran"
           >
             <RefreshCw size={15} className={loading ? 'spinning' : ''} />
-            <span>Perbarui</span>
+            <span>{loading ? 'Memperbarui...' : 'Perbarui'}</span>
           </button>
         </div>
       </div>

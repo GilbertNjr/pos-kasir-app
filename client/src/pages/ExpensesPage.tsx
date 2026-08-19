@@ -26,6 +26,7 @@ interface ExpensesPageProps {
   currentUser: User;
   activeShiftId?: string;
   onExpenseCreated?: () => void;
+  onTriggerToast?: (type: 'success' | 'danger' | 'info' | 'warning', title: string, message: string) => void;
 }
 
 const EXPENSE_CATEGORIES = [
@@ -35,7 +36,7 @@ const EXPENSE_CATEGORIES = [
   { value: 'LAIN_LAIN', label: 'Pengeluaran Lain-lain', color: '#475569', bg: '#f1f5f9' },
 ];
 
-export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeShiftId }) => {
+export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeShiftId, onTriggerToast }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
@@ -238,7 +239,12 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
 
         <div className="responsive-btn-group">
           <button
-            onClick={loadExpenses}
+            onClick={async () => {
+              await loadExpenses();
+              if (onTriggerToast) {
+                onTriggerToast('success', 'Data Diperbarui', 'Data catatan pengeluaran kas berhasil disinkronkan.');
+              }
+            }}
             disabled={loading}
             style={{
               padding: '0.5rem 1rem',
@@ -248,7 +254,8 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
               color: '#334155',
               fontWeight: 700,
               fontSize: '0.8rem',
-              cursor: 'pointer',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
               display: 'flex',
               alignItems: 'center',
               gap: '0.4rem',
@@ -258,7 +265,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
             }}
           >
             <RefreshCw size={14} color="#475569" className={loading ? 'spinning' : ''} />
-            Refresh Data
+            {loading ? 'Memperbarui...' : 'Refresh Data'}
           </button>
 
           <button
