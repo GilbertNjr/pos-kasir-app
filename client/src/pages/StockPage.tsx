@@ -260,6 +260,21 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
     try {
       await apiService.updateStock(item.product_id, totalQty, newGudang, currentEtalase);
+      
+      setRecentMovements((prev) => [
+        {
+          time: 'Baru Saja',
+          product: item.product_name,
+          type: 'Restock / Masuk',
+          qty: `+${addQty} Pcs`,
+          isNegative: false,
+          details: `Quick Add +${addQty} Pcs (Total: ${totalQty} Pcs)`,
+          warehouse: 'Gudang Utama',
+          user: currentUser?.username || 'Kasir',
+        },
+        ...prev,
+      ]);
+
       if (onTriggerToast) {
         onTriggerToast('success', 'Stok Diperbarui', `Stok Gudang "${item.product_name}" +${addQty} (Total: ${totalQty} pcs)`);
       }
@@ -277,11 +292,28 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     const gNum = Number(editStockGudang) || 0;
     const eNum = Number(editStockEtalase) || 0;
     const totalNum = gNum + eNum;
+    const diff = totalNum - editingStock.current_stock;
+    const isNeg = diff < 0;
 
     try {
       setSubmitLoading(true);
       setError(null);
       await apiService.updateStock(editingStock.product_id, totalNum, gNum, eNum);
+
+      setRecentMovements((prev) => [
+        {
+          time: 'Baru Saja',
+          product: editingStock.product_name,
+          type: diff >= 0 ? 'Restock / Masuk' : 'Pengurangan',
+          qty: `${diff >= 0 ? '+' : ''}${diff} Pcs`,
+          isNegative: isNeg,
+          details: `Koreksi Stok (Gudang: ${gNum}, Etalase: ${eNum})`,
+          warehouse: 'Gudang Utama',
+          user: currentUser?.username || 'Kasir',
+        },
+        ...prev,
+      ]);
+
       if (onTriggerToast) {
         onTriggerToast(
           'success',
@@ -488,6 +520,20 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       if (newProduct && newProduct.product_id) {
         await apiService.updateStock(newProduct.product_id, totalStock, gNum, eNum);
       }
+
+      setRecentMovements((prev) => [
+        {
+          time: 'Baru Saja',
+          product: newProductName.trim(),
+          type: 'Produk Baru',
+          qty: `+${totalStock} Pcs`,
+          isNegative: false,
+          details: `Penambahan Produk Baru (Gudang: ${gNum}, Etalase: ${eNum})`,
+          warehouse: 'Gudang Utama',
+          user: currentUser?.username || 'Kasir',
+        },
+        ...prev,
+      ]);
 
       if (onTriggerToast) {
         onTriggerToast('success', 'Produk & Stok Berhasil Dibuat', `Item "${newProductName}" telah ditambahkan ke sistem (Gudang: ${gNum}, Etalase: ${eNum}).`);

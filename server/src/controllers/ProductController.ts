@@ -23,7 +23,7 @@ export class ProductController {
 
   public createProduct = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const userId = req.user?.user_id || 'usr-system';
+      const userId = req.user?.user_id || 'usr-owner-001';
       const username = req.user?.username || 'Pegawai';
 
       const product = await this.productService.createProduct(req.body);
@@ -53,7 +53,7 @@ export class ProductController {
 
   public updateProduct = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const userId = req.user?.user_id || 'usr-system';
+      const userId = req.user?.user_id || 'usr-owner-001';
       const username = req.user?.username || 'Pegawai';
       const { id } = req.params;
 
@@ -97,7 +97,7 @@ export class ProductController {
 
   public deleteProduct = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const userId = req.user?.user_id || 'usr-system';
+      const userId = req.user?.user_id || 'usr-owner-001';
       const username = req.user?.username || 'Pegawai';
       const { id } = req.params;
 

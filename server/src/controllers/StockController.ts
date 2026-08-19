@@ -28,7 +28,7 @@ export class StockController {
         return res.status(400).json({ error: 'Parameter product_id dan jumlah stok wajib diisi.' });
       }
 
-      const userId = req.user?.user_id || 'usr-system';
+      const userId = req.user?.user_id || 'usr-owner-001';
       const username = req.user?.username || 'Pegawai';
 
       // 1. Get previous stock amount for history tracking

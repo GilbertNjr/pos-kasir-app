@@ -2,6 +2,18 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.9] - 2026-08-19 - Perbaikan Real-time Realignment & Audit Log Fallback Foreign Key
+
+### 📦 Perbaikan Real-Time "Pergerakan Stok Terbaru" (`StockPage.tsx`, `AuditLogRepository.ts`, `StockController.ts`, `ProductController.ts`)
+- **Penyebab Masalah Sebelumnya:**
+  - `ProductController` dan `StockController` sebelumnya menyuplai default fallback `actor_user_id` string `'usr-system'`, yang tidak terdaftar di tabel `users`.
+  - Akibatnya, query SQL `INSERT INTO audit_logs` dan `INSERT INTO stock_movements` memicu exception violation foreign key constraint, sehingga log tercatat hanya secara temporer di memori.
+  - Saat `loadData()` memanggil `findAll()`, data log in-memori terhapus oleh query kosong dari DB sehingga komponen *"Pergerakan Stok Terbaru"* menampilkan `Belum ada pergerakan stok dicatat di database`.
+- **Solusi & Penguatan:**
+  - Mengubah fallback user ID menjadi `'usr-owner-001'` (ID valid dari tabel `users`).
+  - Menggabungkan log audit database dan log memori di `AuditLogRepository.findAll()` dengan pengurutan timestamp descending, menjamin tidak ada log pergerakan stok yang hilang.
+  - Menambahkan **Instant Real-Time State Sync** pada `StockPage.tsx` ketika membuat produk baru (`handleCreateProductAndStock`), melakukan quick add (+5/+10), atau koreksi stok, sehingga tabel *"Pergerakan Stok Terbaru"* ter-update secara instan di layar tanpa penundaan.
+
 ## [v1.4.8] - 2026-08-19 - Prioritas Utama Kategori Database & Server-Sent Notification API
 
 ### 🌭 Prioritas Utama Kategori Database (`categoryUtils.ts`)
