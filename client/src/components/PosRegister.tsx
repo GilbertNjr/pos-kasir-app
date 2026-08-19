@@ -321,7 +321,27 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     if (selectedSubCategory !== 'ALL') {
       const catName = categoryMap.get(p.category_id) || '';
       const bucket = getProductCategoryBucket(p, catName);
-      if (bucket !== selectedSubCategory) return false;
+      let isMatch = bucket === selectedSubCategory;
+
+      if (!isMatch) {
+        const normSubCat = selectedSubCategory.toLowerCase();
+        const normPName = p.product_name.toLowerCase();
+        const normCatName = catName.toLowerCase();
+
+        if (normSubCat === 'es_krim' && (normPName.includes('kul') || normPName.includes('aice') || normPName.includes('krim') || normCatName.includes('krim'))) {
+          isMatch = true;
+        } else if (normSubCat === 'seblak' && (normPName.includes('seblak') || normCatName.includes('seblak'))) {
+          isMatch = true;
+        } else if (normSubCat === 'minuman' && (normPName.includes('teh') || normPName.includes('kopi') || normPName.includes('jus') || normPName.includes('drink') || normPName.includes('chocolatos') || normCatName.includes('minuman'))) {
+          isMatch = true;
+        } else if (normSubCat === 'gorengan' && (normPName.includes('goreng') || normCatName.includes('goreng'))) {
+          isMatch = true;
+        } else if ((normSubCat === 'snack' || normSubCat === 'dll_makanan') && (normCatName.includes('makanan') || normCatName.includes('snack') || normCatName.includes('camilan'))) {
+          isMatch = true;
+        }
+      }
+
+      if (!isMatch) return false;
     }
 
     return true;

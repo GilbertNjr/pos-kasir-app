@@ -2,6 +2,16 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.11] - 2026-08-19 - Perbaikan Filter Pill Sub-Kategori Live Kasir Register
+
+### 🛒 Synchronized Live Kasir Categorization (`categoryUtils.ts`, `PosRegister.tsx`)
+- **Penyebab Produk Hilang di Live Kasir Register (Pill Sub-Kategori):**
+  - Pada halaman *Live Kasir Register*, ketika pegawai menekan pill sub-kategori seperti **Es Krim** atau **Seblak**, fungsi `getProductCategoryBucket` sebelumnya memprioritaskan string kategori DB umum (*"Makanan Utama"*) di atas nama spesifik produk (*"AICE CHOCO SUNDAE"*, *"SEBLAK LEVEL 5"*).
+  - Akibatnya, produk es krim atau seblak yang memiliki kategori DB *"Makanan Utama"* tergolong ke bucket `'snack'`, sehingga tersembunyi saat pill **Es Krim** atau **Seblak** diklik.
+- **Solusi & Penguatan:**
+  - Mengubah hierarki di `categoryUtils.ts` agar kata kunci nama produk spesifik (seperti `"seblak"`, `"es krim"`, `"aice"`, `"kul-kul"`, `"walls"`, `"joyday"`, `"sundae"`) dievaluasi **sebelum** fallback ke kategori DB umum.
+  - Menambahkan *Fuzzy Matching Fallback* pada `PosRegister.tsx` sehingga jika pegawai mengeklik pill sub-kategori **Es Krim**, **Seblak**, **Minuman**, **Gorengan**, atau **Snack**, seluruh item yang sesuai akan ditampilkan secara instan tanpa terabaikan.
+
 ## [v1.4.10] - 2026-08-19 - Perbaikan Komprehensif Filter Dropdown Kategori Stok Produk
 
 ### 🍲 Perbaikan Pencarian & Matching Kategori Produk (`StockPage.tsx`)
