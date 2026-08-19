@@ -112,14 +112,21 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       (prodsData || []).forEach((p) => pMap.set(p.product_id, p));
       setProductsMap(pMap);
 
+      const cMap = new Map<string, string>();
+      (catsData || []).forEach((c) => cMap.set(c.category_id, c.category_name));
+
       const mergedStocks = (stocksData || [])
         .filter((s) => pMap.has(s.product_id))
         .map((s) => {
-          const prod = pMap.get(s.product_id);
+          const prod = pMap.get(s.product_id)!;
+          const catName = prod.category_id ? cMap.get(prod.category_id) : s.category_name;
           return {
             ...s,
-            selling_price: prod ? prod.selling_price : 0,
-            category_id: prod ? prod.category_id : undefined,
+            product_name: prod.product_name || s.product_name,
+            business_unit: prod.business_unit || s.business_unit,
+            selling_price: prod.selling_price ?? s.selling_price ?? 0,
+            category_id: prod.category_id,
+            category_name: catName || s.category_name,
           };
         });
 
@@ -184,20 +191,27 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     const interval = setInterval(() => {
       apiService.getStocks().then((stocksData) => {
         if (stocksData) {
-          apiService.getProducts().then((prodsData) => {
+          Promise.all([apiService.getProducts(), apiService.getCategories()]).then(([prodsData, catsData]) => {
             if (prodsData) {
               const pMap = new Map<string, Product>();
               (prodsData || []).forEach((p) => pMap.set(p.product_id, p));
               setProductsMap(pMap);
 
+              const cMap = new Map<string, string>();
+              (catsData || []).forEach((c) => cMap.set(c.category_id, c.category_name));
+
               const mergedStocks = (stocksData || [])
                 .filter((s) => pMap.has(s.product_id))
                 .map((s) => {
-                  const prod = pMap.get(s.product_id);
+                  const prod = pMap.get(s.product_id)!;
+                  const catName = prod.category_id ? cMap.get(prod.category_id) : s.category_name;
                   return {
                     ...s,
-                    selling_price: prod ? prod.selling_price : 0,
-                    category_id: prod ? prod.category_id : undefined,
+                    product_name: prod.product_name || s.product_name,
+                    business_unit: prod.business_unit || s.business_unit,
+                    selling_price: prod.selling_price ?? s.selling_price ?? 0,
+                    category_id: prod.category_id,
+                    category_name: catName || s.category_name,
                   };
                 });
               setStocks(mergedStocks);
@@ -338,18 +352,60 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     try {
       setUpdateProdLoading(true);
       setError(null);
+
+      const targetCatId = editProdCatId || editingProduct.category_id;
+      const targetCatObj = categories.find((c) => c.category_id === targetCatId);
+      const catNameLabel = targetCatObj ? targetCatObj.category_name : 'Kategori Terpilih';
+      const unitLabel = editProdUnit === 'FNB' ? 'Food & Beverage (FNB)' : 'FC / Printing & ATK';
+      const updatedName = editProdName.trim();
+      const updatedPrice = Number(editProdPrice);
+
+      // 1. API Call to persist changes in Backend / DB
       await apiService.updateProduct(editingProduct.product_id, {
-        product_name: editProdName.trim(),
-        selling_price: Number(editProdPrice),
+        product_name: updatedName,
+        selling_price: updatedPrice,
         business_unit: editProdUnit,
-        category_id: editProdCatId || undefined,
+        category_id: targetCatId || undefined,
       });
 
+      // 2. Instant Local State Updates (ProductMap & Stocks)
+      setProductsMap((prev) => {
+        const next = new Map(prev);
+        const existing = next.get(editingProduct.product_id);
+        if (existing) {
+          next.set(editingProduct.product_id, {
+            ...existing,
+            product_name: updatedName,
+            selling_price: updatedPrice,
+            business_unit: editProdUnit,
+            category_id: targetCatId,
+          });
+        }
+        return next;
+      });
+
+      setStocks((prev) =>
+        prev.map((s) => {
+          if (s.product_id === editingProduct.product_id) {
+            return {
+              ...s,
+              product_name: updatedName,
+              business_unit: editProdUnit,
+              selling_price: updatedPrice,
+              category_id: targetCatId,
+              category_name: catNameLabel,
+            };
+          }
+          return s;
+        })
+      );
+
+      // 3. Clear Feedback Toast Notification detailing the new Bidang & Kategori
       if (onTriggerToast) {
         onTriggerToast(
           'success',
           'Detail Produk Dikoreksi',
-          `Informasi barang "${editProdName}" berhasil diperbarui.`
+          `Produk "${updatedName}" berhasil diperbarui ke Bidang: ${unitLabel} | Kategori: ${catNameLabel}.`
         );
       }
 

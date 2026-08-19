@@ -119,7 +119,18 @@ export const getProductCategoryBucket = (
     normPName.includes('boba') ||
     normPName.includes('pop ice') ||
     normPName.includes('nutrisari') ||
-    normPName.includes('good day');
+    normPName.includes('good day') ||
+    normPName.includes('es chocolatos') ||
+    normPName.includes('es chocolato') ||
+    normPName.includes('es beng beng') ||
+    normPName.includes('es milo') ||
+    normPName.includes('es capcin') ||
+    normPName.includes('es jeruk') ||
+    normPName.includes('es cokelat') ||
+    normPName.includes('es coklat') ||
+    normPName.includes('es sirup') ||
+    normPName.includes('es susu') ||
+    normPName.includes('chocolatos es');
 
   if (isMinumanCategory || isMinumanProduct) {
     return 'minuman';
@@ -136,8 +147,8 @@ export const getProductCategoryBucket = (
   const isSnackProduct =
     normPName.includes('snack') ||
     normPName.includes('chiki') ||
-    normPName.includes('beng beng') ||
-    normPName.includes('chocolatos') ||
+    (normPName.includes('beng beng') && !normPName.includes('es beng beng')) ||
+    (normPName.includes('chocolatos') && !normPName.includes('es chocolatos') && !normPName.includes('es chocolato')) ||
     normPName.includes('coki coki') ||
     normPName.includes('wafel') ||
     normPName.includes('widaran') ||

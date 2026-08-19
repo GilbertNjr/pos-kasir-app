@@ -2,6 +2,17 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.7] - 2026-08-19 - Perbaikan Sinkronisasi Koreksi Kategori/Bidang Produk & Notifikasi Informatif
+
+### 🍹 Sinkronisasi Koreksi Kategori & Bidang Usaha (`StockPage.tsx`, `categoryUtils.ts`)
+- **Penyebab Produk Tidak Berubah Kategori:**
+  - Fungsi `loadData()` dan polling di `StockPage.tsx` sebelumnya tidak memetakan `category_name` dari daftar kategori ke objek stok `mergedStocks`, sehingga `category_name` menjadi kosong (`undefined`).
+  - Akibatnya, `categoryUtils.ts` tidak dapat mendeteksi nama kategori yang baru dipilih (seperti *Minuman & Kopi*) dan mematok produk bernama `"ES CHOCOLATOS"` kembali ke kategori `snack` (*Makanan & Snack*).
+- **Solusi & Penyempurnaan:**
+  - Memperbarui penggabungan data stok di `StockPage.tsx` agar memetakan `category_name` dan `business_unit` secara akurat dari `productsMap` dan `categories`.
+  - Menambahkan dukungan nama produk minuman es (seperti `es chocolatos`, `es beng beng`, `es milo`, dll.) di `categoryUtils.ts` agar masuk ke bucket `minuman`.
+  - Memperbarui `handleSaveProductDetails` di `StockPage.tsx` dengan **Instant State Update** serta notifikasi toast yang secara eksplisit memberitahukan bidang usaha dan kategori baru produk (misal: *Produk "ES CHOCOLATOS" berhasil diperbarui ke Bidang: Food & Beverage (FNB) | Kategori: Minuman & Kopi*).
+
 ## [v1.4.6] - 2026-08-19 - Perbaikan & Sinkronisasi Permanen Penghapusan Riwayat Transaksi
 
 ### 🗑️ Implementasi Permanent Transaction Deletion API (`TransactionRepository.ts`, `TransactionService.ts`, `TransactionController.ts`, `transactionRoutes.ts`, `PaymentSummaryPage.tsx`)
