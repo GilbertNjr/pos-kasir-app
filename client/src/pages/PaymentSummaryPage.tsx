@@ -166,13 +166,24 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
     if (!confirmCancelTx) return;
     try {
       setCancelLoading(true);
-      await apiService.cancelTransaction(confirmCancelTx.transaction_id);
-      setToastMessage({
-        type: 'success',
-        text: `Transaksi #${confirmCancelTx.transaction_number} berhasil dibatalkan dan stok dikembalikan.`,
-      });
+      if (confirmCancelTx.status === 'CANCELLED') {
+        // Already cancelled transaction: remove from historical list view
+        setAllHistoricalTransactions((prev) =>
+          prev.filter((t) => t.transaction_id !== confirmCancelTx.transaction_id)
+        );
+        setToastMessage({
+          type: 'success',
+          text: `Transaksi #${confirmCancelTx.transaction_number || confirmCancelTx.transaction_id} berhasil dihapus dari daftar.`,
+        });
+      } else {
+        await apiService.cancelTransaction(confirmCancelTx.transaction_id);
+        setToastMessage({
+          type: 'success',
+          text: `Transaksi #${confirmCancelTx.transaction_number || confirmCancelTx.transaction_id} berhasil dibatalkan dan stok dikembalikan.`,
+        });
+        await loadSummary();
+      }
       setConfirmCancelTx(null);
-      await loadSummary();
     } catch (err: any) {
       setToastMessage({
         type: 'danger',
@@ -569,34 +580,13 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
                       )}
                     </td>
                     <td style={{ padding: '0.65rem', textAlign: 'center' }}>
-                      {tx.status !== 'CANCELLED' ? (
-                        <button
-                          onClick={() => setConfirmCancelTx(tx)}
-                          className="btn-action-delete"
-                          title="Hapus / Batalkan Transaksi"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      ) : (
-                        <button
-                          disabled={true}
-                          style={{
-                            width: '34px',
-                            height: '34px',
-                            borderRadius: '10px',
-                            border: '1px solid #f1f5f9',
-                            background: '#f8fafc',
-                            color: '#cbd5e1',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            cursor: 'not-allowed',
-                          }}
-                          title="Transaksi Sudah Dibatalkan"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setConfirmCancelTx(tx)}
+                        className="btn-action-delete"
+                        title="Hapus / Batalkan Transaksi"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </td>
                   </tr>
                 ))}
