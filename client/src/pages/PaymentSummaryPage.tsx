@@ -227,6 +227,11 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
       alert('Harap izinkan popup browser untuk mencetak PDF.');
       return;
     }
+    try {
+      printWin.opener = null;
+    } catch {
+      // Ignore
+    }
 
     const rowsHtml = filteredTransactions
       .map(
@@ -290,7 +295,17 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
           </tbody>
         </table>
         <script>
-          window.onload = function() { window.print(); };
+          window.onload = function() {
+            try {
+              window.print();
+            } catch(e) {}
+            setTimeout(function() {
+              try { window.close(); } catch(e) {}
+            }, 300);
+          };
+          window.onafterprint = function() {
+            try { window.close(); } catch(e) {}
+          };
         </script>
       </body>
       </html>

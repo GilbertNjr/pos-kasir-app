@@ -68,7 +68,84 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   };
 
   const handlePrintReceipt = () => {
-    window.print();
+    const printWin = window.open('', '_blank', 'width=420,height=700');
+    if (!printWin) {
+      alert('Harap izinkan popup browser untuk mencetak struk.');
+      return;
+    }
+
+    try {
+      printWin.opener = null;
+    } catch {
+      // Ignore
+    }
+
+    const itemRows = detailItems
+      .map((item: any, idx: number) => {
+        const matchedProd = products.find((p) => p.product_id === item.product_id);
+        const pName = item.product_name || (matchedProd ? matchedProd.product_name : `Produk #${idx + 1}`);
+        const qty = Number(item.qty || item.quantity || 1);
+        const price = Number(item.unit_price || 0);
+        const sub = Number(item.subtotal || price * qty);
+
+        return `
+        <tr>
+          <td style="padding: 4px 0;">${pName}<br/><span style="font-size: 10px; color: #64748b;">${qty} x ${formatRupiah(price)}</span></td>
+          <td style="padding: 4px 0; text-align: right; vertical-align: top; font-weight: 700;">${formatRupiah(sub)}</td>
+        </tr>
+      `;
+      })
+      .join('');
+
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Struk Pembayaran - ${txNumber}</title>
+        <style>
+          @page { size: 80mm auto; margin: 5mm; }
+          body { font-family: 'Courier New', Courier, monospace; color: #000; width: 300px; margin: 0 auto; padding: 10px; font-size: 12px; }
+          .center { text-align: center; }
+          .bold { font-weight: bold; }
+          .line { border-bottom: 1px dashed #000; margin: 8px 0; }
+          table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        </style>
+      </head>
+      <body>
+        <div class="center bold" style="font-size: 14px;">KEDAI KOPI SENJA & PRINTING</div>
+        <div class="center" style="font-size: 10px;">Nota POS Resmi & Shift Transaction</div>
+        <div class="line"></div>
+        <div>No. Nota : ${txNumber}</div>
+        <div>Waktu    : ${txTime}</div>
+        <div>Kasir    : ${cashierName}</div>
+        <div>Pelanggan: ${customerName}</div>
+        <div class="line"></div>
+        <table>
+          <tbody>
+            ${itemRows}
+          </tbody>
+        </table>
+        <div class="line"></div>
+        <div style="display: flex; justify-content: space-between;"><span>Subtotal</span><span>${formatRupiah(subtotalVal)}</span></div>
+        ${discountVal > 0 ? `<div style="display: flex; justify-content: space-between;"><span>Diskon</span><span>-${formatRupiah(discountVal)}</span></div>` : ''}
+        <div style="display: flex; justify-content: space-between; font-weight: bold; font-size: 13px; margin-top: 4px;"><span>TOTAL</span><span>${formatRupiah(finalTotalVal)}</span></div>
+        <div style="display: flex; justify-content: space-between; margin-top: 4px;"><span>Bayar (${paymentMethod})</span><span>${formatRupiah(cashTenderedVal)}</span></div>
+        <div style="display: flex; justify-content: space-between;"><span>Kembalian</span><span>${formatRupiah(changeDueVal)}</span></div>
+        <div class="line"></div>
+        <div class="center" style="font-size: 10px; margin-top: 10px;">Terima Kasih Atas Kunjungan Anda!</div>
+        <script>
+          window.onload = function() {
+            try { window.print(); } catch(e) {}
+            setTimeout(function() { try { window.close(); } catch(e) {} }, 300);
+          };
+          window.onafterprint = function() {
+            try { window.close(); } catch(e) {}
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    printWin.document.close();
   };
 
   return (

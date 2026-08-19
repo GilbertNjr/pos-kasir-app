@@ -250,10 +250,110 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
   const totalPages = Math.ceil(filteredTransactions.length / pageSize) || 1;
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + pageSize);
-
   const getCashierName = (userId: string) => {
     const u = usersList.find((usr) => usr.user_id === userId);
     return u ? u.full_name || u.username : userId || 'Kasir';
+  };
+
+  // Cetak PDF Transaksi tanpa membekukan halaman utama POS
+  const handlePrintPDF = () => {
+    if (onTriggerToast)
+      onTriggerToast('info', 'Export Transaksi', 'Membuka pratinjau cetak PDF...');
+
+    const printWin = window.open('', '_blank', 'width=950,height=800');
+    if (!printWin) {
+      alert('Harap izinkan popup browser untuk mencetak PDF.');
+      return;
+    }
+
+    try {
+      printWin.opener = null;
+    } catch {
+      // Ignore
+    }
+
+    const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+    const rowsHtml = filteredTransactions
+      .map(
+        (tx, idx) => `
+      <tr>
+        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 6px;">${idx + 1}</td>
+        <td style="border: 1px solid #cbd5e1; padding: 6px; font-family: monospace;">${tx.transaction_number || `TRX-${tx.transaction_id}`}</td>
+        <td style="border: 1px solid #cbd5e1; padding: 6px; font-size: 10px;">${tx.transaction_time ? formatWaktuIndo(tx.transaction_time) : '-'}</td>
+        <td style="border: 1px solid #cbd5e1; padding: 6px;">${getCashierName(tx.created_by_user_id)}</td>
+        <td style="border: 1px solid #cbd5e1; padding: 6px;">${tx.customer_name || 'Pelanggan Umum'}</td>
+        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 6px; font-weight: 700;">${(tx.payment_method || 'CASH').toUpperCase()}</td>
+        <td style="text-align: right; border: 1px solid #cbd5e1; padding: 6px; font-weight: 800;">${formatRupiah(Number(tx.final_total || tx.subtotal_amount || 0))}</td>
+        <td style="text-align: center; border: 1px solid #cbd5e1; padding: 6px; font-weight: 800; color: ${(tx.status || '').toUpperCase() === 'CANCELLED' ? '#dc2626' : '#047857'};">${(tx.status || 'COMPLETED').toUpperCase() === 'CANCELLED' ? 'Dibatalkan' : 'Lunas'}</td>
+      </tr>
+    `
+      )
+      .join('');
+
+    printWin.document.write(`
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>Rekap Transaksi POS - ${todayStr}</title>
+        <style>
+          @page { size: A4 portrait; margin: 12mm; }
+          body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; margin: 0; padding: 10px; }
+          .header { border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 12px; }
+          .title { font-size: 18px; font-weight: 900; }
+          .subtitle { font-size: 12px; color: #64748b; }
+          .summary-box { display: flex; gap: 10px; margin-bottom: 15px; }
+          .card { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1; background: #f8fafc; }
+          .card-val { font-size: 14px; font-weight: 800; }
+          table { width: 100%; border-collapse: collapse; font-size: 11px; }
+          th { background: #0f172a; color: #ffffff; padding: 6px; border: 1px solid #0f172a; }
+        </style>
+      </head>
+      <body>
+        <div class="header">
+          <div class="title">REKAPITULASI TRANSAKSI PENJUALAN</div>
+          <div class="subtitle">Kedai Kopi Senja & Printing | Tanggal Cetak: ${todayStr} | Periode: ${periodType}</div>
+        </div>
+        <div class="summary-box">
+          <div class="card"><div>Total Transaksi</div><div class="card-val">${totalTransactionsCount} Tx</div></div>
+          <div class="card"><div>Total Penjualan</div><div class="card-val">${formatRupiah(totalSalesAmount)}</div></div>
+          <div class="card"><div>Tunai</div><div class="card-val">${formatRupiah(totalCashSales)}</div></div>
+          <div class="card"><div>Non Tunai</div><div class="card-val">${formatRupiah(totalNonCashSales)}</div></div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 30px;">No</th>
+              <th>No. Transaksi</th>
+              <th>Hari & Waktu</th>
+              <th>Kasir</th>
+              <th>Pelanggan</th>
+              <th>Metode</th>
+              <th>Total (Rp)</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rowsHtml}
+          </tbody>
+        </table>
+        <script>
+          window.onload = function() {
+            try {
+              window.print();
+            } catch(e) {}
+            setTimeout(function() {
+              try { window.close(); } catch(e) {}
+            }, 300);
+          };
+          window.onafterprint = function() {
+            try { window.close(); } catch(e) {}
+          };
+        </script>
+      </body>
+      </html>
+    `);
+    printWin.document.close();
   };
 
   return (
@@ -362,11 +462,7 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
 
           {/* Export Button */}
           <button
-            onClick={() => {
-              if (onTriggerToast)
-                onTriggerToast('info', 'Export Transaksi', 'Mengunduh rekapitulasi transaksi POS...');
-              window.print();
-            }}
+            onClick={handlePrintPDF}
             style={{
               display: 'flex',
               alignItems: 'center',
@@ -1104,7 +1200,7 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
             {/* Quick Actions */}
             <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.25rem' }}>
               <button
-                onClick={() => window.print()}
+                onClick={handlePrintPDF}
                 style={{
                   flex: 1,
                   padding: '0.6rem',

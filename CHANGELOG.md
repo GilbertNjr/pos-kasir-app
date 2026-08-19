@@ -2,6 +2,19 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.2] - 2026-08-19 - Perbaikan Bug Freeze & Lag Pasca-Cetak Laporan / Export PDF
+
+### 🖨️ Pengisolasian Thread & Auto-Close Pop-Up Cetak (`shiftReportExporter.ts`, `stockReportExporter.ts`, `PaymentSummaryPage.tsx`, `OwnerTransactionsPage.tsx`, `TransactionDetailModal.tsx`)
+- **Pelepasan Keterikatan Process Isolation (`opener = null`):**
+  - Mengisolasi tab cetak dari tab utama POS dengan memutus hubungan `printWin.opener = null`.
+  - Mencegah *event loop* JavaScript pada tab utama POS tersuspensi atau membeku (*freeze*) ketika dialog cetak browser aktif.
+- **Otomatisasi Penutupan Pop-Up Tab (`onafterprint` & `setTimeout`):**
+  - Menambahkan *event listener* `window.onafterprint` dan fallback timer `setTimeout` untuk menutup pop-up window secara otomatis segera setelah pengguna selesai mencetak atau membatalkan pratinjau PDF.
+  - Membebaskan memori dan *resource* browser tanpa meninggalkan tab *background* yang menggantung.
+- **Migrasi Cetak Langsung Utama ke Pop-up Isolat:**
+  - Menggantikan pemicu `window.print()` langsung pada dokumen utama di `OwnerTransactionsPage.tsx` dan `TransactionDetailModal.tsx` dengan jendela pratinjau berisolasi.
+  - Memastikan seluruh fitur dashboard dan tombol-tombol POS dapat langsung diklik kembali secara lancar 100% tanpa perlu *refresh* halaman.
+
 ## [v1.4.1] - 2026-08-19 - Perbaikan Filter Kategori Produk & Stok (Mutually Exclusive Categorization)
 
 ### 🏷️ Perbaikan Filter Kategori Produk & Stok (`categoryUtils.ts`, `PosRegister.tsx`, `StockPage.tsx`)

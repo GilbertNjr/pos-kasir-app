@@ -261,6 +261,12 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
     return;
   }
 
+  try {
+    printWindow.opener = null;
+  } catch {
+    // Ignore if opener restriction
+  }
+
   printWindow.document.write(`
     <!DOCTYPE html>
     <html>
@@ -420,7 +426,15 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
 
       <script>
         window.onload = function() {
-          window.print();
+          try {
+            window.print();
+          } catch(e) {}
+          setTimeout(function() {
+            try { window.close(); } catch(e) {}
+          }, 300);
+        };
+        window.onafterprint = function() {
+          try { window.close(); } catch(e) {}
         };
       </script>
     </body>

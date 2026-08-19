@@ -329,6 +329,12 @@ export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [
     return;
   }
 
+  try {
+    printWindow.opener = null;
+  } catch {
+    // Ignore
+  }
+
   const categoryPrintHtml = categories
     .map((cat) => {
       const items = categorizedMap[cat] || [];
@@ -409,7 +415,15 @@ export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [
 
       <script>
         window.onload = function() {
-          window.print();
+          try {
+            window.print();
+          } catch(e) {}
+          setTimeout(function() {
+            try { window.close(); } catch(e) {}
+          }, 300);
+        };
+        window.onafterprint = function() {
+          try { window.close(); } catch(e) {}
         };
       </script>
     </body>
