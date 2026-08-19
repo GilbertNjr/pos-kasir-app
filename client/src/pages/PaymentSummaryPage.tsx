@@ -572,27 +572,30 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
                       {tx.status !== 'CANCELLED' ? (
                         <button
                           onClick={() => setConfirmCancelTx(tx)}
-                          style={{
-                            padding: '0.35rem 0.65rem',
-                            borderRadius: '8px',
-                            border: '1px solid #fecaca',
-                            background: '#fef2f2',
-                            color: '#dc2626',
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            cursor: 'pointer',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '0.3rem',
-                            transition: 'all 0.15s ease',
-                          }}
-                          title="Hapus / Batalkan Transaksi ini"
+                          className="btn-action-delete"
+                          title="Hapus / Batalkan Transaksi"
                         >
-                          <Trash2 size={13} />
-                          Hapus
+                          <Trash2 size={16} />
                         </button>
                       ) : (
-                        <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontStyle: 'italic' }}>Dibatalkan</span>
+                        <button
+                          disabled={true}
+                          style={{
+                            width: '34px',
+                            height: '34px',
+                            borderRadius: '10px',
+                            border: '1px solid #f1f5f9',
+                            background: '#f8fafc',
+                            color: '#cbd5e1',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'not-allowed',
+                          }}
+                          title="Transaksi Sudah Dibatalkan"
+                        >
+                          <Trash2 size={16} />
+                        </button>
                       )}
                     </td>
                   </tr>
@@ -603,44 +606,35 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
         )}
       </div>
 
-      {/* MODAL DIALOG PERINGATAN KONFIRMASI HAPUS / BATALKAN TRANSAKSI */}
+      {/* MODAL DIALOG PERINGATAN KONFIRMASI HAPUS (CLEAN & SIMPLE) */}
       {confirmCancelTx && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', borderRadius: '20px', maxWidth: '460px', width: '100%', padding: '1.75rem', boxShadow: '0 20px 40px rgba(0,0,0,0.25)', border: '1px solid #fee2e2', animation: 'fadeIn 0.2s ease' }}>
-            <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
-              <AlertTriangle size={28} />
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '22px', maxWidth: '400px', width: '100%', padding: '1.5rem', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)', border: '1px solid #fee2e2', textAlign: 'center', animation: 'fadeIn 0.2s ease' }}>
+            <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: '#fef2f2', border: '1px solid #fecaca', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
+              <Trash2 size={26} />
             </div>
 
-            <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#991b1b', textAlign: 'center', marginBottom: '0.4rem' }}>
-              Konfirmasi Hapus & Pembatalan Transaksi
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.4rem' }}>
+              Hapus Transaksi?
             </h3>
-            <p style={{ fontSize: '0.85rem', color: '#475569', textAlign: 'center', marginBottom: '1.25rem', lineHeight: 1.4 }}>
-              Apakah Anda yakin ingin membatalkan transaksi <strong>#{confirmCancelTx.transaction_number}</strong> senilai <strong>{formatRupiah(confirmCancelTx.final_total || confirmCancelTx.total_amount || 0)}</strong>?
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.5rem', lineHeight: 1.45 }}>
+              Transaksi <strong style={{ color: '#0f172a' }}>#{confirmCancelTx.transaction_number}</strong> senilai <strong style={{ color: '#ef4444' }}>{formatRupiah(confirmCancelTx.final_total || confirmCancelTx.total_amount || 0)}</strong> akan dibatalkan & stok akan dikembalikan otomatis.
             </p>
 
-            <div style={{ background: '#fff1f2', padding: '0.9rem', borderRadius: '12px', border: '1px solid #fecaca', marginBottom: '1.5rem', fontSize: '0.78rem', color: '#991b1b', lineHeight: 1.45 }}>
-              <strong>⚠️ PERINGATAN OPERASIONAL BISNIS:</strong>
-              <ul style={{ margin: '0.4rem 0 0 1.1rem', padding: 0 }}>
-                <li>Stok barang akan otomatis dikembalikan ke inventaris toko.</li>
-                <li>Nominal omzet shift & rekap pembayaran akan dikurangi real-time.</li>
-                <li>Aktivitas pembatalan akan dicatat ke audit log permanen.</li>
-              </ul>
-            </div>
-
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
               <button
                 onClick={() => setConfirmCancelTx(null)}
                 disabled={cancelLoading}
                 style={{
-                  flex: 1,
-                  padding: '0.75rem',
+                  padding: '0.7rem 1rem',
                   borderRadius: '12px',
                   border: '1px solid #cbd5e1',
-                  background: '#ffffff',
-                  color: '#334155',
+                  background: '#f8fafc',
+                  color: '#475569',
                   fontWeight: 800,
                   fontSize: '0.85rem',
                   cursor: cancelLoading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 Batal
@@ -650,19 +644,19 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
                 onClick={handleExecuteCancel}
                 disabled={cancelLoading}
                 style={{
-                  flex: 1,
-                  padding: '0.75rem',
+                  padding: '0.7rem 1rem',
                   borderRadius: '12px',
                   border: 'none',
-                  background: '#dc2626',
+                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                   color: '#ffffff',
                   fontWeight: 800,
                   fontSize: '0.85rem',
                   cursor: cancelLoading ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
+                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                {cancelLoading ? 'Membatalkan...' : 'Ya, Hapus & Batalkan'}
+                {cancelLoading ? 'Membatalkan...' : 'Ya, Hapus'}
               </button>
             </div>
           </div>
