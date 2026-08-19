@@ -3,19 +3,21 @@ import {
   Package,
   RefreshCw,
   Search,
-  PlusCircle,
   AlertTriangle,
   XCircle,
   TrendingUp,
   LayoutGrid,
   List,
   DollarSign,
-  Filter,
   Eye,
   BarChart2,
   ChevronLeft,
   ChevronRight,
   Trash2,
+  RotateCcw,
+  FileSpreadsheet,
+  Printer,
+  Plus,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { User, Category, Product } from '../types';
@@ -881,7 +883,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value as any)}
             style={{
-              padding: '0.6rem 0.85rem',
+              padding: '0.6rem 0.65rem',
               borderRadius: '12px',
               border: '1px solid #cbd5e1',
               background: '#ffffff',
@@ -891,12 +893,13 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               cursor: 'pointer',
               outline: 'none',
               width: '100%',
+              textOverflow: 'ellipsis',
             }}
           >
             <option value="ALL">Semua Status</option>
-            <option value="SAFE">🟢 Stok Aman (≥10)</option>
-            <option value="LOW">⚠️ Stok Menipis (&lt;10)</option>
-            <option value="OUT">🔴 Stok Habis (0 Pcs)</option>
+            <option value="SAFE">🟢 Stok Aman</option>
+            <option value="LOW">⚠️ Stok Menipis</option>
+            <option value="OUT">🔴 Stok Habis</option>
           </select>
 
           {/* Dropdown Semua Gudang */}
@@ -904,7 +907,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             value={selectedWarehouse}
             onChange={(e) => setSelectedWarehouse(e.target.value)}
             style={{
-              padding: '0.6rem 0.85rem',
+              padding: '0.6rem 0.65rem',
               borderRadius: '12px',
               border: '1px solid #cbd5e1',
               background: '#ffffff',
@@ -914,6 +917,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               cursor: 'pointer',
               outline: 'none',
               width: '100%',
+              textOverflow: 'ellipsis',
             }}
           >
             <option value="ALL">Semua Gudang</option>
@@ -925,6 +929,44 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
         {/* Buttons Group */}
         <div className="responsive-toolbar-actions">
+          {currentUser.role !== 'OWNER' && (
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="btn-toolbar-primary"
+            >
+              <Plus size={15} />
+              <span>+ Tambah Stok</span>
+            </button>
+          )}
+
+          <button
+            onClick={async () => {
+              await loadData();
+              if (onTriggerToast) onTriggerToast('success', 'Stok Diperbarui', 'Data stok & inventaris berhasil disinkronisasi.');
+            }}
+            disabled={loading}
+            className="btn-toolbar-refresh"
+          >
+            <RefreshCw size={14} className={loading ? 'spinning' : ''} />
+            <span>Refresh</span>
+          </button>
+
+          <button
+            onClick={() => exportStockToExcel(stocks)}
+            className="btn-toolbar-excel"
+          >
+            <FileSpreadsheet size={14} />
+            <span>Export Excel</span>
+          </button>
+
+          <button
+            onClick={() => printStockPDF(stocks)}
+            className="btn-toolbar-pdf"
+          >
+            <Printer size={14} />
+            <span>Cetak PDF</span>
+          </button>
+
           <button
             onClick={() => {
               setSelectedCategory('ALL');
@@ -934,141 +976,12 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               setSelectedUnit('ALL');
               if (onTriggerToast) onTriggerToast('info', 'Filter Direset', 'Semua filter pencarian telah dikembalikan ke kondisi awal.');
             }}
-            title="Reset atau terapkan filter tambahan"
-            style={{
-              padding: '0.6rem 0.85rem',
-              borderRadius: '12px',
-              border: '1px solid #cbd5e1',
-              background: '#ffffff',
-              color: '#334155',
-              fontSize: '0.825rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.2s ease',
-            }}
+            title="Reset semua filter pencarian"
+            className="btn-toolbar-secondary"
           >
-            <Filter size={15} color="#64748b" />
-            Filter
+            <RotateCcw size={14} color="#64748b" />
+            <span>Reset</span>
           </button>
-
-          <button
-            onClick={loadData}
-            disabled={loading}
-            style={{
-              padding: '0.6rem 0.95rem',
-              borderRadius: '12px',
-              border: '1px solid #cbd5e1',
-              background: '#ffffff',
-              color: '#334155',
-              fontSize: '0.825rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <RefreshCw size={15} className={loading ? 'spinning' : ''} color="#2563eb" />
-            Refresh
-          </button>
-
-          <button
-            onClick={async () => {
-              await loadData();
-              if (onTriggerToast) onTriggerToast('success', 'Stok Diperbarui', 'Data stok & inventaris berhasil disinkronisasi.');
-            }}
-            disabled={loading}
-            style={{
-              padding: '0.6rem 1.1rem',
-              borderRadius: '12px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
-              color: '#ffffff',
-              fontSize: '0.825rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              boxShadow: '0 4px 14px rgba(217, 119, 6, 0.3)',
-              whiteSpace: 'nowrap',
-              transition: 'all 0.2s ease',
-            }}
-          >
-            <RefreshCw size={15} className={loading ? 'spinning' : ''} />
-            Update Stok
-          </button>
-
-          <button
-            onClick={() => exportStockToExcel(stocks)}
-            style={{
-              padding: '0.6rem 0.95rem',
-              borderRadius: '12px',
-              border: '1px solid #cbd5e1',
-              background: '#ffffff',
-              color: '#059669',
-              fontSize: '0.825rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            📗 Export Excel Stok
-          </button>
-
-          <button
-            onClick={() => printStockPDF(stocks)}
-            style={{
-              padding: '0.6rem 0.95rem',
-              borderRadius: '12px',
-              border: 'none',
-              background: '#059669',
-              color: '#ffffff',
-              fontSize: '0.825rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            🖨️ Cetak PDF Stok
-          </button>
-
-          {currentUser.role !== 'OWNER' && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              style={{
-                padding: '0.6rem 1.1rem',
-                borderRadius: '12px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: '#ffffff',
-                fontSize: '0.825rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                boxShadow: '0 4px 14px rgba(5, 150, 105, 0.3)',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              <PlusCircle size={16} />
-              + Tambah Stok
-            </button>
-          )}
         </div>
       </div>
 
