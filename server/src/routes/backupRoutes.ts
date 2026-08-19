@@ -12,7 +12,6 @@ import {
 import { BackupService } from '../services/BackupService';
 import { BackupController } from '../controllers/BackupController';
 import { authMiddleware } from '../middlewares/AuthMiddleware';
-import { requireOwner } from '../middlewares/rbacMiddleware';
 
 const router = Router();
 
@@ -29,13 +28,13 @@ const backupService = new BackupService(
 
 const backupController = new BackupController(backupService);
 
-// Protected Backup & Restore Routes (Owner Only)
-router.get('/export', authMiddleware, requireOwner, backupController.exportBackup);
-router.get('/history', authMiddleware, requireOwner, backupController.getHistory);
-router.post('/restore', authMiddleware, requireOwner, backupController.restoreBackup);
+// Protected Backup & Restore Routes (Accessible by all authenticated roles: OWNER, PENANGGUNG_JAWAB, KARYAWAN)
+router.get('/export', authMiddleware, backupController.exportBackup);
+router.get('/history', authMiddleware, backupController.getHistory);
+router.post('/restore', authMiddleware, backupController.restoreBackup);
 
-// Google Sheets Auto-Sync Routes (Owner Only)
-router.get('/google-sheets-status', authMiddleware, requireOwner, backupController.getGoogleSheetsStatus);
-router.post('/google-sheets-sync', authMiddleware, requireOwner, backupController.syncGoogleSheets);
+// Google Sheets Auto-Sync Routes
+router.get('/google-sheets-status', authMiddleware, backupController.getGoogleSheetsStatus);
+router.post('/google-sheets-sync', authMiddleware, backupController.syncGoogleSheets);
 
 export default router;

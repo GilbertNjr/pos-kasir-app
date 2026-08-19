@@ -13,6 +13,9 @@ Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kron
 - **Pembersihan Logika Penyaringan POS & Stok:**
   - Menggantikan logika filter percabangan 50 baris yang rentan tumpang tindih pada `PosRegister.tsx` dengan pencocokan bucket eksklusif.
   - Memperbarui fungsi `getItemCategory` pada `StockPage.tsx` agar sinkron dengan pengelompokan POS.
+- **Pembukaan Akses Route Backend Backup & Restore (`server/src/routes/backupRoutes.ts`):**
+  - Menghapus middleware `requireOwner` pada rute endpoint server `/api/backup/export`, `/api/backup/history`, `/api/backup/restore`, `/api/backup/google-sheets-status`, dan `/api/backup/google-sheets-sync`.
+  - Sekarang **Karyawan (Kasir)** dan **Penanggung Jawab (PJ)** dapat mengunduh snapshot backup, memulihkan (*restore*) data, serta memicu sinkronisasi Google Sheets tanpa hambatan peringatan *Akses Ditolak*.
 
 ## [v1.4.0] - 2026-08-19 - Backup & Restore Data Feature for Kasir & PJ
 
