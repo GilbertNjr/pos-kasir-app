@@ -361,12 +361,15 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       const updatedPrice = Number(editProdPrice);
 
       // 1. API Call to persist changes in Backend / DB
-      await apiService.updateProduct(editingProduct.product_id, {
+      const res = await apiService.updateProduct(editingProduct.product_id, {
         product_name: updatedName,
         selling_price: updatedPrice,
         business_unit: editProdUnit,
         category_id: targetCatId || undefined,
       });
+
+      // Backend message or fallback
+      const beMessage = res?.message || `Produk "${updatedName}" berhasil diperbarui ke Bidang: ${unitLabel} | Kategori: ${catNameLabel}.`;
 
       // 2. Instant Local State Updates (ProductMap & Stocks)
       setProductsMap((prev) => {
@@ -400,20 +403,21 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         })
       );
 
-      // 3. Clear Feedback Toast Notification detailing the new Bidang & Kategori
+      // 3. Display notification message sent directly from Backend (BE)
       if (onTriggerToast) {
         onTriggerToast(
           'success',
           'Detail Produk Dikoreksi',
-          `Produk "${updatedName}" berhasil diperbarui ke Bidang: ${unitLabel} | Kategori: ${catNameLabel}.`
+          beMessage
         );
       }
 
       setEditingProduct(null);
       await loadData();
     } catch (err: any) {
-      setError(err.message || 'Gagal mengedit detail barang');
-      if (onTriggerToast) onTriggerToast('danger', 'Gagal Edit Produk', err.message || 'Terjadi kesalahan saat simpan detail barang');
+      const errMsg = err.message || 'Gagal mengedit detail barang';
+      setError(errMsg);
+      if (onTriggerToast) onTriggerToast('danger', 'Gagal Edit Produk', errMsg);
     } finally {
       setUpdateProdLoading(false);
     }

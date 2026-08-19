@@ -13,20 +13,62 @@ export const getProductCategoryBucket = (
   const normPName = rawPName.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ');
 
   // ----------------------------------------------------
-  // 1. ES KRIM ('es_krim')
-  // High priority check for ice cream brands and terms
+  // PRIORITY 1: IF DATABASE CATEGORY (catName) IS EXPLICITLY SET, RESPECT IT FIRST!
   // ----------------------------------------------------
-  const isEsKrimCategory =
-    catName.includes('es krim') ||
-    catName.includes('eskrim') ||
-    catName.includes('ice cream') ||
-    catName.includes('icecream') ||
-    catName.includes('aice') ||
-    catName.includes('kul kul') ||
-    catName.includes('walls') ||
-    catName.includes('joyday') ||
-    catName.includes('campina');
+  if (catName) {
+    if (
+      catName.includes('es krim') ||
+      catName.includes('eskrim') ||
+      catName.includes('ice cream') ||
+      catName.includes('icecream') ||
+      catName.includes('aice') ||
+      catName.includes('walls') ||
+      catName.includes('joyday') ||
+      catName.includes('campina')
+    ) {
+      return 'es_krim';
+    }
 
+    if (catName.includes('seblak')) {
+      return 'seblak';
+    }
+
+    if (catName.includes('minuman') || catName.includes('drink') || catName.includes('kopi') || catName.includes('teh')) {
+      return 'minuman';
+    }
+
+    if (catName.includes('snack') || catName.includes('camilan') || catName.includes('keripik')) {
+      return 'snack';
+    }
+
+    if (catName.includes('gorengan') || catName.includes('goreng') || catName.includes('jajan')) {
+      return 'gorengan';
+    }
+
+    if (catName.includes('makanan')) {
+      return 'snack';
+    }
+
+    if (catName.includes('atk') || catName.includes('tulis') || catName.includes('buku') || catName.includes('kertas')) {
+      return 'atk';
+    }
+
+    if (catName.includes('fotokopi') || catName.includes('copy') || catName.includes('fc')) {
+      return 'fotokopi';
+    }
+
+    if (catName.includes('print') || catName.includes('cetak')) {
+      return 'printing';
+    }
+
+    if (catName.includes('jasa') || catName.includes('desain') || catName.includes('ketik') || catName.includes('laminasi')) {
+      return 'jasa';
+    }
+  }
+
+  // ----------------------------------------------------
+  // PRIORITY 2: FALLBACK TO PRODUCT NAME KEYWORD MATCHING IF CATEGORY NAME IS UNASSIGNED/GENERIC
+  // ----------------------------------------------------
   const isEsKrimProduct =
     normPName.includes('es krim') ||
     normPName.includes('eskrim') ||
@@ -39,35 +81,37 @@ export const getProductCategoryBucket = (
     normPName.includes('mochi') ||
     normPName.includes('walls') ||
     normPName.includes('joyday') ||
-    normPName.includes('campina') ||
-    (normPName.includes('choco malt') && normPName.includes('aice')) ||
-    (normPName.includes('sweet corn') && normPName.includes('aice')) ||
-    (normPName.includes('miki miki') && normPName.includes('aice')) ||
-    (normPName.includes('semangka') && normPName.includes('aice')) ||
-    (normPName.includes('taro') && normPName.includes('aice')) ||
-    (normPName.includes('rock') && (normPName.includes('kul') || normPName.includes('aice')));
+    normPName.includes('campina');
 
-  if (isEsKrimCategory || isEsKrimProduct) {
-    return 'es_krim';
-  }
+  if (isEsKrimProduct) return 'es_krim';
 
-  // ----------------------------------------------------
-  // 1.5. SEBLAK ('seblak')
-  // ----------------------------------------------------
-  const isSeblakCategory = catName.includes('seblak');
-  const isSeblakProduct = normPName.includes('seblak');
+  if (normPName.includes('seblak')) return 'seblak';
 
-  if (isSeblakCategory || isSeblakProduct) {
-    return 'seblak';
-  }
+  const isMinumanProduct =
+    normPName.includes('minuman') ||
+    normPName.includes('es teh') ||
+    normPName.includes('kopi') ||
+    normPName.includes('teh manis') ||
+    normPName.includes('aquviva') ||
+    normPName.includes('air mineral') ||
+    normPName.includes('jus') ||
+    normPName.includes('boba') ||
+    normPName.includes('pop ice') ||
+    normPName.includes('nutrisari') ||
+    normPName.includes('good day') ||
+    normPName.includes('es chocolatos') ||
+    normPName.includes('es chocolato') ||
+    normPName.includes('es beng beng') ||
+    normPName.includes('es milo') ||
+    normPName.includes('es capcin') ||
+    normPName.includes('es jeruk') ||
+    normPName.includes('es cokelat') ||
+    normPName.includes('es coklat') ||
+    normPName.includes('es sirup') ||
+    normPName.includes('es susu') ||
+    normPName.includes('chocolatos es');
 
-  // ----------------------------------------------------
-  // 2. GORENGAN ('gorengan')
-  // ----------------------------------------------------
-  const isGorenganCategory =
-    catName.includes('gorengan') ||
-    catName.includes('goreng') ||
-    catName.includes('jajan');
+  if (isMinumanProduct) return 'minuman';
 
   const isGorenganProduct =
     normPName.includes('gorengan') ||
@@ -95,54 +139,7 @@ export const getProductCategoryBucket = (
     normPName.includes('crispy') ||
     normPName.includes('krispi');
 
-  if (isGorenganCategory || isGorenganProduct) {
-    return 'gorengan';
-  }
-
-  // ----------------------------------------------------
-  // 3. MINUMAN ('minuman')
-  // ----------------------------------------------------
-  const isMinumanCategory =
-    catName.includes('minuman') ||
-    catName.includes('drink') ||
-    catName.includes('kopi') ||
-    catName.includes('teh');
-
-  const isMinumanProduct =
-    normPName.includes('minuman') ||
-    normPName.includes('es teh') ||
-    normPName.includes('kopi') ||
-    normPName.includes('teh manis') ||
-    normPName.includes('aquviva') ||
-    normPName.includes('air mineral') ||
-    normPName.includes('jus') ||
-    normPName.includes('boba') ||
-    normPName.includes('pop ice') ||
-    normPName.includes('nutrisari') ||
-    normPName.includes('good day') ||
-    normPName.includes('es chocolatos') ||
-    normPName.includes('es chocolato') ||
-    normPName.includes('es beng beng') ||
-    normPName.includes('es milo') ||
-    normPName.includes('es capcin') ||
-    normPName.includes('es jeruk') ||
-    normPName.includes('es cokelat') ||
-    normPName.includes('es coklat') ||
-    normPName.includes('es sirup') ||
-    normPName.includes('es susu') ||
-    normPName.includes('chocolatos es');
-
-  if (isMinumanCategory || isMinumanProduct) {
-    return 'minuman';
-  }
-
-  // ----------------------------------------------------
-  // 4. SNACK ('snack')
-  // ----------------------------------------------------
-  const isSnackCategory =
-    catName.includes('snack') ||
-    catName.includes('camilan') ||
-    catName.includes('keripik');
+  if (isGorenganProduct) return 'gorengan';
 
   const isSnackProduct =
     normPName.includes('snack') ||
@@ -161,35 +158,15 @@ export const getProductCategoryBucket = (
     normPName.includes('tango') ||
     normPName.includes('roma');
 
-  if (isSnackCategory || isSnackProduct) {
-    return 'snack';
-  }
+  if (isSnackProduct) return 'snack';
 
-  // ----------------------------------------------------
-  // 5. FC / PRINTING CATEGORIES
-  // ----------------------------------------------------
   if (product.business_unit === 'FC_PRINT') {
-    const isAtkCategory = catName.includes('atk') || catName.includes('tulis') || catName.includes('buku') || catName.includes('kertas');
-    const isAtkProduct = normPName.includes('atk') || normPName.includes('pulpen') || normPName.includes('pensil') || normPName.includes('buku') || normPName.includes('kertas') || normPName.includes('hvs') || normPName.includes('penggaris') || normPName.includes('spidol') || normPName.includes('map') || normPName.includes('amplop');
-    if (isAtkCategory || isAtkProduct) return 'atk';
-
-    const isFotokopiCategory = catName.includes('fotokopi') || catName.includes('copy') || catName.includes('fc');
-    const isFotokopiProduct = normPName.includes('fotokopi') || normPName.includes('fotocopy') || normPName.includes('fc') || normPName.includes('copy');
-    if (isFotokopiCategory || isFotokopiProduct) return 'fotokopi';
-
-    const isPrintingCategory = catName.includes('print') || catName.includes('cetak');
-    const isPrintingProduct = normPName.includes('print') || normPName.includes('cetak') || normPName.includes('banner') || normPName.includes('stiker');
-    if (isPrintingCategory || isPrintingProduct) return 'printing';
-
-    const isJasaCategory = catName.includes('jasa') || catName.includes('desain') || catName.includes('ketik') || catName.includes('laminasi');
-    const isJasaProduct = normPName.includes('jasa') || normPName.includes('desain') || normPName.includes('ketik') || normPName.includes('laminasi') || normPName.includes('scan') || normPName.includes('stempel');
-    if (isJasaCategory || isJasaProduct) return 'jasa';
-
+    if (normPName.includes('atk') || normPName.includes('pulpen') || normPName.includes('pensil') || normPName.includes('buku') || normPName.includes('kertas')) return 'atk';
+    if (normPName.includes('fotokopi') || normPName.includes('fotocopy') || normPName.includes('fc') || normPName.includes('copy')) return 'fotokopi';
+    if (normPName.includes('print') || normPName.includes('cetak')) return 'printing';
+    if (normPName.includes('jasa') || normPName.includes('desain') || normPName.includes('ketik') || normPName.includes('laminasi')) return 'jasa';
     return 'dll_fc';
   }
 
-  // ----------------------------------------------------
-  // 6. DEFAULT FALLBACK FOR FNB: DLL / MAKANAN ('dll_makanan')
-  // ----------------------------------------------------
   return 'dll_makanan';
 };

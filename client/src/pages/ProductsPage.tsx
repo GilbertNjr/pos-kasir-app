@@ -178,7 +178,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
 
     try {
       setFormLoading(true);
-      await apiService.updateProduct(editProductId, {
+      const res = await apiService.updateProduct(editProductId, {
         product_name: editProductName,
         category_id: editCategoryId,
         business_unit: editBusinessUnit,
@@ -186,8 +186,10 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
         manage_stock: editManageStock,
       });
 
+      const beMessage = res?.message || `Perubahan untuk "${editProductName}" berhasil disimpan.`;
+
       if (onTriggerToast) {
-        onTriggerToast('success', 'Produk Diperbarui', `Perubahan untuk "${editProductName}" berhasil disimpan.`);
+        onTriggerToast('success', 'Produk Diperbarui', beMessage);
       }
 
       setShowEditModal(false);

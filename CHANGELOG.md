@@ -2,6 +2,20 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.8] - 2026-08-19 - Prioritas Utama Kategori Database & Server-Sent Notification API
+
+### 🌭 Prioritas Utama Kategori Database (`categoryUtils.ts`)
+- **Penyebab Produk SOSIS Bertahan di Gorengan:**
+  - Fungsi `categoryUtils.ts` sebelumnya mengecek kata kunci nama produk (`sosis` -> `gorengan`) sebelum mengecek kategori database. Sehingga saat pengguna mengedit produk "SOSIS" ke *"Snack & Camilan"*, sistem secara paksa mengarahkannya kembali ke kelompok `Gorengan`.
+- **Solusi Hierarki Prioritas:**
+  - Mengubah `categoryUtils.ts` agar **Prioritas 1** selalu memeriksa `catName` (kategori yang diset di database/pilihan user pada modal).
+  - Kata kunci nama produk hanya digunakan sebagai **Prioritas 2 (Fallback)** jika produk belum memiliki kategori.
+
+### 🔔 Server-Sent Notification & Exception Message (`ProductController.ts`, `api.ts`, `StockPage.tsx`, `ProductsPage.tsx`)
+- Memindahkan pembuatan pesan notifikasi toast sepenuhnya ke **Backend (BE)** melalui `ProductController.ts`.
+- Memperbarui `apiService.updateProduct` untuk mengembalikan pesan dari server (`res.message`) jika sukses, dan melempar pesan error server (`res.message || res.error`) jika terjadi kegagalan.
+- Frontend kini secara konsisten menampilkan pesan notifikasi resmi dari Backend untuk pengisian toast (*success* maupun *error/danger*).
+
 ## [v1.4.7] - 2026-08-19 - Perbaikan Sinkronisasi Koreksi Kategori/Bidang Produk & Notifikasi Informatif
 
 ### 🍹 Sinkronisasi Koreksi Kategori & Bidang Usaha (`StockPage.tsx`, `categoryUtils.ts`)

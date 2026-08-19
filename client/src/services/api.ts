@@ -319,7 +319,7 @@ export const apiService = {
     return result.data;
   },
 
-  async updateProduct(productId: string, productData: Partial<Product>): Promise<Product> {
+  async updateProduct(productId: string, productData: Partial<Product>): Promise<{ message?: string; data: Product }> {
     const token = this.getToken();
     const response = await fetch(`${API_BASE}/products/${productId}`, {
       method: 'PUT',
@@ -331,8 +331,13 @@ export const apiService = {
     });
 
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || 'Gagal memperbarui produk');
-    return result.data;
+    if (!response.ok) {
+      throw new Error(result.message || result.error || 'Gagal memperbarui produk');
+    }
+    return {
+      message: result.message,
+      data: result.data || result,
+    };
   },
 
   async deleteProduct(productId: string): Promise<boolean> {
