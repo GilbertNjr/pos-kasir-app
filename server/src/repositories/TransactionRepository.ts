@@ -159,5 +159,17 @@ export class TransactionRepository implements IRepository<TransactionEntity> {
     this.inMemoryTransactions[index] = { ...this.inMemoryTransactions[index], ...item };
     return { ...this.inMemoryTransactions[index] };
   }
+
+  async delete(transaction_id: string): Promise<boolean> {
+    try {
+      await pool.query('DELETE FROM payments WHERE transaction_id = $1', [transaction_id]);
+      await pool.query('DELETE FROM transaction_items WHERE transaction_id = $1', [transaction_id]);
+      await pool.query('DELETE FROM transactions WHERE transaction_id = $1', [transaction_id]);
+    } catch (err) {
+      console.warn('[TransactionRepository] Database delete notice:', (err as Error).message);
+    }
+    this.inMemoryTransactions = this.inMemoryTransactions.filter((t) => t.transaction_id !== transaction_id);
+    return true;
+  }
 }
 

@@ -183,16 +183,32 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
     try {
       setCancelLoading(true);
       if (confirmCancelTx.status === 'CANCELLED') {
-        // Already cancelled transaction: remove from historical list view
+        // Already cancelled transaction: perform permanent deletion on backend
+        await apiService.deleteTransaction(confirmCancelTx.transaction_id);
         setAllHistoricalTransactions((prev) =>
           prev.filter((t) => t.transaction_id !== confirmCancelTx.transaction_id)
         );
+        if (onTriggerToast) {
+          onTriggerToast(
+            'success',
+            'Transaksi Dihapus',
+            `Transaksi #${confirmCancelTx.transaction_number || confirmCancelTx.transaction_id} telah dihapus secara permanen dari sistem.`
+          );
+        }
         setToastMessage({
           type: 'success',
-          text: `Transaksi #${confirmCancelTx.transaction_number || confirmCancelTx.transaction_id} berhasil dihapus dari daftar.`,
+          text: `Transaksi #${confirmCancelTx.transaction_number || confirmCancelTx.transaction_id} berhasil dihapus secara permanen dari database.`,
         });
+        await loadSummary();
       } else {
         await apiService.cancelTransaction(confirmCancelTx.transaction_id);
+        if (onTriggerToast) {
+          onTriggerToast(
+            'success',
+            'Transaksi Dibatalkan',
+            `Transaksi #${confirmCancelTx.transaction_number || confirmCancelTx.transaction_id} berhasil dibatalkan dan stok dikembalikan.`
+          );
+        }
         setToastMessage({
           type: 'success',
           text: `Transaksi #${confirmCancelTx.transaction_number || confirmCancelTx.transaction_id} berhasil dibatalkan dan stok dikembalikan.`,
@@ -201,9 +217,12 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
       }
       setConfirmCancelTx(null);
     } catch (err: any) {
+      if (onTriggerToast) {
+        onTriggerToast('danger', 'Gagal Memproses', err.message || 'Gagal membatalkan/menghapus transaksi');
+      }
       setToastMessage({
         type: 'danger',
-        text: err.message || 'Gagal membatalkan transaksi',
+        text: err.message || 'Gagal membatalkan/menghapus transaksi',
       });
     } finally {
       setCancelLoading(false);

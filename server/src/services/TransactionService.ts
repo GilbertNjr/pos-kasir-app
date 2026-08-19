@@ -248,6 +248,25 @@ export class TransactionService {
     }
     return updatedTx!;
   }
+
+  async deleteTransaction(transaction_id: string): Promise<boolean> {
+    const tx = await this.transactionRepository.findById(transaction_id);
+    if (!tx) throw new Error('Transaksi tidak ditemukan.');
+
+    if (tx.status !== 'CANCELLED') {
+      const items = await this.itemRepository.findByTransactionId(transaction_id);
+      if (this.stockService && items) {
+        for (const item of items) {
+          await this.stockService.restoreStock(item.product_id, item.qty);
+        }
+      }
+    }
+
+    if (this.transactionRepository.delete) {
+      return await this.transactionRepository.delete(transaction_id);
+    }
+    return true;
+  }
 }
 
 export interface PaymentMethodStats {

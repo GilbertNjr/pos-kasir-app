@@ -80,4 +80,18 @@ export class TransactionController {
       return res.status(400).json({ error: error.message || 'Gagal membatalkan transaksi' });
     }
   };
+
+  public deleteTransaction = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+      await this.transactionService.deleteTransaction(id);
+      sseManager.broadcast('TRANSACTION_DELETED', {
+        transaction_id: id,
+        timestamp: new Date().toISOString(),
+      });
+      return res.status(200).json({ message: 'Transaksi berhasil dihapus secara permanen', data: true });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message || 'Gagal menghapus transaksi' });
+    }
+  };
 }

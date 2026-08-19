@@ -516,6 +516,18 @@ export const apiService = {
     return result.data;
   },
 
+  async deleteTransaction(transactionId: string): Promise<boolean> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/transactions/${transactionId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal menghapus transaksi dari database');
+    return true;
+  },
+
   /* EXPENSE API SERVICES */
   async createExpense(category: string, description: string, amount: number): Promise<Expense> {
     const token = this.getToken();

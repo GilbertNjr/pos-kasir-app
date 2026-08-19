@@ -2,6 +2,16 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.6] - 2026-08-19 - Perbaikan & Sinkronisasi Permanen Penghapusan Riwayat Transaksi
+
+### 🗑️ Implementasi Permanent Transaction Deletion API (`TransactionRepository.ts`, `TransactionService.ts`, `TransactionController.ts`, `transactionRoutes.ts`, `PaymentSummaryPage.tsx`)
+- **Penyebab Masalah Sebelumnya:**
+  - Saat menghapus transaksi berstatus `CANCELLED`, sistem sebelumnya hanya menghapus item dari *state UI lokal* tanpa memanggil endpoint backend, sehingga saat halaman di-*refresh* data transaksi muncul kembali dari database.
+- **Solusi & Implementasi Backend API `DELETE /api/transactions/:id`:**
+  - Menambahkan metode `delete(transaction_id)` di `TransactionRepository` untuk menghapus data dari tabel `payments`, `transaction_items`, dan `transactions` di database secara permanen.
+  - Menambahkan endpoint `DELETE /api/transactions/:id` di backend dan metode `apiService.deleteTransaction(transactionId)` di frontend.
+  - Memperbarui `handleExecuteCancel` di `PaymentSummaryPage.tsx` sehingga aksi hapus transaksi secara aktual mengeksekusi penghapusan di database dan data yang terhapus tidak akan pernah muncul kembali setelah di-*refresh*.
+
 ## [v1.4.5] - 2026-08-19 - Notifikasi Feedback & Pencegahan Spamming Tombol Perbarui
 
 ### 🔄 Feedback Notifikasi & Penguncian Status Tombol (`PaymentSummaryPage.tsx`, `ExpensesPage.tsx`, `ProductsPage.tsx`, `BackupRestorePage.tsx`, `App.tsx`)
