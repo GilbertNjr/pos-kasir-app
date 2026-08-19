@@ -22,6 +22,7 @@ import {
 import { apiService } from '../services/api';
 import { User, Category, Product } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
+import { getProductCategoryBucket } from '../utils/categoryUtils';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
 import { exportStockToExcel, printStockPDF } from '../utils/stockReportExporter';
 
@@ -450,27 +451,20 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
   // Helper Kategori
   const getItemCategory = (item: StockItem): string => {
-    const catName = (item.category_name || '').toLowerCase();
-    const name = item.product_name.toLowerCase();
+    const bucket = getProductCategoryBucket(
+      { product_name: item.product_name, business_unit: item.business_unit },
+      item.category_name || ''
+    );
 
-    // High Priority: Es Krim brands & keywords (Aice, Kul-kul, Walls, Joyday, Campina, etc.)
-    if (
-      catName.includes('es krim') || catName.includes('eskrim') || catName.includes('ice cream') ||
-      name.includes('es krim') || name.includes('eskrim') || name.includes('aice') ||
-      name.includes('kul kul') || name.includes('kul-kul') || name.includes('kulkul') || name.includes('kul_kul') ||
-      name.includes('walls') || name.includes('joyday') || name.includes('campina') || name.includes('glico') || name.includes('haku')
-    ) {
-      return 'Es Krim';
-    }
-
+    if (bucket === 'es_krim') return 'Es Krim';
+    if (bucket === 'gorengan') return 'Gorengan';
+    if (bucket === 'minuman') return 'Minuman';
     if (item.category_name) return item.category_name;
 
-    if (name.includes('gorengan') || name.includes('tempe') || name.includes('tahu')) return 'Gorengan';
-    if (name.includes('minuman') || name.includes('teh') || name.includes('kopi') || name.includes('es')) return 'Minuman';
-    if (name.includes('seblak')) return 'Seblak';
-    if (name.includes('snack') || name.includes('keripik') || name.includes('roti') || name.includes('makanan') || name.includes('lilit')) return 'Makanan & Snack';
-    if (name.includes('kertas') || name.includes('hvs') || name.includes('atk') || name.includes('pulpen')) return 'ATK & Persediaan';
-    if (name.includes('print') || name.includes('foto') || name.includes('copy') || name.includes('laminasi')) return 'Fotokopi & Print';
+    if (bucket === 'snack') return 'Makanan & Snack';
+    if (bucket === 'atk') return 'ATK & Persediaan';
+    if (bucket === 'fotokopi' || bucket === 'printing' || bucket === 'jasa') return 'Fotokopi & Print';
+
     return item.business_unit === 'FC_PRINT' ? 'ATK & Persediaan' : 'Makanan & Snack';
   };
 

@@ -3,6 +3,7 @@ import { ShoppingCart, Search, Plus, Minus, Trash2, CheckCircle, AlertCircle, Qr
 import { apiService, CreateTransactionResultData } from '../services/api';
 import { Product, User, PaymentMethod, Category } from '../types';
 import { formatRupiah } from '../utils/formatters';
+import { getProductCategoryBucket } from '../utils/categoryUtils';
 import { ActionLoadingModal } from './common/ActionLoadingModal';
 import { TransactionDetailModal } from './common/TransactionDetailModal';
 
@@ -316,54 +317,9 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     }
 
     if (selectedSubCategory !== 'ALL') {
-      const catName = (categoryMap.get(p.category_id) || '').toLowerCase();
-      const pName = p.product_name.toLowerCase();
-
-      if (selectedSubCategory === 'es_krim') {
-        const isMatch =
-          catName.includes('es krim') || catName.includes('eskrim') || catName.includes('ice') ||
-          pName.includes('es krim') || pName.includes('eskrim') || pName.includes('aice') ||
-          pName.includes('kul kul') || pName.includes('kul-kul') || pName.includes('kulkul') || pName.includes('kul_kul') ||
-          pName.includes('walls') || pName.includes('joyday') || pName.includes('campina') || pName.includes('ice');
-        if (!isMatch) return false;
-      } else if (selectedSubCategory === 'gorengan') {
-        const isMatch = catName.includes('gorengan') || pName.includes('gorengan') || pName.includes('tahu') || pName.includes('tempe') || pName.includes('pisang');
-        if (!isMatch) return false;
-      } else if (selectedSubCategory === 'snack') {
-        const isMatch = catName.includes('snack') || catName.includes('camilan') || pName.includes('chiki') || pName.includes('beng-beng') || pName.includes('choco') || pName.includes('coki') || pName.includes('wafel') || pName.includes('widaran') || pName.includes('zyluc') || pName.includes('duosus') || pName.includes('snack');
-        if (!isMatch) return false;
-      } else if (selectedSubCategory === 'minuman') {
-        const isMatch = catName.includes('minuman') || catName.includes('drink') || pName.includes('aquviva') || pName.includes('es teh') || pName.includes('kopi') || pName.includes('teh') || pName.includes('air') || pName.includes('jus');
-        if (!isMatch) return false;
-      } else if (selectedSubCategory === 'dll_makanan') {
-        const isEsKrim =
-          catName.includes('es krim') || catName.includes('eskrim') || catName.includes('ice') ||
-          pName.includes('es krim') || pName.includes('eskrim') || pName.includes('aice') ||
-          pName.includes('kul kul') || pName.includes('kul-kul') || pName.includes('kulkul') || pName.includes('kul_kul') ||
-          pName.includes('walls') || pName.includes('joyday') || pName.includes('campina');
-        const isGorengan = catName.includes('gorengan') || pName.includes('gorengan');
-        const isSnack = catName.includes('snack') || pName.includes('chiki') || pName.includes('beng-beng') || pName.includes('choco') || pName.includes('coki') || pName.includes('wafel') || pName.includes('widaran') || pName.includes('zyluc') || pName.includes('duosus');
-        const isMinuman = catName.includes('minuman') || pName.includes('aquviva') || pName.includes('es teh') || pName.includes('kopi');
-        if (isEsKrim || isGorengan || isSnack || isMinuman) return false;
-      } else if (selectedSubCategory === 'atk') {
-        const isMatch = catName.includes('atk') || pName.includes('pulpen') || pName.includes('buku') || pName.includes('pensil') || pName.includes('kertas');
-        if (!isMatch) return false;
-      } else if (selectedSubCategory === 'fotokopi') {
-        const isMatch = catName.includes('fotokopi') || catName.includes('copy') || pName.includes('fotokopi') || pName.includes('fc');
-        if (!isMatch) return false;
-      } else if (selectedSubCategory === 'printing') {
-        const isMatch = catName.includes('print') || catName.includes('cetak') || pName.includes('print');
-        if (!isMatch) return false;
-      } else if (selectedSubCategory === 'jasa') {
-        const isMatch = catName.includes('jasa') || catName.includes('desain') || catName.includes('ketik') || pName.includes('ketik') || pName.includes('desain') || pName.includes('laminasi');
-        if (!isMatch) return false;
-      } else if (selectedSubCategory === 'dll_fc') {
-        const isAtk = catName.includes('atk') || pName.includes('pulpen') || pName.includes('buku');
-        const isFc = catName.includes('fotokopi') || pName.includes('fotokopi');
-        const isPrint = catName.includes('print') || pName.includes('print');
-        const isJasa = catName.includes('jasa') || pName.includes('ketik') || pName.includes('desain');
-        if (isAtk || isFc || isPrint || isJasa) return false;
-      }
+      const catName = categoryMap.get(p.category_id) || '';
+      const bucket = getProductCategoryBucket(p, catName);
+      if (bucket !== selectedSubCategory) return false;
     }
 
     return true;

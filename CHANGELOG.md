@@ -2,6 +2,18 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.1] - 2026-08-19 - Perbaikan Filter Kategori Produk & Stok (Mutually Exclusive Categorization)
+
+### 🏷️ Perbaikan Filter Kategori Produk & Stok (`categoryUtils.ts`, `PosRegister.tsx`, `StockPage.tsx`)
+- **Penghilangan Tumpang Timbang (Overlap) Kategori Produk:**
+  - Membuat utility terpusat `getProductCategoryBucket` (`categoryUtils.ts`) sebagai *Single Source of Truth* untuk mengategorikan setiap produk ke **tepat 1 (satu) kategori eksklusif**.
+  - Mencegah produk es krim (seperti `CHOCO MALT (AICE)`, `ROCK (KUL - KUL)`, `FRUIT (KUL - KUL)`, `LOLIPOP (KUL - KUL)`, `LOLIPOP ES`) muncul di filter kategori lain seperti **Snack** atau **DLL / Makanan Utama**.
+- **Normalisasi Pencocokan Kata Kunci String:**
+  - Menangani variasi nama produk dengan spasi dan strip (misalnya `"KUL - KUL"` vs `"kul-kul"` vs `"kulkul"`) sehingga seluruh varian produk Es Krim terdeteksi 100% akurat.
+- **Pembersihan Logika Penyaringan POS & Stok:**
+  - Menggantikan logika filter percabangan 50 baris yang rentan tumpang tindih pada `PosRegister.tsx` dengan pencocokan bucket eksklusif.
+  - Memperbarui fungsi `getItemCategory` pada `StockPage.tsx` agar sinkron dengan pengelompokan POS.
+
 ## [v1.4.0] - 2026-08-19 - Backup & Restore Data Feature for Kasir & PJ
 
 ### 💾 Penambahan Fitur Backup & Restore Data Karyawan (`BackupRestorePage.tsx`, `CashierLayout.tsx`)
