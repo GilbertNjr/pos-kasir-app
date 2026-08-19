@@ -559,36 +559,37 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   const getItemCategory = (item: StockItem): string => {
     const rawCat = (item.category_name || '').toLowerCase().trim();
     const rawName = (item.product_name || '').toLowerCase().trim();
+    const normName = rawName.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ');
 
-    // 1. Explicit keyword matches on Category Name or Product Name
-    if (rawCat.includes('seblak') || rawName.includes('seblak')) return 'Seblak';
+    // 1. Explicit keyword matches on Category Name or Normalized Product Name
+    if (rawCat.includes('seblak') || normName.includes('seblak')) return 'Seblak';
 
     if (
       rawCat.includes('es krim') || rawCat.includes('eskrim') || rawCat.includes('ice cream') || rawCat.includes('aice') ||
-      rawName.includes('es krim') || rawName.includes('eskrim') || rawName.includes('ice cream') || rawName.includes('aice') ||
-      rawName.includes('kul-kul') || rawName.includes('kul kul') || rawName.includes('kulkul') || rawName.includes('sundae')
+      normName.includes('es krim') || normName.includes('eskrim') || normName.includes('ice cream') || normName.includes('aice') ||
+      normName.includes('kul kul') || normName.includes('kulkul') || normName.includes('lolipop') || normName.includes('sundae')
     ) {
       return 'Es Krim';
     }
 
     if (
       rawCat.includes('minuman') || rawCat.includes('kopi') || rawCat.includes('teh') || rawCat.includes('drink') ||
-      rawName.includes('minuman') || rawName.includes('es teh') || rawName.includes('kopi') || rawName.includes('jus') ||
-      rawName.includes('boba') || rawName.includes('pop ice') || rawName.includes('good day') || rawName.includes('chocolatos')
+      normName.includes('minuman') || normName.includes('es teh') || normName.includes('kopi') || normName.includes('jus') ||
+      normName.includes('boba') || normName.includes('pop ice') || normName.includes('good day') || normName.includes('chocolatos')
     ) {
       return 'Minuman';
     }
 
     if (
       rawCat.includes('gorengan') || rawCat.includes('goreng') ||
-      rawName.includes('gorengan') || rawName.includes('geprek') || rawName.includes('lilit')
+      normName.includes('gorengan') || normName.includes('geprek') || normName.includes('lilit')
     ) {
       return 'Gorengan';
     }
 
     if (
       rawCat.includes('snack') || rawCat.includes('camilan') || rawCat.includes('makanan') || rawCat.includes('keripik') ||
-      rawCat.includes('roti') || rawCat.includes('wafer') || rawCat.includes('sosis') || rawName.includes('sosis')
+      rawCat.includes('roti') || rawCat.includes('wafer') || rawCat.includes('sosis') || normName.includes('sosis')
     ) {
       return 'Makanan & Snack';
     }

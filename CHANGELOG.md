@@ -2,6 +2,16 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.12] - 2026-08-19 - Normalisasi Nama Produk Berspasi (Spasi-Tanda Hubung) Kategori Es Krim
+
+### 🍦 Normalisasi String Nama Produk (`StockPage.tsx`, `categoryUtils.ts`)
+- **Penyebab `LOLIPOP (KUL - KUL)` & `ROCK (KUL - KUL)` Sempat Tampil Sebagai `ATK & Persediaan`:**
+  - Nama produk di database ditulis dengan spasi di sekitar tanda hubung: `"LOLIPOP (KUL - KUL)"`.
+  - Pengecekan string sebelumnya hanya mencari `'kul-kul'` (tanpa spasi) atau `'kul kul'` (tanpa tanda hubung), sehingga string `"kul - kul"` tidak cocok dan jatuh ke fallback kategori ATK/FC.
+- **Solusi:**
+  - Mengimplementasikan normalisasi tanda hubung & spasi ganda (`normName = rawName.replace(/[-_]+/g, ' ').replace(/\s+/g, ' ')`) pada `getItemCategory`.
+  - Sekarang, `"LOLIPOP (KUL - KUL)"` dan `"ROCK (KUL - KUL)"` secara otomatis terdeteksi dan dikategorikan sebagai **`Es Krim`** tanpa perlu menghapus atau mengubah data produk di database.
+
 ## [v1.4.11] - 2026-08-19 - Perbaikan Filter Pill Sub-Kategori Live Kasir Register
 
 ### 🛒 Synchronized Live Kasir Categorization (`categoryUtils.ts`, `PosRegister.tsx`)
