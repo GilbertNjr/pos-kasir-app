@@ -2,7 +2,15 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
-## [v1.3.7] - 2026-08-19 - Enable Active Delete Button for All Transactions
+## [v1.4.0] - 2026-08-19 - Backup & Restore Data Feature for Kasir & PJ
+
+### 💾 Penambahan Fitur Backup & Restore Data Karyawan (`BackupRestorePage.tsx`, `CashierLayout.tsx`)
+- **Navigasi Sidebar Kasir & Penanggung Jawab (PJ):**
+  - Menambahkan menu **`Backup & Restore Data`** di sidebar Kasir (`CashierLayout.tsx`) dengan ikon `Database`.
+- **Aksesibilitas Halaman Backup & Restore:**
+  - Membuka hak akses halaman `BackupRestorePage.tsx` agar dapat digunakan secara penuh oleh Penanggung Jawab (PJ) maupun Kasir Operasional untuk mengunduh snapshot backup `.json`, merestore file backup, serta menyinkronkan data ke Google Sheets.
+- **Tombol Pintas di Header Shift Leader:**
+  - Menambahkan tombol hijau **`Backup & Restore`** pada header `ShiftLeaderDashboardPage.tsx` untuk akses cepat 1-klik oleh Penanggung Jawab Shift.
 
 ### 🛠️ Perbaikan Akses Tombol Hapus Transaksi (`PaymentSummaryPage.tsx`)
 - **Pengaktifan Tombol Hapus Merah Berfungsi 100%:**
