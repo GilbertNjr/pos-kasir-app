@@ -2,7 +2,15 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
-## [v1.3.5] - 2026-08-19 - Clean & Elegant Shift Header Card
+## [v1.3.6] - 2026-08-19 - Full Mobile Sidebar Drawer & Header Visibility Fix
+
+### 📱 Perbaikan Tampilan Sidebar Ponsel (`CashierLayout.tsx` & `OwnerSidebar.tsx`)
+- **Pemberian Kontras Judul Toko (`Toko Utama`):**
+  - Mengubah warna teks judul toko yang sebelumnya ter-hardcode `#ffffff` menjadi `var(--sidebar-text, #0f172a)` dinamis, sehingga teks **Toko Utama & Logo** langsung terlihat jelas dan tidak lagi samar/terpotong di tema terang maupun gelap.
+- **Header & Footer Pinned (Sticky) di Mobile Drawer:**
+  - Mengunci bagian **Header Brand (Top)** dan **Footer Profil User (Bottom)** dengan `position: sticky` dan `flexShrink: 0`, sehingga header toko & profil user **selalu muncul utuh 100% (tidak pernah terpotong ke atas/bawah)** saat menu di-scroll.
+- **Dynamic Viewport Height (`100dvh`):**
+  - Menggunakan `100dvh` pada laci sidebar ponsel untuk mencegah masalah terpotong akibat address bar/browser chrome pada Android & iOS.
 
 ### 🎨 Pembersihan Kartu Header Shift (`ShiftLeaderDashboardPage.tsx`)
 - **Pembersihan Teks Deskripsi Panjang:**
