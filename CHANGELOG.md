@@ -2,7 +2,16 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
-## [v1.3.3] - 2026-08-19 - Clean Header Card & Responsive Payment Action Buttons
+## [v1.3.4] - 2026-08-19 - Soft-Red Delete Button & Clean Simple Confirmation Prompt
+
+### 🎨 Tombol Hapus Transaksi & Modal Peringatan Simpel (`PaymentSummaryPage.tsx`)
+- **Desain Tombol Hapus Ikonik Soft-Red (`.btn-action-delete`):**
+  - Mengubah tombol hapus tabel transaksi menjadi tombol kotak melengkung berwarna merah lembut (*soft-red rounded badge*) dengan ikon tempat sampah (`Trash2`) persis sesuai referensi desain.
+- **Modal Peringatan Hapus Super Clean & Simpel:**
+  - Menggantikan modal konfirmasi lama yang rumit dengan dialog konfirmasi yang **clean, modern, dan langsung pada titiknya**:
+    - Header judul tegas: **`Hapus Transaksi?`**
+    - Subteks ringkas yang menampilkan nomor transaksi & nominal total.
+    - 2 Tombol aksi simetris (`Batal` & `Ya, Hapus`).
 
 ### 🎨 Pembersihan Teks Header & Layout Tombol Aksi (`PaymentSummaryPage.tsx`)
 - **Pembersihan Teks Subtitle:**
