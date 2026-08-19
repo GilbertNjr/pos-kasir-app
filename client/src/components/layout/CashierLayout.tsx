@@ -45,25 +45,31 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
   const sidebarContent = (
     <div
       style={{
-        width: '260px',
+        width: '275px',
         background: 'var(--sidebar-bg, #ffffff)',
         transition: 'background 0.3s ease',
-        color: '#1e293b',
+        color: 'var(--sidebar-text, #0f172a)',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
+        maxHeight: '100dvh',
         borderRight: '1px solid var(--sidebar-border, #e5e7eb)',
+        overflow: 'hidden',
       }}
     >
-      {/* Brand Header (Fixed at Top, Never Cut Off) */}
+      {/* Brand Header (Sticky at Top, Dynamic Contrast Text) */}
       <div
         style={{
-          padding: '1.5rem 1.25rem 1.15rem 1.25rem',
+          padding: '1.25rem 1.15rem',
           borderBottom: '1px solid var(--sidebar-border, #e5e7eb)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           flexShrink: 0,
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          background: 'var(--sidebar-bg, #ffffff)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0, width: '100%' }}>
@@ -93,7 +99,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               style={{
                 fontSize: '1.05rem',
                 fontWeight: 800,
-                color: '#ffffff',
+                color: 'var(--sidebar-text, #0f172a)',
                 margin: 0,
                 lineHeight: 1.3,
                 letterSpacing: '-0.02em',
@@ -125,7 +131,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
         {isMobileOpen && (
           <button
             onClick={() => setIsMobileOpen(false)}
-            style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '0.35rem', flexShrink: 0 }}
+            style={{ background: 'none', border: 'none', color: 'var(--sidebar-subtext, #64748b)', cursor: 'pointer', padding: '0.35rem', flexShrink: 0 }}
           >
             <X size={20} />
           </button>
@@ -538,9 +544,12 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
           top: 0,
           left: 0,
           bottom: 0,
-          zIndex: 100,
+          height: '100dvh',
+          maxHeight: '100dvh',
+          zIndex: 1000,
           transform: isMobileOpen ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.3s ease',
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: isMobileOpen ? '4px 0 24px rgba(0, 0, 0, 0.25)' : 'none',
         }}
       >
         {sidebarContent}

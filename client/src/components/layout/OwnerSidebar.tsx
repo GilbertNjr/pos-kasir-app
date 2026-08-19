@@ -55,22 +55,28 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
+        maxHeight: '100dvh',
         background: 'var(--sidebar-bg, #ffffff)',
-        color: '#1e293b',
-        width: '260px',
+        color: 'var(--sidebar-text, #0f172a)',
+        width: '275px',
         borderRight: '1px solid var(--sidebar-border, #e5e7eb)',
         transition: 'background 0.3s ease',
+        overflow: 'hidden',
       }}
     >
       {/* Brand Logo & Store Name */}
       <div
         style={{
-          padding: '1.5rem 1.25rem 1.15rem 1.25rem',
+          padding: '1.25rem 1.15rem',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           borderBottom: '1px solid var(--sidebar-border, #e5e7eb)',
           flexShrink: 0,
+          position: 'sticky',
+          top: 0,
+          zIndex: 10,
+          background: 'var(--sidebar-bg, #ffffff)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0, width: '100%' }}>
@@ -106,7 +112,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 letterSpacing: '-0.02em',
                 margin: 0,
                 lineHeight: 1.3,
-                color: '#ffffff',
+                color: 'var(--sidebar-text, #0f172a)',
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
@@ -340,9 +346,12 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
           top: 0,
           left: 0,
           bottom: 0,
-          zIndex: 100,
+          height: '100dvh',
+          maxHeight: '100dvh',
+          zIndex: 1000,
           transform: isOpenMobile ? 'translateX(0)' : 'translateX(-100%)',
-          transition: 'transform 0.3s ease',
+          transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+          boxShadow: isOpenMobile ? '4px 0 24px rgba(0, 0, 0, 0.25)' : 'none',
         }}
       >
         {sidebarContent}
