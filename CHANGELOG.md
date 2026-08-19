@@ -2,7 +2,13 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
-## [v1.3.4] - 2026-08-19 - Soft-Red Delete Button & Clean Simple Confirmation Prompt
+## [v1.3.5] - 2026-08-19 - Clean & Elegant Shift Header Card
+
+### 🎨 Pembersihan Kartu Header Shift (`ShiftLeaderDashboardPage.tsx`)
+- **Pembersihan Teks Deskripsi Panjang:**
+  - Menghapus teks subtitle deskripsi yang tidak penting (`Pantau aktivitas kasir aktif, kehadiran pegawai...`) agar kartu header tampil **super clean, modern, & lapang**.
+- **Desain Kartu Sleek dengan Badge Ikon:**
+  - Membungkus header ke dalam kartu modern (`payment-header-card`) yang dilengkapi ikon indikator aktivitas (`Activity`), serta menata tombol **`Export Data`** di posisi kanan secara responsif di semua perangkat.
 
 ### 🎨 Tombol Hapus Transaksi & Modal Peringatan Simpel (`PaymentSummaryPage.tsx`)
 - **Desain Tombol Hapus Ikonik Soft-Red (`.btn-action-delete`):**
