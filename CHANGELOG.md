@@ -2,7 +2,14 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
-## [v1.3.6] - 2026-08-19 - Full Mobile Sidebar Drawer & Header Visibility Fix
+## [v1.3.7] - 2026-08-19 - Enable Active Delete Button for All Transactions
+
+### 🛠️ Perbaikan Akses Tombol Hapus Transaksi (`PaymentSummaryPage.tsx`)
+- **Pengaktifan Tombol Hapus Merah Berfungsi 100%:**
+  - Menghapus kondisi pembatasan tombol mati (*disabled/grayed out*) pada tabel riwayat transaksi.
+  - Sekarang **seluruh baris transaksi** (baik transaksi aktif maupun transaksi sebelumnya) memiliki **tombol hapus ikon merah (`.btn-action-delete`) yang 100% aktif dan dapat di-klik oleh pegawai/kasir**.
+- **Penanganan Hapus Transaksi yang Lebih Cerdas:**
+  - Menyesuaikan fungsi pembatalan agar pegawai dapat mengklik tombol hapus untuk membatalkan transaksi aktif (sekaligus mengembalikan stok) atau menghapus transaksi dari daftar riwayat secara langsung.
 
 ### 📱 Perbaikan Tampilan Sidebar Ponsel (`CashierLayout.tsx` & `OwnerSidebar.tsx`)
 - **Pemberian Kontras Judul Toko (`Toko Utama`):**
