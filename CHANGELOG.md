@@ -2,6 +2,17 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.10] - 2026-08-19 - Perbaikan Komprehensif Filter Dropdown Kategori Stok Produk
+
+### 🍲 Perbaikan Pencarian & Matching Kategori Produk (`StockPage.tsx`)
+- **Penyebab Produk Hilang Saat Filter Kategori Dipilih:**
+  - Fungsi `getItemCategory` sebelumnya mengembalikan nama kategori dari DB secara mentah (`item.category_name` seperti *"Makanan Utama"* atau *"Snack & Camilan"*).
+  - Ketika filter dropdown memilih *"Makanan & Snack"*, *"Seblak"*, atau *"Es Krim"*, perbandingan string `cat !== selectedCategory` mengevaluasi `"Makanan Utama" !== "Makanan & Snack"` sebagai `true`, yang secara keliru menyaring keluar (menghilangkan) seluruh 57 produk.
+- **Solusi & Penguatan Logic Filtering:**
+  - Mengatur `getItemCategory` agar secara cerdas memetakan nama kategori database dan keyword nama produk (misal: "Seblak", "Es Krim", "Kul-Kul", "Aice", "Sosis", "Chocolatos") ke dalam nama filter baku yang sesuai.
+  - Memperbarui `filteredStocks` agar mencocokkan secara fleksibel (*fuzzy match*): mencakup Kategori Baku, Kategori Database Mentah, ID Kategori, serta kata kunci nama produk.
+  - Sekarang, saat memilih kategori **Seblak**, **Es Krim**, **Makanan & Snack**, **Minuman**, **Gorengan**, **ATK**, atau **Fotokopi**, seluruh produk terkait muncul dengan sempurna dari total 57 item.
+
 ## [v1.4.9] - 2026-08-19 - Perbaikan Real-time Realignment & Audit Log Fallback Foreign Key
 
 ### 📦 Perbaikan Real-Time "Pergerakan Stok Terbaru" (`StockPage.tsx`, `AuditLogRepository.ts`, `StockController.ts`, `ProductController.ts`)

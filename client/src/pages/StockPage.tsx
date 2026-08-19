@@ -558,12 +558,50 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   // Helper Kategori
   const getItemCategory = (item: StockItem): string => {
     const rawCat = (item.category_name || '').toLowerCase().trim();
+    const rawName = (item.product_name || '').toLowerCase().trim();
 
-    if (rawCat.includes('gorengan') || rawCat.includes('goreng')) return 'Gorengan';
-    if (rawCat.includes('seblak')) return 'Seblak';
-    if (rawCat.includes('es krim') || rawCat.includes('eskrim') || rawCat.includes('ice cream') || rawCat.includes('aice')) return 'Es Krim';
-    if (rawCat.includes('minuman') || rawCat.includes('kopi') || rawCat.includes('teh')) return 'Minuman';
+    // 1. Explicit keyword matches on Category Name or Product Name
+    if (rawCat.includes('seblak') || rawName.includes('seblak')) return 'Seblak';
 
+    if (
+      rawCat.includes('es krim') || rawCat.includes('eskrim') || rawCat.includes('ice cream') || rawCat.includes('aice') ||
+      rawName.includes('es krim') || rawName.includes('eskrim') || rawName.includes('ice cream') || rawName.includes('aice') ||
+      rawName.includes('kul-kul') || rawName.includes('kul kul') || rawName.includes('kulkul') || rawName.includes('sundae')
+    ) {
+      return 'Es Krim';
+    }
+
+    if (
+      rawCat.includes('minuman') || rawCat.includes('kopi') || rawCat.includes('teh') || rawCat.includes('drink') ||
+      rawName.includes('minuman') || rawName.includes('es teh') || rawName.includes('kopi') || rawName.includes('jus') ||
+      rawName.includes('boba') || rawName.includes('pop ice') || rawName.includes('good day') || rawName.includes('chocolatos')
+    ) {
+      return 'Minuman';
+    }
+
+    if (
+      rawCat.includes('gorengan') || rawCat.includes('goreng') ||
+      rawName.includes('gorengan') || rawName.includes('geprek') || rawName.includes('lilit')
+    ) {
+      return 'Gorengan';
+    }
+
+    if (
+      rawCat.includes('snack') || rawCat.includes('camilan') || rawCat.includes('makanan') || rawCat.includes('keripik') ||
+      rawCat.includes('roti') || rawCat.includes('wafer') || rawCat.includes('sosis') || rawName.includes('sosis')
+    ) {
+      return 'Makanan & Snack';
+    }
+
+    if (rawCat.includes('atk') || rawCat.includes('tulis') || rawCat.includes('buku') || rawCat.includes('kertas')) {
+      return 'ATK & Persediaan';
+    }
+
+    if (rawCat.includes('fotokopi') || rawCat.includes('print') || rawCat.includes('cetak') || rawCat.includes('jasa') || rawCat.includes('fc')) {
+      return 'Fotokopi & Print';
+    }
+
+    // 2. Standardized Category Bucket Fallback
     const bucket = getProductCategoryBucket(
       { product_name: item.product_name, business_unit: item.business_unit },
       item.category_name || ''
@@ -573,11 +611,12 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     if (bucket === 'seblak') return 'Seblak';
     if (bucket === 'gorengan') return 'Gorengan';
     if (bucket === 'minuman') return 'Minuman';
-    if (item.category_name) return item.category_name;
-
     if (bucket === 'snack') return 'Makanan & Snack';
     if (bucket === 'atk') return 'ATK & Persediaan';
     if (bucket === 'fotokopi' || bucket === 'printing' || bucket === 'jasa') return 'Fotokopi & Print';
+
+    // 3. Fallback to raw DB category name if present, or business unit default
+    if (item.category_name) return item.category_name;
 
     return item.business_unit === 'FC_PRINT' ? 'ATK & Persediaan' : 'Makanan & Snack';
   };
@@ -655,8 +694,23 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       } else if (selectedCategory === 'FNB') {
         if (item.business_unit !== 'FNB') return false;
       } else {
-        const cat = getItemCategory(item);
-        if (cat !== selectedCategory) return false;
+        const itemCat = getItemCategory(item);
+        const itemCatNorm = itemCat.toLowerCase().trim();
+        const selectedNorm = selectedCategory.toLowerCase().trim();
+        const rawCatName = (item.category_name || '').toLowerCase().trim();
+        const rawPName = item.product_name.toLowerCase().trim();
+
+        const matches =
+          itemCatNorm === selectedNorm ||
+          rawCatName === selectedNorm ||
+          item.category_id === selectedCategory ||
+          (selectedNorm.includes('seblak') && (itemCatNorm.includes('seblak') || rawCatName.includes('seblak') || rawPName.includes('seblak'))) ||
+          (selectedNorm.includes('es krim') && (itemCatNorm.includes('es krim') || itemCatNorm.includes('eskrim') || rawCatName.includes('es krim') || rawPName.includes('kul') || rawPName.includes('aice'))) ||
+          (selectedNorm.includes('makanan') && (itemCatNorm.includes('makanan') || itemCatNorm.includes('snack') || rawCatName.includes('makanan') || rawCatName.includes('snack') || rawCatName.includes('camilan'))) ||
+          (selectedNorm.includes('minuman') && (itemCatNorm.includes('minuman') || rawCatName.includes('minuman') || rawCatName.includes('kopi') || rawCatName.includes('teh') || rawPName.includes('teh') || rawPName.includes('chocolatos'))) ||
+          (selectedNorm.includes('gorengan') && (itemCatNorm.includes('gorengan') || rawCatName.includes('gorengan') || rawCatName.includes('goreng')));
+
+        if (!matches) return false;
       }
     }
 
