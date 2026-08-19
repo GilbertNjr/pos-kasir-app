@@ -57,6 +57,10 @@ export const getCategoryForProduct = (item: StockItem): string => {
     return 'ATK & PRINTING';
   }
 
+  if (name.includes('seblak') || cat.includes('seblak')) {
+    return 'SEBLAK';
+  }
+
   return 'JAJAN & GORENGAN';
 };
 
@@ -81,12 +85,13 @@ const getShortProductName = (productName: string): string => {
 };
 
 export const exportStockToExcel = (stockList: StockItem[], _stockAuditLogs: any[] = [], storeName = 'KEDAI KOPI SENJA & PRINTING') => {
-  const categories = ['ICE CREAM', 'JAJAN & GORENGAN', 'MINUMAN', 'ATK & PRINTING'];
+  const categories = ['ICE CREAM', 'SEBLAK', 'JAJAN & GORENGAN', 'MINUMAN', 'ATK & PRINTING'];
   const todayDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   // Group items by category
   const categorizedMap: Record<string, StockItem[]> = {
     'ICE CREAM': [],
+    'SEBLAK': [],
     'JAJAN & GORENGAN': [],
     'MINUMAN': [],
     'ATK & PRINTING': [],
@@ -307,11 +312,12 @@ export const exportStockToExcel = (stockList: StockItem[], _stockAuditLogs: any[
 
 // 2. PRINT STOCK REPORT PDF - FORMAT GAMBAR #2
 export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [], storeName = 'KEDAI KOPI SENJA & PRINTING') => {
-  const categories = ['ICE CREAM', 'JAJAN & GORENGAN', 'MINUMAN', 'ATK & PRINTING'];
+  const categories = ['ICE CREAM', 'SEBLAK', 'JAJAN & GORENGAN', 'MINUMAN', 'ATK & PRINTING'];
   const todayDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
   const categorizedMap: Record<string, StockItem[]> = {
     'ICE CREAM': [],
+    'SEBLAK': [],
     'JAJAN & GORENGAN': [],
     'MINUMAN': [],
     'ATK & PRINTING': [],

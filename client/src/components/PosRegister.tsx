@@ -277,6 +277,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       return [
         { id: 'ALL', name: 'Semua F&B', emoji: '🍽️' },
         { id: 'es_krim', name: 'Es Krim', emoji: '🍦' },
+        { id: 'seblak', name: 'Seblak', emoji: '🍲' },
         { id: 'gorengan', name: 'Gorengan', emoji: '🥟' },
         { id: 'snack', name: 'Snack', emoji: '🍿' },
         { id: 'minuman', name: 'Minuman', emoji: '🥤' },
@@ -295,6 +296,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       return [
         { id: 'ALL', name: 'Semua Item', emoji: '✨' },
         { id: 'es_krim', name: 'Es Krim', emoji: '🍦' },
+        { id: 'seblak', name: 'Seblak', emoji: '🍲' },
         { id: 'gorengan', name: 'Gorengan', emoji: '🥟' },
         { id: 'snack', name: 'Snack', emoji: '🍿' },
         { id: 'minuman', name: 'Minuman', emoji: '🥤' },

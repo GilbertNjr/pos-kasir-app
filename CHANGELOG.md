@@ -2,6 +2,18 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.4.3] - 2026-08-19 - Penambahan Pengelompokan & Filter Kategori Seblak
+
+### 🍲 Dukungan Kategori Eksklusif Seblak (`categoryUtils.ts`, `StockPage.tsx`, `PosRegister.tsx`, `stockReportExporter.ts`)
+- **Bucket Classification Seblak (`categoryUtils.ts`):**
+  - Mengintegrasikan pengecekan kata kunci `seblak` ke dalam `getProductCategoryBucket` sehingga seluruh varian produk Seblak (`SEBLAK PAKET 1`, `SEBLAK PAKET 2`, `SEBLAK PAKET 3`, `SEBLAK PAKET 4`, dll) secara otomatis dikategorikan ke dalam bucket `'seblak'`.
+- **Pemetaan Filter Halaman Stok (`StockPage.tsx`):**
+  - Menambahkan pengkondisian `bucket === 'seblak'` pada fungsi `getItemCategory` agar saat filter dropdown **Seblak** dipilih, seluruh produk Seblak tampil lengkap dengan data stok fisik dan statusnya.
+- **Pill Filter POS Kasir (`PosRegister.tsx`):**
+  - Menambahkan tombol filter cepat **Seblak** (🍲) pada toolbar kasir F&B untuk memudahkan pemilihan produk saat transaksi.
+- **Laporan Laporan PDF & Excel (`stockReportExporter.ts`):**
+  - Mengikutsertakan lembar kerja/section khusus **SEBLAK** pada laporan ekspor Excel dan cetak PDF monitoring stok.
+
 ## [v1.4.2] - 2026-08-19 - Perbaikan Bug Freeze & Lag Pasca-Cetak Laporan / Export PDF
 
 ### 🖨️ Pengisolasian Thread & Auto-Close Pop-Up Cetak (`shiftReportExporter.ts`, `stockReportExporter.ts`, `PaymentSummaryPage.tsx`, `OwnerTransactionsPage.tsx`, `TransactionDetailModal.tsx`)

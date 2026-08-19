@@ -52,6 +52,16 @@ export const getProductCategoryBucket = (
   }
 
   // ----------------------------------------------------
+  // 1.5. SEBLAK ('seblak')
+  // ----------------------------------------------------
+  const isSeblakCategory = catName.includes('seblak');
+  const isSeblakProduct = normPName.includes('seblak');
+
+  if (isSeblakCategory || isSeblakProduct) {
+    return 'seblak';
+  }
+
+  // ----------------------------------------------------
   // 2. GORENGAN ('gorengan')
   // ----------------------------------------------------
   const isGorenganCategory = catName.includes('gorengan');

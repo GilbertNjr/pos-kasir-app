@@ -457,6 +457,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     );
 
     if (bucket === 'es_krim') return 'Es Krim';
+    if (bucket === 'seblak') return 'Seblak';
     if (bucket === 'gorengan') return 'Gorengan';
     if (bucket === 'minuman') return 'Minuman';
     if (item.category_name) return item.category_name;
