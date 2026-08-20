@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, ShieldCheck, UserCheck, Power, X } from 'lucide-react';
+import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, ShieldCheck, UserCheck, Power, X, Edit3 } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
@@ -32,16 +32,14 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Enhanced Form State Buka Shift Baru (Default Empty "")
+  // Form State Buka Shift Baru (Custom Name & Empty Modal Default)
   const [openInitialCash, setOpenInitialCash] = useState<number | string>('');
-  const [shiftNameOption, setShiftNameOption] = useState<string>('Shift Pagi (08:00 - 16:00)');
   const [customShiftName, setCustomShiftName] = useState<string>('');
   const [shiftDateInput, setShiftDateInput] = useState<string>(getTodayDateString());
   const [shiftTimeInput, setShiftTimeInput] = useState<string>(getCurrentTimeString());
-  const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
   const [openLoading, setOpenLoading] = useState(false);
 
-  // Form State Setor Modal Tambahan (Default Empty "")
+  // Form State Setor Modal Tambahan
   const [addCapitalAmount, setAddCapitalAmount] = useState<number | string>('');
   const [capitalLoading, setCapitalLoading] = useState(false);
 
@@ -49,6 +47,10 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [actualPhysicalCash, setActualPhysicalCash] = useState<number | string>('');
   const [closeLoading, setCloseLoading] = useState(false);
+
+  // Modal State Edit Shift Sesi Aktif
+  const [showEditShiftModal, setShowEditShiftModal] = useState(false);
+  const [editShiftNameInput, setEditShiftNameInput] = useState<string>('');
 
   // Status Setelah Tutup Shift (Rincian Return Capital)
   const [closedShiftResult, setClosedShiftResult] = useState<ActiveShiftDetailsData | null>(null);
@@ -58,18 +60,9 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     apiService.getUsers().then((res) => {
       if (Array.isArray(res)) {
         setAllUsers(res);
-        if (selectedStaffIds.length === 0 && currentUser?.user_id) {
-          setSelectedStaffIds([currentUser.user_id]);
-        }
       }
     }).catch(() => {});
-  }, [currentUser]);
-
-  const toggleStaffSelection = (userId: string) => {
-    setSelectedStaffIds((prev) =>
-      prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
-    );
-  };
+  }, []);
 
   const getUserDisplayName = (userId?: string) => {
     if (!userId) return '-';
@@ -172,18 +165,18 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       setOpenLoading(true);
       setError(null);
 
-      const finalShiftName = shiftNameOption === 'CUSTOM' ? (customShiftName || 'Shift Operasional Custom') : shiftNameOption;
+      const finalShiftName = customShiftName.trim() || `Shift Operasional (${currentUser.full_name})`;
       const initialCashNum = Number(openInitialCash) || 0;
 
       const data = await apiService.openShift(initialCashNum);
 
       if (data?.shift?.shift_id) {
-        const dutyStaffNames = selectedStaffIds.map((id) => getUserDisplayName(id));
+        const staffList = finalShiftName.split(',').map((s) => s.trim()).filter(Boolean);
         const meta = {
           shiftName: finalShiftName,
           date: shiftDateInput,
           time: shiftTimeInput,
-          dutyStaffNames: dutyStaffNames.length > 0 ? dutyStaffNames : [currentUser.full_name],
+          dutyStaffNames: staffList.length > 0 ? staffList : [currentUser.full_name],
           initialCash: initialCashNum,
         };
         localStorage.setItem(`pos_shift_meta_${data.shift.shift_id}`, JSON.stringify(meta));
@@ -271,6 +264,29 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     }
   };
 
+  const handleUpdateShiftMetaSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeShiftData?.shift?.shift_id) return;
+    const shiftId = activeShiftData.shift.shift_id;
+    let storedMeta: any = {};
+    try {
+      const raw = localStorage.getItem(`pos_shift_meta_${shiftId}`);
+      if (raw) storedMeta = JSON.parse(raw);
+    } catch {}
+
+    const newShiftName = editShiftNameInput.trim() || `Shift Operasional (#${shiftId.slice(-6)})`;
+    const newStaffList = newShiftName.split(',').map((s) => s.trim()).filter(Boolean);
+
+    const updatedMeta = {
+      ...storedMeta,
+      shiftName: newShiftName,
+      dutyStaffNames: newStaffList.length > 0 ? newStaffList : [currentUser.full_name],
+    };
+    localStorage.setItem(`pos_shift_meta_${shiftId}`, JSON.stringify(updatedMeta));
+    setShowEditShiftModal(false);
+    loadShift();
+  };
+
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Memuat status sesi shift...</div>;
   }
@@ -318,6 +334,29 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => {
+                setEditShiftNameInput(storedMeta?.shiftName || shiftTitle);
+                setShowEditShiftModal(true);
+              }}
+              style={{
+                padding: '0.55rem 1rem',
+                background: '#4f46e5',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
+              }}
+            >
+              <Edit3 size={16} />
+              Edit Sesi & Tim
+            </button>
             <button
               onClick={handlePrintShiftPDF}
               style={{
@@ -655,6 +694,128 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             </div>
           </div>
         )}
+
+        {/* MODAL EDIT NAMA SESI & TIM BERTUGAS */}
+        {showEditShiftModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem',
+            }}
+          >
+            <div
+              style={{
+                background: '#ffffff',
+                borderRadius: '20px',
+                maxWidth: '480px',
+                width: '100%',
+                padding: '1.75rem',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+                position: 'relative',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowEditShiftModal(false)}
+                style={{
+                  position: 'absolute',
+                  top: '1.25rem',
+                  right: '1.25rem',
+                  background: '#f1f5f9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                }}
+              >
+                <X size={18} />
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#e0e7ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Edit3 size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    ✏️ Edit Sesi & Tim Shift Aktif
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
+                    Tambah atau perbarui nama pegawai yang bertugas di shift ini.
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleUpdateShiftMetaSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.35rem', color: '#0f172a' }}>
+                    🏷️ Nama Sesi & Pegawai Bertugas:
+                  </label>
+                  <input
+                    type="text"
+                    value={editShiftNameInput}
+                    onChange={(e) => setEditShiftNameInput(e.target.value)}
+                    placeholder="Contoh: Sayang, Dela, Amanda"
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '2px solid #4f46e5', fontSize: '0.95rem', fontWeight: 700, outline: 'none' }}
+                    required
+                  />
+                  <span style={{ display: 'block', marginTop: '0.35rem', fontSize: '0.75rem', color: '#64748b' }}>
+                    * Gunakan koma untuk menambah pegawai baru yang menyusul/terlambat.
+                  </span>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowEditShiftModal(false)}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      color: '#475569',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    style={{
+                      flex: 1.5,
+                      padding: '0.75rem',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: '#4f46e5',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
+                    }}
+                  >
+                    Simpan Perubahan
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -729,7 +890,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             Manajemen Sesi Shift & Modal Awal
           </h2>
           <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>
-            Model Shared Cash Drawer dengan Registrasi Sesi, Jam Custom, Staff On-Duty & Modal Kas Awal
+            Registrasi Sesi Shift, Custom Nama Tim Staff, Jam Masuk & Uang Kas Modal Laci
           </p>
         </div>
       </div>
@@ -805,9 +966,9 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         </div>
       )}
 
-      {/* FORM LENGKAP BUKA SHIFT BARU */}
-      <div style={{ maxWidth: '640px', margin: '0 auto', padding: '2rem', background: '#ffffff', borderRadius: '24px', border: '1px solid #cbd5e1', boxShadow: '0 12px 36px rgba(15, 23, 42, 0.08)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1.25rem' }}>
+      {/* FORM CLEAN BUKA SHIFT BARU */}
+      <div style={{ maxWidth: '600px', margin: '0 auto', padding: '2rem', background: '#ffffff', borderRadius: '24px', border: '1px solid #cbd5e1', boxShadow: '0 12px 36px rgba(15, 23, 42, 0.08)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '1.5rem' }}>
           <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: '#ecfdf5', color: '#047857', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <PlayCircle size={32} />
           </div>
@@ -816,61 +977,33 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               Registrasi & Buka Sesi Shift Baru
             </h3>
             <p style={{ fontSize: '0.825rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
-              Lengkapi detail sesi shift, nama shift, jam masuk, staff bertugas, dan modal kas awal.
+              Masukkan nama sesi shift / nama tim bertugas, jam masuk, dan modal kas awal.
             </p>
           </div>
         </div>
 
         <form onSubmit={handleOpenShift} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
 
-          {/* 1. NAMA / SESI SHIFT */}
+          {/* 1. NAMA SESI SHIFT / TIM BERTUGAS */}
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, marginBottom: '0.4rem', color: '#0f172a' }}>
-              🏷️ Nama / Sesi Shift:
+              🏷️ Nama Sesi & Tim Pegawai Bertugas:
             </label>
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '0.5rem' }}>
-              {[
-                'Shift Pagi (08:00 - 16:00)',
-                'Shift Siang (12:00 - 20:00)',
-                'Shift Malam (16:00 - 24:00)',
-                'Shift Full Day',
-                'CUSTOM',
-              ].map((opt) => (
-                <button
-                  type="button"
-                  key={opt}
-                  onClick={() => setShiftNameOption(opt)}
-                  style={{
-                    padding: '0.45rem 0.75rem',
-                    borderRadius: '10px',
-                    border: shiftNameOption === opt ? '2px solid #4f46e5' : '1px solid #cbd5e1',
-                    background: shiftNameOption === opt ? '#eff6ff' : '#ffffff',
-                    color: shiftNameOption === opt ? '#1d4ed8' : '#334155',
-                    fontSize: '0.8rem',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {opt === 'CUSTOM' ? '✏️ Kustom Nama' : opt}
-                </button>
-              ))}
-            </div>
-
-            {shiftNameOption === 'CUSTOM' && (
-              <input
-                type="text"
-                value={customShiftName}
-                onChange={(e) => setCustomShiftName(e.target.value)}
-                placeholder="Contoh: Shift Event Khusus / Fast Shift"
-                style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1.5px solid #4f46e5', fontSize: '0.9rem', fontWeight: 700 }}
-                required
-              />
-            )}
+            <input
+              type="text"
+              value={customShiftName}
+              onChange={(e) => setCustomShiftName(e.target.value)}
+              placeholder="Contoh: Sayang, Dela, Amanda"
+              style={{ width: '100%', padding: '0.75rem 0.9rem', borderRadius: '12px', border: '2px solid #4f46e5', fontSize: '1rem', fontWeight: 700, color: '#0f172a', outline: 'none' }}
+              required
+            />
+            <span style={{ display: 'block', marginTop: '0.35rem', fontSize: '0.75rem', color: '#64748b' }}>
+              * Masukkan nama pegawai bertugas dipisahkan dengan koma (contoh: Sayang, Dela, Amanda).
+            </span>
           </div>
 
-          {/* 2. TANGGAL & JAM MULAI SHIFT (CUSTOM TIME & TODAY DATE) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+          {/* 2. TANGGAL & JAM MULAI SHIFT */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
             <div>
               <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, marginBottom: '0.4rem', color: '#0f172a' }}>
                 📅 Tanggal Shift (Mengikuti Tgl):
@@ -898,37 +1031,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             </div>
           </div>
 
-          {/* 3. PEGAWAI / KASIR ON-DUTY SHIFT INI */}
-          <div>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, marginBottom: '0.4rem', color: '#0f172a' }}>
-              👥 Pegawai / Staff On-Duty (Nama Shift):
-            </label>
-            <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: '160px', overflowY: 'auto' }}>
-              {allUsers.length === 0 ? (
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Memuat daftar pegawai...</span>
-              ) : (
-                allUsers.map((u) => {
-                  const isChecked = selectedStaffIds.includes(u.user_id);
-                  return (
-                    <label key={u.user_id} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', fontSize: '0.85rem', fontWeight: 700, color: '#1e293b', cursor: 'pointer' }}>
-                      <input
-                        type="checkbox"
-                        checked={isChecked}
-                        onChange={() => toggleStaffSelection(u.user_id)}
-                        style={{ width: '16px', height: '16px', accentColor: '#4f46e5', cursor: 'pointer' }}
-                      />
-                      <span>{u.full_name} ({u.role})</span>
-                      {u.user_id === currentUser.user_id && (
-                        <span style={{ fontSize: '0.7rem', color: '#4f46e5', background: '#e0e7ff', padding: '0.1rem 0.4rem', borderRadius: '6px' }}>Saya (Pembuka)</span>
-                      )}
-                    </label>
-                  );
-                })
-              )}
-            </div>
-          </div>
-
-          {/* 4. NOMINAL UANG MODAL KAS AWAL */}
+          {/* 3. NOMINAL UANG MODAL KAS AWAL */}
           <div>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, marginBottom: '0.4rem', color: '#0f172a' }}>
               💵 Nominal Uang Modal Kas Awal (Rp):
@@ -937,7 +1040,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               type="number"
               value={openInitialCash}
               onChange={(e) => setOpenInitialCash(e.target.value === '' ? '' : Number(e.target.value))}
-              style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', border: '2px solid #4f46e5', background: '#ffffff', fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', outline: 'none' }}
+              style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', border: '2px solid #059669', background: '#ffffff', fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', outline: 'none' }}
               min={0}
               step={5000}
               required
@@ -954,9 +1057,9 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   style={{
                     padding: '0.35rem 0.65rem',
                     borderRadius: '8px',
-                    border: openInitialCash === amt ? '1.5px solid #4f46e5' : '1px solid #cbd5e1',
-                    background: openInitialCash === amt ? '#eff6ff' : '#ffffff',
-                    color: openInitialCash === amt ? '#1d4ed8' : '#334155',
+                    border: openInitialCash === amt ? '1.5px solid #059669' : '1px solid #cbd5e1',
+                    background: openInitialCash === amt ? '#ecfdf5' : '#ffffff',
+                    color: openInitialCash === amt ? '#047857' : '#334155',
                     fontSize: '0.75rem',
                     fontWeight: 800,
                     cursor: 'pointer',
