@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, ShieldCheck, UserCheck } from 'lucide-react';
+import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, ShieldCheck, UserCheck, Power, X } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
@@ -32,8 +32,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Enhanced Form State Buka Shift Baru
-  const [openInitialCash, setOpenInitialCash] = useState<number | string>(50000);
+  // Enhanced Form State Buka Shift Baru (Default Empty "")
+  const [openInitialCash, setOpenInitialCash] = useState<number | string>('');
   const [shiftNameOption, setShiftNameOption] = useState<string>('Shift Pagi (08:00 - 16:00)');
   const [customShiftName, setCustomShiftName] = useState<string>('');
   const [shiftDateInput, setShiftDateInput] = useState<string>(getTodayDateString());
@@ -41,9 +41,14 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   const [selectedStaffIds, setSelectedStaffIds] = useState<string[]>([]);
   const [openLoading, setOpenLoading] = useState(false);
 
-  // Form State Setor Modal Tambahan
-  const [addCapitalAmount, setAddCapitalAmount] = useState<number | string>(50000);
+  // Form State Setor Modal Tambahan (Default Empty "")
+  const [addCapitalAmount, setAddCapitalAmount] = useState<number | string>('');
   const [capitalLoading, setCapitalLoading] = useState(false);
+
+  // Form & Modal State Tutup Shift
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [actualPhysicalCash, setActualPhysicalCash] = useState<number | string>('');
+  const [closeLoading, setCloseLoading] = useState(false);
 
   // Status Setelah Tutup Shift (Rincian Return Capital)
   const [closedShiftResult, setClosedShiftResult] = useState<ActiveShiftDetailsData | null>(null);
@@ -235,6 +240,37 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     }
   };
 
+  const handleCloseShiftSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activeShiftData?.shift?.shift_id) return;
+    try {
+      setCloseLoading(true);
+      setError(null);
+      const physicalCashNum = actualPhysicalCash === '' ? activeShiftData.shift.theoretical_cash : Number(actualPhysicalCash);
+      const closedShift = await apiService.closeShift(activeShiftData.shift.shift_id, physicalCashNum);
+
+      // Clean up session activation & cache
+      sessionStorage.removeItem(`pos_shift_activated_${currentUser.user_id}`);
+      localStorage.removeItem('pos_cached_active_shift');
+
+      setClosedShiftResult({
+        shift: closedShift,
+        contributions: activeShiftData.contributions,
+        shift_users: activeShiftData.shift_users,
+        usersCount: activeShiftData.usersCount || activeShiftData.contributions.length,
+      });
+
+      setShowCloseModal(false);
+      setActiveShiftData(null);
+      await loadShift();
+      if (onShiftStatusChange) onShiftStatusChange();
+    } catch (err: any) {
+      setError(err.message || 'Gagal menutup shift');
+    } finally {
+      setCloseLoading(false);
+    }
+  };
+
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Memuat status sesi shift...</div>;
   }
@@ -321,6 +357,29 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             >
               <FileSpreadsheet size={16} />
               Export Excel Shift
+            </button>
+            <button
+              onClick={() => {
+                setActualPhysicalCash(shift.theoretical_cash);
+                setShowCloseModal(true);
+              }}
+              style={{
+                padding: '0.55rem 1rem',
+                background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
+              }}
+            >
+              <Power size={16} />
+              🛑 Tutup Shift Sekarang
             </button>
           </div>
         </div>
@@ -435,6 +494,167 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             </form>
           </div>
         </div>
+
+        {/* MODAL / REKONSILIASI TUTUP SHIFT */}
+        {showCloseModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.65)',
+              backdropFilter: 'blur(4px)',
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem',
+            }}
+          >
+            <div
+              style={{
+                background: '#ffffff',
+                borderRadius: '20px',
+                maxWidth: '520px',
+                width: '100%',
+                padding: '1.75rem',
+                boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
+                position: 'relative',
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => setShowCloseModal(false)}
+                style={{
+                  position: 'absolute',
+                  top: '1.25rem',
+                  right: '1.25rem',
+                  background: '#f1f5f9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#64748b',
+                }}
+              >
+                <X size={18} />
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Power size={24} />
+                </div>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                    🛑 Tutup Shift & Rekonsiliasi Kas Laci
+                  </h3>
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
+                    Selesaikan sesi shift #{shift.shift_id.slice(-6)} dan hitung uang fisik di laci kas.
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.25rem', fontSize: '0.85rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', color: '#475569' }}>
+                  <span>Modal Kas Awal:</span>
+                  <strong style={{ color: '#4f46e5' }}>{formatRupiah(shift.total_initial_cash)}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', color: '#475569' }}>
+                  <span>Penjualan Tunai Shift:</span>
+                  <strong style={{ color: '#059669' }}>+ {formatRupiah(shift.net_cash_sales)}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', color: '#475569' }}>
+                  <span>Pengeluaran Kas Shift:</span>
+                  <strong style={{ color: '#dc2626' }}>- {formatRupiah(shift.total_cash_expenses)}</strong>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #cbd5e1', paddingTop: '0.5rem', marginTop: '0.5rem', fontWeight: 800 }}>
+                  <span style={{ color: '#0f172a' }}>Kas Teoritis (Uang Fisik Seharusnya):</span>
+                  <strong style={{ color: '#5b21b6', fontSize: '1rem' }}>{formatRupiah(shift.theoretical_cash)}</strong>
+                </div>
+              </div>
+
+              <form onSubmit={handleCloseShiftSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, marginBottom: '0.35rem', color: '#0f172a' }}>
+                    Hitung Uang Fisik Real di Laci (Rp):
+                  </label>
+                  <input
+                    type="number"
+                    value={actualPhysicalCash}
+                    onChange={(e) => setActualPhysicalCash(e.target.value === '' ? '' : Number(e.target.value))}
+                    style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '2px solid #dc2626', fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', outline: 'none' }}
+                    min={0}
+                    required
+                  />
+
+                  {/* Selisih Indicator */}
+                  {actualPhysicalCash !== '' && (
+                    <div style={{ marginTop: '0.55rem', fontSize: '0.8rem', fontWeight: 700 }}>
+                      {Number(actualPhysicalCash) - shift.theoretical_cash === 0 ? (
+                        <span style={{ color: '#059669', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '0.25rem 0.65rem', borderRadius: '8px' }}>✓ Uang Pas / Balanced (Tidak ada selisih)</span>
+                      ) : Number(actualPhysicalCash) - shift.theoretical_cash > 0 ? (
+                        <span style={{ color: '#0284c7', background: '#f0f9ff', border: '1px solid #bae6fd', padding: '0.25rem 0.65rem', borderRadius: '8px' }}>
+                          + {formatRupiah(Number(actualPhysicalCash) - shift.theoretical_cash)} (Surplus / Kas Lebih)
+                        </span>
+                      ) : (
+                        <span style={{ color: '#dc2626', background: '#fef2f2', border: '1px solid #fecaca', padding: '0.25rem 0.65rem', borderRadius: '8px' }}>
+                          - {formatRupiah(Math.abs(Number(actualPhysicalCash) - shift.theoretical_cash))} (Defisit / Kas Kurang)
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                  <button
+                    type="button"
+                    onClick={() => setShowCloseModal(false)}
+                    style={{
+                      flex: 1,
+                      padding: '0.75rem',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      color: '#475569',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={closeLoading}
+                    style={{
+                      flex: 1.5,
+                      padding: '0.75rem',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                      color: '#ffffff',
+                      fontWeight: 800,
+                      cursor: closeLoading ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '0.4rem',
+                      boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
+                    }}
+                  >
+                    <Power size={18} />
+                    {closeLoading ? 'Menutup Shift...' : '🛑 Ya, Tutup Shift Resmi'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
