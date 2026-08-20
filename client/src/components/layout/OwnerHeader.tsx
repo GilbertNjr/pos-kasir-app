@@ -58,8 +58,9 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
           <h1 style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.25rem)', fontWeight: 800, color: '#0f172a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             Selamat datang, {currentUser.full_name}
           </h1>
-          <p style={{ fontSize: '0.725rem', color: '#64748b', margin: '0.15rem 0 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {formatWaktuIndo(new Date().toISOString())} • POS Realtime
+          <p style={{ fontSize: '0.725rem', color: '#64748b', margin: '0.15rem 0 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+            <span>{formatWaktuIndo(new Date().toISOString())} • POS Realtime</span>
+            <span style={{ padding: '0.05rem 0.35rem', borderRadius: '4px', background: 'rgba(37,99,235,0.1)', color: '#2563eb', fontWeight: 800, fontSize: '0.65rem' }}>v1.2.0</span>
           </p>
         </div>
       </div>

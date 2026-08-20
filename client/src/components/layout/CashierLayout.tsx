@@ -111,21 +111,34 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             >
               {storeName || 'Pos Kasir'}
             </h2>
-            <span
-              style={{
-                fontSize: '0.75rem',
-                color: 'var(--sidebar-subtext, #64748b)',
-                fontWeight: 700,
-                lineHeight: 1.3,
-                marginTop: '0.15rem',
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                display: 'block',
-              }}
-            >
-              {isShiftLeader ? 'PJ Terminal Leader' : 'Kasir Operasional'}
-            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.15rem' }}>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  color: 'var(--sidebar-subtext, #64748b)',
+                  fontWeight: 700,
+                  lineHeight: 1.3,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                }}
+              >
+                {isShiftLeader ? 'PJ Terminal Leader' : 'Kasir Operasional'}
+              </span>
+              <span
+                style={{
+                  padding: '0.1rem 0.4rem',
+                  borderRadius: '6px',
+                  background: 'rgba(37,99,235,0.12)',
+                  color: '#2563eb',
+                  fontSize: '0.625rem',
+                  fontWeight: 900,
+                  border: '1px solid rgba(37,99,235,0.2)',
+                }}
+              >
+                v1.2.0
+              </span>
+            </div>
           </div>
         </div>
 
@@ -531,6 +544,10 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
           <LogOut size={16} />
           Log Out Sesi Kasir
         </button>
+
+        <div style={{ fontSize: '0.675rem', fontWeight: 800, color: 'var(--sidebar-subtext, #94a3b8)', textAlign: 'center', marginTop: '0.6rem', letterSpacing: '0.03em' }}>
+          POS Kasir App • <span style={{ color: '#2563eb' }}>v1.2.0</span>
+        </div>
       </div>
     </div>
   );

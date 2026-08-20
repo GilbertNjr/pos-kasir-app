@@ -101,11 +101,11 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     try {
       setLoading(true);
       setError(null);
-      const [stocksData, catsData, prodsData, auditLogsData] = await Promise.all([
+      const [stocksData, catsData, prodsData, stockMovementsData] = await Promise.all([
         apiService.getStocks(),
         apiService.getCategories(),
         apiService.getProducts(),
-        apiService.getAuditLogs().catch(() => []),
+        apiService.getStockMovements().catch(() => []),
       ]);
 
       // Merge selling price & category info from products into stocks
@@ -138,28 +138,37 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         setNewCategoryId(catsData[0].category_id);
       }
 
-      // Process real-time stock movements from audit logs
-      if (auditLogsData && auditLogsData.length > 0) {
-        const relevantLogs = auditLogsData
+      // Process real-time stock movements from backend stock log endpoint
+      if (stockMovementsData && stockMovementsData.length > 0) {
+        const relevantLogs = stockMovementsData
           .filter((l: any) =>
-            l.action.includes('STOCK') ||
-            l.action.includes('TRANSACTION') ||
-            l.action.includes('PRODUCT')
+            l.action &&
+            (l.action.includes('STOCK') ||
+              l.action.includes('TRANSACTION') ||
+              l.action.includes('PRODUCT'))
           )
-          .slice(0, 8)
+          .slice(0, 10)
           .map((l: any) => {
-            const isNeg = l.details.includes('-') || l.action.includes('DELETE') || l.action.includes('TRANSACTION');
-            const matchQty = l.details.match(/([+-]\d+)/);
-            const qtyStr = matchQty ? `${matchQty[0]} Pcs` : isNeg ? '-1 Pcs' : '+1 Pcs';
+            const isDelete = l.action.includes('DELETE') || l.details?.includes('Penghapusan');
+            const isProdUpdate = l.action.includes('PRODUCT_UPDATE') || (l.details?.includes('diperbarui') && !l.details?.includes('+'));
+            const isTransaction = l.action.includes('TRANSACTION');
+            const isNeg = isDelete || isTransaction || l.details?.includes('-');
+            const matchQty = l.details ? l.details.match(/([+-]\d+)/) : null;
+            
+            let qtyStr = matchQty ? `${matchQty[0]} Pcs` : isDelete ? '-1 Pcs' : isProdUpdate ? '0 Pcs' : isNeg ? '-1 Pcs' : '+1 Pcs';
             
             let typeLabel = 'Koreksi Stok';
-            if (l.action.includes('TRANSACTION')) {
+            if (isTransaction) {
               typeLabel = 'Penjualan POS';
-            } else if (l.action.includes('PRODUCT')) {
+            } else if (isDelete) {
+              typeLabel = 'Hapus Produk';
+            } else if (isProdUpdate) {
+              typeLabel = 'Koreksi Detail';
+            } else if (l.details?.includes('Produk Baru') || l.details?.includes('Penambahan Produk')) {
               typeLabel = 'Produk Baru';
-            } else if (l.details.includes('+')) {
+            } else if (l.details?.includes('+')) {
               typeLabel = 'Restock / Masuk';
-            } else if (l.details.includes('-')) {
+            } else if (l.details?.includes('-')) {
               typeLabel = 'Pengurangan';
             }
 
@@ -727,9 +736,6 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   const outOfStockCount = stocks.filter((s) => s.current_stock === 0).length;
   const safeStockCount = stocks.filter((s) => s.current_stock >= 5).length;
 
-  const alertStocks = React.useMemo(() => {
-    return stocks.filter((s) => s.current_stock < 5).slice(0, 5);
-  }, [stocks]);
   const totalValuation = stocks.reduce((acc, s) => acc + (s.current_stock * (s.selling_price || 0)), 0);
 
   // Auto reset pagination page when filters change
@@ -1769,8 +1775,8 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             )}
           </div>
 
-          {/* B. BOTTOM ROW: PERGERAKAN STOK TERBARU & PERINGATAN STOK */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.25rem' }}>
+          {/* B. BOTTOM ROW: PERGERAKAN STOK TERBARU */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {/* CARD 1: PERGERAKAN STOK TERBARU */}
             <div style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '1.35rem', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '1rem' }}>
               <div>
@@ -1828,67 +1834,6 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                   style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                 >
                   Lihat Semua Pergerakan →
-                </button>
-              </div>
-            </div>
-
-            {/* CARD 2: PERINGATAN STOK */}
-            <div style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '1.35rem', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '1rem' }}>
-              <div>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 1rem 0' }}>
-                  Peringatan Stok
-                </h3>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                  {stocks.length === 0 ? (
-                    <div style={{ color: '#64748b', fontSize: '0.825rem', textAlign: 'center', padding: '1.5rem 0' }}>
-                      Belum ada produk terdaftar di database
-                    </div>
-                  ) : alertStocks.length === 0 ? (
-                    <div style={{ color: '#64748b', fontSize: '0.825rem', textAlign: 'center', padding: '1.5rem 0' }}>
-                      🟢 Semua stok produk dalam kondisi aman
-                    </div>
-                  ) : (
-                    alertStocks.map((item) => {
-                      const isZero = item.current_stock === 0;
-                      return (
-                        <div key={item.stock_id || item.product_id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.6rem 0.75rem', borderRadius: '12px', background: isZero ? '#fef2f2' : '#fffbeb', border: `1px solid ${isZero ? '#fecaca' : '#fde68a'}` }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                            <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: isZero ? '#ef4444' : '#f59e0b', color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '0.75rem' }}>
-                              {isZero ? '!' : '⚠️'}
-                            </div>
-                            <div>
-                              <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.825rem' }}>{item.product_name}</div>
-                              <div style={{ fontSize: '0.725rem', color: isZero ? '#dc2626' : '#b45309', fontWeight: 600 }}>
-                                {isZero ? 'Stok habis' : `Stok menipis (${item.current_stock} pcs)`}
-                              </div>
-                            </div>
-                          </div>
-
-                          <button
-                            onClick={() => {
-                              if (onTriggerToast) onTriggerToast('success', 'Purchase Order', `Draft PO untuk "${item.product_name}" berhasil dibuat.`);
-                            }}
-                            style={{ padding: '0.35rem 0.75rem', borderRadius: '8px', border: '1px solid #dbeafe', background: '#eff6ff', color: '#2563eb', fontWeight: 800, fontSize: '0.75rem', cursor: 'pointer' }}
-                          >
-                            Buat PO
-                          </button>
-                        </div>
-                      );
-                    })
-                  )}
-                </div>
-              </div>
-
-              <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem' }}>
-                <button
-                  onClick={() => {
-                    setFilterStatus('LOW');
-                    if (onTriggerToast) onTriggerToast('info', 'Filter Stok', 'Menampilkan produk stok menipis & habis');
-                  }}
-                  style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                >
-                  Lihat Semua Peringatan →
                 </button>
               </div>
             </div>

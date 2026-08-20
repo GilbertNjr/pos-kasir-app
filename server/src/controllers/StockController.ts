@@ -21,6 +21,22 @@ export class StockController {
     }
   };
 
+  public getStockMovements = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const logs = await auditLogRepository.findAll();
+      const stockLogs = (logs || []).filter(
+        (l: any) =>
+          l.action &&
+          (l.action.includes('STOCK') ||
+            l.action.includes('PRODUCT') ||
+            l.action.includes('TRANSACTION'))
+      );
+      return res.status(200).json({ data: stockLogs });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message || 'Gagal mengambil data pergerakan stok' });
+    }
+  };
+
   public updateStock = async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { product_id, current_stock, stock_gudang, stock_etalase, notes } = req.body;

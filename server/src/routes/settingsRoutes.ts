@@ -5,9 +5,7 @@ import { requireOwner } from '../middlewares/rbacMiddleware';
 
 const router = Router();
 
-router.use(authMiddleware);
-
 router.get('/', settingsController.getSettings);
-router.put('/', requireOwner, settingsController.updateSettings);
+router.put('/', authMiddleware, requireOwner, settingsController.updateSettings);
 
 export default router;

@@ -120,7 +120,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
             >
               {storeName || 'Pos Kasir'}
             </h2>
-            <div style={{ marginTop: '0.2rem', display: 'flex', alignItems: 'center' }}>
+            <div style={{ marginTop: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
               <span
                 style={{
                   display: 'inline-flex',
@@ -139,6 +139,19 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 }}
               >
                 <Crown size={10} color="#ffffff" /> PEMILIK TOKO
+              </span>
+              <span
+                style={{
+                  padding: '0.1rem 0.4rem',
+                  borderRadius: '6px',
+                  background: 'rgba(37,99,235,0.12)',
+                  color: '#2563eb',
+                  fontSize: '0.625rem',
+                  fontWeight: 900,
+                  border: '1px solid rgba(37,99,235,0.2)',
+                }}
+              >
+                v1.2.0
               </span>
             </div>
           </div>
@@ -305,6 +318,10 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
           <LogOut size={16} />
           Keluar
         </button>
+
+        <div style={{ fontSize: '0.675rem', fontWeight: 800, color: 'var(--sidebar-subtext, #94a3b8)', textAlign: 'center', marginTop: '0.6rem', letterSpacing: '0.03em' }}>
+          POS Kasir App • <span style={{ color: '#2563eb' }}>v1.2.0</span>
+        </div>
       </div>
     </div>
   );

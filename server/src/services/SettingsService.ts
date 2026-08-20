@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { UserRepository } from '../repositories/UserRepository';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const SETTINGS_FILE_PATH = path.join(DATA_DIR, 'system_settings.json');
@@ -181,6 +182,18 @@ class SettingsService {
         ...this.settings.store_profile,
         ...newSettings.store_profile,
       };
+
+      if (newSettings.store_profile.owner_name) {
+        try {
+          const userRepo = new UserRepository();
+          const owners = await userRepo.findWhere((u) => u.role === 'OWNER');
+          for (const owner of owners) {
+            await userRepo.update(owner.user_id, { full_name: newSettings.store_profile.owner_name });
+          }
+        } catch (err: any) {
+          console.warn('[SettingsService] Notice: Failed to sync owner full_name to UserRepository:', err.message);
+        }
+      }
     }
 
     if (newSettings.theme_settings) {

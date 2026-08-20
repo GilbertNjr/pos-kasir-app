@@ -682,6 +682,17 @@ export const apiService = {
     return result.data;
   },
 
+  async getStockMovements(): Promise<any[]> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/stocks/movements`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) return [];
+    return result.data || [];
+  },
+
   /* GOOGLE SHEETS INTEGRATION API SERVICES */
   async getGoogleSheetsStatus(): Promise<{ is_connected: boolean; spreadsheet_id: string }> {
     const token = this.getToken();
@@ -709,9 +720,11 @@ export const apiService = {
   /* SYSTEM SETTINGS API SERVICES */
   async getSettings(): Promise<any> {
     const token = this.getToken();
-    const response = await fetch(`${API_BASE}/settings`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    const response = await fetch(`${API_BASE}/settings`, { headers });
 
     const text = await response.text();
     let result: any;

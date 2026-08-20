@@ -119,9 +119,7 @@ export const App: React.FC = () => {
     }
   };
 
-  // Initial Settings Load & SSE Settings Synchronizer
-  useEffect(() => {
-    // Fetch initial settings to hydrate active theme & store profile
+  const refreshSettingsAndTheme = () => {
     apiService
       .getSettings()
       .then((s) => {
@@ -149,6 +147,11 @@ export const App: React.FC = () => {
       .catch(() => {
         applyGlobalTheme('dark_slate');
       });
+  };
+
+  // Initial Settings Load & SSE Settings Synchronizer
+  useEffect(() => {
+    refreshSettingsAndTheme();
 
     // Realtime EventSource SSE listener for settings & theme changes
     const sse = new EventSource('/api/events');
@@ -180,26 +183,7 @@ export const App: React.FC = () => {
           addToast('info', 'Tema Sistem Diperbarui', 'Pemilik toko baru saja mengubah preferensi/warna tema secara real-time.');
         }
       } catch {
-        apiService.getSettings().then((s) => {
-          if (s?.store_profile) {
-            const updated = {
-              name: s.store_profile.name || 'KEZHO',
-              ownerName: s.store_profile.owner_name || 'Ahmat Gebyar Gumelar',
-              logoUrl: s.store_profile.logo_url || '',
-            };
-            setStoreProfile(updated);
-            try {
-              localStorage.setItem('pos_store_profile', JSON.stringify(updated));
-            } catch {}
-
-            if (s.store_profile.owner_name) {
-              setCurrentUser((prev) => (prev && prev.role === 'OWNER' ? { ...prev, full_name: s.store_profile.owner_name } : prev));
-            }
-          }
-          if (s?.theme_settings?.theme_color) {
-            applyGlobalTheme(s.theme_settings.theme_color, s.theme_settings.sidebar_color, s.theme_settings.dashboard_bg);
-          }
-        });
+        refreshSettingsAndTheme();
       }
     });
 
@@ -249,6 +233,7 @@ export const App: React.FC = () => {
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
     loadActiveShift();
+    refreshSettingsAndTheme();
     const roleLabel =
       user.role === 'OWNER'
         ? 'Owner'

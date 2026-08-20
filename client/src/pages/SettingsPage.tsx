@@ -1010,29 +1010,6 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
                 </button>
               </div>
 
-              {/* Toggle 2: Peringatan Stok Minimum */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>Peringatan Stok Minimum</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b' }}>Menampilkan badge peringatan & highlight jika stok produk ≤ 5</div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setLowStockAlert(!lowStockAlert)}
-                  style={{
-                    width: '46px',
-                    height: '24px',
-                    borderRadius: '12px',
-                    background: lowStockAlert ? 'var(--color-primary)' : '#cbd5e1',
-                    border: 'none',
-                    position: 'relative',
-                    cursor: 'pointer',
-                    transition: 'background 0.2s ease',
-                  }}
-                >
-                  <span style={{ width: '18px', height: '18px', borderRadius: '50%', background: '#fff', position: 'absolute', top: '3px', left: lowStockAlert ? '25px' : '3px', transition: 'left 0.2s ease' }} />
-                </button>
-              </div>
 
               {/* Toggle 3: Nota Otomatis */}
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

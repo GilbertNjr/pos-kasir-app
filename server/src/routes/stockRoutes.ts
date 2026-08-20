@@ -11,6 +11,7 @@ const stockController = new StockController(stockService);
 
 // Authenticated Stock Management Routes
 router.get('/', authMiddleware, stockController.getStocks);
+router.get('/movements', authMiddleware, stockController.getStockMovements);
 router.post('/update', authMiddleware, stockController.updateStock);
 
 export default router;

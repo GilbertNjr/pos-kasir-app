@@ -111,26 +111,6 @@ export const NotificationPopover: React.FC = () => {
         // Audit log fallback
       }
 
-      // 2. Fetch Low Stock Warnings
-      try {
-        const stocks = await apiService.getStocks();
-        if (stocks && Array.isArray(stocks)) {
-          stocks
-            .filter((s: any) => s.current_stock !== undefined && s.current_stock <= 5)
-            .forEach((s: any) => {
-              items.unshift({
-                id: `stock-${s.product_id}`,
-                title: 'Peringatan Stok Menipis!',
-                message: `Stok produk "${s.product_name || s.name || 'Barang'}" tersisa ${s.current_stock} unit. Segera isi ulang stok.`,
-                type: 'stock',
-                timestamp: new Date(),
-                read: false,
-              });
-            });
-        }
-      } catch {
-        // Stock fallback
-      }
 
       // Default system status if no logs exist
       if (items.length === 0) {

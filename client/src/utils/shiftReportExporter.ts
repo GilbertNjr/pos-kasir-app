@@ -10,6 +10,8 @@ export interface ShiftReportExportOptions {
   expenses: any[];
 }
 
+const extractBaseName = (name: string) => name.replace(/\s*\([^)]*\)/g, '').trim();
+
 export const formatDutyUsersHtml = (dutyUsers: string[] = [], currentUserFullName?: string) => {
   if (!dutyUsers || dutyUsers.length === 0) {
     return currentUserFullName
@@ -17,24 +19,24 @@ export const formatDutyUsersHtml = (dutyUsers: string[] = [], currentUserFullNam
       : 'Karyawan Shift';
   }
 
-  const cleanName = (name: string) => name.replace(/\s*\([^)]*\)/g, '').trim();
-  const loggedInClean = currentUserFullName ? cleanName(currentUserFullName).toLowerCase() : '';
+  const loggedInClean = currentUserFullName ? extractBaseName(currentUserFullName).toLowerCase() : '';
 
   const sortedUsers = [...dutyUsers].sort((a, b) => {
-    const aClean = cleanName(a).toLowerCase();
-    const bClean = cleanName(b).toLowerCase();
+    const aClean = extractBaseName(a).toLowerCase();
+    const bClean = extractBaseName(b).toLowerCase();
     if (loggedInClean && aClean === loggedInClean) return -1;
     if (loggedInClean && bClean === loggedInClean) return 1;
     return 0;
   });
 
   return sortedUsers
-    .map((name) => {
-      const isLoggedUser = loggedInClean && cleanName(name).toLowerCase() === loggedInClean;
+    .map((fullNameWithTime) => {
+      const baseName = extractBaseName(fullNameWithTime);
+      const isLoggedUser = loggedInClean && baseName.toLowerCase() === loggedInClean;
       if (isLoggedUser) {
-        return `<u style="text-decoration: underline; font-weight: 800; color: #0f172a;">${cleanName(name)}</u>`;
+        return `<u style="text-decoration: underline; font-weight: 800; color: #0f172a;">${fullNameWithTime}</u>`;
       }
-      return cleanName(name);
+      return fullNameWithTime;
     })
     .join(', ');
 };
@@ -44,24 +46,24 @@ export const formatDutyUsersText = (dutyUsers: string[] = [], currentUserFullNam
     return currentUserFullName || 'Karyawan Shift';
   }
 
-  const cleanName = (name: string) => name.replace(/\s*\([^)]*\)/g, '').trim();
-  const loggedInClean = currentUserFullName ? cleanName(currentUserFullName).toLowerCase() : '';
+  const loggedInClean = currentUserFullName ? extractBaseName(currentUserFullName).toLowerCase() : '';
 
   const sortedUsers = [...dutyUsers].sort((a, b) => {
-    const aClean = cleanName(a).toLowerCase();
-    const bClean = cleanName(b).toLowerCase();
+    const aClean = extractBaseName(a).toLowerCase();
+    const bClean = extractBaseName(b).toLowerCase();
     if (loggedInClean && aClean === loggedInClean) return -1;
     if (loggedInClean && bClean === loggedInClean) return 1;
     return 0;
   });
 
   return sortedUsers
-    .map((name) => {
-      const isLoggedUser = loggedInClean && cleanName(name).toLowerCase() === loggedInClean;
+    .map((fullNameWithTime) => {
+      const baseName = extractBaseName(fullNameWithTime);
+      const isLoggedUser = loggedInClean && baseName.toLowerCase() === loggedInClean;
       if (isLoggedUser) {
-        return `${cleanName(name)} (Akun Login)`;
+        return `${fullNameWithTime} (Akun Login)`;
       }
-      return cleanName(name);
+      return fullNameWithTime;
     })
     .join(', ');
 };
