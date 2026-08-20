@@ -25,6 +25,7 @@ import { Product, Category, User, BusinessUnit } from '../types';
 import { formatRupiah } from '../utils/formatters';
 import { RoleGuard } from '../components/RoleGuard';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+import { getNormalizedCategoryName, getCategoryBadgeStyle } from '../utils/categoryUtils';
 
 
 interface ProductsPageProps {
@@ -252,8 +253,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const q = searchQuery.toLowerCase().trim();
-      const catName = categoryMap.get(p.category_id) || '';
-      const matchesSearch = !q || p.product_name.toLowerCase().includes(q) || p.product_id.toLowerCase().includes(q) || catName.toLowerCase().includes(q);
+      const rawCatName = categoryMap.get(p.category_id) || '';
+      const catName = getNormalizedCategoryName(p, rawCatName);
+      const matchesSearch = !q || p.product_name.toLowerCase().includes(q) || p.product_id.toLowerCase().includes(q) || catName.toLowerCase().includes(q) || rawCatName.toLowerCase().includes(q);
       if (!matchesSearch) return false;
 
       if (selectedStockFilter === 'PHYSICAL' && !p.manage_stock) return false;
@@ -316,7 +318,8 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
 
     const counts = new Map<string, number>();
     products.forEach((p) => {
-      const catName = categoryMap.get(p.category_id) || 'Kategori Lain';
+      const rawCatName = categoryMap.get(p.category_id) || '';
+      const catName = getNormalizedCategoryName(p, rawCatName);
       counts.set(catName, (counts.get(catName) || 0) + 1);
     });
 
@@ -745,7 +748,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                   </thead>
                   <tbody>
                     {paginatedProducts.map((p) => {
-                      const catName = categoryMap.get(p.category_id) || 'Kategori Lain';
+                      const rawCatName = categoryMap.get(p.category_id) || '';
+                      const catName = getNormalizedCategoryName(p, rawCatName);
+                      const badgeStyle = getCategoryBadgeStyle(catName, p.business_unit);
                       return (
                         <tr key={p.product_id} style={{ borderBottom: '1px solid #f1f5f9', transition: 'background 0.15s ease' }}>
                           <td style={{ padding: '1rem 1.25rem', color: '#64748b', fontSize: '0.8rem', fontFamily: 'monospace', fontWeight: 700 }}>
@@ -768,8 +773,20 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                               {p.business_unit === 'FC_PRINT' ? 'FC / Printing' : 'F&B Store'}
                             </span>
                           </td>
-                          <td style={{ padding: '1rem 1.25rem', color: '#475569', fontWeight: 700, fontSize: '0.825rem' }}>
-                            <span style={{ background: '#f1f5f9', padding: '0.25rem 0.6rem', borderRadius: '6px' }}>
+                          <td style={{ padding: '1rem 1.25rem' }}>
+                            <span
+                              style={{
+                                background: badgeStyle.bg,
+                                color: badgeStyle.color,
+                                border: `1px solid ${badgeStyle.border}`,
+                                padding: '0.3rem 0.7rem',
+                                borderRadius: '8px',
+                                fontSize: '0.775rem',
+                                fontWeight: 800,
+                                display: 'inline-block',
+                                boxShadow: '0 1px 2px rgba(0,0,0,0.02)',
+                              }}
+                            >
                               {catName}
                             </span>
                           </td>
@@ -848,7 +865,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
               /* GRID VIEW MODE */
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.25rem', padding: '1.25rem' }}>
                 {paginatedProducts.map((p) => {
-                  const catName = categoryMap.get(p.category_id) || 'Kategori Lain';
+                  const rawCatName = categoryMap.get(p.category_id) || '';
+                  const catName = getNormalizedCategoryName(p, rawCatName);
+                  const badgeStyle = getCategoryBadgeStyle(catName, p.business_unit);
                   return (
                     <div
                       key={p.product_id}
@@ -882,8 +901,21 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                         </div>
 
                         <h4 style={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.35rem 0' }}>{p.product_name}</h4>
-                        <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, marginBottom: '0.75rem' }}>
-                          Kategori: <span style={{ color: '#334155' }}>{catName}</span>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                          Kategori: 
+                          <span
+                            style={{
+                              background: badgeStyle.bg,
+                              color: badgeStyle.color,
+                              border: `1px solid ${badgeStyle.border}`,
+                              padding: '0.2rem 0.55rem',
+                              borderRadius: '6px',
+                              fontSize: '0.75rem',
+                              fontWeight: 800,
+                            }}
+                          >
+                            {catName}
+                          </span>
                         </div>
 
                         <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#4f46e5' }}>

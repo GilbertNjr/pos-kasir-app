@@ -209,3 +209,82 @@ export const getProductCategoryBucket = (
   // Final Business Unit Fallback
   return product.business_unit === 'FC_PRINT' ? 'atk' : 'snack';
 };
+
+/**
+ * Resolves a clean, human-readable Indonesian Category Name for any product,
+ * ensuring high-precision products (e.g. Aice/Es Krim) never get misclassified under ATK.
+ */
+export const getNormalizedCategoryName = (
+  product: { product_name: string; business_unit?: string },
+  rawCategoryName?: string
+): string => {
+  const bucket = getProductCategoryBucket(product, rawCategoryName || '');
+  switch (bucket) {
+    case 'es_krim':
+      return 'Es Krim';
+    case 'seblak':
+      return 'Seblak';
+    case 'minuman':
+      return 'Minuman & Kopi';
+    case 'gorengan':
+      return 'Gorengan';
+    case 'snack':
+      return 'Snack & Camilan';
+    case 'atk':
+      return 'ATK & Perlengkapan';
+    case 'fotokopi':
+      return 'Fotokopi';
+    case 'printing':
+      return 'Printing & Cetak';
+    case 'jasa':
+      return 'Jasa Ketik & Desain';
+    default:
+      return rawCategoryName || (product.business_unit === 'FC_PRINT' ? 'ATK & Perlengkapan' : 'Snack & Camilan');
+  }
+};
+
+/**
+ * Single source of truth for Category Badge Styling (Colors, Backgrounds & Borders).
+ * Restores vibrant, color-coded badges across the application instead of pale gray.
+ */
+export const getCategoryBadgeStyle = (
+  categoryName: string,
+  businessUnit?: string
+): { bg: string; color: string; border: string } => {
+  const name = (categoryName || '').toLowerCase().trim();
+
+  if (name.includes('minuman') || name.includes('kopi') || name.includes('drink')) {
+    return { bg: '#eff6ff', color: '#1d4ed8', border: '#bfdbfe' }; // Vibrant Blue
+  }
+  if (name.includes('gorengan') || name.includes('goreng')) {
+    return { bg: '#fff7ed', color: '#c2410c', border: '#fed7aa' }; // Vibrant Orange
+  }
+  if (name.includes('snack') || name.includes('camilan') || name.includes('makanan') || name.includes('chiki')) {
+    return { bg: '#fdf2f8', color: '#be185d', border: '#fbcfe8' }; // Vibrant Pink
+  }
+  if (name.includes('es krim') || name.includes('eskrim') || name.includes('aice') || name.includes('ice cream')) {
+    return { bg: '#f0fdf4', color: '#15803d', border: '#bbf7d0' }; // Emerald Green
+  }
+  if (name.includes('seblak')) {
+    return { bg: '#fef2f2', color: '#b91c1c', border: '#fca5a5' }; // Soft Crimson
+  }
+  if (name.includes('atk') || name.includes('tulis') || name.includes('buku') || name.includes('perlengkapan')) {
+    return { bg: '#e0e7ff', color: '#4338ca', border: '#c7d2fe' }; // Indigo
+  }
+  if (name.includes('fotokopi') || name.includes('copy') || name.includes('fc')) {
+    return { bg: '#faf5ff', color: '#7e22ce', border: '#e9d5ff' }; // Purple
+  }
+  if (name.includes('print') || name.includes('cetak')) {
+    return { bg: '#f0f9ff', color: '#0369a1', border: '#bae6fd' }; // Cyan/Sky
+  }
+  if (name.includes('jasa') || name.includes('desain') || name.includes('ketik')) {
+    return { bg: '#fff1f2', color: '#be123c', border: '#fecdd3' }; // Rose
+  }
+
+  // Fallback styling based on business unit
+  if (businessUnit === 'FC_PRINT') {
+    return { bg: '#e0e7ff', color: '#4338ca', border: '#c7d2fe' };
+  }
+  return { bg: '#f1f5f9', color: '#334155', border: '#cbd5e1' };
+};
+
