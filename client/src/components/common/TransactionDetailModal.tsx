@@ -13,6 +13,7 @@ interface TransactionDetailModalProps {
   getUserName?: (userId: string) => string;
   onTransactionCancelled?: (transactionId: string) => void;
   onTransactionComplete?: () => void;
+  storeName?: string;
 }
 
 export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
@@ -23,6 +24,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   products = [],
   getUserName,
   onTransactionCancelled,
+  storeName = 'Kedai POS',
 }) => {
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -112,7 +114,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         </style>
       </head>
       <body>
-        <div class="center bold" style="font-size: 14px;">KEDAI KOPI SENJA & PRINTING</div>
+        <div class="center bold" style="font-size: 14px;">${(storeName || 'Kedai POS').toUpperCase()}</div>
         <div class="center" style="font-size: 10px;">Nota POS Resmi & Shift Transaction</div>
         <div class="line"></div>
         <div>No. Nota : ${txNumber}</div>

@@ -84,7 +84,7 @@ const getShortProductName = (productName: string): string => {
     .toUpperCase();
 };
 
-export const exportStockToExcel = (stockList: StockItem[], _stockAuditLogs: any[] = [], storeName = 'KEDAI KOPI SENJA & PRINTING') => {
+export const exportStockToExcel = (stockList: StockItem[], _stockAuditLogs: any[] = [], storeName = 'Kedai POS') => {
   const categories = ['ICE CREAM', 'SEBLAK', 'JAJAN & GORENGAN', 'MINUMAN', 'ATK & PRINTING'];
   const todayDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
@@ -311,7 +311,7 @@ export const exportStockToExcel = (stockList: StockItem[], _stockAuditLogs: any[
 };
 
 // 2. PRINT STOCK REPORT PDF - FORMAT GAMBAR #2
-export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [], storeName = 'KEDAI KOPI SENJA & PRINTING') => {
+export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [], storeName = 'Kedai POS') => {
   const categories = ['ICE CREAM', 'SEBLAK', 'JAJAN & GORENGAN', 'MINUMAN', 'ATK & PRINTING'];
   const todayDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
 

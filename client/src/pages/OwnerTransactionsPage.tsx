@@ -24,10 +24,13 @@ import { TransactionDetailModal } from '../components/common/TransactionDetailMo
 interface OwnerTransactionsPageProps {
   currentUser: User;
   onTriggerToast?: (type: ToastType, title: string, message: string) => void;
+  storeName?: string;
 }
 
 export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
+  currentUser: _currentUser,
   onTriggerToast,
+  storeName,
 }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -312,7 +315,7 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
       <body>
         <div class="header">
           <div class="title">REKAPITULASI TRANSAKSI PENJUALAN</div>
-          <div class="subtitle">Kedai Kopi Senja & Printing | Tanggal Cetak: ${todayStr} | Periode: ${periodType}</div>
+          <div class="subtitle">${storeName || 'Kedai POS'} | Tanggal Cetak: ${todayStr} | Periode: ${periodType}</div>
         </div>
         <div class="summary-box">
           <div class="card"><div>Total Transaksi</div><div class="card-val">${totalTransactionsCount} Tx</div></div>
@@ -1232,6 +1235,7 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
         transaction={null}
         getUserName={getCashierName}
         onTransactionCancelled={loadData}
+        storeName={storeName}
       />
     </div>
   );

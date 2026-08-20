@@ -22,9 +22,10 @@ import { PaymentMethodBadge } from '../components/common/PaymentMethodBadge';
 interface PaymentSummaryPageProps {
   activeShift: Shift | null;
   onTriggerToast?: (type: 'success' | 'danger' | 'info' | 'warning', title: string, message: string) => void;
+  storeName?: string;
 }
 
-export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeShift, onTriggerToast }) => {
+export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeShift, onTriggerToast, storeName }) => {
   const [summary, setSummary] = useState<PaymentSummaryData | null>(null);
   const [allHistoricalTransactions, setAllHistoricalTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -234,7 +235,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
   const handleExportExcel = () => {
     const todayStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
     let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += 'KEDAI KOPI SENJA & PRINTING - REKAP PEMBAYARAN TRANSAKSI\n';
+    csvContent += `${(storeName || 'Kedai POS').toUpperCase()} - REKAP PEMBAYARAN TRANSAKSI\n`;
     csvContent += `Periode: ${selectedPeriod} | Tanggal Cetak: ${todayStr}\n\n`;
     csvContent += `TOTAL OMZET,${activeSummary.total_revenue},TOTAL TRANSAKSI,${activeSummary.total_transactions}\n`;
     csvContent += `CASH,${activeSummary.cash.amount},QRIS,${activeSummary.qris.amount},TRANSFER,${activeSummary.transfer.amount}\n\n`;
@@ -305,7 +306,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
       <body>
         <div class="header">
           <div class="title">REKAP PEMBAYARAN & RIWAYAT TRANSAKSI</div>
-          <div class="subtitle">Kedai Kopi Senja & Printing | Cetak: ${todayStr} | Periode: ${selectedPeriod}</div>
+          <div class="subtitle">${storeName || 'Kedai POS'} | Cetak: ${todayStr} | Periode: ${selectedPeriod}</div>
         </div>
         <div class="summary-box">
           <div class="card"><div>Total Omzet</div><div class="card-val">${formatRupiah(activeSummary.total_revenue)}</div></div>

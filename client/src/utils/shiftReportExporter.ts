@@ -5,9 +5,66 @@ export interface ShiftReportExportOptions {
   dateStr?: string;
   shiftId?: string;
   dutyUsers?: string[];
+  currentUserFullName?: string;
   transactions: any[];
   expenses: any[];
 }
+
+export const formatDutyUsersHtml = (dutyUsers: string[] = [], currentUserFullName?: string) => {
+  if (!dutyUsers || dutyUsers.length === 0) {
+    return currentUserFullName
+      ? `<u style="text-decoration: underline; font-weight: 800; color: #0f172a;">${currentUserFullName}</u>`
+      : 'Karyawan Shift';
+  }
+
+  const cleanName = (name: string) => name.replace(/\s*\([^)]*\)/g, '').trim();
+  const loggedInClean = currentUserFullName ? cleanName(currentUserFullName).toLowerCase() : '';
+
+  const sortedUsers = [...dutyUsers].sort((a, b) => {
+    const aClean = cleanName(a).toLowerCase();
+    const bClean = cleanName(b).toLowerCase();
+    if (loggedInClean && aClean === loggedInClean) return -1;
+    if (loggedInClean && bClean === loggedInClean) return 1;
+    return 0;
+  });
+
+  return sortedUsers
+    .map((name) => {
+      const isLoggedUser = loggedInClean && cleanName(name).toLowerCase() === loggedInClean;
+      if (isLoggedUser) {
+        return `<u style="text-decoration: underline; font-weight: 800; color: #0f172a;">${cleanName(name)}</u>`;
+      }
+      return cleanName(name);
+    })
+    .join(', ');
+};
+
+export const formatDutyUsersText = (dutyUsers: string[] = [], currentUserFullName?: string) => {
+  if (!dutyUsers || dutyUsers.length === 0) {
+    return currentUserFullName || 'Karyawan Shift';
+  }
+
+  const cleanName = (name: string) => name.replace(/\s*\([^)]*\)/g, '').trim();
+  const loggedInClean = currentUserFullName ? cleanName(currentUserFullName).toLowerCase() : '';
+
+  const sortedUsers = [...dutyUsers].sort((a, b) => {
+    const aClean = cleanName(a).toLowerCase();
+    const bClean = cleanName(b).toLowerCase();
+    if (loggedInClean && aClean === loggedInClean) return -1;
+    if (loggedInClean && bClean === loggedInClean) return 1;
+    return 0;
+  });
+
+  return sortedUsers
+    .map((name) => {
+      const isLoggedUser = loggedInClean && cleanName(name).toLowerCase() === loggedInClean;
+      if (isLoggedUser) {
+        return `${cleanName(name)} (Akun Login)`;
+      }
+      return cleanName(name);
+    })
+    .join(', ');
+};
 
 // Helper: Aggregates items from transactions list
 export const aggregateShiftData = (transactions: any[], expenses: any[]) => {
@@ -54,10 +111,11 @@ export const aggregateShiftData = (transactions: any[], expenses: any[]) => {
 // 1. EXPORT TO EXCEL (.xls) - FORMAT LAPORAN SHIFT (GAMBAR #2)
 export const exportShiftToExcel = (options: ShiftReportExportOptions) => {
   const {
-    storeName = 'KEDAI KOPI SENJA & PRINTING',
+    storeName = 'Kedai POS',
     dateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
     shiftId = 'Shift Sesi Aktif',
     dutyUsers = ['Karyawan Kasir'],
+    currentUserFullName,
     transactions,
     expenses,
   } = options;
@@ -67,7 +125,7 @@ export const exportShiftToExcel = (options: ShiftReportExportOptions) => {
     expenses
   );
 
-  const dutyUsersStr = dutyUsers.length > 0 ? dutyUsers.join(', ') : 'Karyawan Shift';
+  const dutyUsersStr = formatDutyUsersText(dutyUsers, currentUserFullName);
 
   const itemRowsHtml = itemList
     .map(
@@ -208,10 +266,11 @@ export const exportShiftToExcel = (options: ShiftReportExportOptions) => {
 // 2. PRINT TO PDF - CETAK MANDIRI SESUAI FORMAT GAMBAR #2
 export const printShiftPDF = (options: ShiftReportExportOptions) => {
   const {
-    storeName = 'KEDAI KOPI SENJA & PRINTING',
+    storeName = 'Kedai POS',
     dateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
     shiftId = 'Shift Sesi Aktif',
     dutyUsers = ['Karyawan Kasir'],
+    currentUserFullName,
     transactions,
     expenses,
   } = options;
@@ -221,7 +280,7 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
     expenses
   );
 
-  const dutyUsersStr = dutyUsers.length > 0 ? dutyUsers.join(', ') : 'Karyawan Shift';
+  const dutyUsersStr = formatDutyUsersHtml(dutyUsers, currentUserFullName);
 
   const itemRowsPrint = itemList
     .map(

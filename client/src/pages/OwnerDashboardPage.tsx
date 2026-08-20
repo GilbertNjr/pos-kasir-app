@@ -29,6 +29,7 @@ import { DashboardSkeleton } from '../components/dashboard/DashboardSkeleton';
 import { DashboardErrorState } from '../components/dashboard/DashboardErrorState';
 import { useDashboard } from '../hooks/useDashboard';
 import { getCashierColor } from '../components/common/CashierBadge';
+import { APP_VERSION } from '../config/version';
 
 interface OwnerDashboardPageProps {
   onTriggerToast?: (type: 'success' | 'danger' | 'info' | 'warning', title: string, message: string) => void;
@@ -131,6 +132,26 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
           >
             <Clock size={15} color="#64748b" />
             <span>Pembaruan: <strong style={{ color: '#0f172a' }}>{lastUpdated ? formatWaktuIndo(lastUpdated) : '-'}</strong></span>
+          </div>
+
+          {/* App Version Badge */}
+          <div
+            style={{
+              fontSize: '0.8rem',
+              color: '#1e40af',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              background: '#eff6ff',
+              padding: '0.35rem 0.85rem',
+              borderRadius: '12px',
+              border: '1px solid #bfdbfe',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Sparkles size={14} color="#2563eb" />
+            <span>Versi Apps: <strong style={{ color: '#1d4ed8' }}>v{APP_VERSION}</strong></span>
           </div>
         </div>
 

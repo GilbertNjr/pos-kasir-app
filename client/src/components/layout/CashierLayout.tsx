@@ -631,7 +631,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: activeShiftId ? '#f0fdf4' : '#fef2f2', padding: '0.3rem 0.6rem', borderRadius: '20px', border: activeShiftId ? '1px solid #bbf7d0' : '1px solid #fecaca' }}>
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: activeShiftId ? '#22c55e' : '#ef4444', flexShrink: 0 }}></span>
               <span style={{ fontSize: '0.7rem', fontWeight: 700, color: activeShiftId ? '#15803d' : '#991b1b', whiteSpace: 'nowrap' }}>
-                {activeShiftId ? 'ACTIVE' : 'OFFLINE'}
+                {activeShiftId ? 'ACTIVE' : 'NONAKTIF'}
               </span>
             </div>
 

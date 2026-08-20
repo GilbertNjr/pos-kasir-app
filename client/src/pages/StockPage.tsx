@@ -45,9 +45,10 @@ interface StockItem {
 interface StockPageProps {
   currentUser: User;
   onTriggerToast?: (type: 'success' | 'danger' | 'info' | 'warning', title: string, message: string) => void;
+  storeName?: string;
 }
 
-export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToast }) => {
+export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToast, storeName }) => {
   const [stocks, setStocks] = useState<StockItem[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [productsMap, setProductsMap] = useState<Map<string, Product>>(new Map());
@@ -1115,7 +1116,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
           </button>
 
           <button
-            onClick={() => exportStockToExcel(stocks)}
+            onClick={() => exportStockToExcel(stocks, [], storeName)}
             className="btn-toolbar-excel"
           >
             <FileSpreadsheet size={14} />
@@ -1123,7 +1124,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
           </button>
 
           <button
-            onClick={() => printStockPDF(stocks)}
+            onClick={() => printStockPDF(stocks, [], storeName)}
             className="btn-toolbar-pdf"
           >
             <Printer size={14} />

@@ -16,14 +16,18 @@ import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 
 interface CashierDashboardPageProps {
   currentUser: User;
+  activeShiftId?: string | null;
   onNavigateTab: (tab: string) => void;
   onTriggerToast?: (type: 'success' | 'danger' | 'info' | 'warning', title: string, message: string) => void;
+  onShiftStatusChange?: () => void;
 }
 
 export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
   currentUser,
+  activeShiftId,
   onNavigateTab,
   onTriggerToast,
+  onShiftStatusChange,
 }) => {
   const [loading, setLoading] = useState(true);
   const [shiftData, setShiftData] = useState<ActiveShiftDetailsData | null>(null);
@@ -55,6 +59,27 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
     fetchCashierDashboardData();
   }, []);
 
+  const handleActivateOrOpenShift = () => {
+    if (activeShiftId) {
+      // User shift is already active, navigate to shift management
+      onNavigateTab('SHIFT');
+      return;
+    }
+
+    if (shiftData?.shift?.shift_status === 'ACTIVE') {
+      // An active shift exists in system, activate for this employee
+      sessionStorage.setItem(`pos_shift_activated_${currentUser.user_id}`, shiftData.shift.shift_id);
+      if (onTriggerToast) {
+        onTriggerToast('success', 'Shift Berhasil Diaktifkan', `Sesi shift #${shiftData.shift.shift_id.slice(-6)} telah aktif untuk Anda.`);
+      }
+      if (onShiftStatusChange) onShiftStatusChange();
+      fetchCashierDashboardData();
+    } else {
+      // No active shift in backend, go to shift open page
+      onNavigateTab('SHIFT');
+    }
+  };
+
   const handleAddCapital = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!shiftData?.shift?.shift_id) return;
@@ -67,9 +92,11 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
     setSubmittingCapital(true);
     try {
       await apiService.addCapitalContribution(shiftData.shift.shift_id, amount);
+      sessionStorage.setItem(`pos_shift_activated_${currentUser.user_id}`, shiftData.shift.shift_id);
       if (onTriggerToast) onTriggerToast('success', 'Modal Disetor', 'Kontribusi modal awal berhasil dicatat.');
       setShowCapitalModal(false);
       setCapitalInput('');
+      if (onShiftStatusChange) onShiftStatusChange();
       fetchCashierDashboardData();
     } catch (err: any) {
       if (onTriggerToast) onTriggerToast('danger', 'Gagal Setor Modal', err.message || 'Terjadi kesalahan.');
@@ -88,6 +115,7 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
   }
 
   const shift = shiftData?.shift;
+  const isShiftActiveForUser = Boolean(activeShiftId);
 
   // Calculate stats for logged-in cashier
   const myTotalRevenue = myTransactions.reduce((acc, curr) => acc + (curr.status === 'COMPLETED' ? curr.final_total : 0), 0);
@@ -132,7 +160,7 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
               KARYAWAN / KASIR OPERASIONAL
             </span>
 
-            {shift?.shift_status === 'ACTIVE' ? (
+            {isShiftActiveForUser ? (
               <span
                 style={{
                   background: '#ecfdf5',
@@ -148,7 +176,7 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
                 }}
               >
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                SHIFT AKTIF (# {shift.shift_id.slice(-6)})
+                SHIFT AKTIF ({shift?.shift_id ? `# ${shift.shift_id.slice(-6)}` : 'ACTIVE'})
               </span>
             ) : (
               <span
@@ -181,7 +209,7 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
 
         <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           <button
-            onClick={() => onNavigateTab('SHIFT')}
+            onClick={handleActivateOrOpenShift}
             style={{
               padding: '0.85rem 1.25rem',
               borderRadius: '12px',
@@ -199,7 +227,7 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
             }}
           >
             <Clock size={20} />
-            {shift?.shift_status === 'ACTIVE' ? 'Kelola Sesi Shift' : 'Mulai / Buka Shift'}
+            {isShiftActiveForUser ? 'Kelola Sesi Shift' : 'Mulai / Buka Shift'}
           </button>
 
           <button

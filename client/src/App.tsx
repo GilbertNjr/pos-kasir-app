@@ -281,18 +281,18 @@ export const App: React.FC = () => {
           <OwnerDashboardPage onTriggerToast={addToast} onNavigateTab={setOwnerTab} />
         )}
         {(ownerTab === 'PENJUALAN' || ownerTab === 'TRANSAKSI') && (
-          <OwnerTransactionsPage currentUser={currentUser} onTriggerToast={addToast} />
+          <OwnerTransactionsPage currentUser={currentUser} onTriggerToast={addToast} storeName={storeProfile.name} />
         )}
         {ownerTab === 'PRODUCTS' && <ProductsPage currentUser={currentUser} onTriggerToast={addToast} />}
         {(ownerTab === 'BACKUP' || ownerTab === 'BACKUP_DATA' || ownerTab === 'SYNC' || ownerTab === 'KATEGORI') && (
           <BackupRestorePage currentUser={currentUser} />
         )}
-        {ownerTab === 'STOCKS' && <StockPage currentUser={currentUser} onTriggerToast={addToast} />}
+        {ownerTab === 'STOCKS' && <StockPage currentUser={currentUser} onTriggerToast={addToast} storeName={storeProfile.name} />}
         {ownerTab === 'PEGAWAI' && <UsersPage currentUser={currentUser} onTriggerToast={addToast} />}
         {(ownerTab === 'SHIFT' || ownerTab === 'EXPENSES' || ownerTab === 'PENGELUARAN') && (
           <ExpensesPage currentUser={currentUser} activeShiftId={activeShiftData?.shift?.shift_id} />
         )}
-        {ownerTab === 'REPORTS' && <ReportsPage currentUser={currentUser} />}
+        {ownerTab === 'REPORTS' && <ReportsPage currentUser={currentUser} storeName={storeProfile.name} />}
         {ownerTab === 'SETTINGS' && (
           <SettingsPage
             onTriggerToast={addToast}
@@ -311,6 +311,18 @@ export const App: React.FC = () => {
     currentUser.role === 'PENANGGUNG_JAWAB' ||
     Boolean(currentUser.is_pj);
 
+  // Verifikasi apakah pengguna ini telah mengaktifkan / bergabung dalam sesi shift aktif
+  const isUserShiftActive = Boolean(
+    activeShiftData?.shift?.shift_status === 'ACTIVE' && (
+      activeShiftData.shift.opened_by_user_id === currentUser?.user_id ||
+      activeShiftData.shift_users?.some((su: any) => su.user_id === currentUser?.user_id) ||
+      activeShiftData.contributions?.some((c: any) => c.user_id === currentUser?.user_id) ||
+      (currentUser && sessionStorage.getItem(`pos_shift_activated_${currentUser.user_id}`) === activeShiftData.shift.shift_id)
+    )
+  );
+
+  const userActiveShiftId = isUserShiftActive ? activeShiftData?.shift?.shift_id : undefined;
+
   return (
     <CashierLayout
       currentUser={currentUser}
@@ -318,7 +330,7 @@ export const App: React.FC = () => {
       activeTab={cashierTab}
       onTabChange={setCashierTab}
       isShiftLeader={isShiftLeader}
-      activeShiftId={activeShiftData?.shift?.shift_id}
+      activeShiftId={userActiveShiftId}
       storeName={storeProfile.name}
       logoUrl={storeProfile.logoUrl}
     >
@@ -335,8 +347,10 @@ export const App: React.FC = () => {
         ) : (
           <CashierDashboardPage
             currentUser={currentUser}
+            activeShiftId={userActiveShiftId}
             onNavigateTab={setCashierTab}
             onTriggerToast={addToast}
+            onShiftStatusChange={loadActiveShift}
           />
         )
       )}
@@ -349,7 +363,7 @@ export const App: React.FC = () => {
           </h2>
           <PosRegister
             currentUser={currentUser}
-            activeShiftId={activeShiftData?.shift?.shift_id}
+            activeShiftId={userActiveShiftId}
             onTransactionComplete={() => {
               loadActiveShift();
               addToast('success', 'Transaksi Selesai', 'Transaksi kasir berhasil diproses');
@@ -364,12 +378,12 @@ export const App: React.FC = () => {
 
       {/* SHIFT MANAGMENT TAB */}
       {cashierTab === 'SHIFT' && (
-        <ShiftPage currentUser={currentUser} onShiftStatusChange={loadActiveShift} />
+        <ShiftPage currentUser={currentUser} onShiftStatusChange={loadActiveShift} storeName={storeProfile.name} />
       )}
 
       {/* STOCKS MANAGEMENT TAB (PENANGGUNG JAWAB & KASIR) */}
       {cashierTab === 'STOCKS' && (
-        <StockPage currentUser={currentUser} onTriggerToast={addToast} />
+        <StockPage currentUser={currentUser} onTriggerToast={addToast} storeName={storeProfile.name} />
       )}
 
       {/* EXPENSES TAB */}
@@ -379,12 +393,12 @@ export const App: React.FC = () => {
 
       {/* PAYMENT SUMMARY TAB */}
       {cashierTab === 'PAYMENT' && (
-        <PaymentSummaryPage activeShift={activeShiftData?.shift ?? null} onTriggerToast={addToast} />
+        <PaymentSummaryPage activeShift={activeShiftData?.shift ?? null} onTriggerToast={addToast} storeName={storeProfile.name} />
       )}
 
       {/* REPORTS DASHBOARD TAB (PENANGGUNG JAWAB & KASIR) */}
       {cashierTab === 'REPORTS' && (
-        <ReportsPage currentUser={currentUser} />
+        <ReportsPage currentUser={currentUser} storeName={storeProfile.name} />
       )}
 
       {/* BACKUP & RESTORE DATA TAB (PENANGGUNG JAWAB & KASIR) */}

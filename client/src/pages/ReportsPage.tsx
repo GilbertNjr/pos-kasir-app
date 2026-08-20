@@ -274,9 +274,10 @@ const SVGLineChart: React.FC<SVGLineChartProps> = ({ transactions = [], chartMod
 
 interface ReportsPageProps {
   currentUser: User;
+  storeName?: string;
 }
 
-export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
+export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName }) => {
   const [periodType, setPeriodType] = useState<string>('DAILY');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
@@ -315,13 +316,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
 
   const handleExportExcel = () => {
     if (activeReportSubTab === 'STOCKS_LOG') {
-      exportStockToExcel(stockList, stockAuditLogs);
+      exportStockToExcel(stockList, stockAuditLogs, storeName);
     } else {
       exportShiftToExcel({
-        storeName: 'KEDAI KOPI SENJA & PRINTING',
+        storeName: storeName || 'Kedai POS',
         dateStr: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
         shiftId: periodType === 'DAILY' ? 'Hari Ini' : `Periode ${periodType}`,
         dutyUsers: getDutyUsersList(),
+        currentUserFullName: currentUser.full_name,
         transactions: reportData?.transactions || [],
         expenses: expenseList || [],
       });
@@ -386,13 +388,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
 
   const handlePrintPDF = () => {
     if (activeReportSubTab === 'STOCKS_LOG') {
-      printStockPDF(stockList, stockAuditLogs);
+      printStockPDF(stockList, stockAuditLogs, storeName);
     } else {
       printShiftPDF({
-        storeName: 'KEDAI KOPI SENJA & PRINTING',
+        storeName: storeName || 'Kedai POS',
         dateStr: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
         shiftId: periodType === 'DAILY' ? 'Hari Ini' : `Periode ${periodType}`,
         dutyUsers: getDutyUsersList(),
+        currentUserFullName: currentUser.full_name,
         transactions: reportData?.transactions || [],
         expenses: expenseList || [],
       });
@@ -828,118 +831,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser }) => {
         </div>
       )}
 
-      {/* Form Bar Filter Laporan (RESPONSIVE: 2 ATAS 2 BAWAH DI HP, CENTERED BUTTON) */}
-      <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', marginBottom: '1.5rem' }}>
-        <form onSubmit={handleApplyFilter} className="responsive-filter-form">
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Periode Waktu:</label>
-            <select
-              value={periodType}
-              onChange={(e) => setPeriodType(e.target.value)}
-              style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
-            >
-              <option value="DAILY">Harian (Hari Ini)</option>
-              <option value="WEEKLY">Mingguan (7 Hari Terakhir)</option>
-              <option value="MONTHLY">Bulanan (Bulan Ini)</option>
-              <option value="YEARLY">Tahunan (Tahun Ini)</option>
-              <option value="CUSTOM">Rentang Tanggal Custom</option>
-            </select>
-          </div>
 
-          {periodType === 'CUSTOM' && (
-            <>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Dari Tanggal:</label>
-                <input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Sampai Tanggal:</label>
-                <input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
-                />
-              </div>
-            </>
-          )}
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Filter Kasir / Pengguna:</label>
-            <select
-              value={selectedUser}
-              onChange={(e) => setSelectedUser(e.target.value)}
-              style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
-            >
-              <option value="">Semua Kasir & Owner</option>
-              {usersList.map((u) => (
-                <option key={u.user_id} value={u.user_id}>
-                  {u.full_name} ({u.role})
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Bidang Usaha:</label>
-            <select
-              value={selectedBusinessUnit}
-              onChange={(e) => setSelectedBusinessUnit(e.target.value)}
-              style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
-            >
-              <option value="ALL">Semua Bidang Usaha</option>
-              <option value="FC_PRINT">Fotokopi & Printing</option>
-              <option value="FNB">Food & Beverage (FNB)</option>
-            </select>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Metode Bayar:</label>
-            <select
-              value={selectedPaymentMethod}
-              onChange={(e) => setSelectedPaymentMethod(e.target.value)}
-              style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
-            >
-              <option value="ALL">Semua Metode</option>
-              <option value="CASH">CASH / Tunai</option>
-              <option value="QRIS">QRIS Non-Tunai</option>
-              <option value="TRANSFER">Transfer Bank</option>
-            </select>
-          </div>
-
-          <div className="responsive-filter-submit">
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                width: '100%',
-                padding: '0.65rem 1.25rem',
-                fontSize: '0.85rem',
-                fontWeight: 800,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.4rem',
-                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                boxShadow: '0 4px 12px rgba(37, 99, 235, 0.25)',
-              }}
-            >
-              <Filter size={16} />
-              {loading ? 'Proses...' : 'Terapkan Filter'}
-            </button>
-          </div>
-        </form>
-      </div>
 
       {activeReportSubTab === 'STOCKS_LOG' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>

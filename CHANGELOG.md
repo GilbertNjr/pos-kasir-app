@@ -2,7 +2,27 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
-## [v1.4.12] - 2026-08-19 - Normalisasi Nama Produk Berspasi (Spasi-Tanda Hubung) Kategori Es Krim
+## [v1.4.13] - 2026-08-20 - Custom Shift Registration Form, Duty Staff Prioritization & Filter Bar Cleanup
+
+### 🚀 Shift Custom Registration Form & Access Gating (`ShiftPage.tsx`, `PosRegister.tsx`)
+- **Form Pendaftaran Shift Kustom Sebelum Aktivasi:**
+  - Menambahkan form pendaftaran shift lengkap saat Buka Shift yang merekam: Nominal Uang Modal Kas Awal, Nama/Sesi Shift Kustom, Tanggal Shift, Jam Mulai Shift Kustom (`HH:mm`), serta checklist *multi-select* daftar staff bertugas on-duty.
+  - Memperketat penguncian pintu akses *Live Kasir Register* sehingga kasir yang baru login wajib mengaktifkan sesi shift terlebih dahulu sebelum bertransaksi.
+
+### 📄 Prioritas & Garis Bawah Akun Login Utama pada Laporan Shift (`shiftReportExporter.ts`, `ShiftPage.tsx`, `ReportsPage.tsx`)
+- **Prioritas Akun Login & Underline Header PDF:**
+  - Nama pegawai yang sedang login menggunakan akun milik sendiri secara otomatis diprioritaskan di **urutan paling depan** daftar `Pegawai Shift`.
+  - Pada dokumen cetak/PDF *Laporan Rekapitulasi Shift*, nama akun aktif utama diberi efek **garis bawah** (`<u>nama</u>`) agar membedakan pengguna akun utama vs rekan bertugas lain yang nebeng di shift yang sama.
+  - Menambahkan penanda `(Akun Login)` pada dokumen ekspor Excel.
+
+### 🎨 Pembersihan Form Filter Duplikat (`ReportsPage.tsx`)
+- **Penghilangan Filter Bar Duplikat:**
+  - Menghapus form filter baris kedua yang redundan pada halaman *Pusat Laporan & Shift*, menyisakan 1 bar filter utama di bagian atas untuk pengalaman pengguna yang lebih bersih dan ringkas.
+
+### 💎 Professional Loading Modal & Store Branding
+- **Action Loading Modal & Dynamic Branding:**
+  - Redesain modal loading aksi global dengan gaya visual yang bersih, modern, dan profesional.
+  - Menghubungkan nama toko dinamis dari pengaturan owner ke seluruh header laporan ekspor PDF/Excel.
 
 ### 🍦 Normalisasi String Nama Produk (`StockPage.tsx`, `categoryUtils.ts`)
 - **Penyebab `LOLIPOP (KUL - KUL)` & `ROCK (KUL - KUL)` Sempat Tampil Sebagai `ATK & Persediaan`:**
