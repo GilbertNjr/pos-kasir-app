@@ -85,20 +85,34 @@ export const App: React.FC = () => {
       });
   };
 
-  // Store Profile Realtime State
-  const [storeProfile, setStoreProfile] = useState<{ name: string; ownerName: string; logoUrl: string }>({
-    name: 'kui',
-    ownerName: 'Ahmat Gebyar Gumelar',
-    logoUrl: '',
+  // Store Profile Realtime State (hydrated from localStorage cache first)
+  const [storeProfile, setStoreProfile] = useState<{ name: string; ownerName: string; logoUrl: string }>(() => {
+    try {
+      const cached = localStorage.getItem('pos_store_profile');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?.name) return parsed;
+      }
+    } catch {}
+    return {
+      name: 'KEZHO',
+      ownerName: 'Ahmat Gebyar Gumelar',
+      logoUrl: '',
+    };
   });
 
   const handleStoreProfileUpdate = (profile: { name: string; ownerName?: string; logoUrl: string }) => {
-    setStoreProfile((prev) => ({
-      ...prev,
-      name: profile.name,
-      logoUrl: profile.logoUrl,
-      ownerName: profile.ownerName ?? prev.ownerName,
-    }));
+    setStoreProfile((prev) => {
+      const nextProfile = {
+        name: profile.name || prev.name,
+        ownerName: profile.ownerName ?? prev.ownerName,
+        logoUrl: profile.logoUrl,
+      };
+      try {
+        localStorage.setItem('pos_store_profile', JSON.stringify(nextProfile));
+      } catch {}
+      return nextProfile;
+    });
 
     if (profile.ownerName) {
       setCurrentUser((prev) => (prev && prev.role === 'OWNER' ? { ...prev, full_name: profile.ownerName! } : prev));
@@ -112,11 +126,16 @@ export const App: React.FC = () => {
       .getSettings()
       .then((s) => {
         if (s?.store_profile) {
-          const sName = s.store_profile.name || 'kui';
+          const sName = s.store_profile.name || 'KEZHO';
           const oName = s.store_profile.owner_name || 'Ahmat Gebyar Gumelar';
           const lUrl = s.store_profile.logo_url || '';
 
-          setStoreProfile({ name: sName, ownerName: oName, logoUrl: lUrl });
+          const updated = { name: sName, ownerName: oName, logoUrl: lUrl };
+          setStoreProfile(updated);
+          try {
+            localStorage.setItem('pos_store_profile', JSON.stringify(updated));
+          } catch {}
+
           if (oName) {
             setCurrentUser((prev) => (prev && prev.role === 'OWNER' ? { ...prev, full_name: oName } : prev));
           }
@@ -138,11 +157,16 @@ export const App: React.FC = () => {
         const payload = JSON.parse(event.data);
         if (payload?.settings?.store_profile) {
           const sp = payload.settings.store_profile;
-          setStoreProfile({
-            name: sp.name || 'kui',
+          const updated = {
+            name: sp.name || 'KEZHO',
             ownerName: sp.owner_name || 'Ahmat Gebyar Gumelar',
             logoUrl: sp.logo_url || '',
-          });
+          };
+          setStoreProfile(updated);
+          try {
+            localStorage.setItem('pos_store_profile', JSON.stringify(updated));
+          } catch {}
+
           if (sp.owner_name) {
             setCurrentUser((prev) => (prev && prev.role === 'OWNER' ? { ...prev, full_name: sp.owner_name } : prev));
           }
@@ -158,11 +182,16 @@ export const App: React.FC = () => {
       } catch {
         apiService.getSettings().then((s) => {
           if (s?.store_profile) {
-            setStoreProfile({
-              name: s.store_profile.name || 'kui',
+            const updated = {
+              name: s.store_profile.name || 'KEZHO',
               ownerName: s.store_profile.owner_name || 'Ahmat Gebyar Gumelar',
               logoUrl: s.store_profile.logo_url || '',
-            });
+            };
+            setStoreProfile(updated);
+            try {
+              localStorage.setItem('pos_store_profile', JSON.stringify(updated));
+            } catch {}
+
             if (s.store_profile.owner_name) {
               setCurrentUser((prev) => (prev && prev.role === 'OWNER' ? { ...prev, full_name: s.store_profile.owner_name } : prev));
             }
