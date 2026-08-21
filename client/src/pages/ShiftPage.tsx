@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, ShieldCheck, UserCheck, Power, X, Edit3, Trash2, Plus } from 'lucide-react';
+import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, ShieldCheck, UserCheck, Power, X, Edit3, Trash2, Plus, AlertTriangle } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
@@ -48,25 +48,21 @@ const parseStaffStringToEntries = (staffStringOrArray: string | string[], fallba
     list = staffStringOrArray.split(',').map((s) => s.trim()).filter(Boolean);
   }
 
-  const defaultTime = fallbackTime || getCurrentTimeHHMM();
-  const entries: StaffEntry[] = [];
+  return list.map((item, idx) => {
+    const match = item.match(/^(.*?)(?:\s*\((.*?)\))?$/);
+    const name = match && match[1] ? match[1].trim() : item.trim();
+    let timeStr = match && match[2] ? match[2].replace(/\s*WIB/i, '').trim() : '';
 
-  list.forEach((item, index) => {
-    const match = item.match(/^(.*?)\s*\((?:(\d{1,2}:\d{2})(?:\s*WIB)?)?\)$/i);
-    if (match && match[1].trim()) {
-      const name = match[1].trim();
-      const rawTime = match[2] || defaultTime;
-      const formattedTime = rawTime
-        .split(':')
-        .map((t) => t.padStart(2, '0'))
-        .join(':');
-      entries.push({ id: `staff-${index}-${Date.now()}`, name, time: formattedTime });
-    } else if (item.trim()) {
-      entries.push({ id: `staff-${index}-${Date.now()}`, name: item.trim(), time: defaultTime });
+    if (!timeStr || !/^\d{1,2}:\d{2}$/.test(timeStr)) {
+      timeStr = fallbackTime || getCurrentTimeHHMM();
     }
-  });
 
-  return entries;
+    return {
+      id: `staff-${idx}-${Date.now()}`,
+      name,
+      time: timeStr,
+    };
+  });
 };
 
 export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatusChange, storeName }) => {
@@ -78,20 +74,18 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   const [openInitialCash, setOpenInitialCash] = useState<number | ''>(50000);
   const [shiftDateInput, setShiftDateInput] = useState<string>(getTodayDateString());
   const [shiftTimeInput, setShiftTimeInput] = useState<string>(getCurrentTimeString());
-
-  // Multi-Staff Manager State for Opening Shift
   const [openStaffEntries, setOpenStaffEntries] = useState<StaffEntry[]>([
-    { id: 'open-1', name: currentUser.full_name, time: getCurrentTimeHHMM() },
+    { id: `open-1`, name: currentUser.full_name, time: getCurrentTimeHHMM() },
   ]);
 
-  // Form State Modal Kas Tambahan
+  // Form State Kas Tambahan
   const [addCapitalAmount, setAddCapitalAmount] = useState<number | ''>('');
 
   // Form State Tutup Shift
-  const [actualPhysicalCash, setActualPhysicalCash] = useState<number | ''>('');
   const [showCloseModal, setShowCloseModal] = useState(false);
+  const [actualPhysicalCash, setActualPhysicalCash] = useState<number | ''>('');
 
-  // Loading indicator states
+  // Loading Modals
   const [openLoading, setOpenLoading] = useState(false);
   const [capitalLoading, setCapitalLoading] = useState(false);
   const [closeLoading, setCloseLoading] = useState(false);
@@ -99,6 +93,9 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   // Modal State Edit Shift Sesi Aktif
   const [showEditShiftModal, setShowEditShiftModal] = useState(false);
   const [editStaffEntries, setEditStaffEntries] = useState<StaffEntry[]>([]);
+
+  // Modal State Hapus Rekonsiliasi Confirmation
+  const [showConfirmDeleteReconciliation, setShowConfirmDeleteReconciliation] = useState(false);
 
   // Status Setelah Tutup Shift (Rincian Return Capital) - Tersimpan di LocalStorage agar tidak hilang saat di-refresh!
   const [closedShiftResult, setClosedShiftResult] = useState<ActiveShiftDetailsData | null>(() => {
@@ -120,14 +117,12 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   };
 
   const handleDeleteClosedShiftResult = () => {
-    if (
-      window.confirm(
-        'Apakah Anda yakin ingin menghapus / menyelesaikan tampilan rekonsiliasi pengembalian modal ini?\n\n' +
-          'Data transaksi dan laporan shift tetap tersimpan aman di sistem.'
-      )
-    ) {
-      updateClosedShiftResult(null);
-    }
+    setShowConfirmDeleteReconciliation(true);
+  };
+
+  const confirmDeleteClosedShiftResult = () => {
+    updateClosedShiftResult(null);
+    setShowConfirmDeleteReconciliation(false);
   };
   const [allUsers, setAllUsers] = useState<User[]>([]);
 
@@ -1392,6 +1387,111 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
           </button>
         </form>
       </div>
+
+      {/* MODAL KONFIRMASI HAPUS REKONSILIASI (ELEGAN, MODERN & SIMPLE) */}
+      {showConfirmDeleteReconciliation && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.25rem',
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '2rem',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8)',
+              position: 'relative',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '20px',
+                background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                color: '#dc2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.25rem auto',
+                boxShadow: '0 8px 16px rgba(220, 38, 38, 0.15)',
+              }}
+            >
+              <AlertTriangle size={32} strokeWidth={2.2} />
+            </div>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem 0', letterSpacing: '-0.01em' }}>
+              Selesaikan Rekonsiliasi Shift?
+            </h3>
+
+            <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.55, marginBottom: '1.75rem' }}>
+              Apakah Anda yakin ingin menghapus & menyelesaikan tampilan rekonsiliasi pengembalian modal ini?
+              <br /><br />
+              <span style={{ fontSize: '0.825rem', color: '#047857', background: '#ecfdf5', padding: '0.5rem 0.85rem', borderRadius: '10px', display: 'inline-block', border: '1px solid #a7f3d0', fontWeight: 700 }}>
+                🛡️ Data transaksi & laporan shift tetap tersimpan aman di sistem.
+              </span>
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                onClick={() => setShowConfirmDeleteReconciliation(false)}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '12px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#475569',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteClosedShiftResult}
+                style={{
+                  flex: 1.2,
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Trash2 size={16} />
+                Ya, Selesaikan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <ActionLoadingModal
         isOpen={openLoading || capitalLoading}
