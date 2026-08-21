@@ -1781,8 +1781,65 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                   Pergerakan Stok Terbaru
                 </h3>
 
-                <div style={{ overflowX: 'auto' }}>
-                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
+                {/* 1. MOBILE CARD VIEW (< 768px: Clean Stacked Mobile Cards) */}
+                <div className="mobile-only-stock-list">
+                  {recentMovements.length === 0 ? (
+                    <div style={{ padding: '1.25rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.825rem', background: '#f8fafc', borderRadius: '12px' }}>
+                      Belum ada pergerakan stok dicatat di database
+                    </div>
+                  ) : (
+                    recentMovements.map((mv, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          background: '#ffffff',
+                          padding: '0.85rem 0.95rem',
+                          borderRadius: '14px',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        {/* Top Row: Product Name & Movement Badge */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.875rem' }}>{mv.product}</span>
+                          <span
+                            style={{
+                              padding: '0.2rem 0.55rem',
+                              borderRadius: '6px',
+                              fontSize: '0.7rem',
+                              fontWeight: 800,
+                              background: mv.isNegative ? '#fef2f2' : '#f0fdf4',
+                              color: mv.isNegative ? '#dc2626' : '#16a34a',
+                              border: `1px solid ${mv.isNegative ? '#fecaca' : '#bbf7d0'}`,
+                              flexShrink: 0,
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {mv.type}
+                          </span>
+                        </div>
+
+                        {/* Bottom Row: Timestamp, Warehouse/User, & Quantity */}
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.4rem', borderTop: '1px dashed #f1f5f9', fontSize: '0.75rem', color: '#64748b' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
+                            <span style={{ color: '#94a3b8' }}>{mv.time}</span>
+                            <span style={{ color: '#475569', fontWeight: 600 }}>{mv.warehouse} • <span style={{ color: '#64748b' }}>{mv.user}</span></span>
+                          </div>
+                          <div style={{ textAlign: 'right', fontWeight: 900, fontSize: '0.95rem', color: mv.isNegative ? '#dc2626' : '#16a34a' }}>
+                            {mv.qty}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+
+                {/* 2. DESKTOP TABLE VIEW (>= 768px: Full Horizontal Table) */}
+                <div className="desktop-only-table" style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', minWidth: '600px', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
                     <thead>
                       <tr style={{ color: '#94a3b8', borderBottom: '1px solid #f1f5f9', textAlign: 'left', fontWeight: 700 }}>
                         <th style={{ paddingBottom: '0.5rem' }}>Waktu</th>
