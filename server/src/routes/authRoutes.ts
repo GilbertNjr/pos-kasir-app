@@ -20,8 +20,8 @@ router.post('/recover-password', authController.recoverPassword);
 router.get('/me', authMiddleware, authController.getProfile);
 router.post('/change-password', authMiddleware, authController.changePassword);
 
-// Route Auth Owner Only (Guarded with requireOwner RBAC Middleware)
-router.get('/users', authMiddleware, requireOwner, authController.getAllUsers);
+// Route Auth Owner & Staff Access
+router.get('/users', authMiddleware, authController.getAllUsers);
 router.post('/users', authMiddleware, requireOwner, authController.createUser);
 router.put('/users/:id', authMiddleware, requireOwner, authController.updateUser);
 router.patch('/users/:id/status', authMiddleware, requireOwner, authController.toggleUserStatus);

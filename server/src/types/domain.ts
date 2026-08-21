@@ -108,6 +108,7 @@ export interface TransactionEntity {
   transaction_id: string;
   transaction_number: string;
   created_by_user_id: string;
+  created_by_user_name?: string;
   shift_id: string;
   subtotal_amount: number;
   discount_amount: number;

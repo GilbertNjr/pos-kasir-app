@@ -41,6 +41,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
   const resolveCashierName = () => {
     const rawUserId = transaction.created_by_user_id || transaction.user_id;
+    if (transaction.created_by_user_name && transaction.created_by_user_name !== rawUserId) return transaction.created_by_user_name;
     if (getUserName && rawUserId) {
       const nameFromProp = getUserName(rawUserId);
       if (nameFromProp && nameFromProp !== rawUserId) return nameFromProp;
@@ -49,7 +50,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     if (transaction.user_name && transaction.user_name !== rawUserId) return transaction.user_name;
 
     if (rawUserId) {
-      const found = usersList.find((u) => u.user_id === rawUserId || u.username === rawUserId);
+      const found = usersList.find((u) => u.user_id === rawUserId || u.username === rawUserId || u.full_name === rawUserId);
       if (found) return found.full_name || found.username;
     }
     return rawUserId || 'Kasir';

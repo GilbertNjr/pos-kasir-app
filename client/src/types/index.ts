@@ -126,6 +126,7 @@ export interface Transaction {
   transaction_number: string;
   shift_id: string;
   created_by_user_id: string;
+  created_by_user_name?: string;
   subtotal_amount: number;
   discount_amount: number;
   final_total: number;

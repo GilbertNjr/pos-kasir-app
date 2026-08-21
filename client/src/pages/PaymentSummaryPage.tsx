@@ -20,12 +20,13 @@ import { formatRupiah } from '../utils/formatters';
 import { PaymentMethodBadge } from '../components/common/PaymentMethodBadge';
 
 interface PaymentSummaryPageProps {
+  currentUser?: User;
   activeShift: Shift | null;
   onTriggerToast?: (type: 'success' | 'danger' | 'info' | 'warning', title: string, message: string) => void;
   storeName?: string;
 }
 
-export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeShift, onTriggerToast, storeName }) => {
+export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentUser, activeShift, onTriggerToast, storeName }) => {
   const [summary, setSummary] = useState<PaymentSummaryData | null>(null);
   const [allHistoricalTransactions, setAllHistoricalTransactions] = useState<any[]>([]);
   const [usersList, setUsersList] = useState<User[]>([]);
@@ -43,10 +44,22 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
   const [cancelLoading, setCancelLoading] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 
-  const getCashierName = (userId?: string) => {
-    if (!userId) return '-';
-    const found = usersList.find((u) => u.user_id === userId || u.username === userId || u.full_name === userId);
-    return found ? found.full_name || found.username : userId;
+  const getCashierName = (userId?: string, tx?: any) => {
+    if (tx?.created_by_user_name) return tx.created_by_user_name;
+    if (tx?.cashier_name) return tx.cashier_name;
+    if (tx?.user_name) return tx.user_name;
+
+    const rawId = userId || tx?.created_by_user_id || tx?.user_id;
+    if (!rawId) return '-';
+
+    if (currentUser && (rawId === currentUser.user_id || rawId === currentUser.username || rawId === currentUser.full_name)) {
+      return currentUser.full_name || currentUser.username;
+    }
+
+    const found = usersList.find(
+      (u) => u.user_id === rawId || u.username === rawId || u.full_name === rawId
+    );
+    return found ? found.full_name || found.username : rawId;
   };
 
   const loadSummary = async (isManualRefresh = false) => {
@@ -619,7 +632,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
                       {formatTimestampFull(tx.created_at || tx.timestamp)}
                     </td>
                     <td style={{ padding: '0.65rem', color: '#475569', fontWeight: 600 }}>
-                      {getCashierName(tx.created_by_user_id || tx.user_id)}
+                      {getCashierName(tx.created_by_user_id || tx.user_id, tx)}
                     </td>
                     <td style={{ padding: '0.65rem', textAlign: 'center' }}>
                       <PaymentMethodBadge method={tx.payment_method} size="sm" />

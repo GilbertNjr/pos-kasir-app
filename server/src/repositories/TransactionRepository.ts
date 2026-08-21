@@ -8,12 +8,15 @@ export class TransactionRepository implements IRepository<TransactionEntity> {
   async findAll(): Promise<TransactionEntity[]> {
     try {
       const res = await pool.query(
-        `SELECT t.transaction_id, t.transaction_number, t.created_by_user_id, t.shift_id, 
+        `SELECT t.transaction_id, t.transaction_number, t.created_by_user_id, 
+                COALESCE(u.full_name, u.username, t.created_by_user_id) as created_by_user_name,
+                t.shift_id, 
                 t.subtotal::float as subtotal_amount, t.discount_amount::float as discount_amount, 
                 t.final_total::float as final_total, 
                 COALESCE(p.payment_method, 'CASH') as payment_method, 
                 t.created_at::text as transaction_time, t.status 
          FROM transactions t 
+         LEFT JOIN users u ON t.created_by_user_id = u.user_id
          LEFT JOIN payments p ON t.transaction_id = p.transaction_id
          ORDER BY t.created_at DESC`
       );
@@ -31,12 +34,15 @@ export class TransactionRepository implements IRepository<TransactionEntity> {
   async findById(transaction_id: string): Promise<TransactionEntity | null> {
     try {
       const res = await pool.query(
-        `SELECT t.transaction_id, t.transaction_number, t.created_by_user_id, t.shift_id, 
+        `SELECT t.transaction_id, t.transaction_number, t.created_by_user_id, 
+                COALESCE(u.full_name, u.username, t.created_by_user_id) as created_by_user_name,
+                t.shift_id, 
                 t.subtotal::float as subtotal_amount, t.discount_amount::float as discount_amount, 
                 t.final_total::float as final_total, 
                 COALESCE(p.payment_method, 'CASH') as payment_method, 
                 t.created_at::text as transaction_time, t.status 
          FROM transactions t 
+         LEFT JOIN users u ON t.created_by_user_id = u.user_id
          LEFT JOIN payments p ON t.transaction_id = p.transaction_id
          WHERE t.transaction_id = $1`,
         [transaction_id]
@@ -53,12 +59,15 @@ export class TransactionRepository implements IRepository<TransactionEntity> {
   async findByShiftId(shift_id: string): Promise<TransactionEntity[]> {
     try {
       const res = await pool.query(
-        `SELECT t.transaction_id, t.transaction_number, t.created_by_user_id, t.shift_id, 
+        `SELECT t.transaction_id, t.transaction_number, t.created_by_user_id, 
+                COALESCE(u.full_name, u.username, t.created_by_user_id) as created_by_user_name,
+                t.shift_id, 
                 t.subtotal::float as subtotal_amount, t.discount_amount::float as discount_amount, 
                 t.final_total::float as final_total, 
                 COALESCE(p.payment_method, 'CASH') as payment_method, 
                 t.created_at::text as transaction_time, t.status 
          FROM transactions t 
+         LEFT JOIN users u ON t.created_by_user_id = u.user_id
          LEFT JOIN payments p ON t.transaction_id = p.transaction_id
          WHERE t.shift_id = $1
          ORDER BY t.created_at DESC`,

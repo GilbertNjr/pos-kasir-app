@@ -114,7 +114,10 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
     const txNum = (tx.transaction_number || tx.transaction_id || '').toLowerCase();
     const custName = (tx.customer_name || 'pelanggan umum').toLowerCase();
     const cashierName = (
-      usersList.find((u) => u.user_id === tx.created_by_user_id)?.full_name ||
+      tx.created_by_user_name ||
+      tx.cashier_name ||
+      usersList.find((u) => u.user_id === tx.created_by_user_id || u.username === tx.created_by_user_id)?.full_name ||
+      (_currentUser && (tx.created_by_user_id === _currentUser.user_id || tx.created_by_user_id === _currentUser.username) ? _currentUser.full_name : null) ||
       tx.created_by_user_id ||
       'kasir'
     ).toLowerCase();

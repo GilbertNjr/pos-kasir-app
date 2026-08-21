@@ -434,7 +434,7 @@ export const App: React.FC = () => {
 
       {/* PAYMENT SUMMARY TAB */}
       {cashierTab === 'PAYMENT' && (
-        <PaymentSummaryPage activeShift={activeShiftData?.shift ?? null} onTriggerToast={addToast} storeName={storeProfile.name} />
+        <PaymentSummaryPage currentUser={currentUser} activeShift={activeShiftData?.shift ?? null} onTriggerToast={addToast} storeName={storeProfile.name} />
       )}
 
       {/* REPORTS DASHBOARD TAB (PENANGGUNG JAWAB & KASIR) */}
