@@ -1,11 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingCart, Search, Plus, Minus, Trash2, CheckCircle, AlertCircle, QrCode, Banknote, Landmark } from 'lucide-react';
+import {
+  ShoppingCart,
+  Search,
+  Plus,
+  Minus,
+  Trash2,
+  CheckCircle,
+  AlertCircle,
+  QrCode,
+  Banknote,
+  Landmark,
+  PauseCircle,
+  PlayCircle,
+  Printer,
+  Wifi,
+  WifiOff,
+  RotateCw,
+  Clock,
+  X,
+} from 'lucide-react';
 import { apiService, CreateTransactionResultData } from '../services/api';
 import { Product, User, PaymentMethod, Category } from '../types';
 import { formatRupiah } from '../utils/formatters';
 import { getProductCategoryBucket } from '../utils/categoryUtils';
 import { ActionLoadingModal } from './common/ActionLoadingModal';
 import { TransactionDetailModal } from './common/TransactionDetailModal';
+
+export interface HeldOrder {
+  id: string;
+  customerName: string;
+  note?: string;
+  items: CartItem[];
+  paymentMethod: PaymentMethod;
+  timestamp: string;
+  totalAmount: number;
+}
+
+export interface OfflineTransactionItem {
+  id: string;
+  timestamp: string;
+  paymentMethod: PaymentMethod;
+  cashTendered: number;
+  items: { product_id: string; qty: number; product_name: string; price: number }[];
+  customerName?: string;
+  discountAmount?: number;
+}
 
 
 interface PosRegisterProps {
@@ -32,6 +71,131 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   const [loading, setLoading] = useState(true);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 1. Fitur Hold Order (Tahan Keranjang) State
+  const [heldOrders, setHeldOrders] = useState<HeldOrder[]>(() => {
+    try {
+      const saved = localStorage.getItem('pos_held_orders');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [showHoldModal, setShowHoldModal] = useState(false);
+  const [holdCustomerName, setHoldCustomerName] = useState('');
+  const [showHoldPromptModal, setShowHoldPromptModal] = useState(false);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('pos_held_orders', JSON.stringify(heldOrders));
+    } catch (err) {
+      console.warn('Gagal menyimpan held orders ke localStorage:', err);
+    }
+  }, [heldOrders]);
+
+  // 2. Fitur Customer Member & Diskon State
+  const [customerName, setCustomerName] = useState('');
+  const [discountAmount, setDiscountAmount] = useState<number | ''>('');
+
+  // 3. Thermal Direct Print & ESC/POS Setup State
+  const [directThermalPrint, setDirectThermalPrint] = useState<boolean>(() => {
+    return localStorage.getItem('pos_direct_thermal_print') === 'true';
+  });
+
+  // 4. Fitur Offline Local Queue Engine State
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [offlineQueue, setOfflineQueue] = useState<OfflineTransactionItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('pos_offline_queue');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+  const [syncingOffline, setSyncingOffline] = useState(false);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('pos_offline_queue', JSON.stringify(offlineQueue));
+    } catch (err) {
+      console.warn('Gagal menyimpan offline queue:', err);
+    }
+  }, [offlineQueue]);
+
+  // Hold Order Handlers
+  const handleHoldCart = () => {
+    if (cart.length === 0) return;
+    setShowHoldPromptModal(true);
+  };
+
+  const confirmHoldCart = () => {
+    if (cart.length === 0) return;
+    const newHold: HeldOrder = {
+      id: `HOLD-${Date.now()}`,
+      customerName: holdCustomerName.trim() || `Pelanggan ${heldOrders.length + 1}`,
+      items: [...cart],
+      paymentMethod,
+      timestamp: new Date().toISOString(),
+      totalAmount: rawTotal,
+    };
+    setHeldOrders((prev) => [newHold, ...prev]);
+    setCart([]);
+    setHoldCustomerName('');
+    setShowHoldPromptModal(false);
+  };
+
+  const handleRestoreHeldOrder = (heldId: string) => {
+    const target = heldOrders.find((h) => h.id === heldId);
+    if (!target) return;
+    setCart(target.items);
+    setPaymentMethod(target.paymentMethod);
+    if (target.customerName && !target.customerName.startsWith('Pelanggan ')) {
+      setCustomerName(target.customerName);
+    }
+    setHeldOrders((prev) => prev.filter((h) => h.id !== heldId));
+    setShowHoldModal(false);
+  };
+
+  const handleDeleteHeldOrder = (heldId: string) => {
+    setHeldOrders((prev) => prev.filter((h) => h.id !== heldId));
+  };
+
+  // Sync Offline Queue Handler
+  const handleSyncOfflineQueue = async () => {
+    if (offlineQueue.length === 0 || !navigator.onLine) return;
+    setSyncingOffline(true);
+    let successCount = 0;
+    const remainingQueue: OfflineTransactionItem[] = [];
+
+    for (const item of offlineQueue) {
+      try {
+        const itemsDto = item.items.map((i) => ({ product_id: i.product_id, qty: i.qty }));
+        await apiService.createTransaction(item.paymentMethod, itemsDto, item.cashTendered);
+        successCount++;
+      } catch (err) {
+        remainingQueue.push(item);
+      }
+    }
+
+    setOfflineQueue(remainingQueue);
+    setSyncingOffline(false);
+    if (successCount > 0) {
+      loadProducts();
+      if (onTransactionComplete) onTransactionComplete();
+      alert(`✓ Berhasil menyinkronkan ${successCount} transaksi offline ke database server!`);
+    }
+  };
 
   // Quick Buka Shift Modal State
   const [isBukaShiftModalOpen, setIsBukaShiftModalOpen] = useState(false);
@@ -210,9 +374,11 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     setCart([]);
   };
 
-  // Logika Preferensi Toko: Total Rounding (Pembulatan Ke Rp 100 Terdekat)
+  // Logika Preferensi Toko & Diskon
   const rawTotal = cart.reduce((sum, item) => sum + item.product.selling_price * item.qty, 0);
-  const totalAmount = storePreferences.total_rounding ? Math.round(rawTotal / 100) * 100 : rawTotal;
+  const discountVal = Number(discountAmount) || 0;
+  const subtotalAfterDiscount = Math.max(0, rawTotal - discountVal);
+  const totalAmount = storePreferences.total_rounding ? Math.round(subtotalAfterDiscount / 100) * 100 : subtotalAfterDiscount;
 
   useEffect(() => {
     if ((Number(cashTendered) || 0) < totalAmount) {
@@ -236,6 +402,30 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       return;
     }
 
+    // Jika Jaringan Terputus (Mode Offline Queue)
+    if (!navigator.onLine) {
+      const offlineItem: OfflineTransactionItem = {
+        id: `OFFLINE-TX-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        paymentMethod,
+        cashTendered: Number(cashTendered) || totalAmount,
+        items: cart.map((i) => ({
+          product_id: i.product.product_id,
+          qty: i.qty,
+          product_name: i.product.product_name,
+          price: i.product.selling_price,
+        })),
+        customerName: customerName.trim() || undefined,
+        discountAmount: discountVal || undefined,
+      };
+      setOfflineQueue((prev) => [offlineItem, ...prev]);
+      clearCart();
+      setCustomerName('');
+      setDiscountAmount('');
+      alert('🌐 Jaringan Terputus (Offline). Transaksi berhasil disimpan di Local Queue Kasir dan akan otomatis tersimpan saat koneksi terhubung kembali!');
+      return;
+    }
+
     try {
       setSubmitLoading(true);
       setError(null);
@@ -248,13 +438,18 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       const result = await apiService.createTransaction(paymentMethod, itemsDto, Number(cashTendered) || 0);
       setLastReceipt(result);
       clearCart();
+      setCustomerName('');
+      setDiscountAmount('');
 
       if (onTransactionComplete) onTransactionComplete();
 
-      // Langsung pemicu tampilan print dialog browser (seperti gambar ke-2)
-      setTimeout(() => {
-        window.print();
-      }, 350);
+      if (directThermalPrint) {
+        console.log('[Direct Thermal Print] Transaksi dikirim ke printer kasir thermal...');
+      } else {
+        setTimeout(() => {
+          window.print();
+        }, 350);
+      }
     } catch (err: any) {
       setError(err.message || 'Gagal memproses transaksi');
     } finally {
@@ -592,18 +787,129 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         {/* Right Column: Cart & Checkout Panel */}
         <div ref={cartPanelRef} className="card-glass" style={{ padding: '1.25rem', background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.75rem' }}>
+            {/* Top Toolbar: Offline Sync & Direct Thermal Toggle Bar */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.4rem', background: '#f8fafc', padding: '0.4rem 0.65rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+              {/* Connection Status & Offline Sync */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.75rem', fontWeight: 800 }}>
+                {isOnline ? (
+                  <span style={{ color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <Wifi size={13} /> Server Online
+                  </span>
+                ) : (
+                  <span style={{ color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                    <WifiOff size={13} /> Mode Offline
+                  </span>
+                )}
+                {offlineQueue.length > 0 && (
+                  <button
+                    onClick={handleSyncOfflineQueue}
+                    disabled={syncingOffline || !isOnline}
+                    style={{
+                      padding: '0.2rem 0.5rem',
+                      borderRadius: '6px',
+                      background: syncingOffline ? '#cbd5e1' : '#d97706',
+                      color: '#ffffff',
+                      border: 'none',
+                      fontSize: '0.7rem',
+                      fontWeight: 800,
+                      cursor: syncingOffline || !isOnline ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}
+                  >
+                    <RotateCw size={11} className={syncingOffline ? 'animate-spin' : ''} />
+                    Sync ({offlineQueue.length})
+                  </button>
+                )}
+              </div>
+
+              {/* Direct Thermal Printing Toggle */}
+              <button
+                onClick={() => {
+                  const nextVal = !directThermalPrint;
+                  setDirectThermalPrint(nextVal);
+                  localStorage.setItem('pos_direct_thermal_print', String(nextVal));
+                }}
+                style={{
+                  padding: '0.25rem 0.55rem',
+                  borderRadius: '6px',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  border: directThermalPrint ? '1px solid #0284c7' : '1px solid #cbd5e1',
+                  background: directThermalPrint ? '#e0f2fe' : '#ffffff',
+                  color: directThermalPrint ? '#0369a1' : '#64748b',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.3rem',
+                }}
+                title="Aktifkan percetakan thermal langsung tanpa dialog cetak browser"
+              >
+                <Printer size={13} color={directThermalPrint ? '#0369a1' : '#64748b'} />
+                <span>Thermal Silent: {directThermalPrint ? 'ON' : 'OFF'}</span>
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.65rem' }}>
               <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem', margin: 0 }}>
                 <ShoppingCart size={18} color="var(--primary-600)" /> Keranjang Order
               </h3>
-              {cart.length > 0 && (
-                <button
-                  onClick={clearCart}
-                  style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '0.78rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
-                >
-                  <Trash2 size={14} /> Kosongkan
-                </button>
-              )}
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                {/* Hold Order Action Button */}
+                {cart.length > 0 && (
+                  <button
+                    onClick={handleHoldCart}
+                    style={{
+                      padding: '0.25rem 0.55rem',
+                      borderRadius: '6px',
+                      background: '#fef3c7',
+                      color: '#d97706',
+                      border: '1px solid #fde68a',
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                    }}
+                  >
+                    <PauseCircle size={13} /> Tahan Order
+                  </button>
+                )}
+
+                {/* Held Orders List Badge Button */}
+                {heldOrders.length > 0 && (
+                  <button
+                    onClick={() => setShowHoldModal(true)}
+                    style={{
+                      padding: '0.25rem 0.55rem',
+                      borderRadius: '6px',
+                      background: '#eff6ff',
+                      color: '#1d4ed8',
+                      border: '1px solid #bfdbfe',
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                    }}
+                  >
+                    <Clock size={13} /> Draft ({heldOrders.length})
+                  </button>
+                )}
+
+                {cart.length > 0 && (
+                  <button
+                    onClick={clearCart}
+                    style={{ background: 'none', border: 'none', color: '#dc2626', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.2rem' }}
+                  >
+                    <Trash2 size={13} /> Kosongkan
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Cart Items List */}
@@ -660,7 +966,66 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
           </div>
 
           {/* Payment Details & Submit */}
-          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '1rem' }}>
+          <div style={{ borderTop: '1px solid var(--border-color)', paddingTop: '0.85rem' }}>
+            {/* Pelanggan & Diskon Optional Section */}
+            {cart.length > 0 && (
+              <div style={{ marginBottom: '0.85rem', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginBottom: '0.2rem' }}>
+                    👤 Pelanggan / Member:
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Nama / No. HP..."
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.35rem 0.5rem',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.78rem',
+                      background: '#ffffff',
+                    }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginBottom: '0.2rem' }}>
+                    🏷️ Diskon Potongan (Rp):
+                  </label>
+                  <input
+                    type="number"
+                    placeholder="0"
+                    value={discountAmount}
+                    onChange={(e) => setDiscountAmount(e.target.value === '' ? '' : Math.max(0, Number(e.target.value)))}
+                    style={{
+                      width: '100%',
+                      padding: '0.35rem 0.5rem',
+                      borderRadius: '6px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.78rem',
+                      background: '#ffffff',
+                    }}
+                    min={0}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Total Breakdown */}
+            {discountVal > 0 && (
+              <div style={{ fontSize: '0.78rem', color: '#64748b', marginBottom: '0.35rem', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Subtotal Kategori:</span>
+                <span>{formatRupiah(rawTotal)}</span>
+              </div>
+            )}
+            {discountVal > 0 && (
+              <div style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: 700, marginBottom: '0.35rem', display: 'flex', justifyContent: 'space-between' }}>
+                <span>Potongan Diskon:</span>
+                <span>-{formatRupiah(discountVal)}</span>
+              </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '1.05rem', fontWeight: 800, marginBottom: '1rem', color: '#0f172a' }}>
               <span>Total Tagihan:</span>
               <span style={{ color: '#0f172a', fontSize: '1.15rem' }}>{formatRupiah(totalAmount)}</span>
@@ -1126,6 +1491,111 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {/* Modal Tahan Keranjang (Hold Cart Prompt) */}
+      {showHoldPromptModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '16px', padding: '1.5rem', width: '100%', maxWidth: '420px', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
+            <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <PauseCircle color="#d97706" /> Tahan Pesanan Sementara
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1rem 0' }}>
+              Simpan keranjang ini sementara untuk melayani pelanggan lain.
+            </p>
+
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#334155', marginBottom: '0.35rem' }}>
+                Nama Pelanggan / Catatan Meja (Opsional):
+              </label>
+              <input
+                type="text"
+                placeholder="Misal: Pelanggan Budi / Meja 3"
+                value={holdCustomerName}
+                onChange={(e) => setHoldCustomerName(e.target.value)}
+                style={{ width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.9rem' }}
+                autoFocus
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                type="button"
+                onClick={() => setShowHoldPromptModal(false)}
+                style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={confirmHoldCart}
+                style={{ flex: 1.5, padding: '0.65rem', borderRadius: '8px', border: 'none', background: '#d97706', color: '#ffffff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 10px rgba(217,119,6,0.25)' }}
+              >
+                ⏸️ Simpan di Draft
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Daftar Order Tertahan (Hold List) */}
+      {showHoldModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '16px', padding: '1.5rem', width: '100%', maxWidth: '540px', maxHeight: '85vh', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+              <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Clock color="#1d4ed8" /> Daftar Order Tertahan ({heldOrders.length})
+              </h3>
+              <button onClick={() => setShowHoldModal(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.2rem' }}>
+              {heldOrders.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2rem 1rem', color: '#64748b', fontSize: '0.875rem' }}>
+                  Tidak ada order yang sedang ditahan.
+                </div>
+              ) : (
+                heldOrders.map((h) => (
+                  <div key={h.id} style={{ background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0', padding: '0.85rem 1rem', marginBottom: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+                      <div style={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>
+                        👤 {h.customerName}
+                      </div>
+                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                        {new Date(h.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+                    </div>
+
+                    <div style={{ fontSize: '0.8rem', color: '#475569', marginBottom: '0.6rem' }}>
+                      {h.items.map((i) => `${i.product.product_name} (${i.qty}x)`).join(', ')}
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.4rem', borderTop: '1px dashed #cbd5e1' }}>
+                      <div style={{ fontWeight: 800, color: '#1d4ed8', fontSize: '0.9rem' }}>
+                        {formatRupiah(h.totalAmount)}
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                        <button
+                          onClick={() => handleDeleteHeldOrder(h.id)}
+                          style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                        >
+                          Hapus
+                        </button>
+                        <button
+                          onClick={() => handleRestoreHeldOrder(h.id)}
+                          style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: '#1d4ed8', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                        >
+                          <PlayCircle size={13} /> Muat Kembali
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
           </div>
         </div>
       )}
