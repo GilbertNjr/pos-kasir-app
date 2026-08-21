@@ -9,16 +9,13 @@ import {
   HardDrive,
   Cloud,
   UploadCloud,
-  FileCode,
   FileCheck,
   Search,
   Shield,
   FileText,
   Trash2,
-  Check,
   Server,
   Zap,
-  ExternalLink,
   Key,
   X,
   ChevronLeft,
@@ -178,7 +175,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   // Google Drive & Sheets Configuration State
-  const [sheetsStatus, setSheetsStatus] = useState<{ is_connected: boolean; spreadsheet_id: string } | null>({
+  const [_sheetsStatus, setSheetsStatus] = useState<{ is_connected: boolean; spreadsheet_id: string } | null>({
     is_connected: true,
     spreadsheet_id: '1qpyC0XzvTcKT6EISywvqESX3A0MwQoFDE8p-BlI4hps',
   });
@@ -741,139 +738,202 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
         </div>
       )}
 
-      {/* 3. THREE MAIN ACTION CARDS HUB */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem', alignItems: 'stretch' }}>
+      {/* 3. SIMPLIFIED & ELEGANT ACTION PANELS (USER-FRIENDLY FOR NON-PROGRAMMERS) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
         
-        {/* CARD 1: DOWNLOAD BACKUP SNAPSHOT */}
-        <div style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '1.5rem', boxShadow: '0 4px 14px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        {/* PANEL A: CADANGKAN DATA TOKO (BACKUP) */}
+        <div
+          style={{
+            background: '#ffffff',
+            borderRadius: '24px',
+            border: '1px solid #e2e8f0',
+            padding: '1.75rem',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: '1.5rem',
+          }}
+        >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
-              <div style={{ padding: '0.5rem', borderRadius: '10px', background: 'var(--accent-bg, #f8fafc)', color: 'var(--color-primary)' }}>
-                <Download size={22} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+                }}
+              >
+                <Shield size={24} />
               </div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                1. Unduh Snapshot (JSON Export)
-              </h3>
-            </div>
-            
-            <p style={{ fontSize: '0.825rem', color: '#64748b', lineHeight: 1.5, marginBottom: '1rem' }}>
-              Simpan berkas snapshot database lengkap ke komputer Anda. Termasuk master produk, riwayat transaksi, stok barang, shift kasir, dan audit log.
-            </p>
-
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginBottom: '1.25rem' }}>
-              {['Produk', 'Stok', 'Transaksi', 'Shift', 'Pengeluaran', 'Audit Log'].map((tag) => (
-                <span key={tag} style={{ fontSize: '0.7rem', padding: '0.2rem 0.55rem', borderRadius: '6px', background: '#f1f5f9', color: '#334155', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
-                  <Check size={12} color="#059669" /> {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={handleExportBackup}
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '0.85rem',
-              borderRadius: '12px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.5rem',
-              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
-              transition: 'transform 0.15s ease',
-            }}
-          >
-            <HardDrive size={18} />
-            <span>{loading ? 'Memproses Snapshot...' : '💾 Download File Backup (.json)'}</span>
-          </button>
-        </div>
-
-        {/* CARD 2: SINKRONISASI GOOGLE SHEETS & DRIVE */}
-        <div style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '1.5rem', boxShadow: '0 4px 14px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
-              <div style={{ padding: '0.5rem', borderRadius: '10px', background: '#ecfdf5', color: '#059669' }}>
-                <Cloud size={22} />
+              <div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
+                  Cadangkan Data Toko (Backup)
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
+                  Amankan seluruh data produk, stok, & transaksi agar tidak pernah hilang.
+                </p>
               </div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                2. Sinkronkan ke Google Sheets
-              </h3>
             </div>
-            
-            <p style={{ fontSize: '0.825rem', color: '#64748b', lineHeight: 1.5, marginBottom: '1rem' }}>
-              Ekspor dan perbarui seluruh tabel transaksi, stok, dan pengeluaran secara otomatis langsung ke Spreadsheet Google Drive Anda.
-            </p>
 
-            <div style={{ padding: '0.75rem', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', fontSize: '0.78rem', color: '#475569', marginBottom: '1.25rem' }}>
-              <div style={{ fontWeight: 700, color: '#0f172a', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <span>Status Cloud Spreadsheet:</span>
-                <a
-                  href={`https://docs.google.com/spreadsheets/d/${sheetsStatus?.spreadsheet_id || '1qpyC0XzvTcKT6EISywvqESX3A0MwQoFDE8p-BlI4hps'}/edit`}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: '#059669', fontWeight: 800, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}
-                >
-                  Buka Spreadsheet <ExternalLink size={12} />
-                </a>
-              </div>
-              <div>ID: <code style={{ background: '#e2e8f0', padding: '0.1rem 0.3rem', borderRadius: '4px', fontSize: '0.72rem' }}>{sheetsStatus?.spreadsheet_id || '1qpyC0XzvTcKT6EISywvqESX3A0MwQoFDE8p-BlI4hps'}</code></div>
-            </div>
-          </div>
+            <div style={{ height: '1px', background: '#f1f5f9', margin: '1.25rem 0' }} />
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-            <button
-              type="button"
-              onClick={handleSyncGoogleSheets}
-              disabled={syncingSheets}
+            {/* OPSI 1: CLOUD GOOGLE DRIVE (OTOMATIS) */}
+            <div
               style={{
-                width: '100%',
-                padding: '0.85rem',
-                borderRadius: '12px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '0.875rem',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 4px 14px rgba(5, 150, 105, 0.25)',
-                transition: 'transform 0.15s ease',
+                background: '#f8fafc',
+                borderRadius: '16px',
+                border: '1px solid #e2e8f0',
+                padding: '1.15rem',
+                marginBottom: '1rem',
+                transition: 'all 0.2s ease',
               }}
             >
-              <RefreshCw size={18} className={syncingSheets ? 'spinning' : ''} />
-              <span>{syncingSheets ? 'Menyinkronkan ke Sheets...' : '📊 Sinkronkan Sekarang'}</span>
-            </button>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <GoogleDriveIcon size={20} />
+                  <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>Google Drive (Cloud)</span>
+                </div>
+                <span
+                  style={{
+                    fontSize: '0.725rem',
+                    fontWeight: 800,
+                    padding: '0.2rem 0.6rem',
+                    borderRadius: '8px',
+                    background: isDriveConnected ? '#ecfdf5' : '#fef3c7',
+                    color: isDriveConnected ? '#047857' : '#b45309',
+                    border: `1px solid ${isDriveConnected ? '#a7f3d0' : '#fde68a'}`,
+                  }}
+                >
+                  {isDriveConnected ? '🟢 Terkoneksi & Otomatis' : '🟡 Belum Disambungkan'}
+                </span>
+              </div>
+              
+              <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0 0 0.85rem 0', lineHeight: 1.45 }}>
+                Cadangan otomatis tersimpan di Google Drive. Klik tombol di bawah untuk mencadangkan secara manual kapan saja.
+              </p>
+
+              <button
+                type="button"
+                onClick={handleSyncGoogleSheets}
+                disabled={syncingSheets}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+                }}
+              >
+                <Cloud size={16} />
+                <span>{syncingSheets ? 'Menyimpan ke Drive...' : 'Cadangkan ke Google Drive Sekarang'}</span>
+              </button>
+            </div>
+
+            {/* OPSI 2: UNDUH KE PERANGKAT (MANUAL) */}
+            <div
+              style={{
+                background: '#ffffff',
+                borderRadius: '16px',
+                border: '1px solid #e2e8f0',
+                padding: '1.15rem',
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                <HardDrive size={20} color="#3b82f6" />
+                <span style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>Unduh ke Komputer / HP (Offline)</span>
+              </div>
+              <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0 0 0.85rem 0', lineHeight: 1.45 }}>
+                Unduh berkas salinan data toko langsung ke galeri/penyimpanan perangkat Anda.
+              </p>
+
+              <button
+                type="button"
+                onClick={handleExportBackup}
+                disabled={loading}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1rem',
+                  borderRadius: '12px',
+                  border: '1px solid #cbd5e1',
+                  background: '#f8fafc',
+                  color: '#0f172a',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Download size={16} />
+                <span>{loading ? 'Mengunduh...' : 'Download Berkas Backup Toko'}</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* CARD 3: PEMULIHAN DATA (RESTORE SNAPSHOT FILE) */}
-        <div style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '1.5rem', boxShadow: '0 4px 14px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        {/* PANEL B: PULIHKAN DATA TOKO (RESTORE) */}
+        <div
+          style={{
+            background: '#ffffff',
+            borderRadius: '24px',
+            border: '1px solid #e2e8f0',
+            padding: '1.75rem',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            gap: '1.5rem',
+          }}
+        >
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem' }}>
-              <div style={{ padding: '0.5rem', borderRadius: '10px', background: '#fff7ed', color: '#c2410c' }}>
-                <Upload size={22} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              <div
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
+                }}
+              >
+                <RefreshCw size={24} />
               </div>
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
-                3. Restore / Pulihkan Snapshot
-              </h3>
+              <div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
+                  Pulihkan Data Toko (Restore)
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
+                  Mengembalikan seluruh barang, stok & data toko dari berkas backup.
+                </p>
+              </div>
             </div>
-            
-            <p style={{ fontSize: '0.825rem', color: '#64748b', lineHeight: 1.5, marginBottom: '0.85rem' }}>
-              Upload berkas file <code style={{ color: '#c2410c', fontWeight: 700 }}>.json</code> hasil backup sebelumnya untuk memulihkan data barang & stok fisik toko.
-            </p>
 
-            <form onSubmit={handleRestoreBackup} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ height: '1px', background: '#f1f5f9', margin: '1.25rem 0' }} />
+
+            <form onSubmit={handleRestoreBackup} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -887,70 +947,110 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
                   onClick={() => fileInputRef.current?.click()}
                   style={{
                     border: '2px dashed #cbd5e1',
-                    borderRadius: '12px',
-                    padding: '1rem',
+                    borderRadius: '16px',
+                    padding: '1.75rem 1.25rem',
                     textAlign: 'center',
                     background: '#f8fafc',
                     cursor: 'pointer',
-                    transition: 'border-color 0.2s ease',
+                    transition: 'all 0.2s ease',
                   }}
+                  onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'var(--color-primary)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#cbd5e1')}
                 >
-                  <FileCode size={24} color="#94a3b8" style={{ marginBottom: '0.3rem' }} />
-                  <div style={{ fontSize: '0.825rem', fontWeight: 700, color: '#334155' }}>
-                    Klik untuk Pilih Berkas File (.json)
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '14px',
+                      background: '#ffffff',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      margin: '0 auto 0.75rem auto',
+                      color: '#ea580c',
+                    }}
+                  >
+                    <Upload size={24} />
                   </div>
-                  <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '0.15rem' }}>
-                    Atau gunakan opsi tempel teks manual di bawah
+                  <div style={{ fontSize: '0.9rem', fontWeight: 800, color: '#0f172a' }}>
+                    Klik untuk Pilih Berkas Backup Toko
+                  </div>
+                  <div style={{ fontSize: '0.775rem', color: '#64748b', marginTop: '0.25rem' }}>
+                    Pilih file (.json) cadangan data yang sudah disimpan sebelumnya
                   </div>
                 </div>
               ) : (
-                <div style={{ padding: '0.75rem', borderRadius: '12px', background: '#fff7ed', border: '1px solid #ffedd5', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
-                    <FileCheck size={20} color="#c2410c" />
-                    <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#9a3412', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <div
+                  style={{
+                    padding: '1rem 1.25rem',
+                    borderRadius: '16px',
+                    background: '#fff7ed',
+                    border: '1px solid #ffedd5',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', overflow: 'hidden' }}>
+                    <FileCheck size={22} color="#c2410c" />
+                    <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#9a3412', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {selectedFile.name}
                     </span>
                   </div>
                   <button
                     type="button"
                     onClick={clearSelectedFile}
+                    title="Ganti berkas file"
                     style={{ background: 'none', border: 'none', color: '#9a3412', cursor: 'pointer', padding: '0.2rem' }}
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={18} />
                   </button>
                 </div>
               )}
 
               {jsonPreview && (
-                <div style={{ padding: '0.65rem 0.85rem', borderRadius: '10px', background: '#ecfdf5', border: '1px solid #a7f3d0', fontSize: '0.75rem', color: '#065f46' }}>
-                  <div style={{ fontWeight: 800, marginBottom: '0.2rem' }}>✓ Berkas Terbaca Valid:</div>
-                  <div>ID Snapshot: <strong>{jsonPreview.backup_id}</strong></div>
-                  <div>Total Produk: <strong>{jsonPreview.products_count} item</strong> | Stok: <strong>{jsonPreview.stocks_count} item</strong></div>
+                <div
+                  style={{
+                    padding: '0.85rem 1.15rem',
+                    borderRadius: '14px',
+                    background: '#ecfdf5',
+                    border: '1px solid #a7f3d0',
+                    fontSize: '0.8rem',
+                    color: '#065f46',
+                  }}
+                >
+                  <div style={{ fontWeight: 800, marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <CheckCircle2 size={16} /> Berkas Valid & Siap Dipulihkan:
+                  </div>
+                  <div style={{ marginTop: '0.2rem' }}>
+                    📦 Data Produk: <strong>{jsonPreview.products_count} jenis</strong> | 📊 Stok Fisik: <strong>{jsonPreview.stocks_count} item</strong>
+                  </div>
                 </div>
               )}
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <button
                   type="button"
                   onClick={() => setShowRawTextarea(!showRawTextarea)}
                   style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
                 >
-                  {showRawTextarea ? 'Sembunyikan Input Teks' : 'Gunakan Paste Teks JSON Manual'}
+                  {showRawTextarea ? 'Sembunyikan Opsi Teks Manual' : 'Gunakan Input Teks Manual (Opsi IT)'}
                 </button>
               </div>
 
               {showRawTextarea && (
                 <textarea
                   rows={3}
-                  placeholder="Tempelkan teks JSON snapshot di sini..."
+                  placeholder="Tempelkan teks JSON snapshot di sini jika ada..."
                   value={restoreJsonInput}
                   onChange={(e) => handleTextareaChange(e.target.value)}
                   style={{
                     width: '100%',
-                    padding: '0.6rem',
-                    borderRadius: '10px',
+                    padding: '0.75rem',
+                    borderRadius: '12px',
                     border: '1px solid #cbd5e1',
-                    fontSize: '0.75rem',
+                    fontSize: '0.775rem',
                     fontFamily: 'monospace',
                     outline: 'none',
                   }}
@@ -965,20 +1065,21 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
                   padding: '0.85rem',
                   borderRadius: '12px',
                   border: 'none',
-                  background: restoreJsonInput.trim() ? 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)' : '#cbd5e1',
-                  color: '#ffffff',
+                  background: restoreJsonInput.trim() ? 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)' : '#e2e8f0',
+                  color: restoreJsonInput.trim() ? '#ffffff' : '#94a3b8',
                   fontWeight: 800,
-                  fontSize: '0.875rem',
+                  fontSize: '0.9rem',
                   cursor: restoreJsonInput.trim() ? 'pointer' : 'not-allowed',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.5rem',
-                  boxShadow: restoreJsonInput.trim() ? '0 4px 14px rgba(234, 88, 12, 0.25)' : 'none',
+                  boxShadow: restoreJsonInput.trim() ? '0 4px 14px rgba(234, 88, 12, 0.3)' : 'none',
+                  transition: 'all 0.15s ease',
                 }}
               >
                 <Zap size={18} />
-                <span>{restoreLoading ? 'Memulihkan Data...' : '⚡ Jalankan Restore Data'}</span>
+                <span>{restoreLoading ? 'Memulihkan Data Toko...' : 'Pulihkan Data Toko Sekarang'}</span>
               </button>
             </form>
           </div>
