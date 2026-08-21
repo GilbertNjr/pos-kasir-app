@@ -265,7 +265,7 @@ export const exportShiftToExcel = (options: ShiftReportExportOptions) => {
   document.body.removeChild(link);
 };
 
-// 2. PRINT TO PDF - CETAK MANDIRI SESUAI FORMAT GAMBAR #2
+// 2. PRINT TO PDF - FORMAT STRUK THERMAL 80MM / NOTA RINGKAS SHIFT
 export const printShiftPDF = (options: ShiftReportExportOptions) => {
   const {
     storeName = 'Kedai POS',
@@ -282,41 +282,49 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
     expenses
   );
 
-  const dutyUsersStr = formatDutyUsersHtml(dutyUsers, currentUserFullName);
+  const dutyUsersStr = formatDutyUsersText(dutyUsers, currentUserFullName);
 
-  const itemRowsPrint = itemList
-    .map(
-      (item) => `
-      <tr>
-        <td style="text-align: center; border-bottom: 1px dashed #cbd5e1; padding: 4px;">${item.qty}</td>
-        <td style="border-bottom: 1px dashed #cbd5e1; padding: 4px; font-weight: 600;">${item.name}</td>
-        <td style="text-align: right; border-bottom: 1px dashed #cbd5e1; padding: 4px;">${formatRupiah(item.price)}</td>
-        <td style="text-align: right; border-bottom: 1px dashed #cbd5e1; padding: 4px; font-weight: 700;">${formatRupiah(item.subtotal)}</td>
-      </tr>
-    `
-    )
-    .join('');
-
-  const expenseRowsPrint =
-    expenseList.length > 0
-      ? expenseList
+  const itemRowsThermal =
+    itemList.length > 0
+      ? itemList
           .map(
-            (exp) => `
+            (item) => `
         <tr>
-          <td colspan="3" style="border-bottom: 1px dashed #cbd5e1; padding: 4px; font-size: 0.85rem;">- ${exp.description}</td>
-          <td style="text-align: right; border-bottom: 1px dashed #cbd5e1; padding: 4px; font-weight: 700; color: #dc2626;">${formatRupiah(exp.amount)}</td>
+          <td style="text-align: left; padding: 3px 0;">
+            <div style="font-weight: bold; font-size: 11px;">${item.name}</div>
+            <div style="font-size: 10px; color: #475569;">${formatRupiah(item.price)}</div>
+          </td>
+          <td style="text-align: center; vertical-align: top; font-weight: bold; padding-top: 3px; font-size: 11px;">${item.qty}x</td>
+          <td style="text-align: right; vertical-align: top; font-weight: bold; padding-top: 3px; font-size: 11px;">${formatRupiah(item.subtotal)}</td>
         </tr>
       `
           )
           .join('')
       : `
         <tr>
-          <td colspan="3" style="padding: 4px; font-style: italic; color: #64748b; font-size: 0.85rem;">(Tidak ada pengeluaran kas pada shift ini)</td>
-          <td style="text-align: right; padding: 4px;">Rp 0</td>
+          <td colspan="3" style="text-align: center; font-style: italic; color: #64748b; padding: 6px 0; font-size: 10px;">(Belum ada barang terjual pada shift ini)</td>
         </tr>
       `;
 
-  const printWindow = window.open('', '_blank', 'width=800,height=900');
+  const expenseRowsThermal =
+    expenseList.length > 0
+      ? expenseList
+          .map(
+            (exp) => `
+        <tr>
+          <td colspan="2" style="text-align: left; padding: 2px 0; font-size: 10.5px;">- ${exp.description}</td>
+          <td style="text-align: right; font-weight: bold; color: #dc2626; font-size: 10.5px;">${formatRupiah(exp.amount)}</td>
+        </tr>
+      `
+          )
+          .join('')
+      : `
+        <tr>
+          <td colspan="3" style="text-align: center; font-style: italic; color: #64748b; padding: 4px 0; font-size: 10px;">(Tidak ada pengeluaran kas)</td>
+        </tr>
+      `;
+
+  const printWindow = window.open('', '_blank', 'width=450,height=750');
   if (!printWindow) {
     alert('Harap izinkan popup browser untuk membuka pratinjau cetak PDF.');
     return;
@@ -332,157 +340,109 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Cetak Laporan Shift - ${dateStr}</title>
+      <title>Struk Rekap Shift - ${dateStr}</title>
       <style>
         @page {
-          size: A4;
-          margin: 15mm;
+          size: 80mm auto;
+          margin: 4mm;
         }
         body {
-          font-family: 'Segoe UI', -apple-system, sans-serif;
-          color: #0f172a;
-          line-height: 1.3;
-          margin: 0;
-          padding: 10px;
+          font-family: 'Courier New', Courier, monospace, 'Segoe UI', sans-serif;
+          color: #000000;
+          width: 300px;
+          margin: 0 auto;
+          padding: 8px;
+          font-size: 11px;
+          line-height: 1.35;
         }
-        .header {
-          border-bottom: 2px solid #0f172a;
-          padding-bottom: 8px;
-          margin-bottom: 15px;
-        }
-        .store-name {
-          font-size: 13px;
-          font-weight: 700;
-          letter-spacing: 1px;
-          color: #475569;
-          text-transform: uppercase;
-        }
-        .report-title {
-          font-size: 18px;
-          font-weight: 800;
-          color: #0f172a;
-          margin-top: 2px;
-        }
-        .meta-grid {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 15px;
-          font-size: 13px;
-          background: #f8fafc;
-          padding: 8px 12px;
-          border-radius: 6px;
-          border: 1px solid #e2e8f0;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-          margin-bottom: 15px;
-          font-size: 12px;
-        }
-        th {
-          border-top: 1px solid #0f172a;
-          border-bottom: 1px solid #0f172a;
-          padding: 6px 4px;
-          text-align: left;
-          font-weight: 700;
-        }
-        .section-label {
-          font-size: 13px;
-          font-weight: 800;
-          margin-top: 15px;
-          margin-bottom: 6px;
-          color: #0f172a;
-          border-bottom: 1px solid #cbd5e1;
-          padding-bottom: 3px;
-        }
-        .total-row {
-          font-weight: 800;
-          font-size: 13px;
-          border-top: 1px solid #0f172a;
-          border-bottom: 1px solid #0f172a;
-        }
-        .grand-total-container {
-          margin-top: 20px;
-          display: flex;
-          justify-content: flex-end;
-        }
+        .center { text-align: center; }
+        .right { text-align: right; }
+        .bold { font-weight: bold; }
+        .store-title { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .report-subtitle { font-size: 10px; font-weight: bold; margin-top: 2px; text-transform: uppercase; }
+        .dashed-line { border-bottom: 1px dashed #000000; margin: 6px 0; }
+        .solid-line { border-bottom: 1.5px solid #000000; margin: 8px 0; }
+        .meta-item { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 2px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; margin-top: 4px; }
+        th { border-bottom: 1px dashed #000000; padding: 4px 0; font-size: 10px; text-transform: uppercase; }
+        td { padding: 3px 0; vertical-align: top; word-break: break-word; }
+        .summary-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 11px; }
         .grand-total-box {
-          border: 2px solid #0f172a;
-          border-radius: 12px;
-          padding: 10px 20px;
-          text-align: right;
-          min-width: 220px;
+          border: 1.5px solid #000000;
+          padding: 8px;
+          margin-top: 8px;
+          margin-bottom: 8px;
+          text-align: center;
+          background: #ffffff;
         }
-        .grand-total-label {
-          font-size: 12px;
-          font-weight: 700;
-          color: #475569;
-          text-transform: uppercase;
-        }
-        .grand-total-value {
-          font-size: 22px;
-          font-weight: 900;
-          color: #059669;
-        }
+        .grand-total-label { font-size: 10px; font-weight: bold; text-transform: uppercase; }
+        .grand-total-value { font-size: 16px; font-weight: bold; margin-top: 3px; color: #000000; }
         @media print {
-          body { padding: 0; }
+          body { width: 100%; padding: 0; }
           .no-print { display: none; }
         }
       </style>
     </head>
     <body>
-      <div class="header">
-        <div class="store-name">${storeName}</div>
-        <div class="report-title">LAPORAN REKAPITULASI SHIFT & PENJUALAN HARIAN</div>
+      <div class="center">
+        <div class="store-title">${(storeName || 'KEDAI POS').toUpperCase()}</div>
+        <div class="report-subtitle">STRUK REKAPITULASI SHIFT KASIR</div>
       </div>
+      <div class="dashed-line"></div>
 
-      <div class="meta-grid">
-        <div><strong>Tgl:</strong> ${dateStr}</div>
-        <div><strong>Shift:</strong> ${shiftId}</div>
-        <div><strong>Pegawai Shift:</strong> ${dutyUsersStr}</div>
+      <div class="meta-item"><span>Waktu Cetak</span><span>: ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span></div>
+      <div class="meta-item"><span>Tanggal Shift</span><span>: ${dateStr}</span></div>
+      <div class="meta-item"><span>Sesi Shift</span><span>: ${shiftId}</span></div>
+      <div class="meta-item" style="flex-direction: column; align-items: flex-start; gap: 1px; margin-top: 3px;">
+        <span>Tim Bertugas Shift:</span>
+        <span class="bold" style="padding-left: 6px; font-size: 9.5px; word-break: break-word;">${dutyUsersStr}</span>
       </div>
+      <div class="dashed-line"></div>
 
-      <div class="section-label">1. TABEL REKAPITULASI BARANG TERJUAL</div>
+      <!-- 1. BARANG TERJUAL -->
+      <div class="bold" style="font-size: 10.5px; margin-top: 2px;">1. RINCIAN BARANG/JASA TERJUAL</div>
       <table>
         <thead>
           <tr>
-            <th style="width: 45px; text-align: center;">Qty</th>
-            <th>Nama Barang</th>
-            <th style="width: 110px; text-align: right;">Harga</th>
-            <th style="width: 130px; text-align: right;">Jumlah</th>
+            <th style="width: 55%; text-align: left;">Item</th>
+            <th style="width: 15%; text-align: center;">Qty</th>
+            <th style="width: 30%; text-align: right;">Total</th>
           </tr>
         </thead>
         <tbody>
-          ${itemRowsPrint}
-          <tr class="total-row">
-            <td colspan="3" style="text-align: right; padding: 6px 4px;">Total Penjualan Kotor</td>
-            <td style="text-align: right; padding: 6px 4px;">${formatRupiah(totalGrossSales)}</td>
-          </tr>
+          ${itemRowsThermal}
         </tbody>
       </table>
+      <div class="dashed-line"></div>
+      <div class="summary-row bold">
+        <span>TOTAL PENJUALAN KOTOR</span>
+        <span>${formatRupiah(totalGrossSales)}</span>
+      </div>
+      <div class="dashed-line"></div>
 
-      <div class="section-label">2. PENGELUARAN SHIFT</div>
+      <!-- 2. PENGELUARAN SHIFT -->
+      <div class="bold" style="font-size: 10.5px; margin-top: 2px;">2. PENGELUARAN KAS SHIFT</div>
       <table>
-        <thead>
-          <tr>
-            <th colspan="3">Keterangan / Keperluan</th>
-            <th style="width: 130px; text-align: right;">Nominal</th>
-          </tr>
-        </thead>
         <tbody>
-          ${expenseRowsPrint}
-          <tr class="total-row">
-            <td colspan="3" style="text-align: right; padding: 6px 4px; color: #dc2626;">Total Pengeluaran</td>
-            <td style="text-align: right; padding: 6px 4px; color: #dc2626;">${formatRupiah(totalExpenses)}</td>
-          </tr>
+          ${expenseRowsThermal}
         </tbody>
       </table>
+      <div class="dashed-line"></div>
+      <div class="summary-row bold">
+        <span>TOTAL PENGELUARAN SHIFT</span>
+        <span>-${formatRupiah(totalExpenses)}</span>
+      </div>
+      <div class="dashed-line"></div>
 
-      <div class="grand-total-container">
-        <div class="grand-total-box">
-          <div class="grand-total-label">Total Bersih / Uang Kasir</div>
-          <div class="grand-total-value">${formatRupiah(netTotal)}</div>
-        </div>
+      <!-- GRAND TOTAL BERSIH -->
+      <div class="grand-total-box">
+        <div class="grand-total-label">UANG KASIR / TOTAL SHIFT BERSIH</div>
+        <div class="grand-total-value">${formatRupiah(netTotal)}</div>
+      </div>
+
+      <div class="dashed-line"></div>
+      <div class="center" style="font-size: 9.5px; margin-top: 6px; font-style: italic;">
+        *** NOTA HASIL SHIFT RESMI POS ***
       </div>
 
       <script>
