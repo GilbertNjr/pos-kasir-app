@@ -95,7 +95,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
               boxShadow: isSseConnected ? '0 0 8px #10b981' : 'none',
             }}
           />
-          <span>{isSseConnected ? 'Realtime Active' : 'Offline'}</span>
+          <span className="header-badge-text-compact">{isSseConnected ? 'Realtime Active' : 'Offline'}</span>
         </div>
 
         {/* Bantuan Button */}

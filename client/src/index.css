@@ -399,6 +399,10 @@ html, body {
     display: none !important;
   }
   
+  .header-badge-text-compact {
+    display: none !important;
+  }
+
   .header-text-responsive {
     font-size: 0.85rem !important;
   }

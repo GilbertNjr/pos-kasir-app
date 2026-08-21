@@ -57,9 +57,10 @@ export const NetworkStatusBadge: React.FC<NetworkStatusBadgeProps> = () => {
               borderRadius: '50%',
               background: '#10b981',
               boxShadow: '0 0 6px #10b981',
+              flexShrink: 0,
             }}
           />
-          <span style={{ whiteSpace: 'nowrap' }}>ONLINE</span>
+          <span className="header-badge-text-compact" style={{ whiteSpace: 'nowrap' }}>ONLINE</span>
         </>
       ) : (
         <>
@@ -71,9 +72,10 @@ export const NetworkStatusBadge: React.FC<NetworkStatusBadgeProps> = () => {
               borderRadius: '50%',
               background: '#ef4444',
               boxShadow: '0 0 6px #ef4444',
+              flexShrink: 0,
             }}
           />
-          <span style={{ whiteSpace: 'nowrap' }}>OFFLINE</span>
+          <span className="header-badge-text-compact" style={{ whiteSpace: 'nowrap' }}>OFFLINE</span>
         </>
       )}
     </div>

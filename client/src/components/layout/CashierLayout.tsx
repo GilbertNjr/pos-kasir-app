@@ -649,9 +649,21 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             {/* Status Online / Offline Wifi Indicator */}
             <NetworkStatusBadge />
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', background: activeShiftId ? '#f0fdf4' : '#fef2f2', padding: '0.3rem 0.6rem', borderRadius: '20px', border: activeShiftId ? '1px solid #bbf7d0' : '1px solid #fecaca' }}>
+            <div
+              title={activeShiftId ? 'Sesi Shift Aktif' : 'Shift Nonaktif'}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
+                background: activeShiftId ? '#f0fdf4' : '#fef2f2',
+                padding: '0.28rem 0.55rem',
+                borderRadius: '20px',
+                border: activeShiftId ? '1px solid #bbf7d0' : '1px solid #fecaca',
+                flexShrink: 0,
+              }}
+            >
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: activeShiftId ? '#22c55e' : '#ef4444', flexShrink: 0 }}></span>
-              <span style={{ fontSize: '0.7rem', fontWeight: 700, color: activeShiftId ? '#15803d' : '#991b1b', whiteSpace: 'nowrap' }}>
+              <span className="header-badge-text-compact" style={{ fontSize: '0.7rem', fontWeight: 700, color: activeShiftId ? '#15803d' : '#991b1b', whiteSpace: 'nowrap' }}>
                 {activeShiftId ? 'ACTIVE' : 'NONAKTIF'}
               </span>
             </div>
@@ -660,6 +672,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
 
             <button
               onClick={() => onTabChange('SHIFT')}
+              title="Kelola Sesi Shift Kasir"
               style={{
                 padding: '0.35rem 0.65rem',
                 borderRadius: '8px',
@@ -671,9 +684,13 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
                 cursor: 'pointer',
                 whiteSpace: 'nowrap',
                 flexShrink: 0,
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.3rem',
               }}
             >
-              Shift
+              <Clock size={13} color="#ffffff" />
+              <span className="header-badge-text-compact">Shift</span>
             </button>
           </div>
         </header>
