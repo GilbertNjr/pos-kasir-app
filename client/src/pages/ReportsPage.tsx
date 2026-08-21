@@ -14,6 +14,8 @@ import {
   ShoppingBag as BagIcon,
   Trash2,
   AlertTriangle,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { User } from '../types';
@@ -294,6 +296,16 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
   const [stockList, setStockList] = useState<any[]>([]);
   const [stockAuditLogs, setStockAuditLogs] = useState<any[]>([]);
   const [expenseList, setExpenseList] = useState<any[]>([]);
+
+  // Pagination State for Laporan Inventaris Stok & Pergerakan Barang
+  const [stockCurrentPage, setStockCurrentPage] = useState<number>(1);
+  const [stockItemsPerPage, setStockItemsPerPage] = useState<number>(10);
+
+  const totalStockItems = stockList.length;
+  const totalStockPages = Math.max(1, Math.ceil(totalStockItems / stockItemsPerPage));
+  const stockStartIndex = (stockCurrentPage - 1) * stockItemsPerPage;
+  const stockEndIndex = Math.min(totalStockItems, stockStartIndex + stockItemsPerPage);
+  const paginatedStockList = stockList.slice(stockStartIndex, stockEndIndex);
 
   const [usersList, setUsersList] = useState<User[]>([]);
   const [reportData, setReportData] = useState<any>(null);
@@ -870,27 +882,29 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
             </div>
           </div>
 
-          {/* Tabel Status Inventory & Restok (RESPONSIVE: MOBILE CARDS + DESKTOP TABLE) */}
+          {/* Tabel Status Inventory & Restok (RESPONSIVE: MOBILE CARDS + DESKTOP TABLE WITH PAGINATION) */}
           <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
               <div>
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  📋 Laporan Inventaris Stok & Pergerakan Barang Supabase
+                  📋 Laporan Inventaris Stok & Pergerakan Barang
                 </h3>
                 <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.2rem 0 0 0' }}>
                   Rekapitulasi fisik produk & bidang usaha terhubung database real-time
                 </p>
               </div>
-              <span style={{ padding: '0.35rem 0.85rem', borderRadius: '999px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', fontSize: '0.75rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
-                <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#2563eb' }} />
-                Database Active
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                <span style={{ padding: '0.35rem 0.85rem', borderRadius: '999px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', fontSize: '0.75rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: '#2563eb' }} />
+                  Database Active
+                </span>
+              </div>
             </div>
 
             {/* 1. MOBILE CARD VIEW (< 768px: Stacked Cards, No Horizontal Scrolling) */}
             <div className="mobile-only-stock-list">
-              {stockList.length > 0 ? (
-                stockList.map((item, idx) => {
+              {paginatedStockList.length > 0 ? (
+                paginatedStockList.map((item, idx) => {
                   const st = Number(item.current_stock || 0);
                   const isFc = item.business_unit === 'FC_PRINT' || item.business_unit === 'ATK';
                   return (
@@ -952,8 +966,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                   </tr>
                 </thead>
                 <tbody>
-                  {stockList.length > 0 ? (
-                    stockList.map((item, idx) => {
+                  {paginatedStockList.length > 0 ? (
+                    paginatedStockList.map((item, idx) => {
                       const st = Number(item.current_stock || 0);
                       const isFc = item.business_unit === 'FC_PRINT' || item.business_unit === 'ATK';
                       return (
@@ -997,6 +1011,80 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                 </tbody>
               </table>
             </div>
+
+            {/* FOOTER PAGINATION BAR */}
+            {totalStockItems > 0 && (
+              <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+                <div style={{ fontSize: '0.825rem', color: '#64748b', fontWeight: 700 }}>
+                  Menampilkan <strong style={{ color: '#0f172a' }}>{totalStockItems === 0 ? 0 : stockStartIndex + 1}</strong> - <strong style={{ color: '#0f172a' }}>{stockEndIndex}</strong> dari <strong style={{ color: '#0f172a' }}>{totalStockItems}</strong> produk
+                </div>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <button
+                    disabled={stockCurrentPage === 1}
+                    onClick={() => setStockCurrentPage((prev) => Math.max(1, prev - 1))}
+                    style={{
+                      padding: '0.4rem 0.65rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      color: stockCurrentPage === 1 ? '#cbd5e1' : '#334155',
+                      cursor: stockCurrentPage === 1 ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+
+                  <span style={{ fontSize: '0.825rem', fontWeight: 800, color: '#334155', padding: '0 0.5rem' }}>
+                    Halaman {stockCurrentPage} dari {totalStockPages}
+                  </span>
+
+                  <button
+                    disabled={stockCurrentPage === totalStockPages}
+                    onClick={() => setStockCurrentPage((prev) => Math.min(totalStockPages, prev + 1))}
+                    style={{
+                      padding: '0.4rem 0.65rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: '#ffffff',
+                      color: stockCurrentPage === totalStockPages ? '#cbd5e1' : '#334155',
+                      cursor: stockCurrentPage === totalStockPages ? 'not-allowed' : 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+
+                  <select
+                    value={stockItemsPerPage}
+                    onChange={(e) => {
+                      setStockItemsPerPage(Number(e.target.value));
+                      setStockCurrentPage(1);
+                    }}
+                    style={{
+                      padding: '0.4rem 0.65rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      color: '#334155',
+                      background: '#ffffff',
+                      cursor: 'pointer',
+                      marginLeft: '0.5rem',
+                    }}
+                  >
+                    <option value={10}>10 / hlm</option>
+                    <option value={20}>20 / hlm</option>
+                    <option value={50}>50 / hlm</option>
+                    <option value={100}>100 / hlm</option>
+                    <option value={totalStockItems || 1000}>Semua ({totalStockItems})</option>
+                  </select>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Audit Log Histori Pergerakan Stok */}
