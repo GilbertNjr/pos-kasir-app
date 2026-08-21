@@ -1086,36 +1086,6 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
               </div>
             )}
           </div>
-
-          {/* Audit Log Histori Pergerakan Stok */}
-          <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', marginBottom: '1rem' }}>
-              📜 Audit Log & Histori Pergerakan Stok Real-time (Supabase Cloud)
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              {stockAuditLogs.filter((l: any) => (l.action || '').includes('STOCK') || (l.action || '').includes('TRANSACTION') || (l.action || '').includes('PRODUCT')).length > 0 ? (
-                stockAuditLogs
-                  .filter((l: any) => (l.action || '').includes('STOCK') || (l.action || '').includes('TRANSACTION') || (l.action || '').includes('PRODUCT'))
-                  .slice(0, 10)
-                  .map((log: any, idx: number) => (
-                    <div key={log.log_id || idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.75rem 1rem', background: '#f8fafc', borderRadius: '12px', border: '1px solid #f1f5f9', fontSize: '0.825rem' }}>
-                      <div>
-                        <span style={{ fontWeight: 800, color: '#0f172a' }}>{log.affected_entity || log.action}</span>
-                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.15rem' }}>{log.details}</div>
-                      </div>
-                      <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2563eb' }}>{log.username ? `User: ${log.username}` : 'Kasir'}</span>
-                        <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>{formatWaktuIndo(log.timestamp)}</div>
-                      </div>
-                    </div>
-                  ))
-              ) : (
-                <div style={{ padding: '1.5rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
-                  Belum ada aktivitas audit log pergerakan stok
-                </div>
-              )}
-            </div>
-          </div>
         </div>
       ) : loading && !reportData ? (
         <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontWeight: 600 }}>Mengkalkulasi data laporan...</div>

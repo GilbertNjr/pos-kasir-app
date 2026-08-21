@@ -9,7 +9,7 @@ export class AuditLogRepository {
       const res = await pool.query(
         `SELECT COALESCE(a.log_id, a.audit_id) as audit_id, 
                 COALESCE(a.user_id, a.actor_user_id) as user_id, 
-                COALESCE(u.username, 'Kasir') as username, 
+                COALESCE(u.username, u.full_name, 'Kasir') as username, 
                 a.action, 
                 COALESCE(a.affected_entity, a.entity_type) as affected_entity, 
                 a.entity_id, 

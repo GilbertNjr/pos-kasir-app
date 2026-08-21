@@ -69,10 +69,10 @@ export class ProductController {
       await auditLogRepository.logAction(
         userId,
         username,
-        'STOCK_UPDATE',
+        'PRODUCT_CREATE',
         product.product_name,
         product.product_id,
-        `Penambahan Produk Baru "${product.product_name}" [${product.business_unit}]${stockMsg}`
+        `Penambahan Produk Baru "${product.product_name}" [${product.business_unit}]${stockMsg} oleh ${username}`
       );
 
       sseManager.broadcast('PRODUCT_UPDATED', { action: 'CREATED', data: product });
@@ -103,7 +103,7 @@ export class ProductController {
       const catName = catObj ? catObj.category_name : 'Kategori Terpilih';
       const unitLabel = product.business_unit === 'FNB' ? 'Food & Beverage (FNB)' : 'FC / Printing & ATK';
 
-      const responseMessage = `Produk "${product.product_name}" berhasil diperbarui ke Bidang: ${unitLabel} | Kategori: ${catName}.`;
+      const responseMessage = `Produk "${product.product_name}" diperbarui ke Bidang: ${unitLabel} | Kategori: ${catName} oleh ${username}.`;
 
       await auditLogRepository.logAction(
         userId,
@@ -134,20 +134,23 @@ export class ProductController {
       const username = req.user?.username || 'Pegawai';
       const { id } = req.params;
 
+      const existingProd = await this.productService.getAllProducts().then((list) => list.find((p) => p.product_id === id)).catch(() => null);
+      const prodName = existingProd ? existingProd.product_name : `Produk #${id}`;
+
       await this.productService.deleteProduct(id);
 
       await auditLogRepository.logAction(
         userId,
         username,
         'PRODUCT_DELETE',
-        `Produk #${id}`,
+        prodName,
         id,
-        `Penghapusan produk dan stok fisik ID #${id}`
+        `Penghapusan produk "${prodName}" dan stok fisik ID #${id} oleh ${username}`
       );
 
       sseManager.broadcast('PRODUCT_UPDATED', { action: 'DELETED', product_id: id });
       sseManager.broadcast('STOCK_UPDATED', { action: 'DELETED', product_id: id });
-      return res.status(200).json({ message: 'Produk dan stok berhasil dihapus.' });
+      return res.status(200).json({ message: `Produk "${prodName}" dan stok berhasil dihapus.` });
     } catch (error: any) {
       return res.status(400).json({ error: error.message || 'Gagal menghapus produk' });
     }
