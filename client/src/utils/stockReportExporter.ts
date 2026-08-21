@@ -310,7 +310,7 @@ export const exportStockToExcel = (stockList: StockItem[], _stockAuditLogs: any[
   document.body.removeChild(link);
 };
 
-// 2. PRINT STOCK REPORT PDF - FORMAT GAMBAR #2
+// 2. PRINT STOCK REPORT PDF - FORMAT STRUK THERMAL 80MM / NOTA STOK KATEGORI
 export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [], storeName = 'Kedai POS') => {
   const categories = ['ICE CREAM', 'SEBLAK', 'JAJAN & GORENGAN', 'MINUMAN', 'ATK & PRINTING'];
   const todayDateStr = new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -329,7 +329,7 @@ export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [
     else categorizedMap['JAJAN & GORENGAN'].push(item);
   });
 
-  const printWindow = window.open('', '_blank', 'width=1000,height=900');
+  const printWindow = window.open('', '_blank', 'width=450,height=750');
   if (!printWindow) {
     alert('Harap izinkan popup browser untuk membuka pratinjau cetak PDF.');
     return;
@@ -347,46 +347,47 @@ export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [
       if (items.length === 0) return '';
 
       const itemRows = items
-        .map((item, idx) => {
+        .map((item) => {
           const init = item.initial_stock !== undefined && item.initial_stock > 0 ? item.initial_stock : (item.current_stock + 5);
           const sold = Math.max(0, init - item.current_stock);
-          const statusBg = item.current_stock >= 10 ? '#ecfdf5' : item.current_stock > 0 ? '#fffbeb' : '#fef2f2';
-          const statusColor = item.current_stock >= 10 ? '#047857' : item.current_stock > 0 ? '#b45309' : '#dc2626';
           const statusLabel = item.current_stock >= 10 ? 'Aman' : item.current_stock > 0 ? 'Menipis' : 'Habis';
 
           return `
           <tr>
-            <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px;">${idx + 1}</td>
-            <td style="border: 1px solid #cbd5e1; padding: 5px; font-weight: 700;">${item.product_name}</td>
-            <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px;">${init} pcs</td>
-            <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px; color: #dc2626; font-weight: 700;">${sold} pcs</td>
-            <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px; font-weight: 900; background: #f8fafc;">${item.current_stock} pcs</td>
-            <td style="text-align: center; border: 1px solid #cbd5e1; padding: 5px; background: ${statusBg}; color: ${statusColor}; font-weight: 800;">${statusLabel}</td>
+            <td style="text-align: left; padding: 3px 0;">
+              <div style="font-weight: bold; font-size: 10.5px;">${item.product_name}</div>
+              <div style="font-size: 9.5px; color: #475569;">Stok Awal: ${init} pcs</div>
+            </td>
+            <td style="text-align: center; vertical-align: top; padding-top: 3px; font-size: 10px;">
+              Laku: <b>${sold}</b><br/>
+              Sisa: <b>${item.current_stock}</b>
+            </td>
+            <td style="text-align: right; vertical-align: top; font-weight: bold; padding-top: 3px; font-size: 10px;">
+              [${statusLabel}]
+            </td>
           </tr>
         `;
         })
         .join('');
 
       return `
-        <div style="margin-bottom: 25px;">
-          <div style="font-size: 13px; font-weight: 800; color: #991b1b; border-bottom: 2px solid #991b1b; padding-bottom: 3px; margin-bottom: 8px; text-transform: uppercase;">
-            KATEGORI: ${cat} (${items.length} Item Produk)
+        <div style="margin-bottom: 8px;">
+          <div style="font-size: 10.5px; font-weight: bold; text-transform: uppercase; margin-bottom: 2px;">
+            [ KATEGORI: ${cat} ]
           </div>
-          <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+          <table>
             <thead>
-              <tr style="background: #991b1b; color: #ffffff;">
-                <th style="width: 40px; padding: 6px; border: 1px solid #7f1d1d;">No.</th>
-                <th style="padding: 6px; border: 1px solid #7f1d1d; text-align: left;">Nama Produk</th>
-                <th style="width: 90px; padding: 6px; border: 1px solid #7f1d1d;">Stok Awal</th>
-                <th style="width: 90px; padding: 6px; border: 1px solid #7f1d1d;">Jml Laku</th>
-                <th style="width: 100px; padding: 6px; border: 1px solid #7f1d1d;">Sisa Stok Fisik</th>
-                <th style="width: 90px; padding: 6px; border: 1px solid #7f1d1d;">Status</th>
+              <tr>
+                <th style="width: 50%; text-align: left;">Nama Produk</th>
+                <th style="width: 28%; text-align: center;">Pergerakan</th>
+                <th style="width: 22%; text-align: right;">Status</th>
               </tr>
             </thead>
             <tbody>
               ${itemRows}
             </tbody>
           </table>
+          <div class="dashed-line"></div>
         </div>
       `;
     })
@@ -396,28 +397,52 @@ export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Cetak Laporan Stok & Restok - ${todayDateStr}</title>
+      <title>Struk Laporan Stok - ${todayDateStr}</title>
       <style>
-        @page { size: A4 portrait; margin: 15mm; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; color: #0f172a; line-height: 1.3; margin: 0; padding: 10px; }
-        .header { border-bottom: 2px solid #0f172a; padding-bottom: 8px; margin-bottom: 15px; }
-        .store-name { font-size: 12px; font-weight: 700; color: #475569; letter-spacing: 1px; text-transform: uppercase; }
-        .report-title { font-size: 18px; font-weight: 900; color: #0f172a; margin-top: 2px; }
-        .meta-bar { display: flex; justify-content: space-between; font-size: 12px; background: #f8fafc; padding: 8px 12px; border-radius: 6px; border: 1px solid #cbd5e1; margin-bottom: 15px; }
-        @media print { body { padding: 0; } }
+        @page {
+          size: 80mm auto;
+          margin: 4mm;
+        }
+        body {
+          font-family: 'Courier New', Courier, monospace, 'Segoe UI', sans-serif;
+          color: #000000;
+          width: 300px;
+          margin: 0 auto;
+          padding: 8px;
+          font-size: 11px;
+          line-height: 1.35;
+        }
+        .center { text-align: center; }
+        .bold { font-weight: bold; }
+        .store-title { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .report-subtitle { font-size: 10px; font-weight: bold; margin-top: 2px; text-transform: uppercase; }
+        .dashed-line { border-bottom: 1px dashed #000000; margin: 6px 0; }
+        .meta-item { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 2px; }
+        table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; margin-top: 2px; }
+        th { border-bottom: 1px dashed #000000; padding: 3px 0; font-size: 9.5px; text-transform: uppercase; }
+        td { padding: 3px 0; vertical-align: top; word-break: break-word; }
+        @media print {
+          body { width: 100%; padding: 0; }
+          .no-print { display: none; }
+        }
       </style>
     </head>
     <body>
-      <div class="header">
-        <div class="store-name">${storeName}</div>
-        <div class="report-title">LAPORAN MONITORING STOK & RESTOK KATEGORI LENGKAP</div>
+      <div class="center">
+        <div class="store-title">${(storeName || 'KEDAI POS').toUpperCase()}</div>
+        <div class="report-subtitle">STRUK MONITORING STOK & RESTOK</div>
       </div>
-      <div class="meta-bar">
-        <div><strong>Tanggal Cetak:</strong> ${todayDateStr}</div>
-        <div><strong>Total Variasi Produk:</strong> ${stockList.length} Item</div>
-      </div>
+      <div class="dashed-line"></div>
+
+      <div class="meta-item"><span>Tanggal Cetak</span><span>: ${todayDateStr}</span></div>
+      <div class="meta-item"><span>Total Produk</span><span>: ${stockList.length} Item Variasi</span></div>
+      <div class="dashed-line"></div>
 
       ${categoryPrintHtml}
+
+      <div class="center" style="font-size: 9.5px; margin-top: 6px; font-style: italic;">
+        *** NOTA STOK FISIK RESMI POS ***
+      </div>
 
       <script>
         window.onload = function() {
