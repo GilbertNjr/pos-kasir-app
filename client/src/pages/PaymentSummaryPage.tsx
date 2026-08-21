@@ -15,7 +15,7 @@ import {
   XCircle,
 } from 'lucide-react';
 import { apiService, PaymentSummaryData } from '../services/api';
-import { Shift } from '../types';
+import { Shift, User } from '../types';
 import { formatRupiah } from '../utils/formatters';
 import { PaymentMethodBadge } from '../components/common/PaymentMethodBadge';
 
@@ -28,6 +28,7 @@ interface PaymentSummaryPageProps {
 export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeShift, onTriggerToast, storeName }) => {
   const [summary, setSummary] = useState<PaymentSummaryData | null>(null);
   const [allHistoricalTransactions, setAllHistoricalTransactions] = useState<any[]>([]);
+  const [usersList, setUsersList] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,20 +43,27 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
   const [cancelLoading, setCancelLoading] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 
+  const getCashierName = (userId?: string) => {
+    if (!userId) return '-';
+    const found = usersList.find((u) => u.user_id === userId || u.username === userId || u.full_name === userId);
+    return found ? found.full_name || found.username : userId;
+  };
+
   const loadSummary = async (isManualRefresh = false) => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch shift payment summary if active shift exists
+      // Fetch shift payment summary, all transactions, and users list
       const summaryPromise = activeShift ? apiService.getPaymentSummary(activeShift.shift_id).catch(() => null) : Promise.resolve(null);
-      // Fetch all transactions from database for historical date range filtering
       const txPromise = apiService.getTransactions().catch(() => []);
+      const usersPromise = apiService.getUsers().catch(() => []);
 
-      const [summaryData, txData] = await Promise.all([summaryPromise, txPromise]);
+      const [summaryData, txData, usersData] = await Promise.all([summaryPromise, txPromise, usersPromise]);
 
       setSummary(summaryData);
       setAllHistoricalTransactions(txData || []);
+      setUsersList(usersData || []);
 
       if (isManualRefresh) {
         if (onTriggerToast) {
@@ -243,7 +251,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
 
     filteredTransactions.forEach((tx) => {
       const timeStr = formatTimestampFull(tx.created_at || tx.timestamp).replace(/,/g, '');
-      csvContent += `${tx.transaction_number},${timeStr},${tx.created_by_user_id || '-'},${tx.payment_method},${tx.final_total || tx.total_amount || 0},${tx.status}\n`;
+      csvContent += `${tx.transaction_number},${timeStr},${getCashierName(tx.created_by_user_id || tx.user_id)},${tx.payment_method},${tx.final_total || tx.total_amount || 0},${tx.status}\n`;
     });
 
     const encodedUri = encodeURI(csvContent);
@@ -276,7 +284,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
         <td style="text-align: center; border: 1px solid #cbd5e1; padding: 6px;">${idx + 1}</td>
         <td style="border: 1px solid #cbd5e1; padding: 6px; font-family: monospace;">${tx.transaction_number}</td>
         <td style="border: 1px solid #cbd5e1; padding: 6px; font-size: 10px;">${formatTimestampFull(tx.created_at || tx.timestamp)}</td>
-        <td style="border: 1px solid #cbd5e1; padding: 6px;">${tx.created_by_user_id || '-'}</td>
+        <td style="border: 1px solid #cbd5e1; padding: 6px;">${getCashierName(tx.created_by_user_id || tx.user_id)}</td>
         <td style="text-align: center; border: 1px solid #cbd5e1; padding: 6px; font-weight: 700;">${tx.payment_method}</td>
         <td style="text-align: right; border: 1px solid #cbd5e1; padding: 6px; font-weight: 800;">${formatRupiah(tx.final_total || tx.total_amount || 0)}</td>
         <td style="text-align: center; border: 1px solid #cbd5e1; padding: 6px; color: ${tx.status === 'COMPLETED' ? '#047857' : '#dc2626'}; font-weight: 800;">${tx.status}</td>
@@ -611,7 +619,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ activeSh
                       {formatTimestampFull(tx.created_at || tx.timestamp)}
                     </td>
                     <td style={{ padding: '0.65rem', color: '#475569', fontWeight: 600 }}>
-                      {tx.created_by_user_id || '-'}
+                      {getCashierName(tx.created_by_user_id || tx.user_id)}
                     </td>
                     <td style={{ padding: '0.65rem', textAlign: 'center' }}>
                       <PaymentMethodBadge method={tx.payment_method} size="sm" />

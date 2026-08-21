@@ -186,7 +186,7 @@ class SettingsService {
       if (newSettings.store_profile.owner_name) {
         try {
           const userRepo = new UserRepository();
-          const owners = await userRepo.findWhere((u) => u.role === 'OWNER');
+          const owners = await userRepo.findWhere((u) => u.role === 'OWNER' || u.username === 'owner');
           for (const owner of owners) {
             await userRepo.update(owner.user_id, { full_name: newSettings.store_profile.owner_name });
           }

@@ -4,6 +4,7 @@ import { UserRepository } from '../repositories/UserRepository';
 import { RolePermissionRepository } from '../repositories/RolePermissionRepository';
 import { ActivationTokenRepository } from '../repositories/ActivationTokenRepository';
 import { UserEntity, UserRole, UserStatus } from '../types/domain';
+import { settingsService } from './SettingsService';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'pos-kasir-super-secret-jwt-key-2026';
 
@@ -79,6 +80,19 @@ export class AuthService {
       throw new Error('Username atau password tidak valid');
     }
 
+    // Synchronize OWNER user name with store settings owner_name if present
+    if (user.role === 'OWNER') {
+      try {
+        const settings = await settingsService.getSettings();
+        if (settings?.store_profile?.owner_name) {
+          user.full_name = settings.store_profile.owner_name;
+          await this.userRepository.update(user.user_id, { full_name: settings.store_profile.owner_name });
+        }
+      } catch (err: any) {
+        console.warn('[AuthService] Notice: Could not sync owner name during login:', err?.message);
+      }
+    }
+
     // Ambil daftar permission dinamis berdasarkan role dari DB
     const permissions = await this.rolePermissionRepo.getPermissionsForRole(user.role);
 
@@ -114,6 +128,18 @@ export class AuthService {
     if (!user) {
       throw new Error('Pengguna tidak ditemukan');
     }
+
+    if (user.role === 'OWNER') {
+      try {
+        const settings = await settingsService.getSettings();
+        if (settings?.store_profile?.owner_name) {
+          user.full_name = settings.store_profile.owner_name;
+        }
+      } catch (err: any) {
+        console.warn('[AuthService] Notice: Could not sync owner name during getUserProfile:', err?.message);
+      }
+    }
+
     const permissions = await this.rolePermissionRepo.getPermissionsForRole(user.role);
     return this.sanitizeUser(user, permissions);
   }

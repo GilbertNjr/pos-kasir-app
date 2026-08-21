@@ -12,6 +12,8 @@ import {
   X,
   ArrowRight,
   ShoppingBag as BagIcon,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { User } from '../types';
@@ -275,9 +277,10 @@ const SVGLineChart: React.FC<SVGLineChartProps> = ({ transactions = [], chartMod
 interface ReportsPageProps {
   currentUser: User;
   storeName?: string;
+  onTriggerToast?: (type: 'success' | 'danger' | 'info' | 'warning', title: string, message: string) => void;
 }
 
-export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName }) => {
+export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName, onTriggerToast }) => {
   const [periodType, setPeriodType] = useState<string>('DAILY');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
@@ -296,6 +299,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
   const [reportData, setReportData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Confirmation modal state for deleting employee performance row
+  const [confirmDeleteEmp, setConfirmDeleteEmp] = useState<any | null>(null);
 
   // Detail Modal & Cancel Transaction State
   const [selectedTx, setSelectedTx] = useState<any | null>(null);
@@ -1014,6 +1020,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                       <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>QRIS Non-Tunai</th>
                       <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Transfer Bank</th>
                       <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Pengeluaran Dicatat</th>
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Aksi Hapus</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1028,10 +1035,85 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                         <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 700, color: '#1d4ed8' }}>{formatRupiah(emp.qris_sales)}</td>
                         <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 700, color: '#b45309' }}>{formatRupiah(emp.transfer_sales)}</td>
                         <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', color: '#dc2626', fontWeight: 800 }}>-{formatRupiah(emp.recorded_expenses_amount)}</td>
+                        <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteEmp(emp)}
+                            title="Hapus Rekap Kasir"
+                            style={{
+                              padding: '0.35rem 0.65rem',
+                              borderRadius: '8px',
+                              border: '1px solid #fecaca',
+                              background: '#fef2f2',
+                              color: '#dc2626',
+                              fontSize: '0.75rem',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            <Trash2 size={13} />
+                            Hapus
+                          </button>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          )}
+
+          {/* Modal Peringatan Konfirmasi Hapus Data Performa Kasir */}
+          {confirmDeleteEmp && (
+            <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+              <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '440px', width: '100%', padding: '1.5rem', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#dc2626', marginBottom: '1rem' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fef2f2', border: '1px solid #fecaca', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <AlertTriangle size={22} color="#dc2626" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.1rem', fontWeight: 800, margin: 0, color: '#0f172a' }}>Peringatan Hapus Data</h3>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Konfirmasi Penghapusan Rekap Kasir</span>
+                  </div>
+                </div>
+
+                <p style={{ fontSize: '0.9rem', color: '#334155', lineHeight: 1.5, marginBottom: '1.5rem' }}>
+                  Apakah Anda yakin ingin menghapus data rekap performa untuk kasir <strong>{confirmDeleteEmp.full_name}</strong>? Data ini akan dihapus dari rekap tampilan laporan saat ini.
+                </p>
+
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmDeleteEmp(null)}
+                    style={{ padding: '0.65rem 1.25rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (reportData && reportData.employee_performance) {
+                        setReportData({
+                          ...reportData,
+                          employee_performance: reportData.employee_performance.filter((e: any) => e.user_id !== confirmDeleteEmp.user_id),
+                        });
+                      }
+                      const name = confirmDeleteEmp.full_name;
+                      setConfirmDeleteEmp(null);
+                      if (onTriggerToast) {
+                        onTriggerToast('success', 'Data Dihapus', `Laporan performa kasir ${name} berhasil dihapus.`);
+                      }
+                    }}
+                    style={{ padding: '0.65rem 1.25rem', borderRadius: '10px', border: 'none', background: '#dc2626', color: '#ffffff', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)' }}
+                  >
+                    <Trash2 size={16} />
+                    Ya, Hapus Data
+                  </button>
+                </div>
               </div>
             </div>
           )}

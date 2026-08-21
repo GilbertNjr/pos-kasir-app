@@ -734,8 +734,8 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                     color: '#dc2626',
                     outline: 'none',
                   }}
-                  min={1000}
-                  step={1000}
+                  min={0}
+                  step="any"
                   required
                 />
 

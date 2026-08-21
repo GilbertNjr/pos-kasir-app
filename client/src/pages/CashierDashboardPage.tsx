@@ -176,7 +176,7 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
                 }}
               >
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                SHIFT AKTIF ({shift?.shift_id ? `# ${shift.shift_id.slice(-6)}` : 'ACTIVE'})
+                SHIFT AKTIF
               </span>
             ) : (
               <span

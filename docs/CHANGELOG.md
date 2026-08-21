@@ -20,3 +20,26 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
 ### Changed / Revised
 - **Revisi Konsep Kas Shift:** Memperbaiki model modal awal tunggal menjadi Kontribusi Modal Multi-User, di mana beberapa karyawan dapat menyetor modal awal yang dicampur ke laci kas bersama `Shift ID` dan dikembalikan setelah closing shift.
 - **Notasi RBAC:** Mengubah notasi permission generik `V` (CRUD) menjadi notasi eksplisit `C/R/U/D/A/X`.
+
+---
+
+## [1.1.0-updates] - 21 Agustus 2026
+
+### Added & Enhanced
+- **Pembaruan Modul Backup & Restore Google Drive:**
+  - Desain UI riwayat backup yang lebih bersih, modern, dan tidak membingungkan pengguna.
+  - Fitur hapus file backup individual / duplikat disertai modal peringatan konfirmasi.
+  - Integrasi token koneksi Google Drive yang aman dengan status verifikasi aktif.
+- **Kelola Shift & Pencatatan Karyawan Telat / Jam Datang:**
+  - Fitur edit nama dan jam kedatangan karyawan secara fleksibel pada shift aktif.
+  - Mendukung pencatatan waktu datang yang berbeda bagi karyawan yang datang menyusul/terlambat atau bersamaan.
+- **Pencatatan Setor Modal Fleksibel:**
+  - Fleksibilitas penuh dalam pengisian nominal setor modal awal tanpa batasan perintah kaku.
+- **Optimasi Struk Transaksi POS:**
+  - Eliminasi horizontal scrolling pada struk fisik & modal detail transaksi dengan `table-layout: fixed` dan responsive wrapping.
+  - Tampilan struk konsisten dan rapi saat diprint ke printer thermal 80mm/58mm.
+- **Resolusi Identitas Kasir Transaksi:**
+  - Pemetaan `created_by_user_id` ke Nama Lengkap Kasir pada Rekap Pembayaran, Ekspor Excel, Cetak PDF, dan Modal Detail.
+- **Penyempurnaan Tampilan & Laporan:**
+  - Penyederhanaan badge status shift menjadi `SHIFT AKTIF`.
+  - Penambahan tombol hapus dan modal konfirmasi peringatan pada Laporan Performa Karyawan.

@@ -112,6 +112,14 @@ export class BackupService {
     return [...this.backupHistoryLogs];
   }
 
+  async deleteBackupHistory(backupId: string): Promise<boolean> {
+    const index = this.backupHistoryLogs.findIndex((log) => log.backup_id === backupId);
+    if (index !== -1) {
+      this.backupHistoryLogs.splice(index, 1);
+    }
+    return true;
+  }
+
   async restoreFromSnapshot(snapshotData: any, userId: string): Promise<{ restored_counts: Record<string, number> }> {
     if (!snapshotData || !snapshotData.data) {
       throw new Error('Format snapshot backup tidak valid.');

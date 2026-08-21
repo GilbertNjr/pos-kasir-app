@@ -115,7 +115,15 @@ export const App: React.FC = () => {
     });
 
     if (profile.ownerName) {
-      setCurrentUser((prev) => (prev && prev.role === 'OWNER' ? { ...prev, full_name: profile.ownerName! } : prev));
+      setCurrentUser((prev) => {
+        if (prev && prev.role === 'OWNER') {
+          const updated = { ...prev, full_name: profile.ownerName! };
+          const token = apiService.getToken();
+          if (token) apiService.setAuth(token, updated);
+          return updated;
+        }
+        return prev;
+      });
     }
   };
 
@@ -135,7 +143,15 @@ export const App: React.FC = () => {
           } catch {}
 
           if (oName) {
-            setCurrentUser((prev) => (prev && prev.role === 'OWNER' ? { ...prev, full_name: oName } : prev));
+            setCurrentUser((prev) => {
+              if (prev && prev.role === 'OWNER') {
+                const updatedUser = { ...prev, full_name: oName };
+                const token = apiService.getToken();
+                if (token) apiService.setAuth(token, updatedUser);
+                return updatedUser;
+              }
+              return prev;
+            });
           }
         }
         if (s?.theme_settings?.theme_color) {
@@ -171,7 +187,15 @@ export const App: React.FC = () => {
           } catch {}
 
           if (sp.owner_name) {
-            setCurrentUser((prev) => (prev && prev.role === 'OWNER' ? { ...prev, full_name: sp.owner_name } : prev));
+            setCurrentUser((prev) => {
+              if (prev && prev.role === 'OWNER') {
+                const updatedUser = { ...prev, full_name: sp.owner_name };
+                const token = apiService.getToken();
+                if (token) apiService.setAuth(token, updatedUser);
+                return updatedUser;
+              }
+              return prev;
+            });
           }
         }
         if (payload?.settings?.theme_settings?.theme_color) {
@@ -213,8 +237,18 @@ export const App: React.FC = () => {
       apiService
         .getProfile()
         .then((user) => {
-          setCurrentUser(user);
-          apiService.setAuth(token, user);
+          let updatedUser = user;
+          const cachedProfile = localStorage.getItem('pos_store_profile');
+          if (user.role === 'OWNER' && cachedProfile) {
+            try {
+              const parsed = JSON.parse(cachedProfile);
+              if (parsed.ownerName) {
+                updatedUser = { ...user, full_name: parsed.ownerName };
+              }
+            } catch {}
+          }
+          setCurrentUser(updatedUser);
+          apiService.setAuth(token, updatedUser);
           loadActiveShift();
         })
         .catch((err) => {

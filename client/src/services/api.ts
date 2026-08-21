@@ -654,6 +654,18 @@ export const apiService = {
     return result.data;
   },
 
+  async deleteBackup(backupId: string): Promise<boolean> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/backup/${backupId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal menghapus backup');
+    return true;
+  },
+
   async restoreBackup(snapshotData: any): Promise<any> {
     const token = this.getToken();
     const response = await fetch(`${API_BASE}/backup/restore`, {

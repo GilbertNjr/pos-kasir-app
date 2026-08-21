@@ -55,8 +55,12 @@ const parseStaffStringToEntries = (staffStringOrArray: string | string[], fallba
     const match = item.match(/^(.*?)\s*\((?:(\d{1,2}:\d{2})(?:\s*WIB)?)?\)$/i);
     if (match && match[1].trim()) {
       const name = match[1].trim();
-      const time = match[2] || defaultTime;
-      entries.push({ id: `staff-${index}-${Date.now()}`, name, time });
+      const rawTime = match[2] || defaultTime;
+      const formattedTime = rawTime
+        .split(':')
+        .map((t) => t.padStart(2, '0'))
+        .join(':');
+      entries.push({ id: `staff-${index}-${Date.now()}`, name, time: formattedTime });
     } else if (item.trim()) {
       entries.push({ id: `staff-${index}-${Date.now()}`, name: item.trim(), time: defaultTime });
     }
@@ -418,11 +422,33 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             </div>
             <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', fontWeight: 800 }}>
               <ShoppingBag color="#059669" />
-              Laci Kas Bersama (Shift #{shift.shift_id.slice(-6)})
+              Laci Kas Bersama
             </h2>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-              Dimulai pada: {storedMeta?.date ? `${storedMeta.date} | Jam ${storedMeta.time} WIB (Kustom)` : formatWaktuIndo(shift.start_time)} | Tim On-Duty: {dutyStaffList.join(', ') || currentUser.full_name}
+            <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0.4rem 0' }}>
+              Dimulai pada: {storedMeta?.date ? `${storedMeta.date} | Jam ${storedMeta.time} WIB` : formatWaktuIndo(shift.start_time)}
             </p>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
+              <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155' }}>👥 Tim Bertugas & Jam Masuk:</span>
+              {dutyStaffList.map((staffStr, idx) => (
+                <span
+                  key={idx}
+                  style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    color: '#4f46e5',
+                    background: '#e0e7ff',
+                    border: '1px solid #c7d2fe',
+                    padding: '0.2rem 0.6rem',
+                    borderRadius: '12px',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                  }}
+                >
+                  {staffStr}
+                </span>
+              ))}
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
@@ -613,8 +639,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   value={addCapitalAmount}
                   onChange={(e) => setAddCapitalAmount(e.target.value === '' ? '' : Number(e.target.value))}
                   placeholder="Contoh: 50000"
-                  min={1000}
-                  step={1000}
+                  min={0}
+                  step="any"
                   required
                   style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '2px solid #059669', fontSize: '1.1rem', fontWeight: 800 }}
                 />
@@ -851,14 +877,20 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               </div>
 
               <form onSubmit={handleUpdateShiftMetaSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '300px', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '320px', overflowY: 'auto', paddingRight: '0.25rem' }}>
                   <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>
                     👥 Daftar Pegawai Bertugas & Jam Masuk Individu:
                   </label>
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '-0.35rem 0 0.25rem 0' }}>
+                    Atur jam kedatangan untuk setiap pegawai (pegawai yang menyusul/terlambat dapat disesuaikan jam masuknya).
+                  </p>
 
                   {editStaffEntries.map((staff, idx) => (
-                    <div key={staff.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                    <div key={staff.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: '#f8fafc', padding: '0.6rem 0.75rem', borderRadius: '12px', border: '1px solid #cbd5e1' }}>
                       <div style={{ flex: 1 }}>
+                        <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#475569', marginBottom: '0.2rem' }}>
+                          Nama Pegawai #{idx + 1}:
+                        </label>
                         <input
                           type="text"
                           value={staff.name}
@@ -866,12 +898,15 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                             const val = e.target.value;
                             setEditStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, name: val } : s)));
                           }}
-                          placeholder={`Nama Pegawai ${idx + 1}`}
-                          style={{ width: '100%', padding: '0.6rem 0.8rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 700 }}
+                          placeholder="Contoh: Budi / Dika"
+                          style={{ width: '100%', padding: '0.5rem 0.7rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontWeight: 700, outline: 'none' }}
                           required={idx === 0}
                         />
                       </div>
-                      <div style={{ width: '120px', flexShrink: 0 }}>
+                      <div style={{ width: '125px', flexShrink: 0 }}>
+                        <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#475569', marginBottom: '0.2rem' }}>
+                          ⏰ Jam Datang:
+                        </label>
                         <input
                           type="time"
                           value={staff.time}
@@ -879,15 +914,38 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                             const val = e.target.value;
                             setEditStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, time: val } : s)));
                           }}
-                          style={{ width: '100%', padding: '0.6rem 0.5rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700 }}
+                          style={{ width: '100%', padding: '0.5rem 0.4rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700, outline: 'none' }}
                           required
                         />
                       </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditStaffEntries((prev) =>
+                            prev.map((s, i) => (i === idx ? { ...s, time: getCurrentTimeHHMM() } : s))
+                          )
+                        }
+                        style={{
+                          marginTop: '1.1rem',
+                          padding: '0.5rem 0.6rem',
+                          background: '#e0e7ff',
+                          color: '#4f46e5',
+                          border: '1px solid #c7d2fe',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.725rem',
+                          fontWeight: 800,
+                          whiteSpace: 'nowrap',
+                        }}
+                        title="Set ke Jam Sekarang"
+                      >
+                        🕒 Now
+                      </button>
                       {editStaffEntries.length > 1 && (
                         <button
                           type="button"
                           onClick={() => setEditStaffEntries((prev) => prev.filter((_, i) => i !== idx))}
-                          style={{ padding: '0.6rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '10px', cursor: 'pointer' }}
+                          style={{ marginTop: '1.1rem', padding: '0.5rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer' }}
                           title="Hapus Pegawai Ini dari Shift"
                         >
                           <Trash2 size={16} />
@@ -906,23 +964,27 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                     }
                     style={{
                       alignSelf: 'flex-start',
-                      padding: '0.45rem 0.85rem',
+                      padding: '0.55rem 0.95rem',
                       borderRadius: '10px',
                       border: '1px dashed #4f46e5',
                       background: '#e0e7ff',
                       color: '#4f46e5',
                       fontWeight: 800,
-                      fontSize: '0.8rem',
+                      fontSize: '0.825rem',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '0.4rem',
-                      marginTop: '0.25rem',
+                      marginTop: '0.35rem',
                     }}
                   >
-                    <Plus size={15} />
+                    <Plus size={16} />
                     + Tambah Pegawai Susulan / Telat
                   </button>
+                </div>
+
+                <div style={{ fontSize: '0.75rem', color: '#475569', background: '#f1f5f9', padding: '0.6rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
+                  💡 <strong>Catatan:</strong> Pegawai yang menyusul atau terlambat akan dicatat jam masuknya masing-masing dan tersimpan secara otomatis di Laporan Shift (Cetak PDF & Export Excel).
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
@@ -957,10 +1019,11 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '0.4rem',
+                      boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)',
                     }}
                   >
                     <Edit3 size={18} />
-                    Simpan Perubahan Tim
+                    Simpan Perubahan Tim & Jam
                   </button>
                 </div>
               </form>
@@ -1296,7 +1359,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               onChange={(e) => setOpenInitialCash(e.target.value === '' ? '' : Number(e.target.value))}
               style={{ width: '100%', padding: '0.8rem', borderRadius: '12px', border: '2px solid #059669', background: '#ffffff', fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', outline: 'none' }}
               min={0}
-              step={5000}
+              step="any"
               required
               placeholder="Contoh: 50000"
             />

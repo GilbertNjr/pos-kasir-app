@@ -31,6 +31,16 @@ export class BackupController {
     }
   };
 
+  public deleteBackup = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { backupId } = req.params;
+      await this.backupService.deleteBackupHistory(backupId);
+      return res.status(200).json({ message: `Backup ${backupId} berhasil dihapus` });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message || 'Gagal menghapus backup' });
+    }
+  };
+
   public restoreBackup = async (req: AuthenticatedRequest, res: Response) => {
     try {
       const userId = req.user!.user_id;

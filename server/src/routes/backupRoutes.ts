@@ -31,6 +31,7 @@ const backupController = new BackupController(backupService);
 // Protected Backup & Restore Routes (Accessible by all authenticated roles: OWNER, PENANGGUNG_JAWAB, KARYAWAN)
 router.get('/export', authMiddleware, backupController.exportBackup);
 router.get('/history', authMiddleware, backupController.getHistory);
+router.delete('/:backupId', authMiddleware, backupController.deleteBackup);
 router.post('/restore', authMiddleware, backupController.restoreBackup);
 
 // Google Sheets Auto-Sync Routes

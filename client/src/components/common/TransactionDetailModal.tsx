@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { X, Printer, Trash2, AlertTriangle, QrCode, Banknote, CreditCard, User, ShoppingBag } from 'lucide-react';
-import { Transaction, TransactionItem, Product } from '../../types';
+import React, { useState, useEffect } from 'react';
+import { X, Printer, Trash2, AlertTriangle, QrCode, Banknote, CreditCard, User as UserIcon, ShoppingBag } from 'lucide-react';
+import { Transaction, TransactionItem, Product, User } from '../../types';
 import { formatRupiah, formatWaktuIndo } from '../../utils/formatters';
 import { apiService } from '../../services/api';
 
@@ -29,16 +29,37 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [usersList, setUsersList] = useState<User[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      apiService.getUsers().then(setUsersList).catch(() => []);
+    }
+  }, [isOpen]);
 
   if (!isOpen || !transaction) return null;
+
+  const resolveCashierName = () => {
+    const rawUserId = transaction.created_by_user_id || transaction.user_id;
+    if (getUserName && rawUserId) {
+      const nameFromProp = getUserName(rawUserId);
+      if (nameFromProp && nameFromProp !== rawUserId) return nameFromProp;
+    }
+    if (transaction.cashier_name && transaction.cashier_name !== rawUserId) return transaction.cashier_name;
+    if (transaction.user_name && transaction.user_name !== rawUserId) return transaction.user_name;
+
+    if (rawUserId) {
+      const found = usersList.find((u) => u.user_id === rawUserId || u.username === rawUserId);
+      if (found) return found.full_name || found.username;
+    }
+    return rawUserId || 'Kasir';
+  };
 
   // Extract transaction detail variables safely
   const txNumber = transaction.transaction_number || transaction.transaction_id || 'TRX-00000';
   const isCancelled = transaction.status === 'CANCELLED';
   const txTime = transaction.transaction_time ? formatWaktuIndo(transaction.transaction_time) : '-';
-  const cashierName = getUserName
-    ? getUserName(transaction.created_by_user_id)
-    : transaction.created_by_user_id || transaction.user_name || 'Kasir';
+  const cashierName = resolveCashierName();
   const customerName = transaction.customer_name || 'Pelanggan Umum';
   const paymentMethod = (transaction.payment_method || 'CASH').toUpperCase();
 
@@ -110,7 +131,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           .center { text-align: center; }
           .bold { font-weight: bold; }
           .line { border-bottom: 1px dashed #000; margin: 8px 0; }
-          table { width: 100%; border-collapse: collapse; font-size: 11px; }
+          table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; }
         </style>
       </head>
       <body>
@@ -265,7 +286,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             {/* Card: Informasi Pelanggan */}
             <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
               <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#2563eb', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <User size={14} /> Informasi Pelanggan
+                <UserIcon size={14} /> Informasi Pelanggan
               </div>
               <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a' }}>
                 👤 {customerName}
@@ -278,14 +299,14 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 <ShoppingBag size={14} color="#6366f1" /> Detail Item
               </div>
 
-              <div style={{ overflowX: 'auto', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.825rem' }}>
+              <div style={{ borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#ffffff' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', tableLayout: 'fixed' }}>
                   <thead>
-                    <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem' }}>
-                      <th style={{ padding: '0.6rem 0.75rem' }}>Produk</th>
-                      <th style={{ padding: '0.6rem 0.5rem', textAlign: 'center' }}>Qty</th>
-                      <th style={{ padding: '0.6rem 0.75rem', textAlign: 'right' }}>Harga</th>
-                      <th style={{ padding: '0.6rem 0.75rem', textAlign: 'right' }}>Subtotal</th>
+                    <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.725rem' }}>
+                      <th style={{ padding: '0.6rem 0.5rem 0.6rem 0.75rem', width: '38%' }}>Produk</th>
+                      <th style={{ padding: '0.6rem 0.25rem', textAlign: 'center', width: '14%' }}>Qty</th>
+                      <th style={{ padding: '0.6rem 0.35rem', textAlign: 'right', width: '24%' }}>Harga</th>
+                      <th style={{ padding: '0.6rem 0.75rem 0.6rem 0.35rem', textAlign: 'right', width: '24%' }}>Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -299,10 +320,10 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
                         return (
                           <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '0.6rem 0.75rem', fontWeight: 700, color: '#0f172a' }}>{pName}</td>
-                            <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center', fontWeight: 700, color: '#475569' }}>{qty}</td>
-                            <td style={{ padding: '0.6rem 0.75rem', textAlign: 'right', color: '#64748b' }}>{formatRupiah(price)}</td>
-                            <td style={{ padding: '0.6rem 0.75rem', textAlign: 'right', fontWeight: 800, color: '#0f172a' }}>{formatRupiah(sub)}</td>
+                            <td style={{ padding: '0.6rem 0.5rem 0.6rem 0.75rem', fontWeight: 700, color: '#0f172a', wordBreak: 'break-word', lineHeight: 1.35 }}>{pName}</td>
+                            <td style={{ padding: '0.6rem 0.25rem', textAlign: 'center', fontWeight: 700, color: '#475569' }}>{qty}</td>
+                            <td style={{ padding: '0.6rem 0.35rem', textAlign: 'right', color: '#64748b', fontSize: '0.75rem' }}>{formatRupiah(price)}</td>
+                            <td style={{ padding: '0.6rem 0.75rem 0.6rem 0.35rem', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontSize: '0.78rem' }}>{formatRupiah(sub)}</td>
                           </tr>
                         );
                       })
