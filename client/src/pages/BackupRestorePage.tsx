@@ -50,110 +50,6 @@ const GoogleGLogoIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
   </svg>
 );
 
-// Initial Mock Dataset matching Image #2 layout
-const defaultMockHistory = [
-  {
-    backup_id: 'bkp-1755310800',
-    created_at: '2025-08-16T02:00:00.000Z',
-    type: 'Otomatis (Harian)',
-    size_str: '278,6 MB',
-    location: 'DRIVE',
-    status: 'SUCCESS',
-    status_label: 'Berhasil',
-    description: 'Backup harian otomatis',
-  },
-  {
-    backup_id: 'bkp-1755224400',
-    created_at: '2025-08-15T02:00:00.000Z',
-    type: 'Otomatis (Harian)',
-    size_str: '265,2 MB',
-    location: 'DRIVE',
-    status: 'SUCCESS',
-    status_label: 'Berhasil',
-    description: 'Backup harian otomatis',
-  },
-  {
-    backup_id: 'bkp-1755138000',
-    created_at: '2025-08-14T02:00:00.000Z',
-    type: 'Otomatis (Harian)',
-    size_str: '271,1 MB',
-    location: 'DRIVE',
-    status: 'SUCCESS',
-    status_label: 'Berhasil',
-    description: 'Backup harian otomatis',
-  },
-  {
-    backup_id: 'bkp-1755088200',
-    created_at: '2025-08-13T14:30:00.000Z',
-    type: 'Manual',
-    size_str: '260,4 MB',
-    location: 'DRIVE_LOKAL',
-    status: 'SUCCESS',
-    status_label: 'Berhasil',
-    description: 'Backup sebelum update stok',
-  },
-  {
-    backup_id: 'bkp-1755051600',
-    created_at: '2025-08-13T02:00:00.000Z',
-    type: 'Otomatis (Harian)',
-    size_str: '258,7 MB',
-    location: 'DRIVE',
-    status: 'SUCCESS',
-    status_label: 'Berhasil',
-    description: 'Backup harian otomatis',
-  },
-  {
-    backup_id: 'bkp-1754965200',
-    created_at: '2025-08-12T02:00:00.000Z',
-    type: 'Otomatis (Harian)',
-    size_str: '246,9 MB',
-    location: 'DRIVE',
-    status: 'SUCCESS',
-    status_label: 'Berhasil',
-    description: 'Backup harian otomatis',
-  },
-  {
-    backup_id: 'bkp-1754878800',
-    created_at: '2025-08-11T02:00:00.000Z',
-    type: 'Otomatis (Harian)',
-    size_str: '245,3 MB',
-    location: 'DRIVE',
-    status: 'FAILED',
-    status_label: 'Gagal',
-    description: 'Koneksi Google Drive terputus',
-  },
-  {
-    backup_id: 'bkp-1754792400',
-    created_at: '2025-08-10T02:00:00.000Z',
-    type: 'Otomatis (Harian)',
-    size_str: '239,8 MB',
-    location: 'DRIVE',
-    status: 'SUCCESS',
-    status_label: 'Berhasil',
-    description: 'Backup harian otomatis',
-  },
-  {
-    backup_id: 'bkp-1754706000',
-    created_at: '2025-08-09T02:00:00.000Z',
-    type: 'Otomatis (Harian)',
-    size_str: '233,6 MB',
-    location: 'DRIVE',
-    status: 'FAILED',
-    status_label: 'Gagal',
-    description: 'Ruang penyimpanan penuh',
-  },
-  {
-    backup_id: 'bkp-1754643000',
-    created_at: '2025-08-08T14:10:00.000Z',
-    type: 'Manual',
-    size_str: '230,1 MB',
-    location: 'DRIVE_LOKAL',
-    status: 'SUCCESS',
-    status_label: 'Berhasil',
-    description: 'Backup mingguan manual',
-  },
-];
-
 const getStoredHistory = (): any[] => {
   try {
     const saved = localStorage.getItem('pos_backup_history');
@@ -162,7 +58,7 @@ const getStoredHistory = (): any[] => {
       if (Array.isArray(parsed)) return parsed;
     }
   } catch {}
-  return defaultMockHistory;
+  return [];
 };
 
 const getDeletedBackupIds = (): string[] => {
@@ -241,33 +137,18 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
           backup_id: item.backup_id,
           created_at: item.created_at,
           type: item.type || 'Manual',
-          size_str: item.size_str || ((item.size_bytes ? (item.size_bytes / (1024 * 1024)).toFixed(1) : '12.4') + ' MB'),
+          size_str: item.size_str || ((item.size_bytes ? (item.size_bytes / (1024 * 1024)).toFixed(1) : '0.5') + ' MB'),
           location: item.location || 'DRIVE_LOKAL',
           status: item.status || 'SUCCESS',
           status_label: item.status_label || (item.status === 'FAILED' ? 'Gagal' : 'Berhasil'),
-          description: item.description || 'Backup snapshot database POS',
+          description: item.description || 'Backup snapshot database POS real-time',
         }));
 
-        setHistory((prev) => {
-          const map = new Map<string, any>();
-          // Add local non-deleted items first
-          prev.forEach((item) => {
-            if (!deletedIds.includes(item.backup_id)) {
-              map.set(item.backup_id, item);
-            }
-          });
-          // Add server non-deleted items
-          formatted.forEach((item) => {
-            if (!deletedIds.includes(item.backup_id)) {
-              map.set(item.backup_id, item);
-            }
-          });
-          const combined = Array.from(map.values());
-          try {
-            localStorage.setItem('pos_backup_history', JSON.stringify(combined));
-          } catch {}
-          return combined;
-        });
+        const filtered = formatted.filter((item) => !deletedIds.includes(item.backup_id));
+        setHistory(filtered);
+        try {
+          localStorage.setItem('pos_backup_history', JSON.stringify(filtered));
+        } catch {}
       } else {
         setHistory((prev) => {
           const filtered = prev.filter((item) => !deletedIds.includes(item.backup_id));
@@ -304,6 +185,24 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
   useEffect(() => {
     loadHistory();
     loadSheetsStatus();
+
+    let sse: EventSource | null = null;
+    try {
+      sse = new EventSource('/api/events');
+      const handleSync = () => {
+        loadHistory();
+        loadSheetsStatus();
+      };
+      sse.addEventListener('BACKUP_CREATED', handleSync);
+      sse.addEventListener('BACKUP_DELETED', handleSync);
+      sse.addEventListener('BACKUP_RESTORED', handleSync);
+    } catch {
+      // Fallback
+    }
+
+    return () => {
+      if (sse) sse.close();
+    };
   }, [currentUser]);
 
   // Handle Export Backup JSON
@@ -516,9 +415,10 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
 
   // Helper Date Formatter for Table (Format: DD/MM/YYYY HH:mm)
   const formatTableDate = (dateStr?: string) => {
-    if (!dateStr) return '16/08/2025 02:00';
+    if (!dateStr) return '-';
     try {
       const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
       const day = String(d.getDate()).padStart(2, '0');
       const month = String(d.getMonth() + 1).padStart(2, '0');
       const year = d.getFullYear();

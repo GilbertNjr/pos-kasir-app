@@ -108,15 +108,24 @@ export class BackupService {
       created_at: createdAt,
       created_by_user_id: userId,
       size_bytes: sizeBytes,
+      type: 'Manual',
+      location: 'DRIVE_LOKAL',
+      description: `Backup snapshot database POS real-time (${transactions.length} trx, ${products.length} produk)`,
+      status: 'SUCCESS',
     };
 
     this.backupHistoryLogs.unshift(logItem);
 
     try {
+      const usersList = await this.userRepository.findAll().catch(() => []);
+      const validUserId = usersList.some((u) => u.user_id === userId)
+        ? userId
+        : usersList[0]?.user_id || 'usr-system';
+
       await pool.query(
         `INSERT INTO backups (backup_id, created_by_user_id, backup_type, size_bytes, created_at)
          VALUES ($1, $2, $3, $4, $5)`,
-        [backupId, userId || 'SYSTEM', 'MANUAL_SNAPSHOT', sizeBytes, createdAt]
+        [backupId, validUserId, 'MANUAL_SNAPSHOT', sizeBytes, createdAt]
       );
     } catch (err: any) {
       console.warn('[BackupService] DB insert log fallback to memory:', err.message);
@@ -128,7 +137,7 @@ export class BackupService {
   async getBackupHistory(): Promise<BackupHistoryLog[]> {
     try {
       const res = await pool.query(
-        `SELECT backup_id, created_at::text, created_by_user_id, size_bytes::bigint
+        `SELECT backup_id, created_at::text, created_by_user_id, backup_type as type, size_bytes::bigint
          FROM backups
          ORDER BY created_at DESC`
       );
@@ -138,6 +147,10 @@ export class BackupService {
           created_at: r.created_at,
           created_by_user_id: r.created_by_user_id,
           size_bytes: Number(r.size_bytes || 0),
+          type: r.type === 'MANUAL_SNAPSHOT' ? 'Manual' : 'Otomatis (Harian)',
+          location: 'DRIVE_LOKAL',
+          status: 'SUCCESS',
+          description: 'Backup snapshot database POS real-time',
         }));
       }
     } catch (err: any) {

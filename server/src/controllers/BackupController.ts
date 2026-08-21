@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { BackupService } from '../services/BackupService';
 import { AuthenticatedRequest } from '../middlewares/AuthMiddleware';
+import { sseManager } from '../utils/sseManager';
 
 export class BackupController {
   private backupService: BackupService;
@@ -13,6 +14,7 @@ export class BackupController {
     try {
       const userId = req.user!.user_id;
       const snapshot = await this.backupService.createBackupSnapshot(userId);
+      sseManager.broadcast('BACKUP_CREATED', { backup_id: snapshot.backup_id, timestamp: snapshot.created_at });
       return res.status(200).json({
         message: 'Backup snapshot data POS berhasil dibuat',
         data: snapshot,
@@ -35,6 +37,7 @@ export class BackupController {
     try {
       const { backupId } = req.params;
       await this.backupService.deleteBackupHistory(backupId);
+      sseManager.broadcast('BACKUP_DELETED', { backup_id: backupId, timestamp: new Date().toISOString() });
       return res.status(200).json({ message: `Backup ${backupId} berhasil dihapus` });
     } catch (error: any) {
       return res.status(500).json({ error: error.message || 'Gagal menghapus backup' });
@@ -51,6 +54,7 @@ export class BackupController {
       }
 
       const result = await this.backupService.restoreFromSnapshot(snapshot_data, userId);
+      sseManager.broadcast('BACKUP_RESTORED', { timestamp: new Date().toISOString() });
       return res.status(200).json({
         message: 'Restore data snapshot berhasil diselesaikan',
         data: result,
@@ -64,6 +68,7 @@ export class BackupController {
     try {
       const userId = req.user!.user_id;
       const result = await this.backupService.syncToGoogleSheets(userId);
+      sseManager.broadcast('BACKUP_CREATED', { type: 'GOOGLE_SHEETS_SYNC', timestamp: new Date().toISOString() });
       return res.status(200).json({
         message: 'Sinkronisasi data POS ke Google Spreadsheet berhasil diselesaikan!',
         data: result,
