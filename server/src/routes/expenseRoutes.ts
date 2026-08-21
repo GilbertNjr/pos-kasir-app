@@ -12,5 +12,6 @@ const expenseController = new ExpenseController(expenseService);
 // Authenticated Expense Routes
 router.post('/', authMiddleware, expenseController.createExpense);
 router.get('/', authMiddleware, expenseController.getExpenses);
+router.delete('/:expenseId', authMiddleware, expenseController.deleteExpense);
 
 export default router;

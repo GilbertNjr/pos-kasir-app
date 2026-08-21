@@ -563,6 +563,18 @@ export const apiService = {
     return result.data;
   },
 
+  async deleteExpense(expenseId: string): Promise<boolean> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/expenses/${expenseId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) this.handleResponseError(response, result, 'Gagal menghapus catatan pengeluaran');
+    return true;
+  },
+
   /* STOCK API SERVICES */
   async getStocks(): Promise<any[]> {
     const token = this.getToken();

@@ -43,4 +43,15 @@ export class ExpenseController {
       return res.status(500).json({ error: error.message || 'Gagal mengambil riwayat pengeluaran kas' });
     }
   };
+
+  public deleteExpense = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user) return res.status(401).json({ error: 'Tidak terautentikasi' });
+      const { expenseId } = req.params;
+      await this.expenseService.deleteExpense(expenseId);
+      return res.status(200).json({ message: 'Catatan pengeluaran kas berhasil dihapus' });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message || 'Gagal menghapus catatan pengeluaran kas' });
+    }
+  };
 }

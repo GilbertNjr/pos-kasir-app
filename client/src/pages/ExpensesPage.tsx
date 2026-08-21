@@ -15,6 +15,8 @@ import {
   ChevronRight,
   TrendingDown,
   Tag,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { Expense, User } from '../types';
@@ -38,9 +40,14 @@ const EXPENSE_CATEGORIES = [
 
 export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeShiftId, onTriggerToast }) => {
   const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [allUsers, setAllUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Delete Expense Confirmation Modal State
+  const [deleteConfirmExpense, setDeleteConfirmExpense] = useState<Expense | null>(null);
 
   // Search, Filter & Pagination State
   const [searchQuery, setSearchQuery] = useState('');
@@ -69,7 +76,35 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
 
   useEffect(() => {
     loadExpenses();
+    apiService.getUsers().then((res) => {
+      if (Array.isArray(res)) setAllUsers(res);
+    }).catch(() => {});
   }, [activeShiftId]);
+
+  const getUserDisplayName = (userId?: string) => {
+    if (!userId) return '-';
+    if (userId === currentUser.user_id) return `${currentUser.full_name} (Saya)`;
+    const found = allUsers.find((u) => u.user_id === userId || u.username === userId);
+    if (found) return found.full_name;
+    return userId;
+  };
+
+  const handleDeleteExpenseConfirm = async () => {
+    if (!deleteConfirmExpense?.expense_id) return;
+    try {
+      setDeleteLoading(true);
+      await apiService.deleteExpense(deleteConfirmExpense.expense_id);
+      setDeleteConfirmExpense(null);
+      if (onTriggerToast) {
+        onTriggerToast('success', 'Berhasil Dihapus', 'Catatan pengeluaran kas berhasil dihapus dari sistem.');
+      }
+      await loadExpenses();
+    } catch (err: any) {
+      setError(err.message || 'Gagal menghapus catatan pengeluaran kas');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
 
   const handleSubmitExpense = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -465,6 +500,9 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                       <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>
                         Nominal Kas
                       </th>
+                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
+                        Aksi
+                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -486,7 +524,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                               {formatWaktuIndo(exp.expense_time)}
                             </div>
                             <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '0.2rem' }}>
-                              Oleh: <strong style={{ color: '#475569' }}>{exp.recorded_by_user_id}</strong>
+                              Oleh: <strong style={{ color: '#475569' }}>{getUserDisplayName(exp.recorded_by_user_id)}</strong>
                             </div>
                           </td>
 
@@ -512,6 +550,30 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
 
                           <td style={{ padding: '1.1rem 1.5rem', textAlign: 'right', fontWeight: 900, fontSize: '0.95rem', color: '#dc2626' }}>
                             -{formatRupiah(exp.amount)}
+                          </td>
+
+                          <td style={{ padding: '1.1rem 1.5rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                            <button
+                              onClick={() => setDeleteConfirmExpense(exp)}
+                              title="Hapus Catatan Pengeluaran Ini"
+                              style={{
+                                padding: '0.45rem 0.8rem',
+                                background: '#fee2e2',
+                                color: '#dc2626',
+                                border: '1px solid #fecaca',
+                                borderRadius: '8px',
+                                fontSize: '0.775rem',
+                                fontWeight: 800,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                transition: 'all 0.15s ease',
+                              }}
+                            >
+                              <Trash2 size={14} />
+                              Hapus
+                            </button>
                           </td>
                         </tr>
                       );
@@ -826,9 +888,116 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
         </div>
       )}
 
+      {/* MODAL KONFIRMASI HAPUS PENGELUARAN (ELEGAN, MODERN & SIMPLE) */}
+      {deleteConfirmExpense && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(8px)',
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '1.25rem',
+            animation: 'fadeIn 0.2s ease',
+          }}
+        >
+          <div
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              maxWidth: '460px',
+              width: '100%',
+              padding: '2rem',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.8)',
+              position: 'relative',
+              textAlign: 'center',
+            }}
+          >
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '20px',
+                background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
+                color: '#dc2626',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                margin: '0 auto 1.25rem auto',
+                boxShadow: '0 8px 16px rgba(220, 38, 38, 0.15)',
+              }}
+            >
+              <AlertTriangle size={32} strokeWidth={2.2} />
+            </div>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem 0', letterSpacing: '-0.01em' }}>
+              Hapus Catatan Pengeluaran Kas?
+            </h3>
+
+            <p style={{ fontSize: '0.9rem', color: '#475569', lineHeight: 1.55, marginBottom: '1.75rem' }}>
+              Apakah Anda yakin ingin menghapus catatan pengeluaran <strong style={{ color: '#0f172a' }}>"{deleteConfirmExpense.description}"</strong> sebesar <strong style={{ color: '#dc2626' }}>{formatRupiah(deleteConfirmExpense.amount)}</strong>?
+              <br /><br />
+              <span style={{ fontSize: '0.825rem', color: '#047857', background: '#ecfdf5', padding: '0.55rem 0.85rem', borderRadius: '10px', display: 'inline-block', border: '1px solid #a7f3d0', fontWeight: 700 }}>
+                💰 Saldo kas laci shift akan diselaraskan kembali secara otomatis.
+              </span>
+            </p>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={() => setDeleteConfirmExpense(null)}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '12px',
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#475569',
+                  fontWeight: 700,
+                  fontSize: '0.9rem',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={deleteLoading}
+                onClick={handleDeleteExpenseConfirm}
+                style={{
+                  flex: 1.3,
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                  boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Trash2 size={16} />
+                {deleteLoading ? 'Menghapus...' : 'Ya, Hapus Pengeluaran'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ActionLoadingModal
-        isOpen={submitLoading}
-        message="Mencatat pengeluaran kas toko ke server backend POS..."
+        isOpen={submitLoading || deleteLoading}
+        message={deleteLoading ? "Menghapus catatan pengeluaran kas..." : "Mencatat pengeluaran kas toko ke server backend POS..."}
         submessage="Mencegah pencatatan ganda & menyelaraskan saldo shift..."
       />
     </div>

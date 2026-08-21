@@ -72,4 +72,26 @@ export class ExpenseService {
   async getAllExpenses(): Promise<ExpenseEntity[]> {
     return this.expenseRepository.findAll();
   }
+
+  async deleteExpense(expense_id: string): Promise<boolean> {
+    const expense = await this.expenseRepository.findById(expense_id);
+    if (!expense) {
+      throw new Error('Catatan pengeluaran tidak ditemukan.');
+    }
+
+    // Restore shift cash balance if the expense was part of a shift
+    if (expense.shift_id) {
+      const shift = await this.shiftRepository.findById(expense.shift_id);
+      if (shift && shift.shift_status === 'ACTIVE') {
+        const updatedTotalExpenses = Math.max(0, shift.total_cash_expenses - expense.amount);
+        const updatedTheoreticalCash = shift.total_initial_cash + shift.net_cash_sales - updatedTotalExpenses;
+        await this.shiftRepository.update(shift.shift_id, {
+          total_cash_expenses: updatedTotalExpenses,
+          theoretical_cash: updatedTheoreticalCash,
+        });
+      }
+    }
+
+    return this.expenseRepository.delete(expense_id);
+  }
 }

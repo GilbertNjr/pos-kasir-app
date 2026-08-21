@@ -99,5 +99,16 @@ export class ExpenseRepository implements IRepository<ExpenseEntity> {
     this.inMemoryExpenses[index] = { ...this.inMemoryExpenses[index], ...item };
     return { ...this.inMemoryExpenses[index] };
   }
+
+  async delete(expense_id: string): Promise<boolean> {
+    try {
+      await pool.query(`DELETE FROM expenses WHERE expense_id = $1`, [expense_id]);
+      this.inMemoryExpenses = this.inMemoryExpenses.filter((e) => e.expense_id !== expense_id);
+      return true;
+    } catch {
+      this.inMemoryExpenses = this.inMemoryExpenses.filter((e) => e.expense_id !== expense_id);
+      return true;
+    }
+  }
 }
 
