@@ -4,6 +4,7 @@ import { User } from '../../types';
 import { formatWaktuIndo } from '../../utils/formatters';
 import { NotificationPopover } from '../common/NotificationPopover';
 import { HelpModal } from '../common/HelpModal';
+import { NetworkStatusBadge } from '../common/NetworkStatusBadge';
 
 interface OwnerHeaderProps {
   currentUser: User;
@@ -66,7 +67,9 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
       </div>
 
       {/* Right Actions: Realtime Badge, Notification, Profile */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+        {/* Network Online / Offline Status Badge */}
+        <NetworkStatusBadge />
 
         {/* Status Realtime SSE Badge */}
         <div
