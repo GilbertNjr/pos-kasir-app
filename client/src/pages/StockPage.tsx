@@ -1323,148 +1323,145 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                 </div>
 
                 {/* 2. DESKTOP TABLE VIEW (>= 768px: Full Multi-Column Table) */}
-                <table className="desktop-only-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-                  <thead>
-                    <tr style={{ background: 'var(--accent-bg, #f8fafc)', borderBottom: '2px solid #e2e8f0', color: 'var(--color-primary, #0f172a)', textAlign: 'left', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      <th style={{ padding: '0.85rem 1.25rem' }}>Produk</th>
-                      <th style={{ padding: '0.85rem 1rem' }}>SKU / Barcode</th>
-                      <th style={{ padding: '0.85rem 1rem' }}>Kategori</th>
-                      <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Stok Saat Ini</th>
-                      <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Stok Minimum</th>
-                      <th style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>Status</th>
-                      <th style={{ padding: '0.85rem 1rem' }}>Lokasi</th>
-                      <th style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>Aksi</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedStocks.map((item) => {
-                      const isOut = item.current_stock === 0;
-                      const isLow = item.current_stock > 0 && item.current_stock < 5;
-                      const catName = getItemCategory(item);
-                      const minStock = 5;
-                      const location = item.business_unit === 'FC_PRINT' ? 'Storage FC' : 'Gudang Utama';
-                      const badgeStyle = getCategoryBadgeStyle(catName);
+                <div style={{ width: '100%', overflowX: 'auto' }}>
+                  <table className="desktop-only-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                    <thead>
+                      <tr style={{ background: 'var(--accent-bg, #f8fafc)', borderBottom: '2px solid #e2e8f0', color: 'var(--color-primary, #0f172a)', textAlign: 'left', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        <th style={{ padding: '0.85rem 1rem' }}>Produk</th>
+                        <th style={{ padding: '0.85rem 0.75rem' }}>Kategori</th>
+                        <th style={{ padding: '0.85rem 0.75rem', textAlign: 'center' }}>Stok Saat Ini</th>
+                        <th style={{ padding: '0.85rem 0.75rem', textAlign: 'center' }}>Stok Minimum</th>
+                        <th style={{ padding: '0.85rem 0.75rem', textAlign: 'center' }}>Status</th>
+                        <th style={{ padding: '0.85rem 0.75rem' }}>Lokasi</th>
+                        <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Aksi</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paginatedStocks.map((item) => {
+                        const isOut = item.current_stock === 0;
+                        const isLow = item.current_stock > 0 && item.current_stock < 5;
+                        const catName = getItemCategory(item);
+                        const minStock = 5;
+                        const location = item.business_unit === 'FC_PRINT' ? 'Storage FC' : 'Gudang Utama';
+                        const badgeStyle = getCategoryBadgeStyle(catName);
 
-                      return (
-                        <tr key={item.stock_id || item.product_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          {/* Produk */}
-                          <td style={{ padding: '0.85rem 1.25rem' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                              <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                                <Package size={20} color="#64748b" />
-                              </div>
-                              <div>
-                                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>{item.product_name}</div>
-                                <div style={{ fontSize: '0.725rem', color: '#64748b' }}>
-                                  SKU: {item.product_id.toUpperCase()}
+                        return (
+                          <tr key={item.stock_id || item.product_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            {/* Produk */}
+                            <td style={{ padding: '0.85rem 1rem' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                  <Package size={20} color="#64748b" />
                                 </div>
-                                <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                                  Barcode: 899{item.product_id.replace(/[^0-9]/g, '').padEnd(10, '0')}
+                                <div>
+                                  <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>{item.product_name}</div>
+                                  <div style={{ fontSize: '0.725rem', color: '#64748b' }}>
+                                    SKU: {item.product_id.toUpperCase()}
+                                  </div>
+                                  <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                                    Barcode: 899{item.product_id.replace(/[^0-9]/g, '').padEnd(10, '0')}
+                                  </div>
                                 </div>
                               </div>
-                            </div>
-                          </td>
+                            </td>
 
-                          {/* SKU / Barcode Tag */}
-                          <td style={{ padding: '0.85rem 1rem' }}>
-                            <span
-                              style={{
-                                padding: '0.3rem 0.75rem',
-                                borderRadius: '8px',
-                                fontSize: '0.75rem',
-                                fontWeight: 800,
-                                background: badgeStyle.bg,
-                                color: badgeStyle.text,
-                                border: `1px solid ${badgeStyle.border}`,
-                                display: 'inline-block',
-                                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-                              }}
-                            >
-                              {catName}
-                            </span>
-                          </td>
-
-                          {/* Kategori */}
-                          <td style={{ padding: '0.85rem 1rem', fontWeight: 600, color: '#334155', fontSize: '0.825rem' }}>
-                            {catName}
-                          </td>
-
-                          {/* Stok Saat Ini & Lokasi Breakdown */}
-                          <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
-                            <div style={{ fontSize: '1.1rem', fontWeight: 900, color: isOut ? '#dc2626' : isLow ? '#d97706' : '#059669' }}>
-                              {item.current_stock} <span style={{ fontSize: '0.7rem', color: isOut ? '#dc2626' : '#64748b', fontWeight: 700 }}>pcs</span>
-                            </div>
-                            <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 800, display: 'flex', gap: '0.35rem', justifyContent: 'center', marginTop: '0.15rem' }}>
-                              <span style={{ color: '#1d4ed8' }}>🏭 G: {item.stock_gudang ?? Math.max(0, item.current_stock - 5)}</span>
-                              <span>•</span>
-                              <span style={{ color: '#059669' }}>🏪 E: {item.stock_etalase ?? Math.min(item.current_stock, 5)}</span>
-                            </div>
-                          </td>
-
-                          {/* Stok Minimum */}
-                          <td style={{ padding: '0.85rem 1rem', textAlign: 'center', fontWeight: 800, color: isLow || isOut ? '#dc2626' : '#475569', fontSize: '0.9rem' }}>
-                            {minStock}
-                          </td>
-
-                          {/* Status */}
-                          <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
-                            <span style={{ padding: '0.25rem 0.65rem', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 900, background: isOut ? '#fef2f2' : isLow ? '#fffbeb' : '#ecfdf5', color: isOut ? '#dc2626' : isLow ? '#b45309' : '#047857', border: `1px solid ${isOut ? '#fecaca' : isLow ? '#fde68a' : '#a7f3d0'}` }}>
-                              {isOut ? 'Habis' : isLow ? 'Menipis' : 'Aman'}
-                            </span>
-                          </td>
-
-                          {/* Lokasi */}
-                          <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#475569', fontSize: '0.825rem' }}>
-                            {location}
-                          </td>
-
-                          {/* Aksi */}
-                          <td style={{ padding: '0.85rem 1.25rem', textAlign: 'right' }}>
-                            <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end', alignItems: 'center' }}>
-                              <button
-                                onClick={() => handleOpenEditProductModal(item)}
-                                title="Lihat Detail Produk"
-                                style={{ padding: '0.4rem 0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                              >
-                                <Eye size={15} />
-                              </button>
-
-                              <button
-                                onClick={() => {
-                                  if (onTriggerToast) {
-                                    onTriggerToast('info', 'Analisis Stok', `Perputaran "${item.product_name}": Stok ${item.current_stock} pcs, Status ${isOut ? 'Habis' : isLow ? 'Menipis' : 'Aman'}.`);
-                                  }
+                            {/* Kategori Badge */}
+                            <td style={{ padding: '0.85rem 0.75rem' }}>
+                              <span
+                                style={{
+                                  padding: '0.3rem 0.75rem',
+                                  borderRadius: '8px',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 800,
+                                  background: badgeStyle.bg,
+                                  color: badgeStyle.text,
+                                  border: `1px solid ${badgeStyle.border}`,
+                                  display: 'inline-block',
+                                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                                  whiteSpace: 'nowrap',
                                 }}
-                                title="Analisis Perputaran Stok"
-                                style={{ padding: '0.4rem 0.5rem', borderRadius: '8px', border: '1px solid #dbeafe', background: '#eff6ff', color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                               >
-                                <BarChart2 size={15} />
-                              </button>
+                                {catName}
+                              </span>
+                            </td>
 
-                              {currentUser.role !== 'OWNER' && (
+                            {/* Stok Saat Ini & Lokasi Breakdown */}
+                            <td style={{ padding: '0.85rem 0.75rem', textAlign: 'center' }}>
+                              <div style={{ fontSize: '1.1rem', fontWeight: 900, color: isOut ? '#dc2626' : isLow ? '#d97706' : '#059669' }}>
+                                {item.current_stock} <span style={{ fontSize: '0.7rem', color: isOut ? '#dc2626' : '#64748b', fontWeight: 700 }}>pcs</span>
+                              </div>
+                              <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 800, display: 'flex', gap: '0.35rem', justifyContent: 'center', marginTop: '0.15rem' }}>
+                                <span style={{ color: '#1d4ed8' }}>🏭 G: {item.stock_gudang ?? Math.max(0, item.current_stock - 5)}</span>
+                                <span>•</span>
+                                <span style={{ color: '#059669' }}>🏪 E: {item.stock_etalase ?? Math.min(item.current_stock, 5)}</span>
+                              </div>
+                            </td>
+
+                            {/* Stok Minimum */}
+                            <td style={{ padding: '0.85rem 0.75rem', textAlign: 'center', fontWeight: 800, color: isLow || isOut ? '#dc2626' : '#475569', fontSize: '0.9rem' }}>
+                              {minStock}
+                            </td>
+
+                            {/* Status */}
+                            <td style={{ padding: '0.85rem 0.75rem', textAlign: 'center' }}>
+                              <span style={{ padding: '0.25rem 0.65rem', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 900, background: isOut ? '#fef2f2' : isLow ? '#fffbeb' : '#ecfdf5', color: isOut ? '#dc2626' : isLow ? '#b45309' : '#047857', border: `1px solid ${isOut ? '#fecaca' : isLow ? '#fde68a' : '#a7f3d0'}`, whiteSpace: 'nowrap' }}>
+                                {isOut ? 'Habis' : isLow ? 'Menipis' : 'Aman'}
+                              </span>
+                            </td>
+
+                            {/* Lokasi */}
+                            <td style={{ padding: '0.85rem 0.75rem', fontWeight: 700, color: '#475569', fontSize: '0.825rem', whiteSpace: 'nowrap' }}>
+                              {location}
+                            </td>
+
+                            {/* Aksi */}
+                            <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
+                              <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'flex-end', alignItems: 'center' }}>
                                 <button
-                                  onClick={() => handleOpenEditModal(item)}
-                                  title="Koreksi Stok Fisik"
-                                  style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: 'none', background: '#4f46e5', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}
+                                  onClick={() => handleOpenEditProductModal(item)}
+                                  title="Lihat Detail Produk"
+                                  style={{ padding: '0.4rem 0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                 >
-                                  Koreksi
+                                  <Eye size={15} />
                                 </button>
-                              )}
 
-                              <button
-                                onClick={() => setDeleteConfirmItem(item)}
-                                title="Hapus Stok & Produk"
-                                style={{ padding: '0.4rem 0.55rem', borderRadius: '8px', border: 'none', background: '#fee2e2', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                              >
-                                <Trash2 size={15} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                                <button
+                                  onClick={() => {
+                                    if (onTriggerToast) {
+                                      onTriggerToast('info', 'Analisis Stok', `Perputaran "${item.product_name}": Stok ${item.current_stock} pcs, Status ${isOut ? 'Habis' : isLow ? 'Menipis' : 'Aman'}.`);
+                                    }
+                                  }}
+                                  title="Analisis Perputaran Stok"
+                                  style={{ padding: '0.4rem 0.5rem', borderRadius: '8px', border: '1px solid #dbeafe', background: '#eff6ff', color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                  <BarChart2 size={15} />
+                                </button>
+
+                                {currentUser.role !== 'OWNER' && (
+                                  <button
+                                    onClick={() => handleOpenEditModal(item)}
+                                    title="Koreksi Stok Fisik"
+                                    style={{ padding: '0.4rem 0.75rem', borderRadius: '8px', border: 'none', background: '#4f46e5', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                                  >
+                                    Koreksi
+                                  </button>
+                                )}
+
+                                <button
+                                  onClick={() => setDeleteConfirmItem(item)}
+                                  title="Hapus Stok & Produk"
+                                  style={{ padding: '0.4rem 0.55rem', borderRadius: '8px', border: 'none', background: '#fee2e2', color: '#dc2626', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                >
+                                  <Trash2 size={15} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             ) : (
               /* GRID VIEW MODE (Responsive Cards: 1 Kolom di Ponsel, 2-4 Kolom di Tablet/Laptop) */
