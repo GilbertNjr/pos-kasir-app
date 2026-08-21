@@ -329,6 +329,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         >
           {/* Header Bar */}
           <div
+            className="no-print"
             style={{
               padding: '1.25rem 1.5rem',
               borderBottom: '1px solid #f1f5f9',
@@ -561,7 +562,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           </div>
 
           {/* Print Layout Mode Selector Bar */}
-          <div style={{ padding: '0.65rem 1.5rem 0 1.5rem', background: '#ffffff', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+          <div className="no-print" style={{ padding: '0.65rem 1.5rem 0 1.5rem', background: '#ffffff', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
             <label style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
               🖨️ Format & Mode Cetak Nota:
             </label>
