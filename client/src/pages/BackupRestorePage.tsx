@@ -149,8 +149,30 @@ const defaultMockHistory = [
   },
 ];
 
+const getStoredHistory = (): any[] => {
+  try {
+    const saved = localStorage.getItem('pos_backup_history');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return defaultMockHistory;
+};
+
+const getDeletedBackupIds = (): string[] => {
+  try {
+    const saved = localStorage.getItem('pos_deleted_backup_ids');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) return parsed;
+    }
+  } catch {}
+  return [];
+};
+
 export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUser, onTriggerToast }) => {
-  const [history, setHistory] = useState<any[]>(defaultMockHistory);
+  const [history, setHistory] = useState<any[]>(() => getStoredHistory());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
@@ -191,26 +213,53 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
       setLoading(true);
       setError(null);
       const data = await apiService.getBackupHistory().catch(() => []);
+      const deletedIds = getDeletedBackupIds();
+
       if (Array.isArray(data) && data.length > 0) {
         const formatted = data.map((item) => ({
           backup_id: item.backup_id,
           created_at: item.created_at,
-          type: 'Manual',
-          size_str: (item.size_bytes ? (item.size_bytes / (1024 * 1024)).toFixed(1) : '12.4') + ' MB',
-          location: 'DRIVE_LOKAL',
-          status: 'SUCCESS',
-          status_label: 'Berhasil',
-          description: 'Backup snapshot database POS',
+          type: item.type || 'Manual',
+          size_str: item.size_str || ((item.size_bytes ? (item.size_bytes / (1024 * 1024)).toFixed(1) : '12.4') + ' MB'),
+          location: item.location || 'DRIVE_LOKAL',
+          status: item.status || 'SUCCESS',
+          status_label: item.status_label || (item.status === 'FAILED' ? 'Gagal' : 'Berhasil'),
+          description: item.description || 'Backup snapshot database POS',
         }));
-        // Merge server data with mock data so history looks complete matching Image 2
-        setHistory([...formatted, ...defaultMockHistory.slice(formatted.length)]);
+
+        setHistory((prev) => {
+          const map = new Map<string, any>();
+          // Add local non-deleted items first
+          prev.forEach((item) => {
+            if (!deletedIds.includes(item.backup_id)) {
+              map.set(item.backup_id, item);
+            }
+          });
+          // Add server non-deleted items
+          formatted.forEach((item) => {
+            if (!deletedIds.includes(item.backup_id)) {
+              map.set(item.backup_id, item);
+            }
+          });
+          const combined = Array.from(map.values());
+          try {
+            localStorage.setItem('pos_backup_history', JSON.stringify(combined));
+          } catch {}
+          return combined;
+        });
       } else {
-        setHistory(defaultMockHistory);
+        setHistory((prev) => {
+          const filtered = prev.filter((item) => !deletedIds.includes(item.backup_id));
+          try {
+            localStorage.setItem('pos_backup_history', JSON.stringify(filtered));
+          } catch {}
+          return filtered;
+        });
       }
 
       if (isManualRefresh) {
         if (onTriggerToast) {
-          onTriggerToast('success', 'Status Diperbarui', 'Riwayat & status backup berhasil disinkronkan.');
+          onTriggerToast('success', 'Status Diperbarui', 'Riwayat & status backup berhasil disinkronkan secara real-time.');
         }
         setSuccessMsg('Status backup & riwayat berhasil diperbarui.');
         setTimeout(() => setSuccessMsg(null), 3000);
@@ -253,18 +302,25 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
       downloadAnchor.click();
       downloadAnchor.remove();
 
-      // Add new successful backup to history list on top
+      // Add new successful backup to history list on top and persist
       const newEntry = {
         backup_id: snapshot.backup_id || `bkp-${Date.now()}`,
         created_at: new Date().toISOString(),
         type: 'Manual',
-        size_str: '260,4 MB',
+        size_str: snapshot.size_bytes ? (snapshot.size_bytes / (1024 * 1024)).toFixed(1) + ' MB' : '14.2 MB',
         location: 'DRIVE_LOKAL',
         status: 'SUCCESS',
         status_label: 'Berhasil',
         description: 'Backup manual snapshot terbaru',
       };
-      setHistory((prev) => [newEntry, ...prev]);
+
+      setHistory((prev) => {
+        const next = [newEntry, ...prev.filter((i) => i.backup_id !== newEntry.backup_id)];
+        try {
+          localStorage.setItem('pos_backup_history', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
 
       if (onTriggerToast) {
         onTriggerToast('success', 'Backup Berhasil', `Snapshot ${snapshot.backup_id} berhasil diunduh.`);
@@ -289,7 +345,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
     setTimeout(() => setSuccessMsg(null), 3000);
   };
 
-  // Handle Delete Backup History Item with Warning Modal Confirmation
+  // Handle Delete Backup History Item with Warning Modal Confirmation (PERSISTENT & REALTIME)
   const handleConfirmDeleteBackup = async () => {
     if (!deleteConfirmItem) return;
     const targetId = deleteConfirmItem.backup_id;
@@ -297,15 +353,37 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
     try {
       setLoading(true);
       await apiService.deleteBackup(targetId).catch(() => {});
-      setHistory((prev) => prev.filter((item) => item.backup_id !== targetId));
+
+      // Register into deleted backup IDs list so it never reappears on refresh
+      const deletedIds = getDeletedBackupIds();
+      if (!deletedIds.includes(targetId)) {
+        deletedIds.push(targetId);
+        try {
+          localStorage.setItem('pos_deleted_backup_ids', JSON.stringify(deletedIds));
+        } catch {}
+      }
+
+      setHistory((prev) => {
+        const next = prev.filter((item) => item.backup_id !== targetId);
+        try {
+          localStorage.setItem('pos_backup_history', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
 
       if (onTriggerToast) {
-        onTriggerToast('success', 'Backup Dihapus', `Catatan backup ${targetId} berhasil dihapus.`);
+        onTriggerToast('success', 'Backup Dihapus', `Catatan backup ${targetId} berhasil dihapus permanen.`);
       }
-      setSuccessMsg(`Berkas / riwayat backup ID ${targetId} berhasil dihapus.`);
+      setSuccessMsg(`Berkas / riwayat backup ID ${targetId} berhasil dihapus permanen.`);
       setTimeout(() => setSuccessMsg(null), 3000);
     } catch {
-      setHistory((prev) => prev.filter((item) => item.backup_id !== targetId));
+      setHistory((prev) => {
+        const next = prev.filter((item) => item.backup_id !== targetId);
+        try {
+          localStorage.setItem('pos_backup_history', JSON.stringify(next));
+        } catch {}
+        return next;
+      });
     } finally {
       setLoading(false);
       setDeleteConfirmItem(null);

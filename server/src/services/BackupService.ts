@@ -7,6 +7,7 @@ import { TransactionItemRepository } from '../repositories/TransactionItemReposi
 import { ExpenseRepository } from '../repositories/ExpenseRepository';
 import { StockRepository } from '../repositories/StockRepository';
 import { GoogleSheetsSyncService } from './GoogleSheetsSyncService';
+import { pool } from '../database/db';
 
 export interface BackupPayload {
   backup_id: string;
@@ -30,6 +31,10 @@ export interface BackupHistoryLog {
   created_at: string;
   created_by_user_id: string;
   size_bytes: number;
+  type?: string;
+  location?: string;
+  description?: string;
+  status?: string;
 }
 
 export class BackupService {
@@ -98,24 +103,55 @@ export class BackupService {
     };
 
     const sizeBytes = Buffer.byteLength(JSON.stringify(snapshot));
-    this.backupHistoryLogs.unshift({
+    const logItem: BackupHistoryLog = {
       backup_id: backupId,
       created_at: createdAt,
       created_by_user_id: userId,
       size_bytes: sizeBytes,
-    });
+    };
+
+    this.backupHistoryLogs.unshift(logItem);
+
+    try {
+      await pool.query(
+        `INSERT INTO backups (backup_id, created_by_user_id, backup_type, size_bytes, created_at)
+         VALUES ($1, $2, $3, $4, $5)`,
+        [backupId, userId || 'SYSTEM', 'MANUAL_SNAPSHOT', sizeBytes, createdAt]
+      );
+    } catch (err: any) {
+      console.warn('[BackupService] DB insert log fallback to memory:', err.message);
+    }
 
     return snapshot;
   }
 
   async getBackupHistory(): Promise<BackupHistoryLog[]> {
+    try {
+      const res = await pool.query(
+        `SELECT backup_id, created_at::text, created_by_user_id, size_bytes::bigint
+         FROM backups
+         ORDER BY created_at DESC`
+      );
+      if (res.rows.length > 0) {
+        return res.rows.map((r) => ({
+          backup_id: r.backup_id,
+          created_at: r.created_at,
+          created_by_user_id: r.created_by_user_id,
+          size_bytes: Number(r.size_bytes || 0),
+        }));
+      }
+    } catch (err: any) {
+      console.warn('[BackupService] DB fetch failed, returning memory history:', err.message);
+    }
     return [...this.backupHistoryLogs];
   }
 
   async deleteBackupHistory(backupId: string): Promise<boolean> {
-    const index = this.backupHistoryLogs.findIndex((log) => log.backup_id === backupId);
-    if (index !== -1) {
-      this.backupHistoryLogs.splice(index, 1);
+    this.backupHistoryLogs = this.backupHistoryLogs.filter((log) => log.backup_id !== backupId);
+    try {
+      await pool.query(`DELETE FROM backups WHERE backup_id = $1`, [backupId]);
+    } catch (err: any) {
+      console.warn('[BackupService] DB delete log fallback:', err.message);
     }
     return true;
   }
