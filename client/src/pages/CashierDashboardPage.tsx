@@ -60,24 +60,7 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
   }, []);
 
   const handleActivateOrOpenShift = () => {
-    if (activeShiftId) {
-      // User shift is already active, navigate to shift management
-      onNavigateTab('SHIFT');
-      return;
-    }
-
-    if (shiftData?.shift?.shift_status === 'ACTIVE') {
-      // An active shift exists in system, activate for this employee
-      sessionStorage.setItem(`pos_shift_activated_${currentUser.user_id}`, shiftData.shift.shift_id);
-      if (onTriggerToast) {
-        onTriggerToast('success', 'Shift Berhasil Diaktifkan', `Sesi shift #${shiftData.shift.shift_id.slice(-6)} telah aktif untuk Anda.`);
-      }
-      if (onShiftStatusChange) onShiftStatusChange();
-      fetchCashierDashboardData();
-    } else {
-      // No active shift in backend, go to shift open page
-      onNavigateTab('SHIFT');
-    }
+    onNavigateTab('SHIFT');
   };
 
   const handleAddCapital = async (e: React.FormEvent) => {

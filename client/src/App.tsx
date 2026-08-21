@@ -359,15 +359,8 @@ export const App: React.FC = () => {
     currentUser.role === 'PENANGGUNG_JAWAB' ||
     Boolean(currentUser.is_pj);
 
-  // Verifikasi apakah pengguna ini telah mengaktifkan / bergabung dalam sesi shift aktif
-  const isUserShiftActive = Boolean(
-    activeShiftData?.shift?.shift_status === 'ACTIVE' && (
-      activeShiftData.shift.opened_by_user_id === currentUser?.user_id ||
-      activeShiftData.shift_users?.some((su: any) => su.user_id === currentUser?.user_id) ||
-      activeShiftData.contributions?.some((c: any) => c.user_id === currentUser?.user_id) ||
-      (currentUser && sessionStorage.getItem(`pos_shift_activated_${currentUser.user_id}`) === activeShiftData.shift.shift_id)
-    )
-  );
+  // Verifikasi apakah sesi shift aktif sedang berjalan di backend
+  const isUserShiftActive = Boolean(activeShiftData?.shift?.shift_status === 'ACTIVE');
 
   const userActiveShiftId = isUserShiftActive ? activeShiftData?.shift?.shift_id : undefined;
 

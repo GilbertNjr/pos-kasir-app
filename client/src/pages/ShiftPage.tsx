@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, ShieldCheck, UserCheck, Power, X, Edit3, Trash2, Plus, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, Power, X, Edit3, Trash2, Plus, AlertTriangle } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
@@ -270,12 +270,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     }
   };
 
-  const handleActivateExistingShift = () => {
-    if (activeShiftData?.shift?.shift_id) {
-      sessionStorage.setItem(`pos_shift_activated_${currentUser.user_id}`, activeShiftData.shift.shift_id);
-      if (onShiftStatusChange) onShiftStatusChange();
-    }
-  };
+
 
   const handleAddCapital = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -382,17 +377,11 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     return <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--text-muted)' }}>Memuat status sesi shift...</div>;
   }
 
-  // Check if current user has activated this shift session
-  const isUserActivated = Boolean(
-    activeShiftData?.shift?.shift_status === 'ACTIVE' &&
-      (activeShiftData.shift.opened_by_user_id === currentUser.user_id ||
-        activeShiftData.shift_users?.some((su) => su.user_id === currentUser.user_id) ||
-        activeShiftData.contributions?.some((c) => c.user_id === currentUser.user_id) ||
-        sessionStorage.getItem(`pos_shift_activated_${currentUser.user_id}`) === activeShiftData.shift.shift_id)
-  );
+  // Check if there is an active shift session in system
+  const isShiftActive = Boolean(activeShiftData?.shift?.shift_status === 'ACTIVE');
 
-  // TAMPILAN 1: Sesi Shift Aktif Berjalan & Sudah Diaktifkan oleh User
-  if (activeShiftData && activeShiftData.shift.shift_status === 'ACTIVE' && isUserActivated) {
+  // TAMPILAN 1: Sesi Shift Aktif Berjalan (Langsung Masuk Dashboard Laci Kas Bersama)
+  if (activeShiftData && isShiftActive) {
     const { shift, contributions } = activeShiftData;
 
     // Load custom metadata if available
@@ -1029,76 +1018,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     );
   }
 
-  // TAMPILAN 2: Sesi Shift Aktif Berjalan di Sistem, tetapi Akun Ini Belum Mengaktifkan / Gabung Kas
-  if (activeShiftData && activeShiftData.shift.shift_status === 'ACTIVE' && !isUserActivated) {
-    const { shift, contributions } = activeShiftData;
-    let storedMeta: any = null;
-    try {
-      const raw = localStorage.getItem(`pos_shift_meta_${shift.shift_id}`);
-      if (raw) storedMeta = JSON.parse(raw);
-    } catch {}
-
-    const shiftTitle = storedMeta?.shiftName || `Shift Operasional (#${shift.shift_id.slice(-6)})`;
-
-    return (
-      <div style={{ maxWidth: '650px', margin: '0 auto' }}>
-        <div style={{ background: '#ffffff', padding: '2rem', borderRadius: '24px', border: '1px solid #cbd5e1', boxShadow: '0 12px 36px rgba(15, 23, 42, 0.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-            <div style={{ width: '56px', height: '56px', borderRadius: '16px', background: '#ecfdf5', color: '#047857', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              <UserCheck size={32} />
-            </div>
-            <div>
-              <span className="badge badge-fc" style={{ marginBottom: '0.25rem' }}>SESI SHIFT SEDANG BERJALAN</span>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-                {shiftTitle}
-              </h2>
-              <p style={{ fontSize: '0.825rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
-                Shift kas bersama ini sedang diaktifkan oleh tim kasir lain.
-              </p>
-            </div>
-          </div>
-
-          <div style={{ background: '#f8fafc', padding: '1.25rem', borderRadius: '16px', border: '1px solid #e2e8f0', marginBottom: '1.5rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.75rem', fontSize: '0.875rem' }}>
-              <span style={{ color: '#64748b', fontWeight: 600 }}>Total Modal Kas Laci:</span>
-              <span style={{ fontWeight: 800, color: '#059669' }}>{formatRupiah(shift.total_initial_cash)}</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem' }}>
-              <span style={{ color: '#64748b', fontWeight: 600 }}>Karyawan Bertugas:</span>
-              <span style={{ fontWeight: 800, color: '#4f46e5' }}>{contributions.length} Pengguna Aktif</span>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-            <button
-              onClick={handleActivateExistingShift}
-              style={{
-                width: '100%',
-                padding: '0.9rem 1.25rem',
-                fontSize: '1rem',
-                fontWeight: 800,
-                color: '#ffffff',
-                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
-                border: 'none',
-                borderRadius: '14px',
-                boxShadow: '0 4px 14px rgba(5, 150, 105, 0.35)',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '0.5rem',
-              }}
-            >
-              <ShieldCheck size={20} />
-              🚀 Masuk & Aktifkan Kasir di Shift Ini
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // TAMPILAN 3: Belum Ada Shift Aktif -> Form Registrasi & Buka Shift Baru (Clean UI)
+  // TAMPILAN 2: Belum Ada Shift Aktif -> Form Registrasi & Buka Shift Baru (Clean UI)
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <div style={{ marginBottom: '1.75rem', textAlign: 'center' }}>

@@ -206,10 +206,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     e.preventDefault();
     try {
       setBukaShiftLoading(true);
-      const res = await apiService.openShift(Number(bukaShiftInitialCash) || 0);
-      if (res?.shift?.shift_id) {
-        sessionStorage.setItem(`pos_shift_activated_${currentUser.user_id}`, res.shift.shift_id);
-      }
+      await apiService.openShift(Number(bukaShiftInitialCash) || 0);
       setIsBukaShiftModalOpen(false);
       if (onShiftOpened) onShiftOpened();
     } catch (err: any) {
