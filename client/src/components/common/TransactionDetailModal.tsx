@@ -90,8 +90,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     }
   };
 
+  const [printLayout, setPrintLayout] = useState<'THERMAL_58' | 'INVOICE_A4'>('THERMAL_58');
+
   const handlePrintReceipt = () => {
-    const printWin = window.open('', '_blank', 'width=420,height=700');
+    const isA4 = printLayout === 'INVOICE_A4';
+    const printWin = window.open('', '_blank', isA4 ? 'width=800,height=900' : 'width=420,height=700');
     if (!printWin) {
       alert('Harap izinkan popup browser untuk mencetak struk.');
       return;
@@ -103,6 +106,124 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
       // Ignore
     }
 
+    if (isA4) {
+      // ===== INVOICE / NOTA KWITANSI A4 ELEGAN & RESMI =====
+      const itemRowsA4 = detailItems
+        .map((item: any, idx: number) => {
+          const matchedProd = products.find((p) => p.product_id === item.product_id);
+          const pName = item.product_name || (matchedProd ? matchedProd.product_name : `Produk #${idx + 1}`);
+          const qty = Number(item.qty || item.quantity || 1);
+          const price = Number(item.unit_price || 0);
+          const sub = Number(item.subtotal || price * qty);
+
+          return `
+          <tr style="border-bottom: 1px solid #e2e8f0;">
+            <td style="padding: 10px 12px; text-align: center;">${idx + 1}</td>
+            <td style="padding: 10px 12px; font-weight: 600;">${pName}</td>
+            <td style="padding: 10px 12px; text-align: center;">${qty}</td>
+            <td style="padding: 10px 12px; text-align: right;">${formatRupiah(price)}</td>
+            <td style="padding: 10px 12px; text-align: right; font-weight: 700;">${formatRupiah(sub)}</td>
+          </tr>
+        `;
+        })
+        .join('');
+
+      printWin.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Nota Kwitansi Pembayaran - ${txNumber}</title>
+          <style>
+            @page { size: A4; margin: 15mm; }
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #1e293b; background: #ffffff; margin: 0; padding: 20px; font-size: 13px; line-height: 1.5; }
+            .header-container { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid #0f172a; padding-bottom: 15px; margin-bottom: 20px; }
+            .store-name { font-size: 24px; font-weight: 900; color: #0f172a; letter-spacing: -0.5px; }
+            .store-sub { font-size: 12px; color: #64748b; margin-top: 2px; }
+            .invoice-title { font-size: 22px; font-weight: 900; color: #1e40af; text-transform: uppercase; text-align: right; }
+            .meta-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 25px; }
+            .meta-item { font-size: 12px; margin-bottom: 4px; }
+            .meta-label { font-weight: 700; color: #475569; display: inline-block; width: 110px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+            th { background: #0f172a; color: #ffffff; padding: 10px 12px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+            .summary-box { width: 320px; margin-left: auto; border: 1px solid #cbd5e1; border-radius: 8px; overflow: hidden; }
+            .summary-row { display: flex; justify-content: space-between; padding: 8px 14px; font-size: 12px; border-bottom: 1px solid #e2e8f0; }
+            .summary-row.total { background: #eff6ff; font-weight: 900; font-size: 15px; color: #1e40af; border-bottom: none; }
+            .footer-sig { margin-top: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
+            .sig-space { border-bottom: 1.5px solid #0f172a; width: 180px; text-align: center; padding-bottom: 40px; font-weight: 700; }
+          </style>
+        </head>
+        <body>
+          <div class="header-container">
+            <div>
+              <div class="store-name">${(storeName || 'KEDAI POS / PRINTING & FNB').toUpperCase()}</div>
+              <div class="store-sub">Layanan Fotokopi, Printing, ATK & Kuliner F&B</div>
+              <div class="store-sub">Nota Transaksi Bukti Pembayaran Resmi</div>
+            </div>
+            <div>
+              <div class="invoice-title">KWITANSI / NOTA</div>
+              <div style="text-align: right; font-weight: 700; color: #64748b; font-size: 12px;">NO: ${txNumber}</div>
+            </div>
+          </div>
+
+          <div class="meta-grid">
+            <div>
+              <div class="meta-item"><span class="meta-label">Waktu Transaksi:</span> <strong>${txTime}</strong></div>
+              <div class="meta-item"><span class="meta-label">Kasir PJ:</span> <strong>${cashierName}</strong></div>
+            </div>
+            <div>
+              <div class="meta-item"><span class="meta-label">Nama Pelanggan:</span> <strong>${customerName}</strong></div>
+              <div class="meta-item"><span class="meta-label">Metode Bayar:</span> <strong>${paymentMethod} (${isCancelled ? 'DIBATALKAN' : 'LUNAS'})</strong></div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 40px; text-align: center;">No</th>
+                <th style="text-align: left;">Deskripsi Produk / Jasa</th>
+                <th style="width: 70px; text-align: center;">Jumlah</th>
+                <th style="width: 120px; text-align: right;">Harga Satuan</th>
+                <th style="width: 140px; text-align: right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemRowsA4}
+            </tbody>
+          </table>
+
+          <div class="summary-box">
+            <div class="summary-row"><span>Subtotal Total</span><span>${formatRupiah(subtotalVal)}</span></div>
+            ${discountVal > 0 ? `<div class="summary-row" style="color: #dc2626;"><span>Diskon Potongan</span><span>-${formatRupiah(discountVal)}</span></div>` : ''}
+            <div class="summary-row total"><span>GRAND TOTAL</span><span>${formatRupiah(finalTotalVal)}</span></div>
+            <div class="summary-row"><span>Nominal Bayar (${paymentMethod})</span><span>${formatRupiah(cashTenderedVal)}</span></div>
+            <div class="summary-row"><span>Kembalian</span><span>${formatRupiah(changeDueVal)}</span></div>
+          </div>
+
+          <div class="footer-sig">
+            <div style="font-size: 11px; color: #64748b;">
+              * Terima kasih atas kunjungan & kepercayaan Anda!<br/>
+              * Barang/Jasa yang telah dibeli tidak dapat ditukar/dikembalikan.
+            </div>
+            <div class="sig-space">
+              ( ${cashierName} )<br/>
+              <span style="font-size: 10px; font-weight: normal; color: #64748b;">Kasir Penanggung Jawab</span>
+            </div>
+          </div>
+
+          <script>
+            window.onload = function() {
+              try { window.print(); } catch(e) {}
+              setTimeout(function() { try { window.close(); } catch(e) {} }, 500);
+            };
+          </script>
+        </body>
+        </html>
+      `);
+      printWin.document.close();
+      return;
+    }
+
+    // ===== STRUK THERMAL 58MM RAMPING =====
     const itemRows = detailItems
       .map((item: any, idx: number) => {
         const matchedProd = products.find((p) => p.product_id === item.product_id);
@@ -435,6 +556,50 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                   <Banknote size={22} color="#16a34a" />
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Print Layout Mode Selector Bar */}
+          <div style={{ padding: '0.65rem 1.5rem 0 1.5rem', background: '#ffffff', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+            <label style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+              🖨️ Format & Mode Cetak Nota:
+            </label>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <button
+                type="button"
+                onClick={() => setPrintLayout('THERMAL_58')}
+                style={{
+                  padding: '0.45rem 0.5rem',
+                  borderRadius: '8px',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  border: printLayout === 'THERMAL_58' ? '2px solid #2563eb' : '1px solid #cbd5e1',
+                  background: printLayout === 'THERMAL_58' ? '#eff6ff' : '#ffffff',
+                  color: printLayout === 'THERMAL_58' ? '#1d4ed8' : '#64748b',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                🧾 Struk 58mm (Kasir)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPrintLayout('INVOICE_A4')}
+                style={{
+                  padding: '0.45rem 0.5rem',
+                  borderRadius: '8px',
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  border: printLayout === 'INVOICE_A4' ? '2px solid #059669' : '1px solid #cbd5e1',
+                  background: printLayout === 'INVOICE_A4' ? '#ecfdf5' : '#ffffff',
+                  color: printLayout === 'INVOICE_A4' ? '#047857' : '#64748b',
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                📄 Kwitansi A4 / F4 (Resmi)
+              </button>
             </div>
           </div>
 
