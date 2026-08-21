@@ -1095,3 +1095,72 @@ html, body {
 .fab-pulse-effect:active {
   transform: scale(0.95);
 }
+
+/* ========================================================
+   ULTRA MOBILE RESPONSIVE ENGINE (ZERO HORIZONTAL SCROLL)
+   ======================================================== */
+html, body, #root {
+  max-width: 100vw !important;
+  overflow-x: hidden !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 768px) {
+  /* Prevent horizontal overflow on mobile main canvas */
+  main {
+    padding: 0.75rem 0.5rem !important;
+    max-width: 100vw !important;
+    overflow-x: hidden !important;
+    width: 100% !important;
+  }
+
+  /* Reduce large desktop padding on mobile screens */
+  div[style*="padding: 1.5rem"],
+  div[style*="padding: 1.25rem"],
+  div[style*="padding: 1.5rem 1.5rem"] {
+    padding: 0.75rem 0.6rem !important;
+  }
+
+  /* Single Column Layouts on Mobile */
+  .responsive-main-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+
+  /* Ensure search inputs fit smoothly without overflowing parent */
+  div[style*="width: 220px"],
+  div[style*="width: 240px"],
+  div[style*="width: 260px"] {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Horizontal scrolling for wide data tables strictly inside their table container */
+  table {
+    font-size: 0.775rem !important;
+  }
+
+  div[style*="overflowX: auto"],
+  div[style*="overflow-x: auto"],
+  .table-responsive-container {
+    width: 100% !important;
+    max-width: calc(100vw - 20px) !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  /* Modal Dialogs mobile centering & fluid sizing */
+  div[style*="position: fixed"][style*="inset: 0"] > div {
+    max-width: calc(100vw - 24px) !important;
+    width: 100% !important;
+    margin: 0 auto !important;
+    border-radius: 16px !important;
+  }
+}

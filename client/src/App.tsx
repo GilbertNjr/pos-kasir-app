@@ -405,8 +405,8 @@ export const App: React.FC = () => {
 
       {/* POS REGISTER TAB */}
       {cashierTab === 'POS' && (
-        <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 800, marginBottom: '1.25rem', color: '#0f172a' }}>
+        <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '14px', border: '1px solid #e2e8f0', maxWidth: '100%', overflowX: 'hidden', boxSizing: 'border-box' }}>
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 800, marginBottom: '1.25rem', color: '#0f172a' }}>
             Kasir Register POS — Entri Transaksi
           </h2>
           <PosRegister
