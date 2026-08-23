@@ -36,19 +36,19 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Store Profile State
-  const [storeName, setStoreName] = useState('kui');
-  const [ownerName, setOwnerName] = useState('Ahmat Gebyar Gumelar');
-  const [email, setEmail] = useState('gebyargumelar@gmail.com');
-  const [phone, setPhone] = useState('085808495978');
+  const [storeName, setStoreName] = useState('Masukan Nama Toko Anda');
+  const [ownerName, setOwnerName] = useState('Masukan Nama Anda');
+  const [email, setEmail] = useState('Masukan Email Anda');
+  const [phone, setPhone] = useState('Masukan Nomor Telepon Anda');
   const [description, setDescription] = useState('Toko sembako dan kebutuhan sehari-hari.');
   const [logoUrl, setLogoUrl] = useState('');
 
   // Address State
-  const [address, setAddress] = useState('Jl. Kenanga No. 10, Kediri, Jawa Timur, Indonesia');
-  const [district, setDistrict] = useState('Mojoroto');
-  const [city, setCity] = useState('Kediri');
-  const [postalCode, setPostalCode] = useState('64112');
-  const [country, setCountry] = useState('Indonesia');
+  const [address, setAddress] = useState('Masukan Alamat Anda');
+  const [district, setDistrict] = useState('Masukan Kecamatan Anda');
+  const [city, setCity] = useState('Masukan Kota Anda');
+  const [postalCode, setPostalCode] = useState('Masukan Kode Pos Anda');
+  const [country, setCountry] = useState('Masukan Negara Anda');
 
   // Theme & Branding State
   const [selectedThemeColor, setSelectedThemeColor] = useState<string>('dark_slate');
@@ -145,21 +145,21 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
       if (s) {
         // Store Profile
         if (s.store_profile) {
-          const sName = s.store_profile.name || 'kui';
-          const oName = s.store_profile.owner_name || 'Ahmat Gebyar Gumelar';
+          const sName = !s.store_profile.name || s.store_profile.name === 'kui' || s.store_profile.name === 'KEZHO' ? 'Masukan Nama Toko Anda' : s.store_profile.name;
+          const oName = !s.store_profile.owner_name || s.store_profile.owner_name === 'Ahmat Gebyar Gumelar' ? 'Masukan Nama Anda' : s.store_profile.owner_name;
           const lUrl = s.store_profile.logo_url || '';
 
           setStoreName(sName);
           setOwnerName(oName);
-          setEmail(s.store_profile.email || 'gebyargumelar@gmail.com');
-          setPhone(s.store_profile.phone || '085808495978');
+          setEmail(!s.store_profile.email || s.store_profile.email === 'gebyargumelar@gmail.com' ? 'Masukan Email Anda' : s.store_profile.email);
+          setPhone(!s.store_profile.phone || s.store_profile.phone === '085808495978' ? 'Masukan Nomor Telepon Anda' : s.store_profile.phone);
           setDescription(s.store_profile.description || 'Toko sembako dan kebutuhan sehari-hari.');
           setLogoUrl(lUrl);
-          setAddress(s.store_profile.address || 'Jl. Kenanga No. 10, Kediri, Jawa Timur, Indonesia');
-          setDistrict(s.store_profile.district || 'Mojoroto');
-          setCity(s.store_profile.city || 'Kediri');
-          setPostalCode(s.store_profile.postal_code || '64112');
-          setCountry(s.store_profile.country || 'Indonesia');
+          setAddress(!s.store_profile.address || s.store_profile.address.includes('Kenanga') ? 'Masukan Alamat Anda' : s.store_profile.address);
+          setDistrict(!s.store_profile.district || s.store_profile.district === 'Mojoroto' ? 'Masukan Kecamatan Anda' : s.store_profile.district);
+          setCity(!s.store_profile.city || s.store_profile.city === 'Kediri' ? 'Masukan Kota Anda' : s.store_profile.city);
+          setPostalCode(!s.store_profile.postal_code || s.store_profile.postal_code === '64112' ? 'Masukan Kode Pos Anda' : s.store_profile.postal_code);
+          setCountry(!s.store_profile.country || s.store_profile.country === 'Indonesia' ? 'Masukan Negara Anda' : s.store_profile.country);
 
           if (onStoreProfileUpdate) {
             onStoreProfileUpdate({
@@ -485,11 +485,15 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
   const executeResetDefaults = () => {
     setSelectedThemeColor('dark_slate');
     setSidebarColor('#090d16');
-    setStoreName('kui');
-    setOwnerName('Ahmat Gebyar Gumelar');
-    setEmail('gebyargumelar@gmail.com');
-    setPhone('085808495978');
-    setAddress('Jl. Kenanga No. 10, Kediri, Jawa Timur, Indonesia');
+    setStoreName('Masukan Nama Toko Anda');
+    setOwnerName('Masukan Nama Anda');
+    setEmail('Masukan Email Anda');
+    setPhone('Masukan Nomor Telepon Anda');
+    setAddress('Masukan Alamat Anda');
+    setDistrict('Masukan Kecamatan Anda');
+    setCity('Masukan Kota Anda');
+    setPostalCode('Masukan Kode Pos Anda');
+    setCountry('Masukan Negara Anda');
     setIsOpHoursEnabled(true);
     setOpenTime('07:00');
     setCloseTime('22:00');
@@ -686,7 +690,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
                       rows={2}
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      placeholder="Contoh: Jl. Merdeka No. 45"
+                      placeholder="Masukan Alamat Anda"
                       style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a', resize: 'vertical' }}
                     />
                   </div>
@@ -697,6 +701,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
                       type="text"
                       value={district}
                       onChange={(e) => setDistrict(e.target.value)}
+                      placeholder="Masukan Kecamatan Anda"
                       style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a' }}
                     />
                   </div>
@@ -707,6 +712,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
                       type="text"
                       value={city}
                       onChange={(e) => setCity(e.target.value)}
+                      placeholder="Masukan Kota Anda"
                       style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a' }}
                     />
                   </div>
@@ -717,6 +723,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
                       type="text"
                       value={postalCode}
                       onChange={(e) => setPostalCode(e.target.value)}
+                      placeholder="Masukan Kode Pos Anda"
                       style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a' }}
                     />
                   </div>
@@ -727,6 +734,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
                       type="text"
                       value={country}
                       onChange={(e) => setCountry(e.target.value)}
+                      placeholder="Masukan Negara Anda"
                       style={{ width: '100%', padding: '0.6rem 0.85rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', color: '#0f172a' }}
                     />
                   </div>

@@ -74,17 +74,17 @@ class SettingsService {
   private getDefaultSettings(): SystemSettingsData {
     return {
       store_profile: {
-        name: 'KEZHO',
-        owner_name: 'Ahmat Gebyar Gumelar',
-        email: 'gebyargumelar@gmail.com',
-        phone: '085808495978',
+        name: 'Masukan Nama Toko Anda',
+        owner_name: 'Masukan Nama Anda',
+        email: 'Masukan Email Anda',
+        phone: 'Masukan Nomor Telepon Anda',
         description: 'Toko sembako dan kebutuhan sehari-hari.',
         logo_url: '',
-        address: 'Jl. Kenanga No. 10, Kediri, Jawa Timur, Indonesia',
-        district: 'Mojoroto',
-        city: 'Kediri',
-        postal_code: '64112',
-        country: 'Indonesia',
+        address: 'Masukan Alamat Anda',
+        district: 'Masukan Kecamatan Anda',
+        city: 'Masukan Kota Anda',
+        postal_code: 'Masukan Kode Pos Anda',
+        country: 'Masukan Negara Anda',
       },
       theme_settings: {
         theme_color: 'dark_slate',

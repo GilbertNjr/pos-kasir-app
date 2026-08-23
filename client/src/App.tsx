@@ -95,8 +95,8 @@ export const App: React.FC = () => {
       }
     } catch {}
     return {
-      name: 'KEZHO',
-      ownerName: 'Ahmat Gebyar Gumelar',
+      name: 'Masukan Nama Toko Anda',
+      ownerName: 'Masukan Nama Anda',
       logoUrl: '',
     };
   });
@@ -132,8 +132,8 @@ export const App: React.FC = () => {
       .getSettings()
       .then((s) => {
         if (s?.store_profile) {
-          const sName = s.store_profile.name || 'KEZHO';
-          const oName = s.store_profile.owner_name || 'Ahmat Gebyar Gumelar';
+          const sName = s.store_profile.name || 'Masukan Nama Toko Anda';
+          const oName = s.store_profile.owner_name || 'Masukan Nama Anda';
           const lUrl = s.store_profile.logo_url || '';
 
           const updated = { name: sName, ownerName: oName, logoUrl: lUrl };
@@ -177,8 +177,8 @@ export const App: React.FC = () => {
         if (payload?.settings?.store_profile) {
           const sp = payload.settings.store_profile;
           const updated = {
-            name: sp.name || 'KEZHO',
-            ownerName: sp.owner_name || 'Ahmat Gebyar Gumelar',
+            name: sp.name || 'Masukan Nama Toko Anda',
+            ownerName: sp.owner_name || 'Masukan Nama Anda',
             logoUrl: sp.logo_url || '',
           };
           setStoreProfile(updated);
