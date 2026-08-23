@@ -344,16 +344,23 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
       <style>
         @page {
           size: 58mm auto;
-          margin: 3mm;
+          margin: 0 auto;
+        }
+        html {
+          margin: 0;
+          padding: 0;
+          background: #ffffff;
         }
         body {
           font-family: 'Courier New', Courier, monospace;
           color: #000000;
-          width: 220px;
-          margin: 0 auto;
-          padding: 4px;
+          width: 260px;
+          max-width: 58mm;
+          margin: 0 auto !important;
+          padding: 6px 4px;
           font-size: 10px;
           line-height: 1.3;
+          box-sizing: border-box;
         }
         .center { text-align: center; }
         .right { text-align: right; }
@@ -378,7 +385,12 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
         .grand-total-label { font-size: 9px; font-weight: bold; text-transform: uppercase; }
         .grand-total-value { font-size: 14px; font-weight: bold; margin-top: 2px; color: #000000; }
         @media print {
-          body { width: 100%; padding: 0; }
+          html, body {
+            width: 260px !important;
+            max-width: 58mm !important;
+            margin: 0 auto !important;
+            padding: 4px 0 !important;
+          }
           .no-print { display: none; }
         }
       </style>
