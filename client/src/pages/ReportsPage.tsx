@@ -323,6 +323,31 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
   const [showAllProductsModal, setShowAllProductsModal] = useState(false);
   const [showProfitLossModal, setShowProfitLossModal] = useState(false);
 
+  const getHiddenEmployeeIds = (): string[] => {
+    try {
+      const raw = localStorage.getItem('pos_hidden_employee_performance_ids');
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  };
+
+  const saveHiddenEmployeeId = (userId: string) => {
+    const current = getHiddenEmployeeIds();
+    if (!current.includes(userId)) {
+      const updated = [...current, userId];
+      localStorage.setItem('pos_hidden_employee_performance_ids', JSON.stringify(updated));
+    }
+  };
+
+  const handleRestoreHiddenEmployees = () => {
+    localStorage.removeItem('pos_hidden_employee_performance_ids');
+    loadReport();
+    if (onTriggerToast) {
+      onTriggerToast('info', 'Data Dipulihkan', 'Seluruh rekap performa kasir telah ditampilkan kembali.');
+    }
+  };
+
   const loadUsers = async () => {
     try {
       const users = await apiService.getUsers();
@@ -370,6 +395,13 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
         apiService.getAuditLogs().catch(() => []),
         apiService.getExpenses().catch(() => []),
       ]);
+
+      const hiddenIds = getHiddenEmployeeIds();
+      if (data && Array.isArray(data.employee_performance) && hiddenIds.length > 0) {
+        data.employee_performance = data.employee_performance.filter(
+          (emp: any) => !hiddenIds.includes(emp.user_id)
+        );
+      }
 
       setReportData(data);
       setStockList(stocksData || []);
@@ -1094,10 +1126,30 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
           {/* Tabel Performa Kasir / Karyawan (Section 19) */}
           {reportData.employee_performance && reportData.employee_performance.length > 0 && (
             <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', marginBottom: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <Users size={18} color="#4f46e5" />
-                Laporan Performa Penjualan & Pengeluaran Per Karyawan / Kasir
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.15rem' }}>
+                <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Users size={18} color="#4f46e5" />
+                  Laporan Performa Penjualan & Pengeluaran Per Karyawan / Kasir
+                </h3>
+                {getHiddenEmployeeIds().length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleRestoreHiddenEmployees}
+                    style={{
+                      fontSize: '0.75rem',
+                      fontWeight: 700,
+                      color: '#4f46e5',
+                      background: '#e0e7ff',
+                      border: '1px solid #c7d2fe',
+                      padding: '0.25rem 0.65rem',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    🔄 Pulihkan ({getHiddenEmployeeIds().length} Dihapus)
+                  </button>
+                )}
+              </div>
 
               <div style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
@@ -1172,7 +1224,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                 </div>
 
                 <p style={{ fontSize: '0.9rem', color: '#334155', lineHeight: 1.5, marginBottom: '1.5rem' }}>
-                  Apakah Anda yakin ingin menghapus data rekap performa untuk kasir <strong>{confirmDeleteEmp.full_name}</strong>? Data ini akan dihapus dari rekap tampilan laporan saat ini.
+                  Apakah Anda yakin ingin menghapus data rekap performa untuk kasir <strong>{confirmDeleteEmp.full_name}</strong>? Data ini akan dihapus permanen dari rekap tampilan laporan.
                 </p>
 
                 <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
@@ -1186,16 +1238,20 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                   <button
                     type="button"
                     onClick={() => {
-                      if (reportData && reportData.employee_performance) {
-                        setReportData({
-                          ...reportData,
-                          employee_performance: reportData.employee_performance.filter((e: any) => e.user_id !== confirmDeleteEmp.user_id),
-                        });
+                      if (confirmDeleteEmp?.user_id) {
+                        saveHiddenEmployeeId(confirmDeleteEmp.user_id);
+                        if (reportData && reportData.employee_performance) {
+                          const hiddenIds = getHiddenEmployeeIds();
+                          setReportData({
+                            ...reportData,
+                            employee_performance: reportData.employee_performance.filter((e: any) => !hiddenIds.includes(e.user_id)),
+                          });
+                        }
                       }
-                      const name = confirmDeleteEmp.full_name;
+                      const name = confirmDeleteEmp?.full_name || 'Kasir';
                       setConfirmDeleteEmp(null);
                       if (onTriggerToast) {
-                        onTriggerToast('success', 'Data Dihapus', `Laporan performa kasir ${name} berhasil dihapus.`);
+                        onTriggerToast('success', 'Data Dihapus Permanen', `Laporan performa kasir ${name} telah dihapus permanen.`);
                       }
                     }}
                     style={{ padding: '0.65rem 1.25rem', borderRadius: '10px', border: 'none', background: '#dc2626', color: '#ffffff', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)' }}
