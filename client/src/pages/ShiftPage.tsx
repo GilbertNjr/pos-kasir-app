@@ -179,8 +179,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       const dutyUsers = storedMeta?.dutyStaffNames || activeShiftData.contributions.map((c) => getUserDisplayName(c.user_id));
 
       const shiftLabel = storedMeta?.shiftCategory
-        ? `${storedMeta.shiftCategory} (#${activeShiftData.shift.shift_id.slice(-6)})`
-        : storedMeta?.shiftName || `Shift #${activeShiftData.shift.shift_id.slice(-6)}`;
+        ? storedMeta.shiftCategory
+        : storedMeta?.shiftName || 'Shift Operasional';
 
       printShiftPDF({
         storeName: storeName || 'Kedai POS',
@@ -218,8 +218,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       const dutyUsers = storedMeta?.dutyStaffNames || activeShiftData.contributions.map((c) => getUserDisplayName(c.user_id));
 
       const shiftLabel = storedMeta?.shiftCategory
-        ? `${storedMeta.shiftCategory} (#${activeShiftData.shift.shift_id.slice(-6)})`
-        : storedMeta?.shiftName || `Shift #${activeShiftData.shift.shift_id.slice(-6)}`;
+        ? storedMeta.shiftCategory
+        : storedMeta?.shiftName || 'Shift Operasional';
 
       exportShiftToExcel({
         storeName: storeName || 'Kedai POS',

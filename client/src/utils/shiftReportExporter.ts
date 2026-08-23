@@ -324,6 +324,8 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
         </tr>
       `;
 
+  const cleanShiftId = shiftId.replace(/\s*\([^)]*#[0-9a-fA-F]+\)/g, '').replace(/#[0-9a-fA-F]{4,}/g, '').trim() || 'Shift Operasional';
+
   const printWindow = window.open('', '_blank', 'width=380,height=680');
   if (!printWindow) {
     alert('Harap izinkan popup browser untuk membuka pratinjau cetak PDF.');
@@ -369,7 +371,6 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
         .report-subtitle { font-size: 9.5px; font-weight: bold; margin-top: 2px; text-transform: uppercase; }
         .dashed-line { border-bottom: 1px dashed #000000; margin: 5px 0; }
         .solid-line { border-bottom: 1.5px solid #000000; margin: 6px 0; }
-        .meta-item { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 2px; }
         table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; margin-top: 3px; }
         th { border-bottom: 1px dashed #000000; padding: 3px 0; font-size: 9px; text-transform: uppercase; }
         td { padding: 2px 0; vertical-align: top; word-break: break-word; }
@@ -402,13 +403,28 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
       </div>
       <div class="dashed-line"></div>
 
-      <div class="meta-item"><span>Waktu Cetak</span><span>: ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span></div>
-      <div class="meta-item"><span>Tanggal Shift</span><span>: ${dateStr}</span></div>
-      <div class="meta-item"><span>Sesi Shift</span><span>: ${shiftId}</span></div>
-      <div class="meta-item" style="flex-direction: column; align-items: flex-start; gap: 1px; margin-top: 2px;">
-        <span>Tim Bertugas Shift:</span>
-        <span class="bold" style="padding-left: 4px; font-size: 8.5px; word-break: break-word;">${dutyUsersStr}</span>
-      </div>
+      <table style="width: 100%; border-collapse: collapse; font-size: 9px; table-layout: fixed; margin-bottom: 2px;">
+        <tr>
+          <td style="width: 32%; text-align: left; padding: 1px 0;">Waktu Cetak</td>
+          <td style="width: 4%; text-align: center; padding: 1px 0;">:</td>
+          <td style="width: 64%; text-align: left; padding: 1px 0;">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</td>
+        </tr>
+        <tr>
+          <td style="text-align: left; padding: 1px 0;">Tanggal Shift</td>
+          <td style="text-align: center; padding: 1px 0;">:</td>
+          <td style="text-align: left; padding: 1px 0;">${dateStr}</td>
+        </tr>
+        <tr>
+          <td style="text-align: left; padding: 1px 0;">Sesi Shift</td>
+          <td style="text-align: center; padding: 1px 0;">:</td>
+          <td style="text-align: left; font-weight: bold; padding: 1px 0;">${cleanShiftId}</td>
+        </tr>
+        <tr>
+          <td style="text-align: left; padding: 1px 0; vertical-align: top;">Tim Bertugas</td>
+          <td style="text-align: center; padding: 1px 0; vertical-align: top;">:</td>
+          <td style="text-align: left; font-weight: bold; padding: 1px 0; word-break: break-word;">${dutyUsersStr}</td>
+        </tr>
+      </table>
       <div class="dashed-line"></div>
 
       <!-- 1. BARANG TERJUAL -->
