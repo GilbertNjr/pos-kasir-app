@@ -20,6 +20,7 @@ import { CashierLayout } from './components/layout/CashierLayout';
 import { apiService, ActiveShiftDetailsData } from './services/api';
 import { User } from './types';
 import { applyGlobalTheme } from './utils/themeHelper';
+import { subscribeToast } from './utils/toastHelper';
 import { ActivateAccountPage } from './pages/ActivateAccountPage';
 
 export const App: React.FC = () => {
@@ -63,6 +64,13 @@ export const App: React.FC = () => {
     const id = Date.now().toString() + Math.random().toString(36).substring(2, 5);
     setToasts((prev) => [...prev, { id, type, title, message }]);
   };
+
+  useEffect(() => {
+    const unsubscribe = subscribeToast((type, title, message) => {
+      addToast(type, title, message);
+    });
+    return unsubscribe;
+  }, []);
 
   const removeToast = (id: string) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
