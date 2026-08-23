@@ -265,7 +265,7 @@ export const exportShiftToExcel = (options: ShiftReportExportOptions) => {
   document.body.removeChild(link);
 };
 
-// 2. PRINT TO PDF - FORMAT STRUK THERMAL 80MM / NOTA RINGKAS SHIFT
+// 2. PRINT TO PDF - FORMAT STRUK THERMAL 58MM RAMPING / NOTA RINGKAS SHIFT
 export const printShiftPDF = (options: ShiftReportExportOptions) => {
   const {
     storeName = 'Kedai POS',
@@ -290,19 +290,19 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
           .map(
             (item) => `
         <tr>
-          <td style="text-align: left; padding: 3px 0;">
-            <div style="font-weight: bold; font-size: 11px;">${item.name}</div>
-            <div style="font-size: 10px; color: #475569;">${formatRupiah(item.price)}</div>
+          <td style="text-align: left; padding: 2px 0;">
+            <div style="font-weight: bold; font-size: 10px;">${item.name}</div>
+            <div style="font-size: 9px; color: #475569;">${formatRupiah(item.price)}</div>
           </td>
-          <td style="text-align: center; vertical-align: top; font-weight: bold; padding-top: 3px; font-size: 11px;">${item.qty}x</td>
-          <td style="text-align: right; vertical-align: top; font-weight: bold; padding-top: 3px; font-size: 11px;">${formatRupiah(item.subtotal)}</td>
+          <td style="text-align: center; vertical-align: top; font-weight: bold; padding-top: 2px; font-size: 10px;">${item.qty}x</td>
+          <td style="text-align: right; vertical-align: top; font-weight: bold; padding-top: 2px; font-size: 10px;">${formatRupiah(item.subtotal)}</td>
         </tr>
       `
           )
           .join('')
       : `
         <tr>
-          <td colspan="3" style="text-align: center; font-style: italic; color: #64748b; padding: 6px 0; font-size: 10px;">(Belum ada barang terjual pada shift ini)</td>
+          <td colspan="3" style="text-align: center; font-style: italic; color: #64748b; padding: 4px 0; font-size: 9px;">(Belum ada barang terjual)</td>
         </tr>
       `;
 
@@ -312,19 +312,19 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
           .map(
             (exp) => `
         <tr>
-          <td colspan="2" style="text-align: left; padding: 2px 0; font-size: 10.5px;">- ${exp.description}</td>
-          <td style="text-align: right; font-weight: bold; color: #dc2626; font-size: 10.5px;">${formatRupiah(exp.amount)}</td>
+          <td colspan="2" style="text-align: left; padding: 2px 0; font-size: 9.5px;">- ${exp.description}</td>
+          <td style="text-align: right; font-weight: bold; color: #dc2626; font-size: 9.5px;">${formatRupiah(exp.amount)}</td>
         </tr>
       `
           )
           .join('')
       : `
         <tr>
-          <td colspan="3" style="text-align: center; font-style: italic; color: #64748b; padding: 4px 0; font-size: 10px;">(Tidak ada pengeluaran kas)</td>
+          <td colspan="3" style="text-align: center; font-style: italic; color: #64748b; padding: 4px 0; font-size: 9px;">(Tidak ada pengeluaran kas)</td>
         </tr>
       `;
 
-  const printWindow = window.open('', '_blank', 'width=450,height=750');
+  const printWindow = window.open('', '_blank', 'width=380,height=680');
   if (!printWindow) {
     alert('Harap izinkan popup browser untuk membuka pratinjau cetak PDF.');
     return;
@@ -340,43 +340,43 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
     <!DOCTYPE html>
     <html>
     <head>
-      <title>Struk Rekap Shift - ${dateStr}</title>
+      <title>Struk 58mm Rekap Shift - ${dateStr}</title>
       <style>
         @page {
-          size: 80mm auto;
-          margin: 4mm;
+          size: 58mm auto;
+          margin: 3mm;
         }
         body {
-          font-family: 'Courier New', Courier, monospace, 'Segoe UI', sans-serif;
+          font-family: 'Courier New', Courier, monospace;
           color: #000000;
-          width: 300px;
+          width: 220px;
           margin: 0 auto;
-          padding: 8px;
-          font-size: 11px;
-          line-height: 1.35;
+          padding: 4px;
+          font-size: 10px;
+          line-height: 1.3;
         }
         .center { text-align: center; }
         .right { text-align: right; }
         .bold { font-weight: bold; }
-        .store-title { font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-        .report-subtitle { font-size: 10px; font-weight: bold; margin-top: 2px; text-transform: uppercase; }
-        .dashed-line { border-bottom: 1px dashed #000000; margin: 6px 0; }
-        .solid-line { border-bottom: 1.5px solid #000000; margin: 8px 0; }
-        .meta-item { display: flex; justify-content: space-between; font-size: 10px; margin-bottom: 2px; }
-        table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: fixed; margin-top: 4px; }
-        th { border-bottom: 1px dashed #000000; padding: 4px 0; font-size: 10px; text-transform: uppercase; }
-        td { padding: 3px 0; vertical-align: top; word-break: break-word; }
-        .summary-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 11px; }
+        .store-title { font-size: 13px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+        .report-subtitle { font-size: 9.5px; font-weight: bold; margin-top: 2px; text-transform: uppercase; }
+        .dashed-line { border-bottom: 1px dashed #000000; margin: 5px 0; }
+        .solid-line { border-bottom: 1.5px solid #000000; margin: 6px 0; }
+        .meta-item { display: flex; justify-content: space-between; font-size: 9px; margin-bottom: 2px; }
+        table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; margin-top: 3px; }
+        th { border-bottom: 1px dashed #000000; padding: 3px 0; font-size: 9px; text-transform: uppercase; }
+        td { padding: 2px 0; vertical-align: top; word-break: break-word; }
+        .summary-row { display: flex; justify-content: space-between; padding: 2px 0; font-size: 10px; }
         .grand-total-box {
           border: 1.5px solid #000000;
-          padding: 8px;
-          margin-top: 8px;
-          margin-bottom: 8px;
+          padding: 6px;
+          margin-top: 6px;
+          margin-bottom: 6px;
           text-align: center;
           background: #ffffff;
         }
-        .grand-total-label { font-size: 10px; font-weight: bold; text-transform: uppercase; }
-        .grand-total-value { font-size: 16px; font-weight: bold; margin-top: 3px; color: #000000; }
+        .grand-total-label { font-size: 9px; font-weight: bold; text-transform: uppercase; }
+        .grand-total-value { font-size: 14px; font-weight: bold; margin-top: 2px; color: #000000; }
         @media print {
           body { width: 100%; padding: 0; }
           .no-print { display: none; }
@@ -387,26 +387,27 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
       <div class="center">
         <div class="store-title">${(storeName || 'KEDAI POS').toUpperCase()}</div>
         <div class="report-subtitle">STRUK REKAPITULASI SHIFT KASIR</div>
+        <div style="font-size: 8.5px; color: #333;">(Format Struk Thermal 58mm Ramping)</div>
       </div>
       <div class="dashed-line"></div>
 
       <div class="meta-item"><span>Waktu Cetak</span><span>: ${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</span></div>
       <div class="meta-item"><span>Tanggal Shift</span><span>: ${dateStr}</span></div>
       <div class="meta-item"><span>Sesi Shift</span><span>: ${shiftId}</span></div>
-      <div class="meta-item" style="flex-direction: column; align-items: flex-start; gap: 1px; margin-top: 3px;">
+      <div class="meta-item" style="flex-direction: column; align-items: flex-start; gap: 1px; margin-top: 2px;">
         <span>Tim Bertugas Shift:</span>
-        <span class="bold" style="padding-left: 6px; font-size: 9.5px; word-break: break-word;">${dutyUsersStr}</span>
+        <span class="bold" style="padding-left: 4px; font-size: 8.5px; word-break: break-word;">${dutyUsersStr}</span>
       </div>
       <div class="dashed-line"></div>
 
       <!-- 1. BARANG TERJUAL -->
-      <div class="bold" style="font-size: 10.5px; margin-top: 2px;">1. RINCIAN BARANG/JASA TERJUAL</div>
+      <div class="bold" style="font-size: 9.5px; margin-top: 2px;">1. RINCIAN BARANG/JASA TERJUAL</div>
       <table>
         <thead>
           <tr>
-            <th style="width: 55%; text-align: left;">Item</th>
+            <th style="width: 50%; text-align: left;">Item</th>
             <th style="width: 15%; text-align: center;">Qty</th>
-            <th style="width: 30%; text-align: right;">Total</th>
+            <th style="width: 35%; text-align: right;">Total</th>
           </tr>
         </thead>
         <tbody>
@@ -421,7 +422,7 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
       <div class="dashed-line"></div>
 
       <!-- 2. PENGELUARAN SHIFT -->
-      <div class="bold" style="font-size: 10.5px; margin-top: 2px;">2. PENGELUARAN KAS SHIFT</div>
+      <div class="bold" style="font-size: 9.5px; margin-top: 2px;">2. PENGELUARAN KAS SHIFT</div>
       <table>
         <tbody>
           ${expenseRowsThermal}
@@ -441,8 +442,8 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
       </div>
 
       <div class="dashed-line"></div>
-      <div class="center" style="font-size: 9.5px; margin-top: 6px; font-style: italic;">
-        *** NOTA HASIL SHIFT RESMI POS ***
+      <div class="center" style="font-size: 8.5px; margin-top: 4px; font-style: italic;">
+        *** NOTA HASIL SHIFT RESMI POS (58MM) ***
       </div>
 
       <script>
