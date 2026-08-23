@@ -452,10 +452,6 @@ export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [
 
       ${categoryPrintHtml}
 
-      <div class="center" style="font-size: 9.5px; margin-top: 6px; font-style: italic;">
-        *** NOTA STOK FISIK RESMI POS ***
-      </div>
-
       <script>
         window.onload = function() {
           try {

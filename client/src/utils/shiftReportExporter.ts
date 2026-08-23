@@ -399,7 +399,6 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
       <div class="center">
         <div class="store-title">${(storeName || 'KEDAI POS').toUpperCase()}</div>
         <div class="report-subtitle">STRUK REKAPITULASI SHIFT KASIR</div>
-        <div style="font-size: 8.5px; color: #333;">(Format Struk Thermal 58mm Ramping)</div>
       </div>
       <div class="dashed-line"></div>
 
@@ -451,11 +450,6 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
       <div class="grand-total-box">
         <div class="grand-total-label">UANG KASIR / TOTAL SHIFT BERSIH</div>
         <div class="grand-total-value">${formatRupiah(netTotal)}</div>
-      </div>
-
-      <div class="dashed-line"></div>
-      <div class="center" style="font-size: 8.5px; margin-top: 4px; font-style: italic;">
-        *** NOTA HASIL SHIFT RESMI POS (58MM) ***
       </div>
 
       <script>
