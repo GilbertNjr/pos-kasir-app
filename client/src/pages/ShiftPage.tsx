@@ -1065,10 +1065,10 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             </h3>
             <button
               onClick={handleDeleteClosedShiftResult}
-              title="Selesaikan & Hapus Catatan Rekonsiliasi Ini"
+              title="Selesaikan & Tutup Tampilan Rekonsiliasi Ini"
               style={{
-                padding: '0.5rem 1rem',
-                background: '#dc2626',
+                padding: '0.55rem 1.1rem',
+                background: '#047857',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '10px',
@@ -1078,11 +1078,11 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.45rem',
-                boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)',
+                boxShadow: '0 4px 12px rgba(4, 120, 87, 0.25)',
               }}
             >
-              <Trash2 size={16} />
-              Hapus Rekonsiliasi Shift
+              <CheckCircle2 size={16} />
+              ✓ Selesaikan Rekonsiliasi
             </button>
           </div>
           <p style={{ fontSize: '0.875rem', color: '#4b5563', marginBottom: '1rem' }}>
