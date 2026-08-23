@@ -42,7 +42,7 @@ export const OwnerLayout: React.FC<OwnerLayoutProps> = ({
       />
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100dvh', maxHeight: '100dvh', overflow: 'hidden' }}>
         <OwnerHeader
           currentUser={currentUser}
           isSseConnected={isSseConnected}

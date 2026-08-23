@@ -225,7 +225,15 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
   const scrollToCart = () => {
     if (cartPanelRef.current) {
-      cartPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const mainElement = cartPanelRef.current.closest('main');
+      if (mainElement) {
+        const cartTop = cartPanelRef.current.getBoundingClientRect().top;
+        const mainTop = mainElement.getBoundingClientRect().top;
+        const targetScroll = mainElement.scrollTop + (cartTop - mainTop) - 12;
+        mainElement.scrollTo({ top: Math.max(0, targetScroll), behavior: 'smooth' });
+      } else {
+        cartPanelRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     }
   };
 

@@ -602,7 +602,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
       </div>
 
       {/* 2. RIGHT MAIN WRAPPER (TOP BAR HEADER + CONTENT BODY) */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100vh', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, height: '100dvh', maxHeight: '100dvh', overflow: 'hidden' }}>
         {/* Top Header Bar */}
         <header
           style={{
