@@ -1206,21 +1206,36 @@ html, body, #root {
   }
 
   .backup-metric-card {
-    padding: 0.75rem 0.65rem !important;
-    gap: 0.5rem !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: space-between !important;
+    padding: 0.85rem 0.75rem !important;
+    gap: 0.45rem !important;
   }
 
   .backup-metric-card-icon {
-    padding: 0.45rem !important;
+    padding: 0.4rem !important;
     border-radius: 10px !important;
+    margin-bottom: 0.1rem !important;
+  }
+
+  .backup-metric-card-icon svg {
+    width: 20px !important;
+    height: 20px !important;
   }
 
   .backup-metric-title {
-    font-size: 0.68rem !important;
+    font-size: 0.7rem !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
   }
 
   .backup-metric-value {
-    font-size: 0.925rem !important;
+    font-size: 0.825rem !important;
+    line-height: 1.25 !important;
+    white-space: normal !important;
+    word-break: break-word !important;
   }
 
   .backup-vertical-divider {
