@@ -712,20 +712,12 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
         </div>
       </div>
 
-      {/* 2. CONTROLS BAR: SEARCH, FILTERS, ADD USER & EXPORT BUTTONS (1 SINGLE MINIMALIST ROW) */}
-      <div
-        style={{
-          background: '#ffffff',
-          padding: '0.85rem 1.25rem',
-          borderRadius: '16px',
-          border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-          marginBottom: '1.25rem',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', width: '100%', overflowX: 'auto' }}>
+      {/* 2. CONTROLS BAR: SEARCH, FILTERS, ADD USER & EXPORT BUTTONS (RESPONSIVE NO-SCROLL LAYOUT) */}
+      <div className="users-toolbar-card">
+        {/* Top Tier: Search Box & Action Buttons */}
+        <div className="users-toolbar-top">
           {/* Search Box */}
-          <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '180px', maxWidth: '280px' }}>
+          <div className="users-search-box">
             <Search
               size={16}
               style={{ position: 'absolute', left: '11px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }}
@@ -744,102 +736,13 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                 outline: 'none',
                 color: '#0f172a',
                 background: '#f8fafc',
+                boxSizing: 'border-box',
               }}
             />
           </div>
 
-          {/* Filter 1: Role */}
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            style={{
-              padding: '0.55rem 0.75rem',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: '#334155',
-              background: '#ffffff',
-              outline: 'none',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            <option value="ALL">Semua Role</option>
-            <option value="PJ">PJ / Penanggung Jawab</option>
-            <option value="KASIR">Kasir / Karyawan</option>
-          </select>
-
-          {/* Filter 2: Status */}
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            style={{
-              padding: '0.55rem 0.75rem',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: '#334155',
-              background: '#ffffff',
-              outline: 'none',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            <option value="ALL">Semua Status</option>
-            <option value="ACTIVE">Aktif & Pending</option>
-            <option value="PENDING">Menunggu Aktivasi</option>
-            <option value="INACTIVE">Nonaktif</option>
-          </select>
-
-          {/* Filter 3: Shift */}
-          <select
-            value={shiftFilter}
-            onChange={(e) => setShiftFilter(e.target.value)}
-            style={{
-              padding: '0.55rem 0.75rem',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              color: '#334155',
-              background: '#ffffff',
-              outline: 'none',
-              cursor: 'pointer',
-              flexShrink: 0,
-            }}
-          >
-            <option value="ALL">Semua Status Shift</option>
-            <option value="ACTIVE">🟢 Sedang Shift Aktif</option>
-            <option value="INACTIVE">⚪ Tidak Berdinas</option>
-          </select>
-
-          {/* Reset Button */}
-          <button
-            onClick={handleResetFilters}
-            title="Reset Filter"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.35rem',
-              padding: '0.55rem 0.85rem',
-              borderRadius: '10px',
-              border: '1px solid #e2e8f0',
-              background: '#f1f5f9',
-              color: '#475569',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              flexShrink: 0,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <Filter size={15} /> Reset
-          </button>
-
-          {/* Right Action Buttons */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginLeft: 'auto', flexShrink: 0 }}>
+          {/* Action Buttons */}
+          <div className="users-toolbar-actions">
             {/* Primary Button: + Tambah Pegawai */}
             <button
               onClick={() => {
@@ -908,6 +811,62 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
               <HelpCircle size={15} /> Bantuan
             </button>
           </div>
+        </div>
+
+        {/* Bottom Tier: Filter Select Dropdowns & Reset Button */}
+        <div className="users-filter-row">
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="users-filter-select"
+          >
+            <option value="ALL">Semua Role</option>
+            <option value="PJ">PJ / Penanggung Jawab</option>
+            <option value="KASIR">Kasir / Karyawan</option>
+          </select>
+
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="users-filter-select"
+          >
+            <option value="ALL">Semua Status</option>
+            <option value="ACTIVE">Aktif & Pending</option>
+            <option value="PENDING">Menunggu Aktivasi</option>
+            <option value="INACTIVE">Nonaktif</option>
+          </select>
+
+          <select
+            value={shiftFilter}
+            onChange={(e) => setShiftFilter(e.target.value)}
+            className="users-filter-select"
+          >
+            <option value="ALL">Semua Status Shift</option>
+            <option value="ACTIVE">🟢 Sedang Shift Aktif</option>
+            <option value="INACTIVE">⚪ Tidak Berdinas</option>
+          </select>
+
+          <button
+            onClick={handleResetFilters}
+            title="Reset Filter"
+            className="users-reset-btn"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.55rem 0.85rem',
+              borderRadius: '10px',
+              border: '1px solid #e2e8f0',
+              background: '#f1f5f9',
+              color: '#475569',
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              cursor: 'pointer',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <Filter size={15} /> Reset
+          </button>
         </div>
       </div>
 
