@@ -44,7 +44,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   const [error, setError] = useState<string | null>(null);
 
   // View & Pagination
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>(() => typeof window !== 'undefined' && window.innerWidth < 768 ? 'grid' : 'table');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -750,15 +750,21 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                           <td style={{ padding: '1rem 1.25rem' }}>
                             <span
                               style={{
-                                padding: '0.25rem 0.65rem',
-                                borderRadius: '8px',
+                                padding: '0.3rem 0.75rem',
+                                borderRadius: '999px',
                                 fontSize: '0.75rem',
                                 fontWeight: 800,
-                                background: p.business_unit === 'FC_PRINT' ? '#e0e7ff' : '#d1fae5',
+                                background: p.business_unit === 'FC_PRINT' ? 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)' : 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
                                 color: p.business_unit === 'FC_PRINT' ? '#3730a3' : '#065f46',
+                                border: p.business_unit === 'FC_PRINT' ? '1px solid #a5b4fc' : '1px solid #6ee7b7',
+                                whiteSpace: 'nowrap',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
                               }}
                             >
-                              {p.business_unit === 'FC_PRINT' ? 'FC / Printing' : 'F&B Store'}
+                              {p.business_unit === 'FC_PRINT' ? '🖨️ FC / Printing' : '🍔 F&B Store'}
                             </span>
                           </td>
                           <td style={{ padding: '1rem 1.25rem' }}>
@@ -863,15 +869,20 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                           <span
                             className="product-badge-unit"
                             style={{
-                              padding: '0.2rem 0.55rem',
-                              borderRadius: '6px',
-                              fontSize: '0.7rem',
+                              padding: '0.25rem 0.65rem',
+                              borderRadius: '999px',
+                              fontSize: '0.725rem',
                               fontWeight: 800,
-                              background: p.business_unit === 'FC_PRINT' ? '#e0e7ff' : '#d1fae5',
+                              background: p.business_unit === 'FC_PRINT' ? 'linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%)' : 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)',
                               color: p.business_unit === 'FC_PRINT' ? '#3730a3' : '#065f46',
+                              border: p.business_unit === 'FC_PRINT' ? '1px solid #a5b4fc' : '1px solid #6ee7b7',
+                              whiteSpace: 'nowrap',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
                             }}
                           >
-                            {p.business_unit === 'FC_PRINT' ? 'FC / Print' : 'F&B Store'}
+                            {p.business_unit === 'FC_PRINT' ? '🖨️ FC / Print' : '🍔 F&B Store'}
                           </span>
                           <span className="product-code" style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace', fontWeight: 700 }}>
                             {p.product_id}
