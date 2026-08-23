@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { apiService, PaymentSummaryData } from '../services/api';
 import { Shift, User } from '../types';
-import { formatRupiah } from '../utils/formatters';
+import { formatRupiah, formatDateIndoFull } from '../utils/formatters';
 import { PaymentMethodBadge } from '../components/common/PaymentMethodBadge';
 
 interface PaymentSummaryPageProps {
@@ -103,19 +103,15 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
     loadSummary();
   }, [activeShift?.shift_id]);
 
-  // Format timestamp with Day Name, Date, Month, Year & Time (Senin, 19/08/2026 14:20)
-  const formatTimestampFull = (dateStr?: string) => {
-    if (!dateStr) return '-';
-    const d = new Date(dateStr);
-    if (isNaN(d.getTime())) return dateStr;
-    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-    const dayName = days[d.getDay()];
-    const dayDate = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = d.getFullYear();
-    const hours = String(d.getHours()).padStart(2, '0');
-    const minutes = String(d.getMinutes()).padStart(2, '0');
-    return `${dayName}, ${dayDate}/${month}/${year} ${hours}:${minutes}`;
+  // Format timestamp with Day Name, Date, Month, Year & Time (Senin, 24 Agustus 2026, 03:28 WIB)
+  const formatTimestampFull = (txOrDate?: any) => {
+    if (!txOrDate) return '-';
+    let rawDate = typeof txOrDate === 'string'
+      ? txOrDate
+      : (txOrDate.transaction_time || txOrDate.created_at || txOrDate.timestamp || txOrDate.date || txOrDate.time);
+
+    if (!rawDate) return '-';
+    return formatDateIndoFull(rawDate);
   };
 
   // Filtered transactions based on date preset & custom range
@@ -129,7 +125,8 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
       const start = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
       const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).getTime();
       list = list.filter((t) => {
-        const time = new Date(t.created_at || t.timestamp).getTime();
+        const rawTime = t.transaction_time || t.created_at || t.timestamp || t.date;
+        const time = rawTime ? new Date(rawTime).getTime() : 0;
         return time >= start && time <= end;
       });
     } else if (selectedPeriod === 'THIS_WEEK') {
@@ -141,7 +138,8 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
       const start = monday.getTime();
       const end = sunday.getTime();
       list = list.filter((t) => {
-        const time = new Date(t.created_at || t.timestamp).getTime();
+        const rawTime = t.transaction_time || t.created_at || t.timestamp || t.date;
+        const time = rawTime ? new Date(rawTime).getTime() : 0;
         return time >= start && time <= end;
       });
     } else if (selectedPeriod === 'THIS_MONTH') {
@@ -149,14 +147,16 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
       const start = new Date(now.getFullYear(), now.getMonth(), 1).getTime();
       const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999).getTime();
       list = list.filter((t) => {
-        const time = new Date(t.created_at || t.timestamp).getTime();
+        const rawTime = t.transaction_time || t.created_at || t.timestamp || t.date;
+        const time = rawTime ? new Date(rawTime).getTime() : 0;
         return time >= start && time <= end;
       });
     } else if (selectedPeriod === 'CUSTOM') {
       const start = startDate ? new Date(startDate).getTime() : 0;
       const end = endDate ? new Date(endDate + 'T23:59:59').getTime() : Infinity;
       list = list.filter((t) => {
-        const time = new Date(t.created_at || t.timestamp).getTime();
+        const rawTime = t.transaction_time || t.created_at || t.timestamp || t.date;
+        const time = rawTime ? new Date(rawTime).getTime() : 0;
         return time >= start && time <= end;
       });
     }
@@ -263,7 +263,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
     csvContent += 'No. Transaksi,Waktu & Hari,Kasir,Metode Bayar,Total (Rp),Status\n';
 
     filteredTransactions.forEach((tx) => {
-      const timeStr = formatTimestampFull(tx.created_at || tx.timestamp).replace(/,/g, '');
+      const timeStr = formatTimestampFull(tx).replace(/,/g, '');
       csvContent += `${tx.transaction_number},${timeStr},${getCashierName(tx.created_by_user_id || tx.user_id)},${tx.payment_method},${tx.final_total || tx.total_amount || 0},${tx.status}\n`;
     });
 
@@ -296,7 +296,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
       <tr>
         <td style="text-align: center; border: 1px solid #cbd5e1; padding: 6px;">${idx + 1}</td>
         <td style="border: 1px solid #cbd5e1; padding: 6px; font-family: monospace;">${tx.transaction_number}</td>
-        <td style="border: 1px solid #cbd5e1; padding: 6px; font-size: 10px;">${formatTimestampFull(tx.created_at || tx.timestamp)}</td>
+        <td style="border: 1px solid #cbd5e1; padding: 6px; font-size: 10px;">${formatTimestampFull(tx)}</td>
         <td style="border: 1px solid #cbd5e1; padding: 6px;">${getCashierName(tx.created_by_user_id || tx.user_id)}</td>
         <td style="text-align: center; border: 1px solid #cbd5e1; padding: 6px; font-weight: 700;">${tx.payment_method}</td>
         <td style="text-align: right; border: 1px solid #cbd5e1; padding: 6px; font-weight: 800;">${formatRupiah(tx.final_total || tx.total_amount || 0)}</td>
@@ -629,7 +629,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
                       {tx.transaction_number}
                     </td>
                     <td style={{ padding: '0.65rem', color: '#334155', fontSize: '0.8rem', fontWeight: 600 }}>
-                      {formatTimestampFull(tx.created_at || tx.timestamp)}
+                      {formatTimestampFull(tx)}
                     </td>
                     <td style={{ padding: '0.65rem', color: '#475569', fontWeight: 600 }}>
                       {getCashierName(tx.created_by_user_id || tx.user_id, tx)}
