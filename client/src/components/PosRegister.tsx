@@ -200,13 +200,34 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   // Quick Buka Shift Modal State
   const [isBukaShiftModalOpen, setIsBukaShiftModalOpen] = useState(false);
   const [bukaShiftInitialCash, setBukaShiftInitialCash] = useState<number | ''>(50000);
+  const [bukaShiftCategoryOption, setBukaShiftCategoryOption] = useState<string>('Shift Pagi');
+  const [bukaShiftCustomCategory, setBukaShiftCustomCategory] = useState<string>('');
   const [bukaShiftLoading, setBukaShiftLoading] = useState(false);
 
   const handleQuickOpenShift = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       setBukaShiftLoading(true);
-      await apiService.openShift(Number(bukaShiftInitialCash) || 0);
+      const data = await apiService.openShift(Number(bukaShiftInitialCash) || 0);
+
+      if (data?.shift?.shift_id) {
+        const categoryName =
+          bukaShiftCategoryOption === 'KUSTOM'
+            ? (bukaShiftCustomCategory.trim() || 'Shift Kustom')
+            : bukaShiftCategoryOption;
+        const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        const staffList = [`${currentUser.full_name} (${nowStr} WIB)`];
+        const meta = {
+          shiftCategory: categoryName,
+          shiftName: `${categoryName} - ${staffList.join(', ')}`,
+          date: new Date().toISOString().split('T')[0],
+          time: nowStr,
+          dutyStaffNames: staffList,
+          initialCash: Number(bukaShiftInitialCash) || 0,
+        };
+        localStorage.setItem(`pos_shift_meta_${data.shift.shift_id}`, JSON.stringify(meta));
+      }
+
       setIsBukaShiftModalOpen(false);
       if (onShiftOpened) onShiftOpened();
     } catch (err: any) {
@@ -1441,6 +1462,55 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
             </div>
 
             <form onSubmit={handleQuickOpenShift}>
+              {/* SESI SHIFT SELECTOR */}
+              <div style={{ marginBottom: '1.25rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.4rem' }}>
+                  🏷️ Pilih Sesi Shift Toko:
+                </label>
+                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                  <select
+                    value={bukaShiftCategoryOption}
+                    onChange={(e) => setBukaShiftCategoryOption(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: '0.65rem 0.85rem',
+                      borderRadius: '10px',
+                      border: '2px solid #4f46e5',
+                      fontSize: '0.9rem',
+                      fontWeight: 800,
+                      color: '#0f172a',
+                      background: '#ffffff',
+                      outline: 'none',
+                    }}
+                  >
+                    <option value="Shift Pagi">🌅 Shift Pagi</option>
+                    <option value="Shift Siang">☀️ Shift Siang</option>
+                    <option value="Shift Malam">🌙 Shift Malam</option>
+                    <option value="Shift Lembur">⚡ Shift Lembur</option>
+                    <option value="KUSTOM">✏️ Kustom (Ketik Sendiri)...</option>
+                  </select>
+
+                  {bukaShiftCategoryOption === 'KUSTOM' && (
+                    <input
+                      type="text"
+                      value={bukaShiftCustomCategory}
+                      onChange={(e) => setBukaShiftCustomCategory(e.target.value)}
+                      placeholder="Nama Shift (cth: Shift Bazar)"
+                      style={{
+                        flex: 1,
+                        padding: '0.65rem 0.85rem',
+                        borderRadius: '10px',
+                        border: '2px solid #059669',
+                        fontSize: '0.9rem',
+                        fontWeight: 700,
+                        outline: 'none',
+                      }}
+                      required
+                    />
+                  )}
+                </div>
+              </div>
+
               <div style={{ marginBottom: '1.25rem' }}>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.4rem' }}>
                   Nominal Uang Modal Kas Awal (Rp):

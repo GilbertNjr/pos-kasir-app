@@ -74,6 +74,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   const [openInitialCash, setOpenInitialCash] = useState<number | ''>(50000);
   const [shiftDateInput, setShiftDateInput] = useState<string>(getTodayDateString());
   const [shiftTimeInput, setShiftTimeInput] = useState<string>(getCurrentTimeString());
+  const [shiftCategoryOption, setShiftCategoryOption] = useState<string>('Shift Pagi');
+  const [shiftCustomCategory, setShiftCustomCategory] = useState<string>('');
   const [openStaffEntries, setOpenStaffEntries] = useState<StaffEntry[]>([
     { id: `open-1`, name: currentUser.full_name, time: getCurrentTimeHHMM() },
   ]);
@@ -176,12 +178,16 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
       const dutyUsers = storedMeta?.dutyStaffNames || activeShiftData.contributions.map((c) => getUserDisplayName(c.user_id));
 
+      const shiftLabel = storedMeta?.shiftCategory
+        ? `${storedMeta.shiftCategory} (#${activeShiftData.shift.shift_id.slice(-6)})`
+        : storedMeta?.shiftName || `Shift #${activeShiftData.shift.shift_id.slice(-6)}`;
+
       printShiftPDF({
         storeName: storeName || 'Kedai POS',
         dateStr: storedMeta?.date
           ? `${storedMeta.date} (Jam ${storedMeta.time} WIB)`
           : new Date(activeShiftData.shift.start_time).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-        shiftId: storedMeta?.shiftName || `Shift #${activeShiftData.shift.shift_id.slice(-6)}`,
+        shiftId: shiftLabel,
         dutyUsers: dutyUsers.length > 0 ? dutyUsers : [currentUser.full_name],
         currentUserFullName: currentUser.full_name,
         transactions: salesReport?.transactions || [],
@@ -211,12 +217,16 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
       const dutyUsers = storedMeta?.dutyStaffNames || activeShiftData.contributions.map((c) => getUserDisplayName(c.user_id));
 
+      const shiftLabel = storedMeta?.shiftCategory
+        ? `${storedMeta.shiftCategory} (#${activeShiftData.shift.shift_id.slice(-6)})`
+        : storedMeta?.shiftName || `Shift #${activeShiftData.shift.shift_id.slice(-6)}`;
+
       exportShiftToExcel({
         storeName: storeName || 'Kedai POS',
         dateStr: storedMeta?.date
           ? `${storedMeta.date} (Jam ${storedMeta.time} WIB)`
           : new Date(activeShiftData.shift.start_time).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-        shiftId: storedMeta?.shiftName || `Shift #${activeShiftData.shift.shift_id.slice(-6)}`,
+        shiftId: shiftLabel,
         dutyUsers: dutyUsers.length > 0 ? dutyUsers : [currentUser.full_name],
         currentUserFullName: currentUser.full_name,
         transactions: salesReport?.transactions || [],
@@ -243,13 +253,19 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         staffList.push(`${currentUser.full_name} (${shiftTimeInput || getCurrentTimeHHMM()} WIB)`);
       }
 
-      const finalShiftName = staffList.join(', ');
+      const categoryName =
+        shiftCategoryOption === 'KUSTOM'
+          ? (shiftCustomCategory.trim() || 'Shift Kustom')
+          : shiftCategoryOption;
+
+      const finalShiftName = `${categoryName} - ${staffList.join(', ')}`;
       const initialCashNum = Number(openInitialCash) || 0;
 
       const data = await apiService.openShift(initialCashNum);
 
       if (data?.shift?.shift_id) {
         const meta = {
+          shiftCategory: categoryName,
           shiftName: finalShiftName,
           date: shiftDateInput,
           time: shiftTimeInput,
@@ -1225,6 +1241,55 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               <Plus size={15} />
               + Tambah Pegawai Bertugas
             </button>
+          </div>
+
+          {/* 1.5 SESI SHIFT (OPSI 2: SHIFT PAGI / SIANG / MALAM / CUSTOM) */}
+          <div>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, marginBottom: '0.4rem', color: '#0f172a' }}>
+              🏷️ Sesi Shift Toko:
+            </label>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <select
+                value={shiftCategoryOption}
+                onChange={(e) => setShiftCategoryOption(e.target.value)}
+                style={{
+                  flex: 1,
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '10px',
+                  border: '2px solid #4f46e5',
+                  fontSize: '0.9rem',
+                  fontWeight: 800,
+                  color: '#0f172a',
+                  background: '#ffffff',
+                  outline: 'none',
+                }}
+              >
+                <option value="Shift Pagi">🌅 Shift Pagi</option>
+                <option value="Shift Siang">☀️ Shift Siang</option>
+                <option value="Shift Malam">🌙 Shift Malam</option>
+                <option value="Shift Lembur">⚡ Shift Lembur</option>
+                <option value="KUSTOM">✏️ Kustom (Ketik Sendiri)...</option>
+              </select>
+
+              {shiftCategoryOption === 'KUSTOM' && (
+                <input
+                  type="text"
+                  value={shiftCustomCategory}
+                  onChange={(e) => setShiftCustomCategory(e.target.value)}
+                  placeholder="Ketik Nama Shift (cth: Shift Bazar / Shift Event)"
+                  style={{
+                    flex: 1,
+                    padding: '0.65rem 0.85rem',
+                    borderRadius: '10px',
+                    border: '2px solid #059669',
+                    fontSize: '0.9rem',
+                    fontWeight: 700,
+                    outline: 'none',
+                  }}
+                  required
+                />
+              )}
+            </div>
           </div>
 
           {/* 2. TANGGAL & JAM UTAMA SHIFT */}
