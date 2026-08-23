@@ -37,6 +37,19 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
   storeName = 'Toko Utama',
   logoUrl,
 }) => {
+  React.useEffect(() => {
+    if (isOpenMobile) {
+      document.body.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.touchAction = '';
+    };
+  }, [isOpenMobile]);
   const menuItems = [
     { id: 'DASHBOARD', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'PENJUALAN', label: 'Penjualan', icon: TrendingUp },
@@ -349,9 +362,10 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
           style={{
             position: 'fixed',
             inset: 0,
-            background: 'rgba(0,0,0,0.6)',
-            backdropFilter: 'blur(3px)',
-            zIndex: 90,
+            background: 'rgba(0,0,0,0.65)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 999,
+            touchAction: 'none',
           }}
         />
       )}
@@ -366,9 +380,11 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
           height: '100dvh',
           maxHeight: '100dvh',
           zIndex: 1000,
+          background: 'var(--sidebar-bg, #ffffff)',
           transform: isOpenMobile ? 'translateX(0)' : 'translateX(-100%)',
           transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-          boxShadow: isOpenMobile ? '4px 0 24px rgba(0, 0, 0, 0.25)' : 'none',
+          boxShadow: isOpenMobile ? '4px 0 24px rgba(0, 0, 0, 0.35)' : 'none',
+          overflow: 'hidden',
         }}
       >
         {sidebarContent}
