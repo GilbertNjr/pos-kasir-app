@@ -1270,6 +1270,50 @@ html, body, #root {
   .backup-table-container {
     padding: 1rem 0.75rem !important;
   }
+
+  /* Employee Performance 2-Column Mobile Grid */
+  .employee-performance-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .employee-card-item {
+    padding: 0.85rem 0.65rem !important;
+    border-radius: 16px !important;
+  }
+
+  .emp-card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.4rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  .emp-card-avatar {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.85rem !important;
+  }
+
+  .emp-card-name {
+    font-size: 0.825rem !important;
+  }
+
+  .emp-card-role {
+    font-size: 0.65rem !important;
+  }
+
+  .emp-card-shift-badge {
+    align-self: flex-start !important;
+    font-size: 0.625rem !important;
+    padding: 0.15rem 0.45rem !important;
+  }
+
+  .emp-card-footer {
+    font-size: 0.72rem !important;
+    margin-top: 0.5rem !important;
+    padding-top: 0.5rem !important;
+  }
 }
 
 

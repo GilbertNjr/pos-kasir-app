@@ -621,29 +621,34 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                   <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Tambahkan akun karyawan di menu Manajemen Pengguna.</div>
                 </div>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.15rem' }}>
+                <div className="employee-performance-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.15rem' }}>
                   {employeeList.map((emp: EmployeeSummary) => {
                     const cashierColor = getCashierColor(emp.full_name || emp.username);
                     return (
                       <div
                         key={emp.user_id}
                         onClick={() => setSelectedEmployee(emp)}
+                        className="employee-card-item"
                         style={{
-                          padding: '1.25rem',
+                          padding: '1.15rem',
                           border: `1px solid ${cashierColor.border}`,
                           borderRadius: '20px',
                           background: cashierColor.bg,
                           cursor: 'pointer',
                           transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
                           boxShadow: `0 6px 18px ${cashierColor.bg}`,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between',
                         }}
                       >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div className="emp-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem', gap: '0.5rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0, flex: 1 }}>
                             <div
+                              className="emp-card-avatar"
                               style={{
-                                width: '42px',
-                                height: '42px',
+                                width: '38px',
+                                height: '38px',
                                 borderRadius: '50%',
                                 background: cashierColor.avatarBg,
                                 color: cashierColor.avatarText,
@@ -651,30 +656,84 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 fontWeight: 900,
-                                fontSize: '1.05rem',
-                                boxShadow: `0 4px 10px ${cashierColor.border}`,
+                                fontSize: '1rem',
+                                boxShadow: `0 3px 8px ${cashierColor.border}`,
+                                flexShrink: 0,
                               }}
                             >
                               {emp.full_name.charAt(0).toUpperCase()}
                             </div>
-                            <div>
-                              <h4 style={{ fontSize: '0.975rem', fontWeight: 900, margin: 0, color: cashierColor.text }}>{emp.full_name}</h4>
-                              <span style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 700 }}>
-                                Role: {emp.is_pj || emp.role === 'PENANGGUNG_JAWAB' ? 'Penanggung Jawab (PJ)' : emp.role === 'OWNER' ? 'Owner' : 'Kasir Operasional'}
+                            <div style={{ minWidth: 0, flex: 1 }}>
+                              <h4
+                                className="emp-card-name"
+                                style={{
+                                  fontSize: '0.9rem',
+                                  fontWeight: 900,
+                                  margin: 0,
+                                  color: cashierColor.text,
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                }}
+                              >
+                                {emp.full_name}
+                              </h4>
+                              <span
+                                className="emp-card-role"
+                                style={{
+                                  fontSize: '0.72rem',
+                                  color: '#64748b',
+                                  fontWeight: 700,
+                                  whiteSpace: 'nowrap',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  display: 'block',
+                                }}
+                              >
+                                Role: {emp.is_pj || emp.role === 'PENANGGUNG_JAWAB' ? 'PJ' : emp.role === 'OWNER' ? 'Owner' : 'Kasir Operasional'}
                               </span>
                             </div>
                           </div>
 
                           {emp.is_active_in_shift && (
-                            <span style={{ padding: '0.25rem 0.65rem', borderRadius: '12px', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', fontSize: '0.7rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981' }} /> Shift Aktif
+                            <span
+                              className="emp-card-shift-badge"
+                              style={{
+                                padding: '0.2rem 0.55rem',
+                                borderRadius: '10px',
+                                background: '#ecfdf5',
+                                color: '#047857',
+                                border: '1px solid #a7f3d0',
+                                fontSize: '0.68rem',
+                                fontWeight: 900,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.25rem',
+                                flexShrink: 0,
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }} />
+                              Shift Aktif
                             </span>
                           )}
                         </div>
 
-                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', marginTop: '0.95rem', borderTop: `1px dashed ${cashierColor.border}`, paddingTop: '0.75rem' }}>
-                          <span style={{ color: '#64748b', fontWeight: 700 }}>{emp.transaction_count} Nota Transaksi</span>
-                          <span style={{ fontWeight: 900, color: cashierColor.text }}>{formatRupiah(emp.total_sales)}</span>
+                        <div
+                          className="emp-card-footer"
+                          style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            fontSize: '0.8rem',
+                            marginTop: '0.75rem',
+                            borderTop: `1px dashed ${cashierColor.border}`,
+                            paddingTop: '0.65rem',
+                            gap: '0.4rem',
+                          }}
+                        >
+                          <span style={{ color: '#64748b', fontWeight: 700, whiteSpace: 'nowrap' }}>{emp.transaction_count} Nota</span>
+                          <span style={{ fontWeight: 900, color: cashierColor.text, whiteSpace: 'nowrap' }}>{formatRupiah(emp.total_sales)}</span>
                         </div>
                       </div>
                     );
