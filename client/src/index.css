@@ -1198,5 +1198,51 @@ html, body, #root {
   .network-badge-container {
     padding: 0.28rem 0.45rem !important;
   }
+
+  /* BACKUP & RESTORE PAGE MOBILE RESPONSIVE ENGINE */
+  .backup-metrics-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 0.65rem !important;
+  }
+
+  .backup-metric-card {
+    padding: 0.75rem 0.65rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .backup-metric-card-icon {
+    padding: 0.45rem !important;
+    border-radius: 10px !important;
+  }
+
+  .backup-metric-title {
+    font-size: 0.68rem !important;
+  }
+
+  .backup-metric-value {
+    font-size: 0.925rem !important;
+  }
+
+  .backup-vertical-divider {
+    display: none !important;
+  }
+
+  .backup-search-container {
+    width: 100% !important;
+  }
+
+  .backup-banner-container {
+    padding: 1rem !important;
+    gap: 1rem !important;
+  }
+
+  .backup-action-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .backup-table-container {
+    padding: 1rem 0.75rem !important;
+  }
 }
+
 

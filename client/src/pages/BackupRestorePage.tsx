@@ -488,6 +488,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
 
       {/* 2. AUTO BACKUP BANNER CARD (GAMBAR #1) */}
       <div
+        className="backup-banner-container"
         style={{
           background: '#ffffff',
           borderRadius: '20px',
@@ -498,11 +499,11 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
           alignItems: 'center',
           justifyContent: 'space-between',
           flexWrap: 'wrap',
-          gap: '1.5rem',
+          gap: '1.25rem',
         }}
       >
         {/* Left: Cloud Icon & Description */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flex: '1 1 360px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flex: '1 1 280px', minWidth: 0 }}>
           <div
             style={{
               width: '54px',
@@ -519,7 +520,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
           >
             <UploadCloud size={28} />
           </div>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.25rem 0' }}>
               Lindungi data toko Anda dengan backup otomatis
             </h3>
@@ -530,7 +531,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
         </div>
 
         {/* Right: Storage Integration Pill Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
           
           {/* Google Drive Block (Interactive Kelola Button) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
@@ -564,7 +565,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
           </div>
 
           {/* Divider */}
-          <div style={{ width: '1px', height: '40px', background: '#e2e8f0' }} />
+          <div className="backup-vertical-divider" style={{ width: '1px', height: '40px', background: '#e2e8f0' }} />
 
           {/* Penyimpanan Lokal Block */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
@@ -598,49 +599,49 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
       </div>
 
       {/* QUICK STATUS METRICS CARDS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-        <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.15rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(15, 23, 42, 0.06)', color: 'var(--color-primary)' }}>
+      <div className="backup-metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+        <div className="backup-metric-card" style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.15rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="backup-metric-card-icon" style={{ padding: '0.75rem', borderRadius: '12px', background: 'rgba(15, 23, 42, 0.06)', color: 'var(--color-primary)', flexShrink: 0 }}>
             <HardDrive size={24} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Total Snapshot Backup</div>
-            <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a' }}>{history.length} Berkas</div>
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div className="backup-metric-title" style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Total Snapshot Backup</div>
+            <div className="backup-metric-value" style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{history.length} Berkas</div>
           </div>
         </div>
 
-        <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.15rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.75rem', borderRadius: '12px', background: '#ecfdf5', color: '#059669' }}>
+        <div className="backup-metric-card" style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.15rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="backup-metric-card-icon" style={{ padding: '0.75rem', borderRadius: '12px', background: '#ecfdf5', color: '#059669', flexShrink: 0 }}>
             <Cloud size={24} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Status Google Drive</div>
-            <div style={{ fontSize: '0.925rem', fontWeight: 800, color: isDriveConnected ? '#059669' : '#d97706', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: isDriveConnected ? '#10b981' : '#f59e0b' }}></span>
-              {isDriveConnected ? 'Terkoneksi (OAuth2 Token)' : 'Siap Konfigurasi'}
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div className="backup-metric-title" style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Status Google Drive</div>
+            <div className="backup-metric-value" style={{ fontSize: '0.875rem', fontWeight: 800, color: isDriveConnected ? '#059669' : '#d97706', display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: isDriveConnected ? '#10b981' : '#f59e0b', flexShrink: 0 }}></span>
+              {isDriveConnected ? 'Terkoneksi' : 'Siap Konfigurasi'}
             </div>
           </div>
         </div>
 
-        <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.15rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.75rem', borderRadius: '12px', background: '#eff6ff', color: '#2563eb' }}>
+        <div className="backup-metric-card" style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.15rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="backup-metric-card-icon" style={{ padding: '0.75rem', borderRadius: '12px', background: '#eff6ff', color: '#2563eb', flexShrink: 0 }}>
             <Server size={24} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Database Health</div>
-            <div style={{ fontSize: '0.925rem', fontWeight: 800, color: '#1d4ed8', marginTop: '0.2rem' }}>
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div className="backup-metric-title" style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Database Health</div>
+            <div className="backup-metric-value" style={{ fontSize: '0.875rem', fontWeight: 800, color: '#1d4ed8', marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               PostgreSQL Online ✓
             </div>
           </div>
         </div>
 
-        <div style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.15rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div style={{ padding: '0.75rem', borderRadius: '12px', background: '#fef3c7', color: '#d97706' }}>
+        <div className="backup-metric-card" style={{ background: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.15rem', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div className="backup-metric-card-icon" style={{ padding: '0.75rem', borderRadius: '12px', background: '#fef3c7', color: '#d97706', flexShrink: 0 }}>
             <Shield size={24} />
           </div>
-          <div>
-            <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>Keamanan Data</div>
-            <div style={{ fontSize: '0.925rem', fontWeight: 800, color: '#b45309', marginTop: '0.2rem' }}>
+          <div style={{ minWidth: 0, overflow: 'hidden' }}>
+            <div className="backup-metric-title" style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Keamanan Data</div>
+            <div className="backup-metric-value" style={{ fontSize: '0.875rem', fontWeight: 800, color: '#b45309', marginTop: '0.2rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               Enkripsi AES-256
             </div>
           </div>
@@ -663,7 +664,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
       )}
 
       {/* 3. SIMPLIFIED & ELEGANT ACTION PANELS (USER-FRIENDLY FOR NON-PROGRAMMERS) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(360px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
+      <div className="backup-action-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem', alignItems: 'stretch' }}>
         
         {/* PANEL A: CADANGKAN DATA TOKO (BACKUP) */}
         <div
@@ -1011,7 +1012,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
       </div>
 
       {/* 4. REDESIGNED RIWAYAT BACKUP TABLE (MATCHING GAMBAR #2 EXACTLY) */}
-      <div style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '1.5rem', boxShadow: '0 4px 14px rgba(0,0,0,0.03)' }}>
+      <div className="backup-table-container" style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '1.5rem', boxShadow: '0 4px 14px rgba(0,0,0,0.03)' }}>
         
         {/* Table Title Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.25rem' }}>
@@ -1021,7 +1022,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
             </h3>
           </div>
 
-          <div style={{ position: 'relative', width: '260px' }}>
+          <div className="backup-search-container" style={{ position: 'relative', width: '260px' }}>
             <Search size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
             <input
               type="text"
@@ -1054,13 +1055,13 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#334155', fontWeight: 700, textAlign: 'left' }}>
-                  <th style={{ padding: '0.85rem 1rem', width: '170px' }}>Tanggal & Waktu</th>
-                  <th style={{ padding: '0.85rem 1rem', width: '160px' }}>Tipe</th>
-                  <th style={{ padding: '0.85rem 1rem', width: '110px' }}>Ukuran</th>
-                  <th style={{ padding: '0.85rem 1rem', width: '160px' }}>Lokasi</th>
-                  <th style={{ padding: '0.85rem 1rem', width: '110px' }}>Status</th>
-                  <th style={{ padding: '0.85rem 1rem' }}>Keterangan</th>
-                  <th style={{ padding: '0.85rem 1rem', textAlign: 'center', width: '110px' }}>Aksi</th>
+                  <th style={{ padding: '0.85rem 1rem', width: '150px', whiteSpace: 'nowrap' }}>Tanggal & Waktu</th>
+                  <th style={{ padding: '0.85rem 1rem', width: '140px', whiteSpace: 'nowrap' }}>Tipe</th>
+                  <th style={{ padding: '0.85rem 1rem', width: '100px', whiteSpace: 'nowrap' }}>Ukuran</th>
+                  <th style={{ padding: '0.85rem 1rem', width: '150px', whiteSpace: 'nowrap' }}>Lokasi</th>
+                  <th style={{ padding: '0.85rem 1rem', width: '100px', whiteSpace: 'nowrap' }}>Status</th>
+                  <th style={{ padding: '0.85rem 1rem', minWidth: '160px' }}>Keterangan</th>
+                  <th style={{ padding: '0.85rem 1rem', textAlign: 'center', width: '110px', whiteSpace: 'nowrap' }}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -1080,33 +1081,33 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
                       </td>
 
                       {/* 2. Tipe */}
-                      <td style={{ padding: '0.85rem 1rem', color: '#334155', fontWeight: 600 }}>
+                      <td style={{ padding: '0.85rem 1rem', color: '#334155', fontWeight: 600, whiteSpace: 'nowrap' }}>
                         {item.type || 'Otomatis (Harian)'}
                       </td>
 
                       {/* 3. Ukuran */}
-                      <td style={{ padding: '0.85rem 1rem', color: '#0f172a', fontWeight: 600 }}>
+                      <td style={{ padding: '0.85rem 1rem', color: '#0f172a', fontWeight: 600, whiteSpace: 'nowrap' }}>
                         {item.size_str || '278,6 MB'}
                       </td>
 
                       {/* 4. Lokasi */}
-                      <td style={{ padding: '0.85rem 1rem' }}>
-                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, color: '#334155' }}>
+                      <td style={{ padding: '0.85rem 1rem', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
                           <GoogleDriveIcon size={18} />
                           {item.location === 'DRIVE_LOKAL' ? (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', whiteSpace: 'nowrap' }}>
                               <HardDrive size={15} color="#475569" /> + Lokal
                             </span>
                           ) : (
-                            <span>Google Drive</span>
+                            <span style={{ whiteSpace: 'nowrap' }}>Google Drive</span>
                           )}
                         </div>
                       </td>
 
                       {/* 5. Status Badge (Berhasil = hijau, Gagal = merah) */}
-                      <td style={{ padding: '0.85rem 1rem' }}>
+                      <td style={{ padding: '0.85rem 1rem', whiteSpace: 'nowrap' }}>
                         {isSuccess ? (
-                          <span style={{ padding: '0.25rem 0.75rem', borderRadius: '12px', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', fontWeight: 800, fontSize: '0.78rem' }}>
+                          <span style={{ padding: '0.25rem 0.75rem', borderRadius: '12px', background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0', fontWeight: 800, fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
                             Berhasil
                           </span>
                         ) : (
