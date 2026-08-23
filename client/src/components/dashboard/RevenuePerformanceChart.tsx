@@ -133,95 +133,110 @@ export const RevenuePerformanceChart: React.FC<RevenuePerformanceChartProps> = (
         </div>
       </div>
 
-      {/* SVG Interactive Bar Chart */}
-      <div style={{ position: 'relative', width: '100%', height: '220px', display: 'flex', alignItems: 'flex-end', gap: '10px', paddingTop: '24px', paddingBottom: '8px' }}>
-        {data.length === 0 ? (
-          <div style={{ width: '100%', textAlign: 'center', margin: 'auto', color: '#94a3b8', fontSize: '0.875rem', fontWeight: 600 }}>
-            Belum ada data transaksi terformat pada periode ini
-          </div>
-        ) : (
-          data.map((pt, idx) => {
-            const currentVal = chartMode === 'OMZET' ? pt.omzet : pt.transaction_count;
-            const currentMax = chartMode === 'OMZET' ? maxOmzet : maxTx;
-            const heightPct = Math.max(6, Math.round((currentVal / currentMax) * 100));
-            const isHovered = activeHover?.label === pt.label;
+      {/* SVG Interactive Bar Chart (Scrollable on small viewports) */}
+      <div className="chart-scroll-wrapper" style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', paddingBottom: '0.4rem' }}>
+        <div
+          style={{
+            position: 'relative',
+            width: '100%',
+            minWidth: data.length > 6 ? `${data.length * 46}px` : '100%',
+            height: '220px',
+            display: 'flex',
+            alignItems: 'flex-end',
+            gap: '8px',
+            paddingTop: '24px',
+            paddingBottom: '8px',
+          }}
+        >
+          {data.length === 0 ? (
+            <div style={{ width: '100%', textAlign: 'center', margin: 'auto', color: '#94a3b8', fontSize: '0.875rem', fontWeight: 600 }}>
+              Belum ada data transaksi terformat pada periode ini
+            </div>
+          ) : (
+            data.map((pt, idx) => {
+              const currentVal = chartMode === 'OMZET' ? pt.omzet : pt.transaction_count;
+              const currentMax = chartMode === 'OMZET' ? maxOmzet : maxTx;
+              const heightPct = Math.max(6, Math.round((currentVal / currentMax) * 100));
+              const isHovered = activeHover?.label === pt.label;
 
-            return (
-              <div
-                key={idx}
-                onMouseEnter={() => setActiveHover(pt)}
-                onMouseLeave={() => setActiveHover(null)}
-                style={{
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  height: '100%',
-                  justifyContent: 'flex-end',
-                  cursor: 'pointer',
-                  position: 'relative',
-                }}
-              >
-                {/* Floating Top Value Label on Hover */}
-                {isHovered && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '-20px',
-                      fontSize: '0.68rem',
-                      fontWeight: 900,
-                      color: '#b45309',
-                      background: '#fffbeb',
-                      padding: '0.15rem 0.45rem',
-                      borderRadius: '6px',
-                      whiteSpace: 'nowrap',
-                      border: '1px solid #fde68a',
-                      zIndex: 10,
-                    }}
-                  >
-                    {chartMode === 'OMZET' ? formatRupiah(pt.omzet) : `${pt.transaction_count} Tx`}
-                  </div>
-                )}
-
-                {/* Vertical Bar */}
+              return (
                 <div
+                  key={idx}
+                  onMouseEnter={() => setActiveHover(pt)}
+                  onMouseLeave={() => setActiveHover(null)}
                   style={{
-                    width: '100%',
-                    maxWidth: '42px',
-                    height: `${heightPct}%`,
-                    background: isHovered
-                      ? 'linear-gradient(180deg, #f59e0b 0%, #b45309 100%)'
-                      : chartMode === 'OMZET'
-                      ? 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)'
-                      : 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
-                    borderRadius: '8px 8px 3px 3px',
-                    transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
-                    transform: isHovered ? 'scaleY(1.03)' : 'scaleY(1)',
-                    transformOrigin: 'bottom',
-                    boxShadow: isHovered
-                      ? '0 8px 20px rgba(180, 83, 9, 0.4)'
-                      : '0 2px 6px rgba(0, 0, 0, 0.04)',
-                  }}
-                />
-                <span
-                  style={{
-                    fontSize: '0.7rem',
-                    color: isHovered ? '#b45309' : '#64748b',
-                    fontWeight: isHovered ? 900 : 600,
-                    marginTop: '0.5rem',
-                    textAlign: 'center',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    maxWidth: '100%',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    height: '100%',
+                    justifyContent: 'flex-end',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    minWidth: '36px',
                   }}
                 >
-                  {pt.label}
-                </span>
-              </div>
-            );
-          })
-        )}
+                  {/* Floating Top Value Label on Hover */}
+                  {isHovered && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '-20px',
+                        fontSize: '0.68rem',
+                        fontWeight: 900,
+                        color: '#b45309',
+                        background: '#fffbeb',
+                        padding: '0.15rem 0.45rem',
+                        borderRadius: '6px',
+                        whiteSpace: 'nowrap',
+                        border: '1px solid #fde68a',
+                        zIndex: 10,
+                      }}
+                    >
+                      {chartMode === 'OMZET' ? formatRupiah(pt.omzet) : `${pt.transaction_count} Tx`}
+                    </div>
+                  )}
+
+                  {/* Vertical Bar */}
+                  <div
+                    style={{
+                      width: '100%',
+                      maxWidth: '42px',
+                      height: `${heightPct}%`,
+                      background: isHovered
+                        ? 'linear-gradient(180deg, #f59e0b 0%, #b45309 100%)'
+                        : chartMode === 'OMZET'
+                        ? 'linear-gradient(180deg, #fbbf24 0%, #d97706 100%)'
+                        : 'linear-gradient(180deg, #34d399 0%, #059669 100%)',
+                      borderRadius: '8px 8px 3px 3px',
+                      transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+                      transform: isHovered ? 'scaleY(1.03)' : 'scaleY(1)',
+                      transformOrigin: 'bottom',
+                      boxShadow: isHovered
+                        ? '0 8px 20px rgba(180, 83, 9, 0.4)'
+                        : '0 2px 6px rgba(0, 0, 0, 0.04)',
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: '0.7rem',
+                      color: isHovered ? '#b45309' : '#64748b',
+                      fontWeight: isHovered ? 900 : 600,
+                      marginTop: '0.5rem',
+                      textAlign: 'center',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      maxWidth: '100%',
+                    }}
+                  >
+                    {pt.label}
+                  </span>
+                </div>
+              );
+            })
+          )}
+        </div>
       </div>
 
       {/* Chart Footer Summary Bar */}

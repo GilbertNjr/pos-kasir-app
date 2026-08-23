@@ -1314,6 +1314,16 @@ html, body, #root {
     margin-top: 0.5rem !important;
     padding-top: 0.5rem !important;
   }
+
+  /* Revenue Chart Horizontal Scroll for Mobile */
+  .chart-scroll-wrapper::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .chart-scroll-wrapper::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+  }
 }
 
 
