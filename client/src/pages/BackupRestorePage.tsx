@@ -16,6 +16,7 @@ import {
   Server,
   Zap,
   X,
+  UserCheck,
   ChevronLeft,
   ChevronRight,
   Info,
@@ -1327,87 +1328,145 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
             </div>
 
             {showAccountSelector ? (
-              /* AKUN SELECTOR VIEW (POPUP LOGIN GOOGLE) */
-              <div style={{ background: '#f8fafc', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '1.25rem' }}>
-                <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem', textAlign: 'center' }}>
-                  Pilih Akun Google Toko Anda
-                </div>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '1rem', textAlign: 'center' }}>
-                  Pilih akun Gmail yang ingin digunakan untuk mencadangkan data POS:
+              /* AKUN SELECTOR VIEW (OFFICIAL GOOGLE OAUTH ACCOUNT PICKER - SAMA PERSIS GAMBAR #2 USER) */
+              <div style={{ background: '#121212', borderRadius: '20px', border: '1px solid #27272a', padding: '1.5rem', color: '#ffffff' }}>
+                {/* Header */}
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#f8fafc', margin: '0 0 0.25rem 0', letterSpacing: '-0.02em' }}>
+                    Pilih akun
+                  </h2>
+                  <div style={{ fontSize: '0.875rem', color: '#94a3b8', fontWeight: 500 }}>
+                    Lanjutkan ke <span style={{ color: '#60a5fa', fontWeight: 700 }}>Kedai POS Backup</span>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
+                {/* Account Item List */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', maxHeight: '340px', overflowY: 'auto', paddingRight: '0.2rem' }}>
                   {[
-                    { email: 'kedaipos.backup@gmail.com', label: 'Kedai POS Official Backup (Utama)' },
-                    { email: 'owner.poskasir@gmail.com', label: 'Akun Gmail Pemilik Toko' },
+                    { name: 'Good Luck', email: 'gebyargumelar@gmail.com', bg: '#2563eb' },
+                    { name: 'PPN Bharu', email: 'ppnbharu2024@gmail.com', bg: '#ca8a04' },
+                    { name: '0092_Ahmat Gebyar Gumelar', email: 'ahmadgebyar90@gmail.com', bg: '#dc2626' },
+                    { name: 'Dokumentasi Bharu', email: 'dokumentasibharu@gmail.com', bg: '#059669' },
+                    { name: 'Ahajr', email: 'ahmatjr0123@gmail.com', bg: '#b45309' },
+                    { name: 'Darmo', email: 'darmo8785@gmail.com', bg: '#0891b2' },
+                    { name: 'Team_mobile', email: 'teammobile743@gmail.com', bg: '#7c3aed' },
+                    { name: 'Kedai POS Official Backup', email: 'kedaipos.backup@gmail.com', bg: '#16a34a' },
                   ].map((acc) => (
                     <button
                       key={acc.email}
                       type="button"
                       onClick={() => handleSelectGoogleAccount(acc.email)}
                       style={{
-                        padding: '0.85rem 1rem',
-                        borderRadius: '12px',
-                        border: '1px solid #cbd5e1',
-                        background: '#ffffff',
+                        padding: '0.75rem 0.6rem',
+                        borderRadius: '10px',
+                        border: 'none',
+                        background: 'transparent',
                         display: 'flex',
                         alignItems: 'center',
-                        justifyContent: 'space-between',
+                        gap: '0.85rem',
                         cursor: 'pointer',
                         textAlign: 'left',
-                        transition: 'all 0.15s ease',
+                        transition: 'background 0.15s ease',
+                        borderBottom: '1px solid #1f2937',
                       }}
-                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#2563eb')}
-                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = '#cbd5e1')}
+                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1e293b')}
+                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', color: '#ffffff', fontWeight: 800, fontSize: '0.9rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                          {acc.email.charAt(0).toUpperCase()}
+                      <div
+                        style={{
+                          width: '38px',
+                          height: '38px',
+                          borderRadius: '50%',
+                          background: acc.bg,
+                          color: '#ffffff',
+                          fontWeight: 800,
+                          fontSize: '0.95rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                        }}
+                      >
+                        {acc.name.charAt(0).toUpperCase()}
+                      </div>
+                      <div style={{ overflow: 'hidden' }}>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f1f5f9', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {acc.name}
                         </div>
-                        <div>
-                          <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>{acc.email}</div>
-                          <div style={{ fontSize: '0.725rem', color: '#64748b' }}>{acc.label}</div>
+                        <div style={{ fontSize: '0.78rem', color: '#94a3b8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {acc.email}
                         </div>
                       </div>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#2563eb' }}>Pilih &rsaquo;</span>
                     </button>
                   ))}
 
+                  {/* Option: Gunakan Akun Lain */}
                   <button
                     type="button"
                     onClick={() => {
-                      const input = prompt('Masukkan email Google baru Anda:');
+                      const input = prompt('Masukkan alamat email Google Anda:');
                       if (input && input.includes('@')) {
                         handleSelectGoogleAccount(input.trim());
                       }
                     }}
                     style={{
-                      padding: '0.75rem',
-                      borderRadius: '12px',
-                      border: '1px dashed #94a3b8',
-                      background: '#ffffff',
-                      color: '#334155',
-                      fontWeight: 700,
-                      fontSize: '0.8rem',
-                      cursor: 'pointer',
+                      padding: '0.85rem 0.6rem',
+                      borderRadius: '10px',
+                      border: 'none',
+                      background: 'transparent',
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '0.4rem',
-                      marginTop: '0.25rem',
+                      gap: '0.85rem',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      color: '#f8fafc',
+                      marginTop: '0.2rem',
                     }}
+                    onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#1e293b')}
+                    onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                   >
-                    <span>+ Gunakan Akun Google Lain...</span>
+                    <div
+                      style={{
+                        width: '38px',
+                        height: '38px',
+                        borderRadius: '50%',
+                        background: '#334155',
+                        color: '#94a3b8',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <UserCheck size={20} />
+                    </div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f1f5f9' }}>
+                      Gunakan akun lain
+                    </div>
                   </button>
+                </div>
+
+                {/* Footer Terms & Disclaimer */}
+                <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #1e293b', fontSize: '0.725rem', color: '#64748b', lineHeight: 1.4 }}>
+                  Sebelum menggunakan aplikasi ini, Anda dapat meninjau <span style={{ color: '#60a5fa', textDecoration: 'underline', cursor: 'pointer' }}>Kebijakan Privasi</span> dan <span style={{ color: '#60a5fa', textDecoration: 'underline', cursor: 'pointer' }}>Persyaratan Layanan</span> Kedai POS.
+                </div>
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem', fontSize: '0.725rem', color: '#94a3b8' }}>
+                  <span>Indonesia</span>
+                  <div style={{ display: 'flex', gap: '0.85rem' }}>
+                    <span style={{ cursor: 'pointer' }}>Bantuan</span>
+                    <span style={{ cursor: 'pointer' }}>Privasi</span>
+                    <span style={{ cursor: 'pointer' }}>Persyaratan</span>
+                  </div>
                 </div>
 
                 <div style={{ textAlign: 'center', marginTop: '1rem' }}>
                   <button
                     type="button"
                     onClick={() => setShowAccountSelector(false)}
-                    style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
+                    style={{ background: 'none', border: 'none', color: '#94a3b8', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', textDecoration: 'underline' }}
                   >
-                    &larr; Kembali
+                    &larr; Batal & Kembali
                   </button>
                 </div>
               </div>
