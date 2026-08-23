@@ -1045,7 +1045,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         </div>
       )}
 
-      {/* Rincian Pengembalian Modal setelah Closing Shift (DENGAN BUTTON HAPUS PROMINENT) */}
+      {/* Rincian Pengembalian Modal setelah Closing Shift */}
       {closedShiftResult && (
         <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '16px', border: '2px solid #16a34a', marginBottom: '2rem', boxShadow: '0 8px 24px rgba(22, 163, 74, 0.12)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -1055,7 +1055,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             </h3>
             <button
               onClick={handleDeleteClosedShiftResult}
-              title="Hapus / Selesaikan Tampilan Rekonsiliasi Ini"
+              title="Selesaikan & Hapus Catatan Rekonsiliasi Ini"
               style={{
                 padding: '0.5rem 1rem',
                 background: '#dc2626',
@@ -1080,77 +1080,61 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
           </p>
 
           <div style={{ overflowX: 'auto', marginBottom: '1rem' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #cbd5e1', color: '#4b5563' }}>
-                  <th style={{ padding: '0.5rem', textAlign: 'left' }}>Nama Pegawai Penyetor</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'right' }}>Nominal Modal Wajib Dikembalikan</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'center' }}>Status Modal</th>
-                  <th style={{ padding: '0.5rem', textAlign: 'center' }}>Aksi</th>
-                </tr>
-              </thead>
-              <tbody>
-                {closedShiftResult.contributions.map((c) => (
-                  <tr key={c.contribution_id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                    <td style={{ padding: '0.5rem', fontWeight: 700, color: '#0f172a' }}>
-                      {getUserDisplayName(c.user_id)}
-                    </td>
-                    <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800, color: '#4f46e5' }}>
-                      {formatRupiah(c.amount)}
-                    </td>
-                    <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                      <span className={c.status === 'RETURNED' ? 'badge badge-fc' : 'badge badge-fnb'}>
-                        {c.status}
-                      </span>
-                    </td>
-                    <td style={{ padding: '0.5rem', textAlign: 'center' }}>
-                      {c.status === 'HELD' ? (
-                        <button
-                          onClick={() => handleReturnCapital(c.contribution_id)}
-                          style={{
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            padding: '0.35rem 0.75rem',
-                            borderRadius: '8px',
-                            background: '#059669',
-                            color: '#ffffff',
-                            border: 'none',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <RotateCcw size={14} style={{ display: 'inline', marginRight: '4px' }} />
-                          Tandai Dikembalikan
-                        </button>
-                      ) : (
-                        <span style={{ color: '#16a34a', fontSize: '0.8rem', fontWeight: 800 }}>✓ Returned</span>
-                      )}
-                    </td>
+            {(closedShiftResult.contributions && closedShiftResult.contributions.length > 0) ? (
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ borderBottom: '1px solid #cbd5e1', color: '#4b5563' }}>
+                    <th style={{ padding: '0.5rem', textAlign: 'left' }}>Nama Pegawai Penyetor</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'right' }}>Nominal Modal Wajib Dikembalikan</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'center' }}>Status Modal</th>
+                    <th style={{ padding: '0.5rem', textAlign: 'center' }}>Aksi</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px dashed #cbd5e1' }}>
-            <button
-              onClick={handleDeleteClosedShiftResult}
-              style={{
-                padding: '0.65rem 1.25rem',
-                background: '#fee2e2',
-                color: '#991b1b',
-                border: '1px solid #fecaca',
-                borderRadius: '12px',
-                fontSize: '0.85rem',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-              }}
-            >
-              <Trash2 size={16} />
-              🗑️ Selesaikan & Hapus Catatan Rekonsiliasi Ini
-            </button>
+                </thead>
+                <tbody>
+                  {closedShiftResult.contributions.map((c) => (
+                    <tr key={c.contribution_id} style={{ borderBottom: '1px solid #e2e8f0' }}>
+                      <td style={{ padding: '0.5rem', fontWeight: 700, color: '#0f172a' }}>
+                        {getUserDisplayName(c.user_id)}
+                      </td>
+                      <td style={{ padding: '0.5rem', textAlign: 'right', fontWeight: 800, color: '#4f46e5' }}>
+                        {formatRupiah(c.amount)}
+                      </td>
+                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        <span className={c.status === 'RETURNED' ? 'badge badge-fc' : 'badge badge-fnb'}>
+                          {c.status}
+                        </span>
+                      </td>
+                      <td style={{ padding: '0.5rem', textAlign: 'center' }}>
+                        {c.status === 'HELD' ? (
+                          <button
+                            onClick={() => handleReturnCapital(c.contribution_id)}
+                            style={{
+                              fontSize: '0.75rem',
+                              fontWeight: 800,
+                              padding: '0.35rem 0.75rem',
+                              borderRadius: '8px',
+                              background: '#059669',
+                              color: '#ffffff',
+                              border: 'none',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <RotateCcw size={14} style={{ display: 'inline', marginRight: '4px' }} />
+                            Tandai Dikembalikan
+                          </button>
+                        ) : (
+                          <span style={{ color: '#16a34a', fontSize: '0.8rem', fontWeight: 800 }}>✓ Returned</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            ) : (
+              <div style={{ padding: '1rem', background: '#f8fafc', borderRadius: '10px', color: '#64748b', fontSize: '0.875rem', textAlign: 'center', fontWeight: 600 }}>
+                💡 Tidak ada rincian setoran modal tambahan yang perlu dikembalikan pada shift ini.
+              </div>
+            )}
           </div>
         </div>
       )}
