@@ -1242,6 +1242,11 @@ html, body, #root {
     display: none !important;
   }
 
+  .backup-storage-pills {
+    grid-template-columns: 1fr !important;
+    gap: 0.55rem !important;
+  }
+
   .backup-search-container {
     width: 100% !important;
   }

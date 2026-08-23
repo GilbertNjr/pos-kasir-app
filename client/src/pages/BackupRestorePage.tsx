@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Database,
   Download,
   Upload,
   CheckCircle2,
@@ -450,151 +449,169 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '2rem' }}>
       
-      {/* 1. TOP HEADER & REFRESH BUTTON */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-        <div>
-          <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.2rem' }}>
-            <span>Dashboard</span> &rsaquo; <span style={{ color: 'var(--color-primary)', fontWeight: 800 }}>Backup & Restore</span>
-          </div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <Database size={28} color="var(--color-primary)" /> Pusat Backup & Sinkronisasi Data
-          </h1>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => loadHistory(true)}
-          disabled={loading}
-          style={{
-            padding: '0.65rem 1.15rem',
-            borderRadius: '12px',
-            border: '1px solid #cbd5e1',
-            background: '#ffffff',
-            color: '#0f172a',
-            fontWeight: 700,
-            fontSize: '0.85rem',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.4rem',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
-            transition: 'all 0.2s ease',
-          }}
-        >
-          <RefreshCw size={16} className={loading ? 'spinning' : ''} />
-          <span>{loading ? 'Menyegarkan...' : 'Refresh Status'}</span>
-        </button>
-      </div>
-
-      {/* 2. AUTO BACKUP BANNER CARD (GAMBAR #1) */}
+      {/* AUTO BACKUP BANNER CARD */}
       <div
         className="backup-banner-container"
         style={{
           background: '#ffffff',
           borderRadius: '20px',
           border: '1px solid #e2e8f0',
-          padding: '1.25rem 1.75rem',
+          padding: '1.25rem 1.5rem',
           boxShadow: '0 4px 14px rgba(0,0,0,0.03)',
           display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: '1.25rem',
+          flexDirection: 'column',
+          gap: '1.15rem',
         }}
       >
-        {/* Left: Cloud Icon & Description */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flex: '1 1 280px', minWidth: 0 }}>
-          <div
+        {/* Banner Top Row: Cloud Icon & Description + Refresh Button */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', minWidth: 0, flex: '1 1 240px' }}>
+            <div
+              style={{
+                width: '48px',
+                height: '48px',
+                borderRadius: '14px',
+                background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#ffffff',
+                boxShadow: '0 6px 16px rgba(37, 99, 235, 0.22)',
+                flexShrink: 0,
+              }}
+            >
+              <UploadCloud size={24} />
+            </div>
+            <div style={{ minWidth: 0 }}>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.2rem 0', letterSpacing: '-0.01em' }}>
+                Lindungi Data Toko dengan Backup Otomatis
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
+                Backup dilakukan otomatis ke Google Drive dan penyimpanan lokal secara realtime.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => loadHistory(true)}
+            disabled={loading}
             style={{
-              width: '54px',
-              height: '54px',
-              borderRadius: '16px',
-              background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
+              padding: '0.45rem 0.85rem',
+              borderRadius: '10px',
+              border: '1px solid #cbd5e1',
+              background: '#ffffff',
+              color: '#0f172a',
+              fontWeight: 700,
+              fontSize: '0.78rem',
+              cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              color: '#ffffff',
-              boxShadow: '0 6px 16px rgba(37, 99, 235, 0.25)',
+              gap: '0.35rem',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
               flexShrink: 0,
             }}
           >
-            <UploadCloud size={28} />
-          </div>
-          <div style={{ minWidth: 0 }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.25rem 0' }}>
-              Lindungi data toko Anda dengan backup otomatis
-            </h3>
-            <p style={{ fontSize: '0.8rem', color: '#64748b', margin: 0, lineHeight: 1.5 }}>
-              Backup data dilakukan secara otomatis setiap hari ke Google Drive dan penyimpanan lokal. Anda juga dapat membuat backup manual kapan saja.
-            </p>
-          </div>
+            <RefreshCw size={14} className={loading ? 'spinning' : ''} />
+            <span>{loading ? 'Menyegarkan...' : 'Refresh Status'}</span>
+          </button>
         </div>
 
-        {/* Right: Storage Integration Pill Controls */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
+        {/* Banner Storage Integration Rows / Pills (Gambar #2) */}
+        <div className="backup-storage-pills" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '0.75rem', paddingTop: '0.85rem', borderTop: '1px solid #f1f5f9' }}>
           
-          {/* Google Drive Block (Interactive Kelola Button) */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <div style={{ padding: '0.45rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <GoogleDriveIcon size={24} />
-            </div>
-            <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>Google Drive</div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: isDriveConnected ? '#059669' : '#d97706' }}>
-                {isDriveConnected ? 'Terkoneksi' : 'Belum Terhubung'}
+          {/* Google Drive Block */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0.65rem 0.85rem',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '14px',
+              gap: '0.75rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ffffff', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <GoogleDriveIcon size={20} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '0.825rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Google Drive</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: isDriveConnected ? '#059669' : '#d97706', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: isDriveConnected ? '#10b981' : '#f59e0b', flexShrink: 0 }}></span>
+                  {isDriveConnected ? 'Terkoneksi' : 'Belum Terhubung'}
+                </div>
               </div>
             </div>
+
             <button
               type="button"
               onClick={() => setShowDriveConfigModal(true)}
               style={{
-                padding: '0.45rem 0.95rem',
-                borderRadius: '10px',
+                padding: '0.4rem 0.85rem',
+                borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 background: '#ffffff',
                 color: '#0f172a',
-                fontWeight: 700,
-                fontSize: '0.8rem',
+                fontWeight: 800,
+                fontSize: '0.78rem',
                 cursor: 'pointer',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                transition: 'all 0.15s ease',
+                flexShrink: 0,
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
               }}
             >
               Kelola
             </button>
           </div>
 
-          {/* Divider */}
-          <div className="backup-vertical-divider" style={{ width: '1px', height: '40px', background: '#e2e8f0' }} />
-
           {/* Penyimpanan Lokal Block */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-            <div style={{ padding: '0.45rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0f172a' }}>
-              <HardDrive size={22} />
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              padding: '0.65rem 0.85rem',
+              background: '#f8fafc',
+              border: '1px solid #e2e8f0',
+              borderRadius: '14px',
+              gap: '0.75rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#ffffff', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: '#0f172a' }}>
+                <HardDrive size={18} />
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '0.825rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Penyimpanan Lokal</div>
+                <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#059669', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10b981', flexShrink: 0 }}></span>
+                  Aktif
+                </div>
+              </div>
             </div>
-            <div>
-              <div style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>Penyimpanan Lokal</div>
-              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#059669' }}>Aktif</div>
-            </div>
+
             <button
               type="button"
               onClick={handleExportBackup}
               style={{
-                padding: '0.45rem 0.95rem',
-                borderRadius: '10px',
+                padding: '0.4rem 0.85rem',
+                borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 background: '#ffffff',
                 color: '#0f172a',
-                fontWeight: 700,
-                fontSize: '0.8rem',
+                fontWeight: 800,
+                fontSize: '0.78rem',
                 cursor: 'pointer',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
-                transition: 'all 0.15s ease',
+                flexShrink: 0,
+                boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
               }}
             >
               Kelola
             </button>
           </div>
+
         </div>
       </div>
 
