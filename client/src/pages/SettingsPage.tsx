@@ -39,14 +39,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
   const sanitizeField = (val?: string) => {
     if (!val) return '';
     const trimmed = val.trim();
-    if (
-      trimmed.startsWith('Masukan') ||
-      trimmed === 'kui' ||
-      trimmed === 'KEZHO' ||
-      trimmed === 'Ahmat Gebyar Gumelar' ||
-      trimmed === 'gebyargumelar@gmail.com' ||
-      trimmed === '085808495978'
-    ) {
+    if (trimmed.startsWith('Masukan ') || trimmed.startsWith('Masukkan ')) {
       return '';
     }
     return trimmed;
