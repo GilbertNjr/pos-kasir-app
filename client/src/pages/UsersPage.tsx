@@ -605,177 +605,60 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
 
   return (
     <div style={{ paddingBottom: '3rem', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      {/* 1. TOP METRIC STAT CARDS ROW */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1.25rem',
-          marginBottom: '1.75rem',
-        }}
-      >
+      {/* 1. TOP METRIC STAT CARDS ROW (2x2 Grid on Mobile, 5 Cols on Desktop) */}
+      <div className="users-kpi-grid">
         {/* Card 1: Total Pegawai */}
-        <div
-          style={{
-            background: '#ffffff',
-            padding: '1.25rem 1.35rem',
-            borderRadius: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-          }}
-        >
-          <div
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '14px',
-              background: '#ecfdf5',
-              color: '#047857',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Users size={24} />
+        <div className="users-kpi-card card-emerald">
+          <div className="users-kpi-icon-box" style={{ background: '#ecfdf5', color: '#047857' }}>
+            <Users size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Total Pegawai</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{totalPegawaiCount}</div>
+            <div className="users-kpi-label">Total Pegawai</div>
+            <div className="users-kpi-value">{totalPegawaiCount}</div>
           </div>
         </div>
 
         {/* Card 2: Penanggung Jawab */}
-        <div
-          style={{
-            background: '#ffffff',
-            padding: '1.25rem 1.35rem',
-            borderRadius: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-          }}
-        >
-          <div
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '14px',
-              background: '#f3e8ff',
-              color: '#9333ea',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Shield size={24} />
+        <div className="users-kpi-card card-purple">
+          <div className="users-kpi-icon-box" style={{ background: '#f3e8ff', color: '#9333ea' }}>
+            <Shield size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Tim PJ / Supervisor</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{pjCount}</div>
+            <div className="users-kpi-label">Tim PJ / Supervisor</div>
+            <div className="users-kpi-value">{pjCount}</div>
           </div>
         </div>
 
         {/* Card 3: Kasir / Karyawan */}
-        <div
-          style={{
-            background: '#ffffff',
-            padding: '1.25rem 1.35rem',
-            borderRadius: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-          }}
-        >
-          <div
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '14px',
-              background: '#dbeafe',
-              color: '#2563eb',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <UserCheck size={24} />
+        <div className="users-kpi-card card-blue">
+          <div className="users-kpi-icon-box" style={{ background: '#dbeafe', color: '#2563eb' }}>
+            <UserCheck size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Kasir / Operator</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{kasirCount}</div>
+            <div className="users-kpi-label">Kasir / Operator</div>
+            <div className="users-kpi-value">{kasirCount}</div>
           </div>
         </div>
 
         {/* Card 4: Akun Aktif */}
-        <div
-          style={{
-            background: '#ffffff',
-            padding: '1.25rem 1.35rem',
-            borderRadius: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-          }}
-        >
-          <div
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '14px',
-              background: '#ecfdf5',
-              color: '#059669',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <CheckCircle size={24} />
+        <div className="users-kpi-card card-teal">
+          <div className="users-kpi-icon-box" style={{ background: '#ecfdf5', color: '#059669' }}>
+            <CheckCircle size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Akun Aktif</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{activeCount}</div>
+            <div className="users-kpi-label">Akun Aktif</div>
+            <div className="users-kpi-value">{activeCount}</div>
           </div>
         </div>
 
         {/* Card 5: Akun Nonaktif */}
-        <div
-          style={{
-            background: '#ffffff',
-            padding: '1.25rem 1.35rem',
-            borderRadius: '20px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.03)',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '1rem',
-          }}
-        >
-          <div
-            style={{
-              width: '48px',
-              height: '48px',
-              borderRadius: '14px',
-              background: '#fef2f2',
-              color: '#dc2626',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <XCircle size={24} />
+        <div className="users-kpi-card card-crimson users-kpi-card-span-mobile">
+          <div className="users-kpi-icon-box" style={{ background: '#fef2f2', color: '#dc2626' }}>
+            <XCircle size={22} />
           </div>
           <div>
-            <div style={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Akun Nonaktif</div>
-            <div style={{ fontSize: '1.6rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{inactiveCount}</div>
+            <div className="users-kpi-label">Akun Nonaktif</div>
+            <div className="users-kpi-value">{inactiveCount}</div>
           </div>
         </div>
       </div>
