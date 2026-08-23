@@ -105,19 +105,31 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
     }
 
     const shiftUsers = activeShiftData.shift_users || [];
-    const isLeader = activeShiftData.shift.shift_leader_user_id === user.user_id || activeShiftData.shift.opened_by_user_id === user.user_id;
-    const isMember = shiftUsers.some((su: any) => su.user_id === user.user_id);
+    const isShiftParticipant =
+      activeShiftData.shift.shift_leader_user_id === user.user_id ||
+      activeShiftData.shift.opened_by_user_id === user.user_id ||
+      shiftUsers.some((su: any) => su.user_id === user.user_id);
 
-    if (isLeader || isMember) {
+    if (isShiftParticipant) {
       let startTimeStr = '';
       if (activeShiftData.shift.start_time) {
         try {
           startTimeStr = new Date(activeShiftData.shift.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
         } catch {}
       }
+
+      const isOwnerRole = user.role === 'OWNER';
+      const isUserPjRole = Boolean(user.is_pj) || user.role === 'PENANGGUNG_JAWAB';
+
+      const badgeText = isOwnerRole
+        ? '🟢 Shift Aktif (Owner)'
+        : isUserPjRole
+        ? '🟢 Shift Aktif (PJ Shift)'
+        : '🟢 Shift Aktif (Kasir)';
+
       return {
         isActive: true,
-        badgeText: isLeader ? '🟢 Shift Aktif (PJ Shift)' : '🟢 Shift Aktif (Kasir)',
+        badgeText,
         detailText: startTimeStr ? `Buka shift pukul ${startTimeStr}` : 'Sedang Berdinas',
         startTime: startTimeStr,
       };

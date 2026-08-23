@@ -137,13 +137,10 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
   };
 
   // Helper for Role Label
-  const getUserRoleLabel = (user: User, shiftLeaderId?: string): string => {
-    if (user.user_id === shiftLeaderId) {
-      return user.role === 'OWNER' ? 'Owner (PJ Shift)' : 'Kasir Senior (PJ Leader)';
-    }
+  const getUserRoleLabel = (user: User): string => {
     if (user.role === 'OWNER') return 'Owner';
-    if (user.role === 'PENANGGUNG_JAWAB') return 'Penanggung Jawab Shift';
-    return 'Kasir';
+    if (user.is_pj || user.role === 'PENANGGUNG_JAWAB') return 'Penanggung Jawab (PJ)';
+    return 'Kasir Operasional';
   };
 
   return (
@@ -268,7 +265,7 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
                   .filter((t) => t.created_by_user_id === user.user_id && t.status === 'COMPLETED')
                   .reduce((sum, t) => sum + t.final_total, 0);
 
-                const roleLabel = getUserRoleLabel(user, shift?.shift_leader_user_id);
+                const roleLabel = getUserRoleLabel(user);
                 const isOpener = user.user_id === shift?.opened_by_user_id || user.user_id === shift?.shift_leader_user_id;
                 const terminalTitle = isOpener ? 'POS - Kasir Utama' : `POS - Terminal ${index + 1}`;
 
@@ -398,7 +395,7 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
               ) : (
                 allUsers.map((user) => {
                   const isOnDuty = isShiftActive && activeUserIdsSet.has(user.user_id);
-                  const roleLabel = getUserRoleLabel(user, shift?.shift_leader_user_id);
+                  const roleLabel = getUserRoleLabel(user);
 
                   // Compute user specific sales revenue in active shift
                   const userSales = transactions
