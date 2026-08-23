@@ -401,16 +401,23 @@ export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [
       <style>
         @page {
           size: 80mm auto;
-          margin: 4mm;
+          margin: 0 auto;
+        }
+        html {
+          margin: 0;
+          padding: 0;
+          background: #ffffff;
         }
         body {
           font-family: 'Courier New', Courier, monospace, 'Segoe UI', sans-serif;
           color: #000000;
           width: 300px;
-          margin: 0 auto;
-          padding: 8px;
+          max-width: 80mm;
+          margin: 0 auto !important;
+          padding: 8px 4px;
           font-size: 11px;
           line-height: 1.35;
+          box-sizing: border-box;
         }
         .center { text-align: center; }
         .bold { font-weight: bold; }
@@ -422,7 +429,12 @@ export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [
         th { border-bottom: 1px dashed #000000; padding: 3px 0; font-size: 9.5px; text-transform: uppercase; }
         td { padding: 3px 0; vertical-align: top; word-break: break-word; }
         @media print {
-          body { width: 100%; padding: 0; }
+          html, body {
+            width: 300px !important;
+            max-width: 80mm !important;
+            margin: 0 auto !important;
+            padding: 4px 0 !important;
+          }
           .no-print { display: none; }
         }
       </style>
