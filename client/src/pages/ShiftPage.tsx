@@ -1022,12 +1022,9 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   return (
     <div style={{ maxWidth: '800px', margin: '0 auto' }}>
       <div style={{ marginBottom: '1.75rem', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', margin: '0 0 0.35rem 0' }}>
+        <h2 style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em', margin: 0 }}>
           Sistem Pengelolaan Shift Kasir POS
         </h2>
-        <p style={{ fontSize: '0.875rem', color: '#4b5563' }}>
-          Registrasi Sesi Shift, Custom Nama Tim Staff, Jam Masuk & Uang Kas Modal Laci
-        </p>
       </div>
 
       {error && (

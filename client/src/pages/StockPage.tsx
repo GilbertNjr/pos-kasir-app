@@ -1177,9 +1177,6 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
                   Daftar Stok Produk
                 </h3>
-                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
-                  Pemantauan stok inventaris barang secara aktual & real-time dari database
-                </p>
               </div>
 
               {/* View Mode Switcher (Table vs Grid) */}
