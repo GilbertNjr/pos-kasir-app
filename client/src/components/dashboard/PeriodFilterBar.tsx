@@ -47,35 +47,10 @@ export const PeriodFilterBar: React.FC<PeriodFilterBarProps> = ({ currentFilter,
   ];
 
   return (
-    <div
-      style={{
-        background: '#ffffff',
-        border: '1px solid #e2e8f0',
-        borderRadius: '20px',
-        padding: '0.85rem 1.35rem',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.02)',
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '1rem',
-      }}
-    >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-        <div
-          style={{
-            width: '34px',
-            height: '34px',
-            borderRadius: '10px',
-            background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#b45309',
-            border: '1px solid #fde68a',
-          }}
-        >
-          <Filter size={17} />
+    <div className="period-filter-card">
+      <div className="period-filter-header">
+        <div className="period-filter-icon">
+          <Filter size={18} />
         </div>
         <div>
           <span style={{ fontSize: '0.875rem', fontWeight: 800, color: '#0f172a', display: 'block', lineHeight: 1.2 }}>
@@ -87,36 +62,14 @@ export const PeriodFilterBar: React.FC<PeriodFilterBarProps> = ({ currentFilter,
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          gap: '0.35rem',
-          alignItems: 'center',
-          background: '#f8fafc',
-          padding: '0.35rem',
-          borderRadius: '14px',
-          border: '1px solid #e2e8f0',
-        }}
-      >
+      <div className="period-filter-pills">
         {options.map((opt) => {
           const isActive = currentFilter.period_type === opt.type;
           return (
             <button
               key={opt.type}
               onClick={() => handleSelectType(opt.type)}
-              style={{
-                padding: '0.45rem 0.95rem',
-                borderRadius: '10px',
-                fontSize: '0.8rem',
-                fontWeight: isActive ? 800 : 600,
-                border: isActive ? '1px solid #b45309' : '1px solid transparent',
-                background: isActive ? 'linear-gradient(135deg, #b45309 0%, #d97706 100%)' : 'transparent',
-                color: isActive ? '#ffffff' : '#64748b',
-                cursor: 'pointer',
-                transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                boxShadow: isActive ? '0 4px 12px rgba(180, 83, 9, 0.25)' : 'none',
-              }}
+              className={`period-filter-pill-btn ${isActive ? 'active' : 'inactive'}`}
             >
               {opt.label}
             </button>
@@ -125,66 +78,69 @@ export const PeriodFilterBar: React.FC<PeriodFilterBarProps> = ({ currentFilter,
       </div>
 
       {showCustom && (
-        <form
-          onSubmit={handleApplyCustom}
-          style={{
-            display: 'flex',
-            gap: '0.75rem',
-            alignItems: 'center',
-            width: '100%',
-            marginTop: '0.5rem',
-            paddingTop: '0.75rem',
-            borderTop: '1px dashed #e2e8f0',
-            flexWrap: 'wrap',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.825rem', color: '#475569', fontWeight: 600 }}>
-            <Calendar size={15} color="#2563eb" />
-            <span>Mulai:</span>
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              required
-              style={{
-                padding: '0.4rem 0.65rem',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.8rem',
-                outline: 'none',
-                fontWeight: 600,
-              }}
-            />
+        <form onSubmit={handleApplyCustom} className="period-custom-range-form">
+          <div className="period-custom-range-inputs">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <Calendar size={13} color="#4f46e5" /> Mulai
+              </span>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                required
+                style={{
+                  padding: '0.45rem 0.65rem',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.8rem',
+                  outline: 'none',
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  background: '#f8fafc',
+                  width: '100%',
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+              <span style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b' }}>
+                Sampai
+              </span>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                required
+                style={{
+                  padding: '0.45rem 0.65rem',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  fontSize: '0.8rem',
+                  outline: 'none',
+                  fontWeight: 700,
+                  color: '#0f172a',
+                  background: '#f8fafc',
+                  width: '100%',
+                }}
+              />
+            </div>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.825rem', color: '#475569', fontWeight: 600 }}>
-            <span>Sampai:</span>
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              required
-              style={{
-                padding: '0.4rem 0.65rem',
-                borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.8rem',
-                outline: 'none',
-                fontWeight: 600,
-              }}
-            />
-          </div>
+
           <button
             type="submit"
+            className="period-custom-range-submit"
             style={{
-              padding: '0.45rem 1rem',
+              padding: '0.55rem 1.25rem',
               fontSize: '0.8rem',
               fontWeight: 800,
-              borderRadius: '8px',
+              borderRadius: '10px',
               background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
               color: '#ffffff',
               border: 'none',
               cursor: 'pointer',
-              boxShadow: '0 2px 6px rgba(5, 150, 105, 0.2)',
+              boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)',
+              alignSelf: 'flex-end',
             }}
           >
             Terapkan Filter

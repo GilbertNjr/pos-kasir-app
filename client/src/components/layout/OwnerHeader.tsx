@@ -26,7 +26,8 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
       style={{
         background: '#ffffff',
         borderBottom: '1px solid #e2e8f0',
-        padding: '0.75rem 1rem',
+        padding: '0.65rem 0.85rem',
+        paddingTop: 'calc(0.65rem + env(safe-area-inset-top, 0px))',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -39,10 +40,9 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
         width: '100%',
         maxWidth: '100vw',
         boxSizing: 'border-box',
-        overflow: 'hidden',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0, flex: 1 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', minWidth: 0, flex: 1 }}>
         {/* Mobile Hamburger Toggle */}
         <button
           onClick={onOpenMobileMenu}
@@ -52,7 +52,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
             border: 'none',
             color: '#64748b',
             cursor: 'pointer',
-            padding: '0.25rem',
+            padding: '0.2rem',
             display: 'flex',
             alignItems: 'center',
             flexShrink: 0,
@@ -64,10 +64,11 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
         <div style={{ minWidth: 0, flex: 1 }}>
           <h1
             style={{
-              fontSize: 'clamp(0.875rem, 3.2vw, 1.25rem)',
+              fontSize: 'clamp(0.85rem, 3.2vw, 1.2rem)',
               fontWeight: 800,
               color: '#0f172a',
               margin: 0,
+              lineHeight: 1.2,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -80,7 +81,8 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
             style={{
               fontSize: '0.7rem',
               color: '#64748b',
-              margin: '0.15rem 0 0 0',
+              margin: '0.1rem 0 0 0',
+              lineHeight: 1.2,
               whiteSpace: 'nowrap',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
