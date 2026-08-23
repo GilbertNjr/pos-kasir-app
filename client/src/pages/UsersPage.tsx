@@ -27,7 +27,7 @@ import {
   Loader2,
 } from 'lucide-react';
 import { User as UserType, UserStatus } from '../types';
-import { apiService } from '../services/api';
+import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { ToastType } from '../components/ToastNotification';
 import { HelpModal } from '../components/common/HelpModal';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
@@ -48,6 +48,7 @@ const PRESET_AVATARS = [
 
 export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
   const [users, setUsers] = useState<UserType[]>([]);
+  const [activeShiftData, setActiveShiftData] = useState<ActiveShiftDetailsData | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Search & Filters State
@@ -83,7 +84,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
     password: '',
     phone: '',
     is_pj: false,
-    shift_mode: 'Pagi (08:00 - 16:00)', // 'Pagi (08:00 - 16:00)', 'Siang (16:00 - 00:00)', 'Malam (00:00 - 08:00)', or 'CUSTOM'
+    shift_mode: 'Real-time',
     custom_start: '08:00',
     custom_end: '16:00',
     status: 'ACTIVE' as UserStatus,
@@ -92,18 +93,60 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Helper untuk mengecek status shift real-time seorang pegawai
+  const getUserShiftStatus = (user: UserType) => {
+    if (!activeShiftData || !activeShiftData.shift || activeShiftData.shift.shift_status !== 'ACTIVE') {
+      return {
+        isActive: false,
+        badgeText: '⚪ Tidak Berdinas',
+        detailText: 'Tidak Ada Shift Aktif',
+        startTime: null,
+      };
+    }
+
+    const shiftUsers = activeShiftData.shift_users || [];
+    const isLeader = activeShiftData.shift.shift_leader_user_id === user.user_id || activeShiftData.shift.opened_by_user_id === user.user_id;
+    const isMember = shiftUsers.some((su: any) => su.user_id === user.user_id);
+
+    if (isLeader || isMember) {
+      let startTimeStr = '';
+      if (activeShiftData.shift.start_time) {
+        try {
+          startTimeStr = new Date(activeShiftData.shift.start_time).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+        } catch {}
+      }
+      return {
+        isActive: true,
+        badgeText: isLeader ? '🟢 Shift Aktif (PJ Shift)' : '🟢 Shift Aktif (Kasir)',
+        detailText: startTimeStr ? `Buka shift pukul ${startTimeStr}` : 'Sedang Berdinas',
+        startTime: startTimeStr,
+      };
+    }
+
+    return {
+      isActive: false,
+      badgeText: '⚪ Tidak Berdinas',
+      detailText: 'Tidak dalam shift saat ini',
+      startTime: null,
+    };
+  };
+
   const loadUsers = async () => {
     try {
       setLoading(true);
-      const data = await apiService.getUsers();
-      if (Array.isArray(data)) {
-        const activeOnly = data.filter(
+      const [userData, shiftData] = await Promise.all([
+        apiService.getUsers(),
+        apiService.getActiveShift().catch(() => null),
+      ]);
+      if (Array.isArray(userData)) {
+        const activeOnly = userData.filter(
           (u: UserType) => u.status !== 'DELETED' && !u.username?.startsWith('deleted_')
         );
         setUsers(activeOnly);
       }
+      setActiveShiftData(shiftData);
     } catch (err: any) {
-      console.error('Gagal memuat pengguna:', err);
+      console.error('Gagal memuat pengguna & shift:', err);
     } finally {
       setLoading(false);
     }
@@ -112,7 +155,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
   useEffect(() => {
     loadUsers();
 
-    // Real-time SSE listener for user updates & deletions
+    // Real-time SSE listener for user updates, shifts & transactions
     let sse: EventSource | null = null;
     try {
       sse = new EventSource('/api/events');
@@ -120,6 +163,9 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
         loadUsers();
       };
       sse.addEventListener('USER_UPDATED', handleSync);
+      sse.addEventListener('SHIFT_STARTED', handleSync);
+      sse.addEventListener('SHIFT_CLOSED', handleSync);
+      sse.addEventListener('TRANSACTION_CREATED', handleSync);
     } catch {
       // Fallback
     }
@@ -235,8 +281,10 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
     }
 
     let matchesShift = true;
-    if (shiftFilter !== 'ALL') {
-      matchesShift = u.shift ? u.shift.startsWith(shiftFilter) : true;
+    if (shiftFilter === 'ACTIVE') {
+      matchesShift = getUserShiftStatus(u).isActive;
+    } else if (shiftFilter === 'INACTIVE') {
+      matchesShift = !getUserShiftStatus(u).isActive;
     }
 
     return matchesSearch && matchesRole && matchesStatus && matchesShift;
@@ -536,6 +584,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
       const roleText = u.role === 'OWNER' ? 'OWNER' : u.is_pj ? 'PJ' : 'KASIR';
       const statusBadgeClass = u.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive';
       const statusText = u.status === 'ACTIVE' ? 'Aktif' : 'Nonaktif';
+      const shiftStatusText = getUserShiftStatus(u).badgeText;
 
       excelContent += `
         <tr>
@@ -544,7 +593,7 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
           <td class="td-cell">@${u.username}</td>
           <td class="td-center"><span class="${roleBadgeClass}">${roleText}</span></td>
           <td class="td-cell">${u.phone || '-'}</td>
-          <td class="td-cell">${u.shift || 'Pagi (08:00 - 16:00)'}</td>
+          <td class="td-cell">${shiftStatusText}</td>
           <td class="td-center">-</td>
           <td class="td-center"><span class="${statusBadgeClass}">${statusText}</span></td>
           <td class="td-cell">${u.last_login || '-'}</td>
@@ -575,14 +624,14 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
 
   // CSV Export Handler
   const handleExportCSV = () => {
-    const headers = ['No', 'Nama Lengkap', 'Username', 'Role', 'No. HP', 'Shift', 'Status', 'Terakhir Login'];
+    const headers = ['No', 'Nama Lengkap', 'Username', 'Role', 'No. HP', 'Shift Status', 'Status', 'Terakhir Login'];
     const rows = filteredUsers.map((u, i) => [
       i + 1,
       `"${u.full_name}"`,
       u.username,
       u.is_pj ? 'PJ' : 'KASIR',
       u.phone || '-',
-      `"${u.shift || '-'}"`,
+      `"${getUserShiftStatus(u).badgeText}"`,
       u.status === 'ACTIVE' ? 'Aktif' : 'Nonaktif',
       `"${u.last_login || '-'}"`,
     ]);
@@ -761,11 +810,9 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
               flexShrink: 0,
             }}
           >
-            <option value="ALL">Semua Shift</option>
-            <option value="Pagi">Pagi (08:00 - 16:00)</option>
-            <option value="Siang">Siang (16:00 - 00:00)</option>
-            <option value="Malam">Malam (00:00 - 08:00)</option>
-            <option value="Custom">Custom / Fleksibel</option>
+            <option value="ALL">Semua Status Shift</option>
+            <option value="ACTIVE">🟢 Sedang Shift Aktif</option>
+            <option value="INACTIVE">⚪ Tidak Berdinas</option>
           </select>
 
           {/* Reset Button */}
@@ -1072,9 +1119,51 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                         {u.phone || '-'}
                       </td>
 
-                      {/* 7. Shift */}
-                      <td style={{ padding: '0.75rem 1rem', color: '#334155', fontWeight: 600 }}>
-                        {u.shift || 'Pagi (08:00 - 16:00)'}
+                      {/* 7. Shift Real-time */}
+                      <td style={{ padding: '0.75rem 1rem' }}>
+                        {(() => {
+                          const shiftInfo = getUserShiftStatus(u);
+                          if (shiftInfo.isActive) {
+                            return (
+                              <span
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.35rem',
+                                  padding: '0.3rem 0.75rem',
+                                  borderRadius: '9999px',
+                                  fontSize: '0.73rem',
+                                  fontWeight: 800,
+                                  background: '#ecfdf5',
+                                  color: '#047857',
+                                  border: '1px solid #a7f3d0',
+                                  boxShadow: '0 1px 4px rgba(16,185,129,0.15)',
+                                }}
+                              >
+                                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', boxShadow: '0 0 6px #10b981', display: 'inline-block' }} />
+                                {shiftInfo.badgeText} {shiftInfo.startTime ? `(${shiftInfo.startTime})` : ''}
+                              </span>
+                            );
+                          }
+                          return (
+                            <span
+                              style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.35rem',
+                                padding: '0.3rem 0.65rem',
+                                borderRadius: '9999px',
+                                fontSize: '0.72rem',
+                                fontWeight: 700,
+                                background: '#f1f5f9',
+                                color: '#64748b',
+                                border: '1px solid #cbd5e1',
+                              }}
+                            >
+                              {shiftInfo.badgeText}
+                            </span>
+                          );
+                        })()}
                       </td>
 
                       {/* 7B. Kode Aktivasi */}
@@ -1739,49 +1828,17 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                 </div>
               </div>
 
-              {/* SHIFT SELECTION & CUSTOM TIME INPUTS */}
-              <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>
-                  ⏰ Shift Tugas Karyawan
-                </label>
-                <select
-                  value={formData.shift_mode}
-                  onChange={(e) => setFormData({ ...formData, shift_mode: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700 }}
-                >
-                  <option value="Pagi (08:00 - 16:00)">Pagi (08:00 - 16:00)</option>
-                  <option value="Siang (16:00 - 00:00)">Siang (16:00 - 00:00)</option>
-                  <option value="Malam (00:00 - 08:00)">Malam (00:00 - 08:00)</option>
-                  <option value="CUSTOM">⚙️ Custom Shift (Tentukan Jam Mandiri)...</option>
-                </select>
-
-                {/* Custom Time Pickers */}
-                {formData.shift_mode === 'CUSTOM' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.75rem' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.2rem' }}>
-                        Jam Mulai Shift
-                      </label>
-                      <input
-                        type="time"
-                        value={formData.custom_start}
-                        onChange={(e) => setFormData({ ...formData, custom_start: e.target.value })}
-                        style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700 }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.2rem' }}>
-                        Jam Selesai Shift
-                      </label>
-                      <input
-                        type="time"
-                        value={formData.custom_end}
-                        onChange={(e) => setFormData({ ...formData, custom_end: e.target.value })}
-                        style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700 }}
-                      />
-                    </div>
+              {/* INFORMASI SHIFT AUTOMATED REALTIME */}
+              <div style={{ background: '#ecfdf5', padding: '1rem', borderRadius: '14px', border: '1px solid #a7f3d0', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                <Clock size={20} color="#047857" style={{ marginTop: '0.15rem', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: '0.825rem', fontWeight: 800, color: '#065f46', marginBottom: '0.2rem' }}>
+                    ⚡ Shift Tugas Real-time (Otomatis)
                   </div>
-                )}
+                  <div style={{ fontSize: '0.75rem', color: '#047857', lineHeight: 1.45, fontWeight: 500 }}>
+                    Owner tidak perlu memasukkan shift manual. Status shift pegawai akan otomatis terdeteksi & tersinkronisasi secara real-time saat Penanggung Jawab (PJ) atau Kasir membuka shift di aplikasi POS.
+                  </div>
+                </div>
               </div>
 
               {/* Modal Footer Actions */}
@@ -2131,48 +2188,17 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
                 </div>
               </div>
 
-              {/* Shift Options for Edit */}
-              <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>
-                  ⏰ Shift Tugas Karyawan
-                </label>
-                <select
-                  value={formData.shift_mode}
-                  onChange={(e) => setFormData({ ...formData, shift_mode: e.target.value })}
-                  style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700 }}
-                >
-                  <option value="Pagi (08:00 - 16:00)">Pagi (08:00 - 16:00)</option>
-                  <option value="Siang (16:00 - 00:00)">Siang (16:00 - 00:00)</option>
-                  <option value="Malam (00:00 - 08:00)">Malam (00:00 - 08:00)</option>
-                  <option value="CUSTOM">⚙️ Custom Shift (Tentukan Jam Mandiri)...</option>
-                </select>
-
-                {formData.shift_mode === 'CUSTOM' && (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginTop: '0.75rem' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.2rem' }}>
-                        Jam Mulai Shift
-                      </label>
-                      <input
-                        type="time"
-                        value={formData.custom_start}
-                        onChange={(e) => setFormData({ ...formData, custom_start: e.target.value })}
-                        style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700 }}
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '0.2rem' }}>
-                        Jam Selesai Shift
-                      </label>
-                      <input
-                        type="time"
-                        value={formData.custom_end}
-                        onChange={(e) => setFormData({ ...formData, custom_end: e.target.value })}
-                        style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700 }}
-                      />
-                    </div>
+              {/* INFORMASI SHIFT AUTOMATED REALTIME */}
+              <div style={{ background: '#ecfdf5', padding: '1rem', borderRadius: '14px', border: '1px solid #a7f3d0', display: 'flex', gap: '0.75rem', alignItems: 'flex-start' }}>
+                <Clock size={20} color="#047857" style={{ marginTop: '0.15rem', flexShrink: 0 }} />
+                <div>
+                  <div style={{ fontSize: '0.825rem', fontWeight: 800, color: '#065f46', marginBottom: '0.2rem' }}>
+                    ⚡ Shift Tugas Real-time (Otomatis)
                   </div>
-                )}
+                  <div style={{ fontSize: '0.75rem', color: '#047857', lineHeight: 1.45, fontWeight: 500 }}>
+                    Owner tidak perlu memasukkan shift manual. Status shift pegawai akan otomatis terdeteksi & tersinkronisasi secara real-time saat Penanggung Jawab (PJ) atau Kasir membuka shift di aplikasi POS.
+                  </div>
+                </div>
               </div>
 
               {/* Modal Footer Actions */}
@@ -2297,8 +2323,10 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#475569' }}>
                 <Clock size={16} color="#2563eb" />
-                <span style={{ fontWeight: 600 }}>Shift Tugas:</span>
-                <span style={{ fontWeight: 800, color: '#0f172a', marginLeft: 'auto' }}>{selectedUser.shift || 'Pagi (08:00 - 16:00)'}</span>
+                <span style={{ fontWeight: 600 }}>Status Shift:</span>
+                <span style={{ fontWeight: 800, color: '#0f172a', marginLeft: 'auto' }}>
+                  {getUserShiftStatus(selectedUser).badgeText}
+                </span>
               </div>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#475569' }}>
