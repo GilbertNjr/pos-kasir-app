@@ -95,8 +95,8 @@ export const App: React.FC = () => {
       }
     } catch {}
     return {
-      name: 'Masukan Nama Toko Anda',
-      ownerName: 'Masukan Nama Anda',
+      name: '',
+      ownerName: '',
       logoUrl: '',
     };
   });
@@ -114,7 +114,7 @@ export const App: React.FC = () => {
       return nextProfile;
     });
 
-    if (profile.ownerName) {
+    if (profile.ownerName && !profile.ownerName.startsWith('Masukan ')) {
       setCurrentUser((prev) => {
         if (prev && prev.role === 'OWNER') {
           const updated = { ...prev, full_name: profile.ownerName! };
@@ -132,8 +132,10 @@ export const App: React.FC = () => {
       .getSettings()
       .then((s) => {
         if (s?.store_profile) {
-          const sName = s.store_profile.name || 'Masukan Nama Toko Anda';
-          const oName = s.store_profile.owner_name || 'Masukan Nama Anda';
+          const rawName = s.store_profile.name || '';
+          const rawOwner = s.store_profile.owner_name || '';
+          const sName = rawName.startsWith('Masukan ') ? '' : rawName;
+          const oName = rawOwner.startsWith('Masukan ') ? '' : rawOwner;
           const lUrl = s.store_profile.logo_url || '';
 
           const updated = { name: sName, ownerName: oName, logoUrl: lUrl };
@@ -176,9 +178,11 @@ export const App: React.FC = () => {
         const payload = JSON.parse(event.data);
         if (payload?.settings?.store_profile) {
           const sp = payload.settings.store_profile;
+          const rawName = sp.name || '';
+          const rawOwner = sp.owner_name || '';
           const updated = {
-            name: sp.name || 'Masukan Nama Toko Anda',
-            ownerName: sp.owner_name || 'Masukan Nama Anda',
+            name: rawName.startsWith('Masukan ') ? '' : rawName,
+            ownerName: rawOwner.startsWith('Masukan ') ? '' : rawOwner,
             logoUrl: sp.logo_url || '',
           };
           setStoreProfile(updated);

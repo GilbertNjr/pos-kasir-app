@@ -75,7 +75,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
               maxWidth: '100%',
             }}
           >
-            Selamat datang, {currentUser.full_name}
+            Selamat datang, {currentUser.full_name && !currentUser.full_name.includes('Masukan') ? currentUser.full_name : (currentUser.username || 'Owner')}
           </h1>
           <p
             style={{

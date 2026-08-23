@@ -74,17 +74,17 @@ class SettingsService {
   private getDefaultSettings(): SystemSettingsData {
     return {
       store_profile: {
-        name: 'Masukan Nama Toko Anda',
-        owner_name: 'Masukan Nama Anda',
-        email: 'Masukan Email Anda',
-        phone: 'Masukan Nomor Telepon Anda',
-        description: 'Toko sembako dan kebutuhan sehari-hari.',
+        name: '',
+        owner_name: '',
+        email: '',
+        phone: '',
+        description: '',
         logo_url: '',
-        address: 'Masukan Alamat Anda',
-        district: 'Masukan Kecamatan Anda',
-        city: 'Masukan Kota Anda',
-        postal_code: 'Masukan Kode Pos Anda',
-        country: 'Masukan Negara Anda',
+        address: '',
+        district: '',
+        city: '',
+        postal_code: '',
+        country: '',
       },
       theme_settings: {
         theme_color: 'dark_slate',
