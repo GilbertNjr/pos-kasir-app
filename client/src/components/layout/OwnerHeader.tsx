@@ -172,6 +172,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
         {/* User / Store Avatar */}
         <div style={{ display: 'flex', alignItems: 'center', borderLeft: '1px solid #e2e8f0', paddingLeft: '0.55rem', marginLeft: '0.15rem' }}>
           <div
+            className="sidebar-brand-logo"
             title={currentUser.full_name}
             style={{
               width: '36px',
@@ -188,6 +189,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
               boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
               border: '2px solid #ffffff',
               flexShrink: 0,
+              padding: 0,
             }}
           >
             {currentUser.avatar_url ? (

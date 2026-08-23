@@ -319,14 +319,17 @@ html, body {
     gap: 0.75rem;
   }
 
-  /* Card padding & border-radius adjustments */
-  div[style*="borderRadius: 14px"],
-  div[style*="borderRadius: 16px"],
-  div[style*="borderRadius: 12px"],
-  div[style*="border-radius: 14px"],
-  div[style*="border-radius: 16px"],
-  div[style*="border-radius: 12px"] {
+  /* Card padding & border-radius adjustments (exclude small fixed-size logo/avatar containers) */
+  .auto-grid-cards > div,
+  .dashboard-card,
+  div[style*="borderRadius: 14px"]:not(.sidebar-brand-logo):not([style*="width: 42px"]):not([style*="width: 40px"]):not([style*="width: 38px"]):not([style*="width: 36px"]),
+  div[style*="borderRadius: 16px"]:not(.sidebar-brand-logo):not([style*="width: 42px"]):not([style*="width: 40px"]):not([style*="width: 38px"]):not([style*="width: 36px"]),
+  div[style*="borderRadius: 12px"]:not(.sidebar-brand-logo):not([style*="width: 42px"]):not([style*="width: 40px"]):not([style*="width: 38px"]):not([style*="width: 36px"]) {
     padding: 0.9rem !important;
+  }
+
+  .sidebar-brand-logo {
+    padding: 0 !important;
   }
 
   /* Metric Card text size on mobile to prevent overflow */

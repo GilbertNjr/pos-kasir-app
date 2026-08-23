@@ -90,6 +90,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0, width: '100%' }}>
           <div
+            className="sidebar-brand-logo"
             style={{
               width: '42px',
               height: '42px',
@@ -102,10 +103,11 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               boxShadow: '0 4px 10px rgba(15, 23, 42, 0.15)',
               overflow: 'hidden',
               flexShrink: 0,
+              padding: 0,
             }}
           >
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo Toko" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={logoUrl} alt="Logo Toko" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             ) : (
               <Store size={22} />
             )}
@@ -424,6 +426,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.25rem' }}>
           <div style={{ position: 'relative', width: '38px', height: '38px', flexShrink: 0 }}>
             <div
+              className="sidebar-brand-logo"
               style={{
                 width: '38px',
                 height: '38px',
@@ -444,6 +447,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
                   ? '0 0 10px rgba(245, 158, 11, 0.45)'
                   : isShiftLeader ? '0 0 8px rgba(147, 51, 234, 0.35)' : 'none',
                 overflow: 'hidden',
+                padding: 0,
               }}
             >
               {currentUser.avatar_url ? (

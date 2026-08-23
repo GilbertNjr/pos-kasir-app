@@ -94,6 +94,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', minWidth: 0, width: '100%' }}>
           <div
+            className="sidebar-brand-logo"
             style={{
               width: '42px',
               height: '42px',
@@ -109,10 +110,11 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
               border: '1px solid #fef08a',
               overflow: 'hidden',
               flexShrink: 0,
+              padding: 0,
             }}
           >
             {logoUrl ? (
-              <img src={logoUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <img src={logoUrl} alt="Logo" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
             ) : (
               <span>{(storeName || 'P').charAt(0).toUpperCase()}</span>
             )}
@@ -223,6 +225,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
             <div style={{ position: 'relative', width: '40px', height: '40px', flexShrink: 0 }}>
               <div
+                className="sidebar-brand-logo"
                 style={{
                   width: '40px',
                   height: '40px',
@@ -239,6 +242,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                   overflow: 'hidden',
                   border: currentUser.role === 'OWNER' ? '2px solid #fef08a' : '2px solid #cbd5e1',
                   boxShadow: currentUser.role === 'OWNER' ? '0 0 12px rgba(245, 158, 11, 0.45)' : 'none',
+                  padding: 0,
                 }}
               >
                 {currentUser.avatar_url ? (
