@@ -475,12 +475,12 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
       <div className="responsive-main-grid">
         {/* LEFT COLUMN: PRODUCT LIST TABLE & CONTROLS */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', minWidth: 0 }}>
-          {/* CONTROL TOOLBAR CARD */}
-          <div style={{ background: '#ffffff', borderRadius: '22px', border: '1px solid #e2e8f0', padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
-            {/* Top Toolbar Row */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+          {/* CONTROL TOOLBAR CARD (Clean & Fully Responsive across all viewports) */}
+          <div className="products-toolbar-card">
+            {/* Top Toolbar Row: Search + View & Page Size Switcher */}
+            <div className="products-top-toolbar">
               {/* Search Box */}
-              <div style={{ position: 'relative', flex: 1, minWidth: '240px' }}>
+              <div className="products-search-box">
                 <Search size={18} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                 <input
                   type="text"
@@ -503,7 +503,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
               </div>
 
               {/* View Mode & Page Size Switcher */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <div className="products-view-controls">
                 <div style={{ display: 'flex', background: '#f1f5f9', padding: '0.25rem', borderRadius: '12px' }}>
                   <button
                     onClick={() => setViewMode('table')}
@@ -519,6 +519,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                       boxShadow: viewMode === 'table' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
                       gap: '0.35rem',
                       fontSize: '0.8rem',
                     }}
@@ -539,6 +540,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                       boxShadow: viewMode === 'grid' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
                       gap: '0.35rem',
                       fontSize: '0.8rem',
                     }}
@@ -573,112 +575,88 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
             </div>
 
             {/* Filter Pills Row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', paddingTop: '0.5rem', borderTop: '1px solid #f1f5f9' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', fontWeight: 800, color: '#64748b', marginRight: '0.25rem' }}>
+            <div className="products-filter-row">
+              {/* Unit Usaha Section */}
+              <div className="products-filter-label" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 800, color: '#64748b' }}>
                 <Filter size={14} /> Bidang Usaha:
               </div>
 
-              <button
-                onClick={() => { setSelectedUnit('ALL'); setCurrentPage(1); }}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: selectedUnit === 'ALL' ? '#0f172a' : '#f1f5f9',
-                  color: selectedUnit === 'ALL' ? '#ffffff' : '#64748b',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Semua Unit
-              </button>
+              <div className="products-filter-group">
+                <button
+                  onClick={() => { setSelectedUnit('ALL'); setCurrentPage(1); }}
+                  className="products-filter-btn"
+                  style={{
+                    background: selectedUnit === 'ALL' ? '#0f172a' : '#f1f5f9',
+                    color: selectedUnit === 'ALL' ? '#ffffff' : '#64748b',
+                  }}
+                >
+                  Semua Unit
+                </button>
 
-              <button
-                onClick={() => { setSelectedUnit('FC_PRINT'); setCurrentPage(1); }}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: selectedUnit === 'FC_PRINT' ? '#4f46e5' : '#f1f5f9',
-                  color: selectedUnit === 'FC_PRINT' ? '#ffffff' : '#64748b',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                }}
-              >
-                📄 FC / Printing
-              </button>
+                <button
+                  onClick={() => { setSelectedUnit('FC_PRINT'); setCurrentPage(1); }}
+                  className="products-filter-btn"
+                  style={{
+                    background: selectedUnit === 'FC_PRINT' ? '#4f46e5' : '#f1f5f9',
+                    color: selectedUnit === 'FC_PRINT' ? '#ffffff' : '#64748b',
+                  }}
+                >
+                  📄 FC / Print
+                </button>
 
-              <button
-                onClick={() => { setSelectedUnit('FNB'); setCurrentPage(1); }}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: selectedUnit === 'FNB' ? '#059669' : '#f1f5f9',
-                  color: selectedUnit === 'FNB' ? '#ffffff' : '#64748b',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                }}
-              >
-                🍧 F&B Store
-              </button>
+                <button
+                  onClick={() => { setSelectedUnit('FNB'); setCurrentPage(1); }}
+                  className="products-filter-btn"
+                  style={{
+                    background: selectedUnit === 'FNB' ? '#059669' : '#f1f5f9',
+                    color: selectedUnit === 'FNB' ? '#ffffff' : '#64748b',
+                  }}
+                >
+                  🍧 F&B Store
+                </button>
+              </div>
 
-              <div style={{ height: '20px', width: '1px', background: '#e2e8f0', margin: '0 0.3rem' }} />
+              <div className="products-filter-divider" style={{ height: '20px', width: '1px', background: '#e2e8f0', margin: '0 0.2rem' }} />
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', fontWeight: 800, color: '#64748b', marginRight: '0.25rem' }}>
+              {/* Pengaturan Stok Section */}
+              <div className="products-filter-label" style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.78rem', fontWeight: 800, color: '#64748b' }}>
                 Pengaturan Stok:
               </div>
 
-              <button
-                onClick={() => { setSelectedStockFilter('ALL'); setCurrentPage(1); }}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: selectedStockFilter === 'ALL' ? '#334155' : '#f1f5f9',
-                  color: selectedStockFilter === 'ALL' ? '#ffffff' : '#64748b',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Semua
-              </button>
+              <div className="products-filter-group">
+                <button
+                  onClick={() => { setSelectedStockFilter('ALL'); setCurrentPage(1); }}
+                  className="products-filter-btn"
+                  style={{
+                    background: selectedStockFilter === 'ALL' ? '#334155' : '#f1f5f9',
+                    color: selectedStockFilter === 'ALL' ? '#ffffff' : '#64748b',
+                  }}
+                >
+                  Semua
+                </button>
 
-              <button
-                onClick={() => { setSelectedStockFilter('PHYSICAL'); setCurrentPage(1); }}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: selectedStockFilter === 'PHYSICAL' ? '#059669' : '#f1f5f9',
-                  color: selectedStockFilter === 'PHYSICAL' ? '#ffffff' : '#64748b',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Fisik (Kelola Stok)
-              </button>
+                <button
+                  onClick={() => { setSelectedStockFilter('PHYSICAL'); setCurrentPage(1); }}
+                  className="products-filter-btn"
+                  style={{
+                    background: selectedStockFilter === 'PHYSICAL' ? '#059669' : '#f1f5f9',
+                    color: selectedStockFilter === 'PHYSICAL' ? '#ffffff' : '#64748b',
+                  }}
+                >
+                  Fisik (Stok)
+                </button>
 
-              <button
-                onClick={() => { setSelectedStockFilter('SERVICE'); setCurrentPage(1); }}
-                style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '10px',
-                  border: 'none',
-                  background: selectedStockFilter === 'SERVICE' ? '#7c3aed' : '#f1f5f9',
-                  color: selectedStockFilter === 'SERVICE' ? '#ffffff' : '#64748b',
-                  fontWeight: 800,
-                  fontSize: '0.8rem',
-                  cursor: 'pointer',
-                }}
-              >
-                Jasa (Tanpa Stok)
-              </button>
+                <button
+                  onClick={() => { setSelectedStockFilter('SERVICE'); setCurrentPage(1); }}
+                  className="products-filter-btn"
+                  style={{
+                    background: selectedStockFilter === 'SERVICE' ? '#7c3aed' : '#f1f5f9',
+                    color: selectedStockFilter === 'SERVICE' ? '#ffffff' : '#64748b',
+                  }}
+                >
+                  Jasa (Tanpa Stok)
+                </button>
+              </div>
             </div>
           </div>
 
