@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, Power, X, Edit3, Trash2, Plus, AlertTriangle } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User } from '../types';
-import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
+import { formatRupiah, formatDateIndoFull } from '../utils/formatters';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
 import { exportShiftToExcel, printShiftPDF } from '../utils/shiftReportExporter';
 
@@ -184,9 +184,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
       printShiftPDF({
         storeName: storeName || 'Kedai POS',
-        dateStr: storedMeta?.date
-          ? `${storedMeta.date} (Jam ${storedMeta.time} WIB)`
-          : new Date(activeShiftData.shift.start_time).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        dateStr: formatDateIndoFull(storedMeta?.date || activeShiftData.shift.start_time, storedMeta?.time),
         shiftId: shiftLabel,
         dutyUsers: dutyUsers.length > 0 ? dutyUsers : [currentUser.full_name],
         currentUserFullName: currentUser.full_name,
@@ -223,9 +221,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
       exportShiftToExcel({
         storeName: storeName || 'Kedai POS',
-        dateStr: storedMeta?.date
-          ? `${storedMeta.date} (Jam ${storedMeta.time} WIB)`
-          : new Date(activeShiftData.shift.start_time).toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        dateStr: formatDateIndoFull(storedMeta?.date || activeShiftData.shift.start_time, storedMeta?.time),
         shiftId: shiftLabel,
         dutyUsers: dutyUsers.length > 0 ? dutyUsers : [currentUser.full_name],
         currentUserFullName: currentUser.full_name,
@@ -425,7 +421,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               Laci Kas Bersama
             </h2>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', margin: '0.2rem 0 0.4rem 0' }}>
-              Dimulai pada: {storedMeta?.date ? `${storedMeta.date} | Jam ${storedMeta.time} WIB` : formatWaktuIndo(shift.start_time)}
+              Dimulai pada: {formatDateIndoFull(storedMeta?.date || shift.start_time, storedMeta?.time)}
             </p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap', marginTop: '0.4rem' }}>
               <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155' }}>👥 Tim Bertugas & Jam Masuk:</span>

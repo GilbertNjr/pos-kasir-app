@@ -1,4 +1,4 @@
-import { formatRupiah } from './formatters';
+import { formatRupiah, formatDateIndoFull } from './formatters';
 
 export interface ShiftReportExportOptions {
   storeName?: string;
@@ -277,6 +277,8 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
     expenses,
   } = options;
 
+  const formattedDateStr = formatDateIndoFull(dateStr);
+
   const { itemList, totalGrossSales, expenseList, totalExpenses, netTotal } = aggregateShiftData(
     transactions,
     expenses
@@ -410,9 +412,9 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
           <td style="width: 64%; text-align: left; padding: 1px 0;">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</td>
         </tr>
         <tr>
-          <td style="text-align: left; padding: 1px 0;">Tanggal Shift</td>
-          <td style="text-align: center; padding: 1px 0;">:</td>
-          <td style="text-align: left; padding: 1px 0;">${dateStr}</td>
+          <td style="text-align: left; padding: 1px 0; vertical-align: top;">Tanggal Shift</td>
+          <td style="text-align: center; padding: 1px 0; vertical-align: top;">:</td>
+          <td style="text-align: left; padding: 1px 0; word-break: break-word; font-weight: 600;">${formattedDateStr}</td>
         </tr>
         <tr>
           <td style="text-align: left; padding: 1px 0;">Sesi Shift</td>
