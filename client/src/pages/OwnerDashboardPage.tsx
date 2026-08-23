@@ -301,88 +301,88 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
       <PeriodFilterBar currentFilter={filter} onFilterChange={setFilter} />
 
       {/* 4. EXECUTIVE FINANCIAL KPI METRICS (5 CARDS) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem' }}>
+      <div className="kpi-metrics-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: '1.25rem' }}>
         {/* KPI 1: Total Omzet */}
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(37,99,235,0.06)', position: 'relative', overflow: 'hidden' }}>
+        <div className="kpi-metric-card" style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(37,99,235,0.06)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #3b82f6, #1d4ed8)' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
-            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TOTAL OMZET</span>
-            <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(37,99,235,0.12)' }}>
+          <div className="kpi-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <span className="kpi-card-title" style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TOTAL OMZET</span>
+            <div className="kpi-card-icon-box" style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(37,99,235,0.12)', flexShrink: 0 }}>
               <TrendingUp size={21} />
             </div>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#1d4ed8', letterSpacing: '-0.03em' }}>
+          <div className="kpi-card-value" style={{ fontSize: '1.75rem', fontWeight: 900, color: '#1d4ed8', letterSpacing: '-0.03em' }}>
             {formatRupiah(kpi.total_omzet)}
           </div>
-          <div style={{ fontSize: '0.78rem', color: kpi.total_omzet > 0 ? '#047857' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_omzet > 0 ? '#ecfdf5' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_omzet > 0 ? '#a7f3d0' : '#e2e8f0'}` }}>
+          <div className="kpi-card-badge" style={{ fontSize: '0.78rem', color: kpi.total_omzet > 0 ? '#047857' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_omzet > 0 ? '#ecfdf5' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_omzet > 0 ? '#a7f3d0' : '#e2e8f0'}` }}>
             <span>{kpi.total_omzet > 0 ? '▲ Omzet Terisi Periode Ini' : '● Rp 0 (Belum ada omzet)'}</span>
           </div>
         </div>
 
         {/* KPI 2: Total Pengeluaran Kas */}
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(239,68,68,0.06)', position: 'relative', overflow: 'hidden' }}>
+        <div className="kpi-metric-card" style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(239,68,68,0.06)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #f87171, #ef4444)' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
-            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>PENGELUARAN KAS</span>
-            <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(239,68,68,0.12)' }}>
+          <div className="kpi-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <span className="kpi-card-title" style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>PENGELUARAN KAS</span>
+            <div className="kpi-card-icon-box" style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#fef2f2', color: '#ef4444', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(239,68,68,0.12)', flexShrink: 0 }}>
               <DollarSign size={21} />
             </div>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#ef4444', letterSpacing: '-0.03em' }}>
+          <div className="kpi-card-value" style={{ fontSize: '1.75rem', fontWeight: 900, color: '#ef4444', letterSpacing: '-0.03em' }}>
             {formatRupiah(kpi.total_expenses)}
           </div>
-          <div style={{ fontSize: '0.78rem', color: kpi.total_expenses > 0 ? '#dc2626' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_expenses > 0 ? '#fef2f2' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_expenses > 0 ? '#fecaca' : '#e2e8f0'}` }}>
+          <div className="kpi-card-badge" style={{ fontSize: '0.78rem', color: kpi.total_expenses > 0 ? '#dc2626' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_expenses > 0 ? '#fef2f2' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_expenses > 0 ? '#fecaca' : '#e2e8f0'}` }}>
             <span>{kpi.total_expenses > 0 ? '▼ Pengeluaran Kas Dicatat' : '● Rp 0 (Nol pengeluaran)'}</span>
           </div>
         </div>
 
         {/* KPI 3: Total Transaksi Nota */}
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(16,185,129,0.06)', position: 'relative', overflow: 'hidden' }}>
+        <div className="kpi-metric-card" style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(16,185,129,0.06)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #34d399, #10b981)' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
-            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TOTAL TRANSAKSI</span>
-            <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(16,185,129,0.12)' }}>
+          <div className="kpi-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <span className="kpi-card-title" style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>TOTAL TRANSAKSI</span>
+            <div className="kpi-card-icon-box" style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#ecfdf5', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(16,185,129,0.12)', flexShrink: 0 }}>
               <ShoppingBag size={21} />
             </div>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
+          <div className="kpi-card-value" style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
             {kpi.total_transactions_count} <span style={{ fontSize: '1.05rem', color: '#94a3b8', fontWeight: 700 }}>Nota</span>
           </div>
-          <div style={{ fontSize: '0.78rem', color: kpi.total_transactions_count > 0 ? '#047857' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_transactions_count > 0 ? '#ecfdf5' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_transactions_count > 0 ? '#a7f3d0' : '#e2e8f0'}` }}>
-            <span>{kpi.total_transactions_count > 0 ? `▲ ${kpi.total_transactions_count} Nota terbit hari ini` : '● 0 Nota (Belum ada transaksi)'}</span>
+          <div className="kpi-card-badge" style={{ fontSize: '0.78rem', color: kpi.total_transactions_count > 0 ? '#047857' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_transactions_count > 0 ? '#ecfdf5' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_transactions_count > 0 ? '#a7f3d0' : '#e2e8f0'}` }}>
+            <span>{kpi.total_transactions_count > 0 ? `▲ ${kpi.total_transactions_count} Nota terbit` : '● 0 Nota (Belum ada transaksi)'}</span>
           </div>
         </div>
 
         {/* KPI 4: Total Qty Unit Terjual */}
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(245,158,11,0.06)', position: 'relative', overflow: 'hidden' }}>
+        <div className="kpi-metric-card" style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(245,158,11,0.06)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #fbbf24, #f59e0b)' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
-            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>ITEM TERJUAL</span>
-            <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(245,158,11,0.12)' }}>
+          <div className="kpi-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <span className="kpi-card-title" style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>ITEM TERJUAL</span>
+            <div className="kpi-card-icon-box" style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(245,158,11,0.12)', flexShrink: 0 }}>
               <Package size={21} />
             </div>
           </div>
-          <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
+          <div className="kpi-card-value" style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.03em' }}>
             {kpi.total_items_sold} <span style={{ fontSize: '1.05rem', color: '#94a3b8', fontWeight: 700 }}>Unit</span>
           </div>
-          <div style={{ fontSize: '0.78rem', color: kpi.total_items_sold > 0 ? '#b45309' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_items_sold > 0 ? '#fffbeb' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_items_sold > 0 ? '#fde68a' : '#e2e8f0'}` }}>
-            <span>{kpi.total_items_sold > 0 ? `▲ ${kpi.total_items_sold} Unit terjual hari ini` : '● 0 Unit (Nol item terjual)'}</span>
+          <div className="kpi-card-badge" style={{ fontSize: '0.78rem', color: kpi.total_items_sold > 0 ? '#b45309' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: kpi.total_items_sold > 0 ? '#fffbeb' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${kpi.total_items_sold > 0 ? '#fde68a' : '#e2e8f0'}` }}>
+            <span>{kpi.total_items_sold > 0 ? `▲ ${kpi.total_items_sold} Unit terjual` : '● 0 Unit (Nol item terjual)'}</span>
           </div>
         </div>
 
         {/* KPI 5: Kasir Aktif */}
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(244,63,94,0.08)', position: 'relative', overflow: 'hidden' }}>
+        <div className="kpi-metric-card kpi-card-full-mobile" style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '22px', padding: '1.5rem', boxShadow: '0 10px 25px -5px rgba(244,63,94,0.08)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '4px', background: 'linear-gradient(90deg, #fb7185, #e11d48)' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
-            <span style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>KASIR AKTIF</span>
-            <div style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#ffe4e6', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(225,29,72,0.12)' }}>
+          <div className="kpi-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.85rem' }}>
+            <span className="kpi-card-title" style={{ fontSize: '0.76rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em' }}>KASIR AKTIF</span>
+            <div className="kpi-card-icon-box" style={{ width: '42px', height: '42px', borderRadius: '14px', background: '#ffe4e6', color: '#e11d48', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 10px rgba(225,29,72,0.12)', flexShrink: 0 }}>
               <Headphones size={21} />
             </div>
           </div>
-          <div style={{ fontSize: '1.85rem', fontWeight: 900, color: '#e11d48', letterSpacing: '-0.03em' }}>
+          <div className="kpi-card-value" style={{ fontSize: '1.85rem', fontWeight: 900, color: '#e11d48', letterSpacing: '-0.03em' }}>
             {activeCashiersCount} <span style={{ fontSize: '1.1rem', color: '#94a3b8', fontWeight: 700 }}>/ {totalCashiersCount || (activeCashiersCount > 0 ? activeCashiersCount : 0)}</span>
           </div>
-          <div style={{ fontSize: '0.78rem', color: activeCashiersCount > 0 ? '#be123c' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: activeCashiersCount > 0 ? '#ffe4e6' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${activeCashiersCount > 0 ? '#fecdd3' : '#e2e8f0'}` }}>
+          <div className="kpi-card-badge" style={{ fontSize: '0.78rem', color: activeCashiersCount > 0 ? '#be123c' : '#64748b', marginTop: '0.5rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.35rem', background: activeCashiersCount > 0 ? '#ffe4e6' : '#f8fafc', padding: '0.2rem 0.55rem', borderRadius: '12px', width: 'fit-content', border: `1px solid ${activeCashiersCount > 0 ? '#fecdd3' : '#e2e8f0'}` }}>
             <span>{activeCashiersCount > 0 ? `● ${activeCashiersCount} Kasir Logged In / Aktif` : '○ 0 Kasir Logged In'}</span>
           </div>
         </div>
