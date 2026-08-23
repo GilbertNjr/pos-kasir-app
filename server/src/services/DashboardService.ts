@@ -336,8 +336,14 @@ export class DashboardService {
       status: t.status,
     }));
 
-    // Alerts
-    const unresolved_shift_variances = allShifts.filter((s) => s.reconciliation_status === 'KURANG').length;
+    // Alerts (Hanya hitung selisih kas shift yang terjadi pada periode filter yang dipilih)
+    const unresolved_shift_variances = allShifts.filter((s) => {
+      if (s.reconciliation_status !== 'KURANG') return false;
+      const sDateRaw = s.end_time || (s as any).closed_at || s.start_time;
+      if (!sDateRaw) return false;
+      const sDate = new Date(sDateRaw);
+      return sDate >= startDate && sDate <= endDate;
+    }).length;
     const low_stock_products_count = 0; // stok alert placeholder
 
     // AI Business Insights Engine (with 5-Key Fallback & Machine Learning Heuristic Engine)

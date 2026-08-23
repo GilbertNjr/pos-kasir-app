@@ -383,7 +383,13 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
             <AlertCircle size={24} color="#d97706" />
           </div>
           <div style={{ fontSize: '0.88rem', lineHeight: 1.45 }}>
-            <strong style={{ color: '#b45309', fontWeight: 900 }}>PERHATIAN OPERASIONAL TOKO:</strong> Terdeteksi <strong>{metrics.alerts.unresolved_shift_variances} sesi shift</strong> dengan selisih kas yang belum terselesaikan. Harap periksa di menu laporan shift kasir.
+            <strong style={{ color: '#b45309', fontWeight: 900 }}>PERHATIAN OPERASIONAL TOKO:</strong>{' '}
+            {metrics.alerts.unresolved_shift_variances > 0 && (
+              <span>Terdeteksi <strong>{metrics.alerts.unresolved_shift_variances} sesi shift</strong> dengan selisih kas yang belum terselesaikan. Harap periksa di menu laporan shift kasir. </span>
+            )}
+            {metrics.alerts.low_stock_products_count > 0 && (
+              <span>Terdeteksi <strong>{metrics.alerts.low_stock_products_count} produk</strong> dengan stok menipis.</span>
+            )}
           </div>
         </div>
       )}
