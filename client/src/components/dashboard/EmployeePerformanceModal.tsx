@@ -9,6 +9,7 @@ export interface EmployeeSummary {
   full_name: string;
   role: string;
   is_pj?: boolean;
+  avatar_url?: string;
   transaction_count: number;
   total_sales: number;
   is_active_in_shift: boolean;
@@ -57,8 +58,12 @@ export const EmployeePerformanceModal: React.FC<EmployeePerformanceModalProps> =
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.85rem', marginBottom: '1rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-            <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: color.avatarBg, color: color.avatarText, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.1rem', boxShadow: `0 4px 12px ${color.bg}` }}>
-              {employee.full_name.charAt(0).toUpperCase()}
+            <div style={{ width: '44px', height: '44px', borderRadius: '50%', background: color.avatarBg, color: color.avatarText, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, fontSize: '1.1rem', boxShadow: `0 4px 12px ${color.bg}`, overflow: 'hidden', flexShrink: 0 }}>
+              {employee.avatar_url ? (
+                <img src={employee.avatar_url} alt={employee.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                employee.full_name.charAt(0).toUpperCase()
+              )}
             </div>
             <div>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>{employee.full_name}</h3>

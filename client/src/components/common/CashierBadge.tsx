@@ -34,6 +34,7 @@ interface CashierBadgeProps {
   name: string;
   role?: string;
   showAvatar?: boolean;
+  avatarUrl?: string;
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -41,6 +42,7 @@ export const CashierBadge: React.FC<CashierBadgeProps> = ({
   name,
   role,
   showAvatar = true,
+  avatarUrl,
   size = 'md',
 }) => {
   const color = getCashierColor(name);
@@ -84,9 +86,14 @@ export const CashierBadge: React.FC<CashierBadgeProps> = ({
             fontSize: avatarFontSize,
             fontWeight: 900,
             flexShrink: 0,
+            overflow: 'hidden',
           }}
         >
-          {initial}
+          {avatarUrl ? (
+            <img src={avatarUrl} alt={name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          ) : (
+            initial
+          )}
         </span>
       )}
       <span>{name}</span>

@@ -285,8 +285,12 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
                     </div>
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', background: '#f8fafc', padding: '0.65rem 0.85rem', borderRadius: '10px' }}>
-                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: isOpener ? '#4f46e5' : '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem' }}>
-                        {user.full_name.charAt(0).toUpperCase()}
+                      <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: isOpener ? '#4f46e5' : '#059669', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.85rem', overflow: 'hidden', flexShrink: 0 }}>
+                        {user.avatar_url ? (
+                          <img src={user.avatar_url} alt={user.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          user.full_name.charAt(0).toUpperCase()
+                        )}
                       </div>
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.full_name}</div>
@@ -407,8 +411,12 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
                     <tr key={user.user_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                       <td style={{ padding: '0.85rem 1rem' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
-                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isOnDuty ? (isOpener ? '#4f46e5' : '#059669') : '#94a3b8', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem' }}>
-                            {user.full_name.charAt(0).toUpperCase()}
+                          <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: isOnDuty ? (isOpener ? '#4f46e5' : '#059669') : '#94a3b8', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, fontSize: '0.8rem', overflow: 'hidden', flexShrink: 0 }}>
+                            {user.avatar_url ? (
+                              <img src={user.avatar_url} alt={user.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                            ) : (
+                              user.full_name.charAt(0).toUpperCase()
+                            )}
                           </div>
                           <div>
                             <div style={{ fontWeight: 700, color: '#0f172a' }}>{user.full_name}</div>

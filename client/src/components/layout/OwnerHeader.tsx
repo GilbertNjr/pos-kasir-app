@@ -26,7 +26,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
       style={{
         background: '#ffffff',
         borderBottom: '1px solid #e2e8f0',
-        padding: '1rem 1.5rem',
+        padding: '0.75rem 1rem',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
@@ -35,9 +35,14 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
         zIndex: 100,
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
         flexShrink: 0,
+        gap: '0.5rem',
+        width: '100%',
+        maxWidth: '100vw',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
       }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0, flex: 1 }}>
         {/* Mobile Hamburger Toggle */}
         <button
           onClick={onOpenMobileMenu}
@@ -50,24 +55,60 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
             padding: '0.25rem',
             display: 'flex',
             alignItems: 'center',
+            flexShrink: 0,
           }}
         >
-          <Menu size={24} />
+          <Menu size={22} />
         </button>
 
-        <div style={{ minWidth: 0 }}>
-          <h1 style={{ fontSize: 'clamp(0.95rem, 3.5vw, 1.25rem)', fontWeight: 800, color: '#0f172a', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div style={{ minWidth: 0, flex: 1 }}>
+          <h1
+            style={{
+              fontSize: 'clamp(0.875rem, 3.2vw, 1.25rem)',
+              fontWeight: 800,
+              color: '#0f172a',
+              margin: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: '100%',
+            }}
+          >
             Selamat datang, {currentUser.full_name}
           </h1>
-          <p style={{ fontSize: '0.725rem', color: '#64748b', margin: '0.15rem 0 0 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+          <p
+            style={{
+              fontSize: '0.7rem',
+              color: '#64748b',
+              margin: '0.15rem 0 0 0',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+            }}
+          >
             <span>{formatWaktuIndo(new Date().toISOString())} • POS Realtime</span>
-            <span style={{ padding: '0.05rem 0.35rem', borderRadius: '4px', background: 'rgba(37,99,235,0.1)', color: '#2563eb', fontWeight: 800, fontSize: '0.65rem' }}>v1.2.0</span>
+            <span
+              className="header-hide-mobile"
+              style={{
+                padding: '0.05rem 0.35rem',
+                borderRadius: '4px',
+                background: 'rgba(37,99,235,0.1)',
+                color: '#2563eb',
+                fontWeight: 800,
+                fontSize: '0.65rem',
+              }}
+            >
+              v1.2.0
+            </span>
           </p>
         </div>
       </div>
 
       {/* Right Actions: Realtime Badge, Notification, Profile */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexShrink: 0 }}>
         {/* Network Online / Offline Status Badge */}
         <NetworkStatusBadge />
 
@@ -76,12 +117,12 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: '0.4rem',
-            padding: '0.35rem 0.75rem',
+            gap: '0.35rem',
+            padding: '0.3rem 0.55rem',
             borderRadius: '20px',
             background: isSseConnected ? 'rgba(16, 185, 129, 0.1)' : 'rgba(239, 68, 68, 0.1)',
             border: `1px solid ${isSseConnected ? '#10b981' : '#ef4444'}`,
-            fontSize: '0.75rem',
+            fontSize: '0.725rem',
             fontWeight: 600,
             color: isSseConnected ? '#059669' : '#dc2626',
           }}
@@ -93,9 +134,10 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
               borderRadius: '50%',
               background: isSseConnected ? '#10b981' : '#ef4444',
               boxShadow: isSseConnected ? '0 0 8px #10b981' : 'none',
+              flexShrink: 0,
             }}
           />
-          <span className="header-badge-text-compact">{isSseConnected ? 'Realtime Active' : 'Offline'}</span>
+          <span className="header-badge-text-compact">{isSseConnected ? 'Realtime' : 'Offline'}</span>
         </div>
 
         {/* Bantuan Button */}
@@ -125,13 +167,13 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
         {/* Notification Bell */}
         <NotificationPopover />
 
-        {/* User / Store Avatar (Gambar No 2) */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', borderLeft: '1px solid #e2e8f0', paddingLeft: '0.85rem' }}>
+        {/* User / Store Avatar */}
+        <div style={{ display: 'flex', alignItems: 'center', borderLeft: '1px solid #e2e8f0', paddingLeft: '0.55rem', marginLeft: '0.15rem' }}>
           <div
             title={currentUser.full_name}
             style={{
-              width: '38px',
-              height: '38px',
+              width: '36px',
+              height: '36px',
               borderRadius: '50%',
               background: 'var(--primary-gradient)',
               color: '#ffffff',
@@ -139,17 +181,19 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 700,
-              fontSize: '0.875rem',
+              fontSize: '0.85rem',
               overflow: 'hidden',
-              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.15)',
+              boxShadow: '0 2px 6px rgba(0, 0, 0, 0.12)',
               border: '2px solid #ffffff',
               flexShrink: 0,
             }}
           >
-            {logoUrl ? (
+            {currentUser.avatar_url ? (
+              <img src={currentUser.avatar_url} alt={currentUser.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            ) : logoUrl ? (
               <img src={logoUrl} alt="Avatar Logo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <UserIcon size={18} />
+              <UserIcon size={16} />
             )}
           </div>
         </div>

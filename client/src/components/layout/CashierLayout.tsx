@@ -443,9 +443,16 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
                 boxShadow: currentUser.role === 'OWNER'
                   ? '0 0 10px rgba(245, 158, 11, 0.45)'
                   : isShiftLeader ? '0 0 8px rgba(147, 51, 234, 0.35)' : 'none',
+                overflow: 'hidden',
               }}
             >
-              {currentUser.full_name.charAt(0).toUpperCase()}
+              {currentUser.avatar_url ? (
+                <img src={currentUser.avatar_url} alt={currentUser.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : logoUrl ? (
+                <img src={logoUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              ) : (
+                currentUser.full_name.charAt(0).toUpperCase()
+              )}
             </div>
             {currentUser.role === 'OWNER' ? (
               <span

@@ -241,7 +241,9 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                   boxShadow: currentUser.role === 'OWNER' ? '0 0 12px rgba(245, 158, 11, 0.45)' : 'none',
                 }}
               >
-                {logoUrl ? (
+                {currentUser.avatar_url ? (
+                  <img src={currentUser.avatar_url} alt={currentUser.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : logoUrl ? (
                   <img src={logoUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                   currentUser.full_name.charAt(0).toUpperCase()

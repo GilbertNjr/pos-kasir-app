@@ -364,48 +364,22 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '3rem' }}>
-      {/* Top Header & Breadcrumb Bar */}
-      <div
-        style={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: '1rem',
-        }}
-      >
+      {/* Top Header & Action Toolbar Bar */}
+      <div className="tx-header-bar">
         <div>
-          <h1
-            style={{
-              fontSize: '1.6rem',
-              fontWeight: 900,
-              color: '#0f172a',
-              margin: 0,
-              letterSpacing: '-0.02em',
-            }}
-          >
+          <h1 className="tx-header-title">
             Transaksi
           </h1>
-          <div
-            style={{
-              fontSize: '0.8rem',
-              fontWeight: 600,
-              color: '#64748b',
-              marginTop: '0.2rem',
-            }}
-          >
-            Dashboard &gt; <span style={{ color: '#2563eb', fontWeight: 700 }}>Transaksi</span>
-          </div>
         </div>
 
-        {/* Search, Date Picker, Filter & Export Action Toolbar */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexWrap: 'wrap' }}>
+        {/* Search, Date Picker & Export Action Toolbar */}
+        <div className="tx-toolbar-container">
           {/* Search Box */}
-          <div style={{ position: 'relative', width: '220px' }}>
+          <div className="tx-search-box">
             <Search
               size={16}
               color="#94a3b8"
-              style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }}
+              className="tx-search-icon"
             />
             <input
               type="text"
@@ -415,79 +389,35 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
                 setSearchQuery(e.target.value);
                 setCurrentPage(1);
               }}
-              style={{
-                width: '100%',
-                padding: '0.55rem 0.75rem 0.55rem 2.25rem',
-                borderRadius: '10px',
-                border: '1px solid #cbd5e1',
-                fontSize: '0.825rem',
-                fontWeight: 600,
-                color: '#0f172a',
-                outline: 'none',
-                background: '#ffffff',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-              }}
+              className="tx-search-input"
             />
           </div>
 
-          {/* Date Range Selector */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              background: '#ffffff',
-              padding: '0.45rem 0.75rem',
-              borderRadius: '10px',
-              border: '1px solid #cbd5e1',
-              fontSize: '0.825rem',
-              fontWeight: 700,
-              color: '#334155',
-            }}
-          >
-            <Calendar size={15} color="#2563eb" />
-            <select
-              value={periodType}
-              onChange={(e) => setPeriodType(e.target.value)}
-              style={{
-                border: 'none',
-                background: 'transparent',
-                fontSize: '0.825rem',
-                fontWeight: 700,
-                color: '#0f172a',
-                cursor: 'pointer',
-                outline: 'none',
-              }}
-            >
-              <option value="DAILY">Hari Ini</option>
-              <option value="WEEKLY">7 Hari Terakhir</option>
-              <option value="MONTHLY">Bulan Ini</option>
-              <option value="YEARLY">Tahun Ini</option>
-            </select>
-          </div>
+          <div className="tx-actions-wrapper">
+            {/* Date Range Selector */}
+            <div className="tx-date-select-wrapper">
+              <Calendar size={15} color="#2563eb" />
+              <select
+                value={periodType}
+                onChange={(e) => setPeriodType(e.target.value)}
+                className="tx-date-select"
+              >
+                <option value="DAILY">Hari Ini</option>
+                <option value="WEEKLY">7 Hari Terakhir</option>
+                <option value="MONTHLY">Bulan Ini</option>
+                <option value="YEARLY">Tahun Ini</option>
+              </select>
+            </div>
 
-          {/* Export Button */}
-          <button
-            onClick={handlePrintPDF}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              padding: '0.55rem 1rem',
-              background: '#2563eb',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '10px',
-              fontSize: '0.825rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(37, 99, 235, 0.25)',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Download size={15} />
-            Export
-          </button>
+            {/* Export Button */}
+            <button
+              onClick={handlePrintPDF}
+              className="tx-export-btn"
+            >
+              <Download size={15} />
+              <span>Export</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -507,49 +437,18 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
         </div>
       )}
 
-      {/* Top 5 Stat Metric Cards (Dynamic DB Realtime Sync) */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '1rem',
-        }}
-      >
+      {/* Top 5 Stat Metric Cards (Dynamic DB Realtime Sync - 2x2 Grid on Mobile, 5 Cols on Desktop) */}
+      <div className="tx-kpi-grid">
         {/* Card 1: Total Transaksi */}
-        <div
-          style={{
-            background: '#ffffff',
-            padding: '1.15rem',
-            borderRadius: '16px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b' }}>
-              Total Transaksi
-            </span>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: '#eff6ff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+        <div className="tx-kpi-card card-blue">
+          <div className="tx-kpi-header">
+            <span className="tx-kpi-title">Total Transaksi</span>
+            <div className="tx-kpi-icon-box" style={{ background: '#eff6ff', color: '#2563eb' }}>
               <FileText size={18} color="#2563eb" />
             </div>
           </div>
-          <div style={{ marginTop: '0.75rem' }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-              {totalTransactionsCount}
-            </h3>
+          <div className="tx-kpi-body">
+            <h3 className="tx-kpi-value">{totalTransactionsCount}</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.35rem' }}>
               {renderTrendBadge(countTrendPct)}
             </div>
@@ -557,40 +456,15 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
         </div>
 
         {/* Card 2: Total Penjualan */}
-        <div
-          style={{
-            background: '#ffffff',
-            padding: '1.15rem',
-            borderRadius: '16px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b' }}>
-              Total Penjualan
-            </span>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: '#ecfdf5',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+        <div className="tx-kpi-card card-emerald">
+          <div className="tx-kpi-header">
+            <span className="tx-kpi-title">Total Penjualan</span>
+            <div className="tx-kpi-icon-box" style={{ background: '#ecfdf5', color: '#059669' }}>
               <ShoppingBag size={18} color="#059669" />
             </div>
           </div>
-          <div style={{ marginTop: '0.75rem' }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-              {formatRupiah(totalSalesAmount)}
-            </h3>
+          <div className="tx-kpi-body">
+            <h3 className="tx-kpi-value">{formatRupiah(totalSalesAmount)}</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.35rem' }}>
               {renderTrendBadge(salesTrendPct)}
             </div>
@@ -598,40 +472,15 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
         </div>
 
         {/* Card 3: Rata-rata per Transaksi */}
-        <div
-          style={{
-            background: '#ffffff',
-            padding: '1.15rem',
-            borderRadius: '16px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b' }}>
-              Rata-rata per Transaksi
-            </span>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: '#f3e8ff',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+        <div className="tx-kpi-card card-purple">
+          <div className="tx-kpi-header">
+            <span className="tx-kpi-title">Rata-rata per Transaksi</span>
+            <div className="tx-kpi-icon-box" style={{ background: '#f3e8ff', color: '#7e22ce' }}>
               <Package size={18} color="#7e22ce" />
             </div>
           </div>
-          <div style={{ marginTop: '0.75rem' }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-              {formatRupiah(avgSalesPerTx)}
-            </h3>
+          <div className="tx-kpi-body">
+            <h3 className="tx-kpi-value">{formatRupiah(avgSalesPerTx)}</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginTop: '0.35rem' }}>
               {renderTrendBadge(avgTrendPct)}
             </div>
@@ -639,84 +488,30 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
         </div>
 
         {/* Card 4: Pembayaran Tunai */}
-        <div
-          style={{
-            background: '#ffffff',
-            padding: '1.15rem',
-            borderRadius: '16px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b' }}>
-              Pembayaran Tunai
-            </span>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: '#ffedd5',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+        <div className="tx-kpi-card card-orange">
+          <div className="tx-kpi-header">
+            <span className="tx-kpi-title">Pembayaran Tunai</span>
+            <div className="tx-kpi-icon-box" style={{ background: '#ffedd5', color: '#ea580c' }}>
               <Wallet size={18} color="#ea580c" />
             </div>
           </div>
-          <div style={{ marginTop: '0.75rem' }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-              {formatRupiah(totalCashSales)}
-            </h3>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginTop: '0.35rem' }}>
-              {cashPct}% dari total
-            </div>
+          <div className="tx-kpi-body">
+            <h3 className="tx-kpi-value">{formatRupiah(totalCashSales)}</h3>
+            <div className="tx-kpi-subtext">{cashPct}% dari total</div>
           </div>
         </div>
 
         {/* Card 5: Pembayaran Non Tunai */}
-        <div
-          style={{
-            background: '#ffffff',
-            padding: '1.15rem',
-            borderRadius: '16px',
-            border: '1px solid #e2e8f0',
-            boxShadow: '0 2px 10px rgba(0,0,0,0.02)',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b' }}>
-              Pembayaran Non Tunai
-            </span>
-            <div
-              style={{
-                width: '36px',
-                height: '36px',
-                borderRadius: '10px',
-                background: '#e0f2fe',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
+        <div className="tx-kpi-card card-sky tx-kpi-card-span-mobile">
+          <div className="tx-kpi-header">
+            <span className="tx-kpi-title">Pembayaran Non Tunai</span>
+            <div className="tx-kpi-icon-box" style={{ background: '#e0f2fe', color: '#0284c7' }}>
               <CreditCard size={18} color="#0284c7" />
             </div>
           </div>
-          <div style={{ marginTop: '0.75rem' }}>
-            <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-              {formatRupiah(totalNonCashSales)}
-            </h3>
-            <div style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', marginTop: '0.35rem' }}>
-              {nonCashPct}% dari total
-            </div>
+          <div className="tx-kpi-body">
+            <h3 className="tx-kpi-value">{formatRupiah(totalNonCashSales)}</h3>
+            <div className="tx-kpi-subtext">{nonCashPct}% dari total</div>
           </div>
         </div>
       </div>

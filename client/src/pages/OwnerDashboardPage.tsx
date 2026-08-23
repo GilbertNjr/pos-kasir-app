@@ -67,27 +67,13 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', paddingBottom: '3.5rem' }}>
-      {/* 1. UNIFIED SINGLE-ROW CONTROL TOOLBAR CARD FOR OWNER DASHBOARD */}
-      <div
-        style={{
-          background: '#ffffff',
-          padding: '0.85rem 1.25rem',
-          borderRadius: '16px',
-          border: '1px solid #cbd5e1',
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.03)',
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'nowrap',
-          overflowX: 'auto',
-          gap: '0.75rem',
-          width: '100%',
-        }}
-      >
+      {/* 1. UNIFIED RESPONSIVE CONTROL TOOLBAR CARD FOR OWNER DASHBOARD */}
+      <div className="owner-control-bar">
         {/* Left Side: Realtime Active Badge & Last Updated Timestamp */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', flexWrap: 'nowrap' }}>
+        <div className="owner-status-group">
           {/* Realtime Pulse Indicator */}
           <div
+            className="owner-status-badge"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -109,15 +95,17 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                 borderRadius: '50%',
                 background: isSseConnected ? '#10b981' : '#ef4444',
                 boxShadow: isSseConnected ? '0 0 10px #10b981' : 'none',
+                flexShrink: 0,
               }}
             />
-            {isSseConnected ? 'SINKRONISASI REALTIME AKTIF' : 'TERPUTUS'}
+            <span>{isSseConnected ? 'REALTIME AKTIF' : 'TERPUTUS'}</span>
           </div>
 
           {/* Last Updated Time */}
           <div
+            className="owner-status-badge"
             style={{
-              fontSize: '0.8rem',
+              fontSize: '0.78rem',
               color: '#475569',
               fontWeight: 700,
               display: 'flex',
@@ -130,14 +118,15 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
               whiteSpace: 'nowrap',
             }}
           >
-            <Clock size={15} color="#64748b" />
+            <Clock size={15} color="#64748b" style={{ flexShrink: 0 }} />
             <span>Pembaruan: <strong style={{ color: '#0f172a' }}>{lastUpdated ? formatWaktuIndo(lastUpdated) : '-'}</strong></span>
           </div>
 
           {/* App Version Badge */}
           <div
+            className="owner-status-badge header-hide-mobile"
             style={{
-              fontSize: '0.8rem',
+              fontSize: '0.78rem',
               color: '#1e40af',
               fontWeight: 800,
               display: 'flex',
@@ -150,40 +139,39 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
               whiteSpace: 'nowrap',
             }}
           >
-            <Sparkles size={14} color="#2563eb" />
-            <span>Versi Apps: <strong style={{ color: '#1d4ed8' }}>v{APP_VERSION}</strong></span>
+            <Sparkles size={14} color="#2563eb" style={{ flexShrink: 0 }} />
+            <span>v{APP_VERSION}</span>
           </div>
         </div>
 
         {/* Right Side: Refresh Data Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', flexShrink: 0, marginLeft: 'auto' }}>
-          <button
-            onClick={() => {
-              refresh();
-              if (onTriggerToast) onTriggerToast('success', 'Sinkronisasi Berhasil', 'Data analitik owner telah diperbarui.');
-            }}
-            disabled={loading}
-            style={{
-              padding: '0.55rem 1.15rem',
-              borderRadius: '10px',
-              border: 'none',
-              background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '0.825rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.45rem',
-              whiteSpace: 'nowrap',
-              boxShadow: '0 3px 10px rgba(15, 23, 42, 0.25)',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <RefreshCw size={15} className={loading ? 'spinning' : ''} />
-            Segarkan Data
-          </button>
-        </div>
+        <button
+          onClick={() => {
+            refresh();
+            if (onTriggerToast) onTriggerToast('success', 'Sinkronisasi Berhasil', 'Data analitik owner telah diperbarui.');
+          }}
+          disabled={loading}
+          className="owner-refresh-btn"
+          style={{
+            padding: '0.55rem 1.15rem',
+            borderRadius: '12px',
+            border: 'none',
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)',
+            color: '#ffffff',
+            fontWeight: 800,
+            fontSize: '0.825rem',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.45rem',
+            whiteSpace: 'nowrap',
+            boxShadow: '0 3px 10px rgba(15, 23, 42, 0.25)',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <RefreshCw size={15} className={loading ? 'spinning' : ''} />
+          <span>Segarkan Data</span>
+        </button>
       </div>
 
       {/* 2. QUICK ACTION SHORTCUT CARDS */}
@@ -659,9 +647,14 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                                 fontSize: '1rem',
                                 boxShadow: `0 3px 8px ${cashierColor.border}`,
                                 flexShrink: 0,
+                                overflow: 'hidden',
                               }}
                             >
-                              {emp.full_name.charAt(0).toUpperCase()}
+                              {emp.avatar_url ? (
+                                <img src={emp.avatar_url} alt={emp.full_name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              ) : (
+                                emp.full_name.charAt(0).toUpperCase()
+                              )}
                             </div>
                             <div style={{ minWidth: 0, flex: 1 }}>
                               <h4
