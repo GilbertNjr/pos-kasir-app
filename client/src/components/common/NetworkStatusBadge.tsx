@@ -30,6 +30,7 @@ export const NetworkStatusBadge: React.FC<NetworkStatusBadgeProps> = () => {
           ? 'Terhubung ke Internet / WiFi (Sistem Sinkron)'
           : 'Koneksi Terputus - Kasir Berjalan Mode Offline (Data Aman)'
       }
+      className="network-badge-container"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -60,7 +61,7 @@ export const NetworkStatusBadge: React.FC<NetworkStatusBadgeProps> = () => {
               flexShrink: 0,
             }}
           />
-          <span className="header-badge-text-compact" style={{ whiteSpace: 'nowrap' }}>ONLINE</span>
+          <span className="network-badge-label" style={{ whiteSpace: 'nowrap' }}>ONLINE</span>
         </>
       ) : (
         <>
@@ -75,7 +76,7 @@ export const NetworkStatusBadge: React.FC<NetworkStatusBadgeProps> = () => {
               flexShrink: 0,
             }}
           />
-          <span className="header-badge-text-compact" style={{ whiteSpace: 'nowrap' }}>OFFLINE</span>
+          <span className="network-badge-label" style={{ whiteSpace: 'nowrap' }}>OFFLINE</span>
         </>
       )}
     </div>

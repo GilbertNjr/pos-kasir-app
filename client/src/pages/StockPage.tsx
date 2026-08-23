@@ -774,17 +774,20 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     return entries.slice(0, 5);
   }, [stocks]);
 
-  // Warehouse physical totals (Dynamic Real-time DB)
+  // Warehouse physical totals (Dynamic Real-time DB: Gudang Utama & Etalase Toko)
   const totalGudangUtama = React.useMemo(() => {
-    return stocks.filter((s) => s.business_unit !== 'FC_PRINT').reduce((acc, s) => acc + s.current_stock, 0);
+    return stocks.reduce((acc, s) => {
+      const etalase = s.stock_etalase !== undefined ? s.stock_etalase : Math.min(s.current_stock, 5);
+      const gudang = s.stock_gudang !== undefined ? s.stock_gudang : Math.max(0, s.current_stock - etalase);
+      return acc + gudang;
+    }, 0);
   }, [stocks]);
 
-  const totalStorageFC = React.useMemo(() => {
-    return stocks.filter((s) => s.business_unit === 'FC_PRINT').reduce((acc, s) => acc + s.current_stock, 0);
-  }, [stocks]);
-
-  const totalStorageFNB = React.useMemo(() => {
-    return stocks.filter((s) => s.business_unit === 'FNB').reduce((acc, s) => acc + s.current_stock, 0);
+  const totalEtalaseToko = React.useMemo(() => {
+    return stocks.reduce((acc, s) => {
+      const etalase = s.stock_etalase !== undefined ? s.stock_etalase : Math.min(s.current_stock, 5);
+      return acc + etalase;
+    }, 0);
   }, [stocks]);
 
   // Render SVG Donut Chart for Ringkasan Stok (Dynamic Real-time DB)
@@ -1093,7 +1096,6 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             <option value="ALL">Semua Gudang</option>
             <option value="GUDANG_UTAMA">🏢 Gudang Utama</option>
             <option value="ETALASE">🏪 Etalase Toko</option>
-            <option value="STORAGE_FC">🖨️ Storage FC / Print</option>
           </select>
         </div>
 
@@ -1781,10 +1783,10 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                   Pergerakan Stok Terbaru
                 </h3>
 
-                {/* 1. MOBILE CARD VIEW (< 768px: Clean Stacked Mobile Cards) */}
-                <div className="mobile-only-stock-list">
+                {/* 1. MOBILE CARD VIEW (< 768px: Responsive 2x2 Grid Mobile Cards) */}
+                <div className="responsive-movement-2x2-grid">
                   {recentMovements.length === 0 ? (
-                    <div style={{ padding: '1.25rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.825rem', background: '#f8fafc', borderRadius: '12px' }}>
+                    <div style={{ gridColumn: 'span 2', padding: '1.25rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.825rem', background: '#f8fafc', borderRadius: '12px' }}>
                       Belum ada pergerakan stok dicatat di database
                     </div>
                   ) : (
@@ -1793,42 +1795,66 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                         key={idx}
                         style={{
                           background: '#ffffff',
-                          padding: '0.85rem 0.95rem',
+                          padding: '0.75rem 0.8rem',
                           borderRadius: '14px',
                           border: '1px solid #e2e8f0',
                           boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '0.5rem',
+                          justifyContent: 'space-between',
+                          gap: '0.45rem',
+                          minWidth: 0,
+                          boxSizing: 'border-box',
                         }}
                       >
-                        {/* Top Row: Product Name & Movement Badge */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
-                          <span style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.875rem' }}>{mv.product}</span>
-                          <span
-                            style={{
-                              padding: '0.2rem 0.55rem',
-                              borderRadius: '6px',
-                              fontSize: '0.7rem',
-                              fontWeight: 800,
-                              background: mv.isNegative ? '#fef2f2' : '#f0fdf4',
-                              color: mv.isNegative ? '#dc2626' : '#16a34a',
-                              border: `1px solid ${mv.isNegative ? '#fecaca' : '#bbf7d0'}`,
-                              flexShrink: 0,
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {mv.type}
-                          </span>
+                        {/* Header Row: Product / TRX Title & Movement Badge */}
+                        <div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.35rem', marginBottom: '0.3rem' }}>
+                            <span
+                              style={{
+                                fontWeight: 900,
+                                color: '#0f172a',
+                                fontSize: '0.825rem',
+                                lineHeight: 1.25,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                                flex: 1,
+                                minWidth: 0,
+                              }}
+                              title={mv.product}
+                            >
+                              {mv.product}
+                            </span>
+                            <span
+                              style={{
+                                padding: '0.15rem 0.4rem',
+                                borderRadius: '6px',
+                                fontSize: '0.65rem',
+                                fontWeight: 800,
+                                background: mv.isNegative ? '#fef2f2' : '#f0fdf4',
+                                color: mv.isNegative ? '#dc2626' : '#16a34a',
+                                border: `1px solid ${mv.isNegative ? '#fecaca' : '#bbf7d0'}`,
+                                flexShrink: 0,
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {mv.type}
+                            </span>
+                          </div>
+
+                          {/* Timestamp & Warehouse/User */}
+                          <div style={{ fontSize: '0.68rem', color: '#94a3b8', lineHeight: 1.3 }}>
+                            <div>{mv.time}</div>
+                            <div style={{ color: '#475569', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>
+                              {mv.warehouse} • <span style={{ color: '#64748b' }}>{mv.user}</span>
+                            </div>
+                          </div>
                         </div>
 
-                        {/* Bottom Row: Timestamp, Warehouse/User, & Quantity */}
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.4rem', borderTop: '1px dashed #f1f5f9', fontSize: '0.75rem', color: '#64748b' }}>
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem' }}>
-                            <span style={{ color: '#94a3b8' }}>{mv.time}</span>
-                            <span style={{ color: '#475569', fontWeight: 600 }}>{mv.warehouse} • <span style={{ color: '#64748b' }}>{mv.user}</span></span>
-                          </div>
-                          <div style={{ textAlign: 'right', fontWeight: 900, fontSize: '0.95rem', color: mv.isNegative ? '#dc2626' : '#16a34a' }}>
+                        {/* Quantity Footer */}
+                        <div style={{ paddingTop: '0.35rem', borderTop: '1px dashed #f1f5f9', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                          <div style={{ fontWeight: 900, fontSize: '0.925rem', color: mv.isNegative ? '#dc2626' : '#16a34a', letterSpacing: '-0.02em' }}>
                             {mv.qty}
                           </div>
                         </div>
@@ -1941,7 +1967,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             </div>
           </div>
 
-          {/* CARD 3: GUDANG */}
+          {/* CARD 3: GUDANG UTAMA & ETALASE TOKO */}
           <div style={{ background: '#ffffff', borderRadius: '20px', border: '1px solid #e2e8f0', padding: '1.35rem', boxShadow: '0 2px 10px rgba(0,0,0,0.02)' }}>
             <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', margin: '0 0 1.15rem 0' }}>
               Gudang
@@ -1951,21 +1977,14 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#f8fafc' }}>
                 <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>Gudang Utama</span>
                 <span style={{ padding: '0.2rem 0.65rem', borderRadius: '8px', background: '#dcfce7', color: '#15803d', fontWeight: 900, fontSize: '0.8rem' }}>
-                  {totalGudangUtama.toLocaleString()}
+                  {totalGudangUtama.toLocaleString('id-ID')}
                 </span>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#f8fafc' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>Gudang Cabang 1</span>
+                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>Etalase</span>
                 <span style={{ padding: '0.2rem 0.65rem', borderRadius: '8px', background: '#ffffff', border: '1px solid #e2e8f0', color: '#334155', fontWeight: 800, fontSize: '0.8rem' }}>
-                  {totalStorageFC.toLocaleString()}
-                </span>
-              </div>
-
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.65rem 0.85rem', borderRadius: '12px', background: '#f8fafc' }}>
-                <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#475569' }}>Gudang Cabang 2</span>
-                <span style={{ padding: '0.2rem 0.65rem', borderRadius: '8px', background: '#ffffff', border: '1px solid #e2e8f0', color: '#334155', fontWeight: 800, fontSize: '0.8rem' }}>
-                  {totalStorageFNB.toLocaleString()}
+                  {totalEtalaseToko.toLocaleString('id-ID')}
                 </span>
               </div>
             </div>
@@ -1973,7 +1992,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             <div style={{ borderTop: '1px solid #f1f5f9', marginTop: '1.15rem', paddingTop: '0.85rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>Total</span>
               <span style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a' }}>
-                {(totalGudangUtama + totalStorageFC + totalStorageFNB).toLocaleString()}
+                {(totalGudangUtama + totalEtalaseToko).toLocaleString('id-ID')}
               </span>
             </div>
           </div>

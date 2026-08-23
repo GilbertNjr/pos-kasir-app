@@ -957,12 +957,21 @@ html, body {
   width: 100%;
 }
 
+/* RESPONSIVE MOVEMENT 2x2 GRID ENGINE (2 Kolom di Ponsel, Hidden di Desktop) */
+.responsive-movement-2x2-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+  width: 100%;
+}
+
 .desktop-only-table {
   display: none;
 }
 
 @media (min-width: 768px) {
-  .mobile-only-stock-list {
+  .mobile-only-stock-list,
+  .responsive-movement-2x2-grid {
     display: none !important;
   }
   .desktop-only-table {
@@ -1177,3 +1186,17 @@ html, body, #root {
     border-radius: 16px !important;
   }
 }
+
+/* HEADER RESPONSIVE ENGINE FOR MOBILE DEVICE HEADER BADGES */
+@media (max-width: 767px) {
+  /* On mobile: Hide text "ONLINE" / "OFFLINE" in NetworkStatusBadge to display logo/icon only */
+  .network-badge-label {
+    display: none !important;
+  }
+
+  /* Compact padding for network badge container on mobile */
+  .network-badge-container {
+    padding: 0.28rem 0.45rem !important;
+  }
+}
+

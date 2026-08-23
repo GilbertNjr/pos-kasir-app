@@ -645,10 +645,11 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
           </div>
 
           {/* Right Shift Indicator & Action Badges */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
-            {/* Status Online / Offline Wifi Indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
+            {/* Status Online / Offline Wifi Indicator (Logo Only on Mobile) */}
             <NetworkStatusBadge />
 
+            {/* Status Shift: AKTIF / NONAKTIF (Kelihatan Jelas di Ponsel & Desktop) */}
             <div
               title={activeShiftId ? 'Sesi Shift Aktif' : 'Shift Nonaktif'}
               style={{
@@ -663,18 +664,19 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               }}
             >
               <span style={{ width: '7px', height: '7px', borderRadius: '50%', background: activeShiftId ? '#22c55e' : '#ef4444', flexShrink: 0 }}></span>
-              <span className="header-badge-text-compact" style={{ fontSize: '0.7rem', fontWeight: 700, color: activeShiftId ? '#15803d' : '#991b1b', whiteSpace: 'nowrap' }}>
-                {activeShiftId ? 'ACTIVE' : 'NONAKTIF'}
+              <span style={{ fontSize: '0.7rem', fontWeight: 800, color: activeShiftId ? '#15803d' : '#991b1b', whiteSpace: 'nowrap' }}>
+                {activeShiftId ? 'AKTIF' : 'NONAKTIF'}
               </span>
             </div>
 
             <NotificationPopover />
 
+            {/* Tombol Shift (Tetap Terlihat Teks & Ikon Shift) */}
             <button
               onClick={() => onTabChange('SHIFT')}
               title="Kelola Sesi Shift Kasir"
               style={{
-                padding: '0.35rem 0.65rem',
+                padding: '0.35rem 0.6rem',
                 borderRadius: '8px',
                 border: 'none',
                 background: '#4f46e5',
@@ -690,7 +692,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
               }}
             >
               <Clock size={13} color="#ffffff" />
-              <span className="header-badge-text-compact">Shift</span>
+              <span>Shift</span>
             </button>
           </div>
         </header>

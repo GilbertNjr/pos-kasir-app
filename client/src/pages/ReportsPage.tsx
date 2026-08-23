@@ -853,30 +853,30 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
 
       {activeReportSubTab === 'STOCKS_LOG' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Stock Metrics 4-Cards */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem' }}>
-            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Total Item Terdaftar</span>
-              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#0f172a', marginTop: '0.25rem' }}>{stockList.length} Item</div>
+          {/* Stock Metrics 4-Cards (RESPONSIVE: 2x2 Grid on Mobile, 4 Cols on Desktop) */}
+          <div className="responsive-summary-2x2-grid">
+            <div style={{ background: '#ffffff', padding: '0.85rem 1rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>TOTAL ITEM TERDAFTAR</span>
+              <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0f172a', marginTop: '0.25rem' }}>{stockList.length} Item</div>
             </div>
 
-            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase' }}>Estimasi Nilai Aset Stok</span>
-              <div style={{ fontSize: '1.5rem', fontWeight: 900, color: '#059669', marginTop: '0.25rem' }}>
+            <div style={{ background: '#ffffff', padding: '0.85rem 1rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>ESTIMASI NILAI ASET STOK</span>
+              <div style={{ fontSize: '1.2rem', fontWeight: 900, color: '#059669', marginTop: '0.25rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {formatRupiah(stockList.reduce((acc, s) => acc + (Number(s.current_stock || 0) * Number(s.selling_price || 0)), 0))}
               </div>
             </div>
 
-            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase' }}>Stok Menipis (&lt;5 Pcs)</span>
-              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#d97706', marginTop: '0.25rem' }}>
+            <div style={{ background: '#ffffff', padding: '0.85rem 1rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>STOK MENIPIS (&lt;5 PCS)</span>
+              <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#d97706', marginTop: '0.25rem' }}>
                 {stockList.filter((s) => Number(s.current_stock) > 0 && Number(s.current_stock) < 5).length} Item
               </div>
             </div>
 
-            <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '18px', border: '1px solid #e2e8f0' }}>
-              <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#dc2626', textTransform: 'uppercase' }}>Stok Habis (0 Pcs)</span>
-              <div style={{ fontSize: '1.75rem', fontWeight: 900, color: '#dc2626', marginTop: '0.25rem' }}>
+            <div style={{ background: '#ffffff', padding: '0.85rem 1rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '0.68rem', fontWeight: 800, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>STOK HABIS (0 PCS)</span>
+              <div style={{ fontSize: '1.35rem', fontWeight: 900, color: '#dc2626', marginTop: '0.25rem' }}>
                 {stockList.filter((s) => Number(s.current_stock) === 0).length} Item
               </div>
             </div>
@@ -889,9 +889,6 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                 <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   📋 Laporan Inventaris Stok & Pergerakan Barang
                 </h3>
-                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.2rem 0 0 0' }}>
-                  Rekapitulasi fisik produk & bidang usaha terhubung database real-time
-                </p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 <span style={{ padding: '0.35rem 0.85rem', borderRadius: '999px', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', fontSize: '0.75rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
@@ -901,45 +898,46 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
               </div>
             </div>
 
-            {/* 1. MOBILE CARD VIEW (< 768px: Stacked Cards, No Horizontal Scrolling) */}
-            <div className="mobile-only-stock-list">
+            {/* 1. MOBILE CARD VIEW (< 768px: Responsive 2x2 Grid Cards) */}
+            <div className="responsive-movement-2x2-grid">
               {paginatedStockList.length > 0 ? (
                 paginatedStockList.map((item, idx) => {
                   const st = Number(item.current_stock || 0);
                   const isFc = item.business_unit === 'FC_PRINT' || item.business_unit === 'ATK';
                   return (
-                    <div key={item.stock_id || idx} style={{ background: '#ffffff', padding: '1rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
-                        <div>
-                          <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.95rem' }}>{item.product_name}</div>
-                          <div style={{ marginTop: '0.35rem' }}>
-                            {isFc ? (
-                              <span style={{ padding: '0.2rem 0.65rem', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, background: 'linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%)', color: '#7e22ce', border: '1px solid #d8b4fe', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                                🖨️ FC & Print
-                              </span>
-                            ) : (
-                              <span style={{ padding: '0.2rem 0.65rem', borderRadius: '999px', fontSize: '0.7rem', fontWeight: 800, background: 'linear-gradient(135deg, #fff7ed 0%, #ffedd5 100%)', color: '#ea580c', border: '1px solid #fed7aa', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
-                                🍔 FNB
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <div>
+                    <div key={item.stock_id || idx} style={{ background: '#ffffff', padding: '0.75rem 0.8rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.45rem', minWidth: 0, boxSizing: 'border-box' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.35rem', marginBottom: '0.25rem' }}>
+                          <span style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.825rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }} title={item.product_name}>
+                            {item.product_name}
+                          </span>
                           {st >= 10 ? (
-                            <span style={{ padding: '0.3rem 0.75rem', background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', color: '#047857', border: '1px solid #a7f3d0', borderRadius: '999px', fontSize: '0.725rem', fontWeight: 800 }}>Aman</span>
+                            <span style={{ padding: '0.15rem 0.45rem', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, flexShrink: 0 }}>Aman</span>
                           ) : st > 0 ? (
-                            <span style={{ padding: '0.3rem 0.75rem', background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', color: '#b45309', border: '1px solid #fde68a', borderRadius: '999px', fontSize: '0.725rem', fontWeight: 800 }}>Menipis</span>
+                            <span style={{ padding: '0.15rem 0.45rem', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, flexShrink: 0 }}>Menipis</span>
                           ) : (
-                            <span style={{ padding: '0.3rem 0.75rem', background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '999px', fontSize: '0.725rem', fontWeight: 800 }}>Habis</span>
+                            <span style={{ padding: '0.15rem 0.45rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, flexShrink: 0 }}>Habis</span>
+                          )}
+                        </div>
+
+                        <div style={{ marginBottom: '0.35rem' }}>
+                          {isFc ? (
+                            <span style={{ padding: '0.15rem 0.45rem', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, background: '#f3e8ff', color: '#7e22ce', border: '1px solid #d8b4fe', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                              🖨️ FC
+                            </span>
+                          ) : (
+                            <span style={{ padding: '0.15rem 0.45rem', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, background: '#fff7ed', color: '#ea580c', border: '1px solid #fed7aa', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
+                              🍔 FNB
+                            </span>
                           )}
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.5rem', borderTop: '1px dashed #e2e8f0', fontSize: '0.8rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.35rem', borderTop: '1px dashed #e2e8f0', fontSize: '0.725rem' }}>
                         <div style={{ color: '#475569', fontWeight: 700 }}>
-                          Stok Fisik: <strong style={{ fontSize: '1rem', color: st === 0 ? '#dc2626' : st < 5 ? '#d97706' : '#059669' }}>{st}</strong> <span style={{ fontSize: '0.75rem', color: '#64748b' }}>pcs</span>
+                          Stok: <strong style={{ fontSize: '0.9rem', color: st === 0 ? '#dc2626' : st < 5 ? '#d97706' : '#059669' }}>{st}</strong> <span style={{ fontSize: '0.68rem', color: '#64748b' }}>pcs</span>
                         </div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.725rem' }}>
+                        <div style={{ color: '#94a3b8', fontSize: '0.65rem' }}>
                           {item.last_updated ? formatWaktuIndo(item.last_updated) : '-'}
                         </div>
                       </div>
@@ -947,7 +945,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                   );
                 })
               ) : (
-                <div style={{ padding: '1.5rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px' }}>
+                <div style={{ gridColumn: 'span 2', padding: '1.5rem', textAlign: 'center', color: '#94a3b8', background: '#f8fafc', borderRadius: '12px' }}>
                   Tidak ada data stok di database
                 </div>
               )}
