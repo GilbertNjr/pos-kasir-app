@@ -357,6 +357,35 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
     }
   };
 
+  const getCashierName = (txOrId: any): string => {
+    if (!txOrId) return currentUser?.full_name || 'Kasir';
+
+    let rawId = '';
+    let candidateName = '';
+
+    if (typeof txOrId === 'string') {
+      rawId = txOrId;
+    } else {
+      candidateName = txOrId.user_name || txOrId.cashier_name || txOrId.created_by_user_name || '';
+      rawId = txOrId.created_by_user_id || txOrId.user_id || txOrId.created_by || '';
+    }
+
+    if (candidateName && !candidateName.startsWith('usr-') && !candidateName.startsWith('user_')) {
+      return candidateName;
+    }
+
+    if (rawId) {
+      const u = (usersList || []).find((usr) => usr.user_id === rawId || usr.username === rawId);
+      if (u?.full_name) return u.full_name;
+      if (u?.username) return u.username;
+      if (currentUser && (currentUser.user_id === rawId || currentUser.username === rawId)) {
+        return currentUser.full_name;
+      }
+    }
+
+    return candidateName || (rawId && !rawId.startsWith('usr-') ? rawId : '') || currentUser?.full_name || 'Kasir';
+  };
+
   const handleExportExcel = () => {
     if (activeReportSubTab === 'STOCKS_LOG') {
       exportStockToExcel(stockList, stockAuditLogs, storeName);
@@ -1341,7 +1370,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                             <tr key={idx} style={{ borderBottom: '1px solid #f8fafc' }}>
                               <td style={{ padding: '0.45rem 0.2rem', fontWeight: 800, color: '#0f172a', fontSize: '0.72rem' }}>{tx.transaction_number || ('TRX-' + (tx.transaction_id || idx + 1))}</td>
                               <td style={{ padding: '0.45rem 0.2rem', color: '#64748b', fontSize: '0.7rem' }}>{tx.transaction_time ? formatWaktuIndo(tx.transaction_time) : '-'}</td>
-                              <td style={{ padding: '0.45rem 0.2rem', color: '#334155', fontWeight: 600 }}>{tx.created_by_user_id || tx.user_name || 'Kasir'}</td>
+                              <td style={{ padding: '0.45rem 0.2rem', color: '#334155', fontWeight: 600 }}>{getCashierName(tx)}</td>
                               <td style={{ padding: '0.45rem 0.2rem', color: '#64748b', fontSize: '0.72rem' }}>{tx.customer_name || 'Pelanggan Umum'}</td>
                               <td style={{ padding: '0.45rem 0.2rem', textAlign: 'right', fontWeight: 900, color: '#0f172a' }}>{formatRupiah(Number(tx.final_total || tx.subtotal_amount || 0))}</td>
                               <td style={{ padding: '0.45rem 0.2rem', textAlign: 'center' }}>
@@ -1492,7 +1521,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                       <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                         <td style={{ padding: '0.6rem 0.5rem', fontWeight: 800, color: '#0f172a' }}>{tx.transaction_number || ('TRX-' + (tx.transaction_id || idx + 1))}</td>
                         <td style={{ padding: '0.6rem 0.5rem', color: '#64748b', fontSize: '0.78rem' }}>{tx.transaction_time ? formatWaktuIndo(tx.transaction_time) : '-'}</td>
-                        <td style={{ padding: '0.6rem 0.5rem', color: '#334155', fontWeight: 600 }}>{tx.created_by_user_id || tx.user_name || 'Kasir'}</td>
+                        <td style={{ padding: '0.6rem 0.5rem', color: '#334155', fontWeight: 600 }}>{getCashierName(tx)}</td>
                         <td style={{ padding: '0.6rem 0.5rem', color: '#64748b' }}>{tx.customer_name || 'Pelanggan Umum'}</td>
                         <td style={{ padding: '0.6rem 0.5rem', textAlign: 'right', fontWeight: 900, color: '#0f172a' }}>{formatRupiah(Number(tx.final_total || tx.subtotal_amount || 0))}</td>
                         <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center' }}>

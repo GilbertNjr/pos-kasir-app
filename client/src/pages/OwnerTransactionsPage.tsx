@@ -256,9 +256,33 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
   const totalPages = Math.ceil(filteredTransactions.length / pageSize) || 1;
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedTransactions = filteredTransactions.slice(startIndex, startIndex + pageSize);
-  const getCashierName = (userId: string) => {
-    const u = usersList.find((usr) => usr.user_id === userId);
-    return u ? u.full_name || u.username : userId || 'Kasir';
+  const getCashierName = (txOrId: any): string => {
+    if (!txOrId) return _currentUser?.full_name || 'Kasir';
+
+    let rawId = '';
+    let candidateName = '';
+
+    if (typeof txOrId === 'string') {
+      rawId = txOrId;
+    } else {
+      candidateName = txOrId.user_name || txOrId.cashier_name || txOrId.created_by_user_name || '';
+      rawId = txOrId.created_by_user_id || txOrId.user_id || txOrId.created_by || '';
+    }
+
+    if (candidateName && !candidateName.startsWith('usr-') && !candidateName.startsWith('user_')) {
+      return candidateName;
+    }
+
+    if (rawId) {
+      const u = (usersList || []).find((usr) => usr.user_id === rawId || usr.username === rawId);
+      if (u?.full_name) return u.full_name;
+      if (u?.username) return u.username;
+      if (_currentUser && (_currentUser.user_id === rawId || _currentUser.username === rawId)) {
+        return _currentUser.full_name;
+      }
+    }
+
+    return candidateName || (rawId && !rawId.startsWith('usr-') ? rawId : '') || _currentUser?.full_name || 'Kasir';
   };
 
   // Cetak PDF Transaksi tanpa membekukan halaman utama POS
