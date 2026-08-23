@@ -544,18 +544,18 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
           </div>
         )}
 
-        {/* Dynamic Metric Cards (2x2 RESPONSIVE GRID) */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '0.85rem', marginBottom: '1.5rem' }}>
+        {/* Dynamic Metric Cards (5 RESPONSIVE CARDS) */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.85rem', marginBottom: '1.5rem' }}>
           <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
             <span style={{ fontSize: '0.78rem', color: '#4b5563', fontWeight: 700 }}>Modal Kas Awal</span>
             <h3 style={{ fontSize: '1.25rem', color: '#4f46e5', marginTop: '0.25rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(shift.total_initial_cash)}</h3>
-            <p style={{ fontSize: '0.72rem', color: '#6b7280' }}>{contributions.length} Setoran Karyawan</p>
+            <p style={{ fontSize: '0.72rem', color: '#6b7280' }}>Uang Modal Kembalian</p>
           </div>
 
           <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
             <span style={{ fontSize: '0.78rem', color: '#4b5563', fontWeight: 700 }}>Penjualan Tunai</span>
             <h3 style={{ fontSize: '1.25rem', color: '#059669', marginTop: '0.25rem', fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(shift.net_cash_sales)}</h3>
-            <p style={{ fontSize: '0.72rem', color: '#6b7280' }}>Seluruh Transaksi Shift</p>
+            <p style={{ fontSize: '0.72rem', color: '#6b7280' }}>Transaksi Tunai Shift</p>
           </div>
 
           <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '1px solid #cbd5e1', boxShadow: 'var(--shadow-sm)' }}>
@@ -564,10 +564,16 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             <p style={{ fontSize: '0.72rem', color: '#6b7280' }}>Biaya Operasional Toko</p>
           </div>
 
-          <div style={{ background: '#ffffff', padding: '1rem', borderRadius: '14px', border: '2px solid #5b21b6', boxShadow: 'var(--shadow-sm)' }}>
-            <span style={{ fontSize: '0.78rem', color: '#5b21b6', fontWeight: 800 }}>Kas Teoritis</span>
+          <div style={{ background: '#ecfdf5', padding: '1rem', borderRadius: '14px', border: '2px solid #059669', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '0.78rem', color: '#047857', fontWeight: 800 }}>🎯 Hasil Murni Jualan</span>
+            <h3 style={{ fontSize: '1.25rem', color: '#047857', marginTop: '0.25rem', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(shift.net_cash_sales - shift.total_cash_expenses)}</h3>
+            <p style={{ fontSize: '0.72rem', color: '#065f46', fontWeight: 700 }}>Disetor ke Owner</p>
+          </div>
+
+          <div style={{ background: '#f5f3ff', padding: '1rem', borderRadius: '14px', border: '2px solid #5b21b6', boxShadow: 'var(--shadow-sm)' }}>
+            <span style={{ fontSize: '0.78rem', color: '#5b21b6', fontWeight: 800 }}>📥 Total Fisik di Laci</span>
             <h3 style={{ fontSize: '1.25rem', color: '#5b21b6', marginTop: '0.25rem', fontWeight: 900, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(shift.theoretical_cash)}</h3>
-            <p style={{ fontSize: '0.72rem', color: '#6b7280' }}>Uang Fisik di Laci</p>
+            <p style={{ fontSize: '0.72rem', color: '#4c1d95', fontWeight: 700 }}>Modal + Hasil Jualan</p>
           </div>
         </div>
 
@@ -738,14 +744,18 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               </div>
 
               <form onSubmit={handleCloseShiftSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.4rem', fontSize: '0.85rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 600 }}>Total Kas Teoritis (Sistem):</span>
-                    <span style={{ fontWeight: 800, color: '#5b21b6' }}>{formatRupiah(shift.theoretical_cash)}</span>
+                <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                    <span style={{ color: '#047857', fontWeight: 700 }}>🎯 Hasil Murni Jualan (Setoran):</span>
+                    <span style={{ fontWeight: 800, color: '#047857' }}>{formatRupiah(shift.net_cash_sales - shift.total_cash_expenses)}</span>
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
-                    <span style={{ color: '#64748b', fontWeight: 600 }}>Total Setoran Modal Awal:</span>
-                    <span style={{ fontWeight: 800, color: '#059669' }}>{formatRupiah(shift.total_initial_cash)}</span>
+                    <span style={{ color: '#4f46e5', fontWeight: 700 }}>💵 Modal Awal (Wajib Dipisah):</span>
+                    <span style={{ fontWeight: 800, color: '#4f46e5' }}>{formatRupiah(shift.total_initial_cash)}</span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', paddingTop: '0.35rem', borderTop: '1px dashed #cbd5e1' }}>
+                    <span style={{ color: '#5b21b6', fontWeight: 800 }}>📥 Total Fisik Harus Ada di Laci:</span>
+                    <span style={{ fontWeight: 900, color: '#5b21b6' }}>{formatRupiah(shift.theoretical_cash)}</span>
                   </div>
                 </div>
 

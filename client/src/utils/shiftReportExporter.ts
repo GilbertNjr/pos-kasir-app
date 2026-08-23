@@ -464,7 +464,7 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
 
       <!-- GRAND TOTAL BERSIH -->
       <div class="grand-total-box">
-        <div class="grand-total-label">UANG KASIR / TOTAL SHIFT BERSIH</div>
+        <div class="grand-total-label">HASIL PENJUALAN MURNI (SETORAN SHIFT)</div>
         <div class="grand-total-value">${formatRupiah(netTotal)}</div>
       </div>
 
