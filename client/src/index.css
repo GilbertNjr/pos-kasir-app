@@ -2071,6 +2071,88 @@ html, body, #root {
   }
 }
 
+/* ==========================================================================
+   PRODUCTS MASTER GRID SYSTEM (2 COLS ON MOBILE, DYNAMIC ON DESKTOP)
+   ========================================================================== */
+.products-master-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  padding: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .products-master-grid {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+    padding: 1.25rem;
+  }
+}
+
+.product-master-card {
+  background: #ffffff;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.product-master-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+
+@media (max-width: 639px) {
+  .product-master-card {
+    padding: 0.75rem 0.75rem;
+    border-radius: 14px;
+    gap: 0.5rem;
+  }
+
+  .product-master-card h4 {
+    font-size: 0.875rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .product-master-card .product-badge-unit {
+    font-size: 0.625rem !important;
+    padding: 0.15rem 0.4rem !important;
+  }
+
+  .product-master-card .product-code {
+    font-size: 0.625rem !important;
+  }
+
+  .product-master-card .product-price {
+    font-size: 0.95rem !important;
+  }
+
+  .product-master-card .product-card-footer {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.4rem;
+    padding-top: 0.5rem !important;
+  }
+
+  .product-master-card .product-action-btns {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .product-master-card .product-action-btns button {
+    flex: 1;
+    justify-content: center;
+    padding: 0.3rem 0.4rem !important;
+    font-size: 0.7rem !important;
+  }
+}
+
+
 
 
 

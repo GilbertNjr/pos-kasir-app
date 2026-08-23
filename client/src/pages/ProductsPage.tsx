@@ -872,30 +872,18 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                 </table>
               </div>
             ) : (
-              /* GRID VIEW MODE */
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.25rem', padding: '1.25rem' }}>
+              /* RESPONSIVE GRID VIEW MODE (2-Cols on Mobile) */
+              <div className="products-master-grid">
                 {paginatedProducts.map((p) => {
                   const rawCatName = categoryMap.get(p.category_id) || '';
                   const catName = getNormalizedCategoryName(p, rawCatName);
                   const badgeStyle = getCategoryBadgeStyle(catName, p.business_unit);
                   return (
-                    <div
-                      key={p.product_id}
-                      style={{
-                        background: '#ffffff',
-                        borderRadius: '16px',
-                        border: '1px solid #e2e8f0',
-                        padding: '1.25rem',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        gap: '1rem',
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
-                      }}
-                    >
+                    <div key={p.product_id} className="product-master-card">
                       <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.65rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.35rem', marginBottom: '0.45rem' }}>
                           <span
+                            className="product-badge-unit"
                             style={{
                               padding: '0.2rem 0.55rem',
                               borderRadius: '6px',
@@ -905,22 +893,27 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                               color: p.business_unit === 'FC_PRINT' ? '#3730a3' : '#065f46',
                             }}
                           >
-                            {p.business_unit === 'FC_PRINT' ? 'FC / Printing' : 'F&B Store'}
+                            {p.business_unit === 'FC_PRINT' ? 'FC / Print' : 'F&B Store'}
                           </span>
-                          <span style={{ fontSize: '0.725rem', color: '#64748b', fontFamily: 'monospace', fontWeight: 700 }}>{p.product_id}</span>
+                          <span className="product-code" style={{ fontSize: '0.7rem', color: '#64748b', fontFamily: 'monospace', fontWeight: 700 }}>
+                            {p.product_id}
+                          </span>
                         </div>
 
-                        <h4 style={{ fontSize: '1rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.35rem 0' }}>{p.product_name}</h4>
-                        <div style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700, marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                          Kategori: 
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a', margin: '0 0 0.35rem 0', lineHeight: 1.25 }}>
+                          {p.product_name}
+                        </h4>
+                        
+                        <div style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700, marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.25rem', flexWrap: 'wrap' }}>
+                          <span>Kategori:</span>
                           <span
                             style={{
                               background: badgeStyle.bg,
                               color: badgeStyle.color,
                               border: `1px solid ${badgeStyle.border}`,
-                              padding: '0.2rem 0.55rem',
+                              padding: '0.15rem 0.45rem',
                               borderRadius: '6px',
-                              fontSize: '0.75rem',
+                              fontSize: '0.7rem',
                               fontWeight: 800,
                             }}
                           >
@@ -928,38 +921,38 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                           </span>
                         </div>
 
-                        <div style={{ fontSize: '1.15rem', fontWeight: 900, color: '#4f46e5' }}>
+                        <div className="product-price" style={{ fontSize: '1.1rem', fontWeight: 900, color: '#4f46e5' }}>
                           {formatRupiah(p.selling_price)}
                         </div>
                       </div>
 
-                      <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div className="product-card-footer" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '0.65rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         {p.manage_stock ? (
-                          <span style={{ color: '#059669', fontSize: '0.725rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <span style={{ color: '#059669', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                             <CheckCircle2 size={13} /> Kelola Stok
                           </span>
                         ) : (
-                          <span style={{ color: '#7c3aed', fontSize: '0.725rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                          <span style={{ color: '#7c3aed', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                             <XCircle size={13} /> Barang Jasa
                           </span>
                         )}
 
                         <RoleGuard userRole={currentUser.role} allow={['OWNER']}>
-                          <div style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
+                          <div className="product-action-btns" style={{ display: 'flex', gap: '0.35rem', alignItems: 'center' }}>
                             <button
                               onClick={() => handleOpenEditModal(p)}
                               style={{
-                                padding: '0.35rem 0.75rem',
+                                padding: '0.35rem 0.65rem',
                                 borderRadius: '8px',
                                 border: '1px solid #cbd5e1',
                                 background: '#ffffff',
                                 color: '#334155',
-                                fontSize: '0.75rem',
+                                fontSize: '0.725rem',
                                 fontWeight: 800,
                                 cursor: 'pointer',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '0.3rem',
+                                gap: '0.25rem',
                               }}
                             >
                               <Edit3 size={13} color="#4f46e5" /> Edit
@@ -969,17 +962,17 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                               onClick={() => setDeleteConfirmItem(p)}
                               title="Hapus Produk Master"
                               style={{
-                                padding: '0.35rem 0.65rem',
+                                padding: '0.35rem 0.55rem',
                                 borderRadius: '8px',
                                 border: 'none',
                                 background: '#fee2e2',
                                 color: '#dc2626',
-                                fontSize: '0.75rem',
+                                fontSize: '0.725rem',
                                 fontWeight: 800,
                                 cursor: 'pointer',
                                 display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: '0.3rem',
+                                gap: '0.25rem',
                               }}
                             >
                               <Trash2 size={13} /> Hapus
