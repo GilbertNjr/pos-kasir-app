@@ -85,6 +85,12 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   const [holdCustomerName, setHoldCustomerName] = useState('');
   const [showHoldPromptModal, setShowHoldPromptModal] = useState(false);
 
+  // 5. Fitur Void / Riwayat Nota Shift State
+  const [showVoidHistoryModal, setShowVoidHistoryModal] = useState(false);
+  const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
+  const [loadingRecentTx, setLoadingRecentTx] = useState(false);
+  const [selectedTxForDetail, setSelectedTxForDetail] = useState<any | null>(null);
+
   useEffect(() => {
     try {
       localStorage.setItem('pos_held_orders', JSON.stringify(heldOrders));
@@ -139,8 +145,22 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     setShowHoldPromptModal(true);
   };
 
-  const confirmHoldCart = () => {
+  const confirmHoldCart = async () => {
     if (cart.length === 0) return;
+
+    // Potong stok di database untuk produk yang mengelola stok saat ditahan
+    for (const item of cart) {
+      if (item.product.manage_stock) {
+        const currentStock = item.product.stock ?? 0;
+        const newStock = Math.max(0, currentStock - item.qty);
+        try {
+          await apiService.updateStock(item.product.product_id, newStock);
+        } catch (err) {
+          console.warn('Gagal memotong stok saat tahan order:', err);
+        }
+      }
+    }
+
     const newHold: HeldOrder = {
       id: `HOLD-${Date.now()}`,
       customerName: holdCustomerName.trim() || `Pelanggan ${heldOrders.length + 1}`,
@@ -153,11 +173,26 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     setCart([]);
     setHoldCustomerName('');
     setShowHoldPromptModal(false);
+    loadProducts();
   };
 
-  const handleRestoreHeldOrder = (heldId: string) => {
+  const handleRestoreHeldOrder = async (heldId: string) => {
     const target = heldOrders.find((h) => h.id === heldId);
     if (!target) return;
+
+    // Kembalikan stok sementara ke database agar saat transaksi diproses/checkout tidak terpotong double
+    for (const item of target.items) {
+      if (item.product.manage_stock) {
+        const currentStock = item.product.stock ?? 0;
+        const newStock = currentStock + item.qty;
+        try {
+          await apiService.updateStock(item.product.product_id, newStock);
+        } catch (err) {
+          console.warn('Gagal mengembalikan stok saat memuat ulang tahan order:', err);
+        }
+      }
+    }
+
     setCart(target.items);
     setPaymentMethod(target.paymentMethod);
     if (target.customerName && !target.customerName.startsWith('Pelanggan ')) {
@@ -165,10 +200,39 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     }
     setHeldOrders((prev) => prev.filter((h) => h.id !== heldId));
     setShowHoldModal(false);
+    loadProducts();
   };
 
-  const handleDeleteHeldOrder = (heldId: string) => {
+  const handleDeleteHeldOrder = async (heldId: string) => {
+    const target = heldOrders.find((h) => h.id === heldId);
+    if (target) {
+      for (const item of target.items) {
+        if (item.product.manage_stock) {
+          const currentStock = item.product.stock ?? 0;
+          const newStock = currentStock + item.qty;
+          try {
+            await apiService.updateStock(item.product.product_id, newStock);
+          } catch (err) {
+            console.warn('Gagal mengembalikan stok saat menghapus tahan order:', err);
+          }
+        }
+      }
+    }
     setHeldOrders((prev) => prev.filter((h) => h.id !== heldId));
+    loadProducts();
+  };
+
+  // Fetch Riwayat Transaksi Shift
+  const fetchRecentTransactions = async () => {
+    try {
+      setLoadingRecentTx(true);
+      const data = await apiService.getTransactions(activeShiftId);
+      setRecentTransactions(data || []);
+    } catch (err) {
+      console.warn('Gagal mengambil riwayat transaksi shift:', err);
+    } finally {
+      setLoadingRecentTx(false);
+    }
   };
 
   // Sync Offline Queue Handler
@@ -875,6 +939,32 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 <Printer size={13} color={directThermalPrint ? '#0369a1' : '#64748b'} />
                 <span>Thermal Silent: {directThermalPrint ? 'ON' : 'OFF'}</span>
               </button>
+
+              {/* Tombol Riwayat & Void Nota */}
+              <button
+                onClick={() => {
+                  setShowVoidHistoryModal(true);
+                  fetchRecentTransactions();
+                }}
+                style={{
+                  padding: '0.25rem 0.6rem',
+                  borderRadius: '6px',
+                  fontSize: '0.72rem',
+                  fontWeight: 800,
+                  border: '1px solid #cbd5e1',
+                  background: '#ffffff',
+                  color: '#0f172a',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                }}
+                title="Lihat riwayat nota transaksi shift ini atau batalkan nota jika kasir salah input"
+              >
+                <RotateCw size={13} color="#2563eb" />
+                <span>Riwayat & Void Nota</span>
+              </button>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.65rem' }}>
@@ -1184,6 +1274,28 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
           items={lastReceipt.items}
           products={products}
           getUserName={() => currentUser.full_name || currentUser.username}
+          onTransactionCancelled={() => {
+            loadProducts();
+            if (onTransactionComplete) onTransactionComplete();
+          }}
+          onTransactionComplete={loadProducts}
+        />
+      )}
+
+      {/* Modal Detail Transaksi dari Riwayat / Void */}
+      {selectedTxForDetail && (
+        <TransactionDetailModal
+          isOpen={!!selectedTxForDetail}
+          onClose={() => setSelectedTxForDetail(null)}
+          transaction={selectedTxForDetail}
+          items={selectedTxForDetail.items}
+          products={products}
+          getUserName={() => currentUser.full_name || currentUser.username}
+          onTransactionCancelled={() => {
+            fetchRecentTransactions();
+            loadProducts();
+            if (onTransactionComplete) onTransactionComplete();
+          }}
           onTransactionComplete={loadProducts}
         />
       )}
@@ -1669,6 +1781,101 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                     </div>
                   </div>
                 ))
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Riwayat Transaksi & Void Nota Shift */}
+      {showVoidHistoryModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '20px', padding: '1.5rem', width: '100%', maxWidth: '640px', maxHeight: '88vh', display: 'flex', flexDirection: 'column', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  📜 Riwayat & Void Nota Transaksi
+                </h3>
+                <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Klik nota untuk melihat detail atau membatalkan (void) jika terjadi salah input.</span>
+              </div>
+              <button onClick={() => setShowVoidHistoryModal(false)} style={{ border: 'none', background: '#f1f5f9', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <X size={18} />
+              </button>
+            </div>
+
+            <div style={{ overflowY: 'auto', flex: 1, paddingRight: '0.2rem' }}>
+              {loadingRecentTx ? (
+                <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#64748b', fontSize: '0.875rem' }}>
+                  Memuat riwayat transaksi...
+                </div>
+              ) : recentTransactions.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '2.5rem 1rem', color: '#64748b', fontSize: '0.875rem' }}>
+                  Belum ada transaksi pada sesi shift aktif ini.
+                </div>
+              ) : (
+                recentTransactions.map((tx) => {
+                  const isCancel = tx.status === 'CANCELLED';
+                  return (
+                    <div
+                      key={tx.transaction_id}
+                      style={{
+                        background: isCancel ? '#fff1f2' : '#f8fafc',
+                        borderRadius: '12px',
+                        border: isCancel ? '1px solid #fecaca' : '1px solid #e2e8f0',
+                        padding: '0.85rem 1rem',
+                        marginBottom: '0.75rem',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+                          <strong style={{ fontSize: '0.95rem', color: '#0f172a' }}>{tx.transaction_number || tx.transaction_id}</strong>
+                          <span
+                            style={{
+                              fontSize: '0.675rem',
+                              fontWeight: 800,
+                              padding: '0.15rem 0.5rem',
+                              borderRadius: '6px',
+                              background: isCancel ? '#fee2e2' : '#dcfce7',
+                              color: isCancel ? '#dc2626' : '#15803d',
+                            }}
+                          >
+                            {isCancel ? 'DIBATALKAN' : 'LUNAS'}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
+                          {new Date(tx.transaction_time || tx.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • Via {tx.payment_method}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
+                        <div style={{ textAlign: 'right' }}>
+                          <div style={{ fontWeight: 900, color: isCancel ? '#991b1b' : '#0284c7', fontSize: '0.95rem' }}>
+                            {formatRupiah(tx.final_total || tx.total_amount)}
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => setSelectedTxForDetail(tx)}
+                          style={{
+                            padding: '0.4rem 0.75rem',
+                            borderRadius: '8px',
+                            border: isCancel ? '1px solid #fecaca' : '1px solid #cbd5e1',
+                            background: '#ffffff',
+                            color: isCancel ? '#dc2626' : '#0f172a',
+                            fontSize: '0.75rem',
+                            fontWeight: 800,
+                            cursor: 'pointer',
+                          }}
+                        >
+                          {isCancel ? 'Lihat Detail' : '⚠️ Detail / Void'}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           </div>
