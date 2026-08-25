@@ -4,6 +4,7 @@ import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User, Product } from '../types';
 import { formatRupiah, formatDateIndoFull } from '../utils/formatters';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+import { CustomConfirmModal } from '../components/common/CustomConfirmModal';
 import { exportShiftToExcel, printShiftPDF } from '../utils/shiftReportExporter';
 
 interface ShiftPageProps {
@@ -98,6 +99,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
   // Modal State Hapus Rekonsiliasi Confirmation
   const [showConfirmDeleteReconciliation, setShowConfirmDeleteReconciliation] = useState(false);
+  const [showConfirmCloseShiftModal, setShowConfirmCloseShiftModal] = useState(false);
+  const [showConfirmAuditApplyModal, setShowConfirmAuditApplyModal] = useState(false);
 
   // State Mode Rekap Shift via Hitung Sisa Stok (Fast Stock Audit)
   const [showStockAuditModal, setShowStockAuditModal] = useState(false);
@@ -190,20 +193,13 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     };
   };
 
-  const handleApplyAuditToCloseShift = async () => {
+  const handleApplyAuditToCloseShift = () => {
+    setShowConfirmAuditApplyModal(true);
+  };
+
+  const executeApplyAuditToCloseShift = async () => {
+    setShowConfirmAuditApplyModal(false);
     const calc = getAuditCalculations();
-
-    const isConfirmed = window.confirm(
-      `📦 TERAPKAN REKAP PENJUALAN STOK SISA & TUTUP SHIFT\n\n` +
-      `Ringkasan Rekap Shift:\n` +
-      `- Total Barang Terjual: ${calc.totalGoodsSoldQty} pcs (${formatRupiah(calc.totalGoodsRevenue)})\n` +
-      `- Total Jasa (FC & Print): ${formatRupiah(calc.totalServicesRevenue)}\n` +
-      `- Total Estimasi Omzet Shift: ${formatRupiah(calc.totalAuditSales)}\n` +
-      `- Wajib Ada Uang Fisik di Laci: ${formatRupiah(calc.estimatedTheoreticalCash)}\n\n` +
-      `Lanjutkan ke penutupan resmi shift?`
-    );
-
-    if (!isConfirmed) return;
 
     setAuditSubmitting(true);
     try {
@@ -450,16 +446,15 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     }
   };
 
-  const handleCloseShiftSubmit = async (e: React.FormEvent) => {
+  const handleCloseShiftSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeShiftData?.shift?.shift_id) return;
+    setShowConfirmCloseShiftModal(true);
+  };
 
-    const isConfirmed = window.confirm(
-      `🛑 KONFIRMASI PENUTUPAN SHIFT TOKO\n\n` +
-      `Apakah Anda yakin ingin menutup sesi Shift Aktif Toko ini?\n\n` +
-      `⚠️ PERHATIAN: Tindakan ini akan mengakhiri sesi shift untuk SELURUH tim kasir yang sedang bertugas.`
-    );
-    if (!isConfirmed) return;
+  const executeCloseShift = async () => {
+    setShowConfirmCloseShiftModal(false);
+    if (!activeShiftData?.shift?.shift_id) return;
 
     try {
       setCloseLoading(true);
@@ -2015,6 +2010,49 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         isOpen={openLoading || capitalLoading}
         message="Memproses registrasi sesi shift ke backend POS..."
         submessage="Menyiapkan laci kas dan verifikasi hak akses..."
+      />
+
+      {/* Modal Custom Sleek: Konfirmasi Penutupan Shift Toko */}
+      <CustomConfirmModal
+        isOpen={showConfirmCloseShiftModal}
+        onClose={() => setShowConfirmCloseShiftModal(false)}
+        onConfirm={executeCloseShift}
+        title="Konfirmasi Penutupan Shift Toko"
+        subtitle="Apakah Anda yakin ingin menutup sesi Shift Aktif Toko saat ini?"
+        warningNote="Tindakan ini akan mengakhiri sesi shift untuk SELURUH tim kasir yang sedang bertugas."
+        details={[
+          {
+            label: 'Uang Fisik Laci Kasir',
+            value: formatRupiah(actualPhysicalCash === '' ? activeShiftData?.shift?.theoretical_cash || 0 : Number(actualPhysicalCash)),
+            highlight: true,
+            color: '#0284c7',
+          },
+        ]}
+        confirmText="🛑 Ya, Tutup Shift Sekarang"
+        cancelText="Batal / Kembali"
+        confirmVariant="danger"
+        iconType="power"
+        loading={closeLoading}
+      />
+
+      {/* Modal Custom Sleek: Konfirmasi Terapkan Rekap Stok Sisa */}
+      <CustomConfirmModal
+        isOpen={showConfirmAuditApplyModal}
+        onClose={() => setShowConfirmAuditApplyModal(false)}
+        onConfirm={executeApplyAuditToCloseShift}
+        title="Terapkan Rekap Stok Sisa & Lanjutkan"
+        subtitle="Semua hasil hitungan fisik stok & jasa akan dicatat otomatis ke sistem POS."
+        details={[
+          { label: 'Total Barang Terjual', value: `${getAuditCalculations().totalGoodsSoldQty} pcs (${formatRupiah(getAuditCalculations().totalGoodsRevenue)})` },
+          { label: 'Total Jasa (FC & Print)', value: formatRupiah(getAuditCalculations().totalServicesRevenue) },
+          { label: 'Total Estimasi Omzet', value: formatRupiah(getAuditCalculations().totalAuditSales), highlight: true, color: '#16a34a' },
+          { label: 'Wajib Uang Fisik Laci', value: formatRupiah(getAuditCalculations().estimatedTheoreticalCash), highlight: true, color: '#0284c7' },
+        ]}
+        confirmText="🚀 Terapkan & Tutup Shift"
+        cancelText="Batal"
+        confirmVariant="primary"
+        iconType="package"
+        loading={auditSubmitting}
       />
     </div>
   );

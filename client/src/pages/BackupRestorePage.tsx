@@ -24,6 +24,7 @@ import {
 import { apiService } from '../services/api';
 import { User } from '../types';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+import { CustomConfirmModal } from '../components/common/CustomConfirmModal';
 
 interface BackupRestorePageProps {
   currentUser: User;
@@ -117,6 +118,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [jsonPreview, setJsonPreview] = useState<{ backup_id?: string; timestamp?: string; products_count?: number; stocks_count?: number } | null>(null);
   const [restoreLoading, setRestoreLoading] = useState(false);
+  const [showConfirmRestoreModal, setShowConfirmRestoreModal] = useState(false);
   const [showRawTextarea, setShowRawTextarea] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -369,17 +371,21 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
     }
   };
 
-  const handleRestoreBackup = async (e: React.FormEvent) => {
+  const handleRestoreBackup = (e: React.FormEvent) => {
     e.preventDefault();
     if (!restoreJsonInput.trim()) {
-      alert('Harap unggah file .json atau tempelkan teks snapshot terlebih dahulu.');
+      if (onTriggerToast) {
+        onTriggerToast('warning', 'File Belum Dipilih', 'Harap unggah file .json atau tempelkan teks snapshot terlebih dahulu.');
+      } else {
+        alert('Harap unggah file .json atau tempelkan teks snapshot terlebih dahulu.');
+      }
       return;
     }
+    setShowConfirmRestoreModal(true);
+  };
 
-    if (!window.confirm('PERINGATAN RESTORE: Apakah Anda yakin ingin memulihkan data dari snapshot ini ke dalam database?')) {
-      return;
-    }
-
+  const executeRestoreBackup = async () => {
+    setShowConfirmRestoreModal(false);
     try {
       setRestoreLoading(true);
       setError(null);
@@ -1698,6 +1704,25 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
         isOpen={syncingSheets || restoreLoading}
         message={syncingSheets ? 'Menyinkronkan database dengan Google Sheets cloud...' : 'Memproses pemulihan data snapshot...'}
         submessage="Mencegah interupsi & memastikan integritas data..."
+      />
+
+      {/* MODAL CUSTOM SLEEK: KONFIRMASI RESTORE BACKUP */}
+      <CustomConfirmModal
+        isOpen={showConfirmRestoreModal}
+        onClose={() => setShowConfirmRestoreModal(false)}
+        onConfirm={executeRestoreBackup}
+        title="Konfirmasi Pemulihan Data (Restore)"
+        subtitle="Apakah Anda yakin ingin memulihkan data dari snapshot ini ke dalam database POS?"
+        warningNote="Data produk dan stok yang ada akan diperbarui sesuai dengan isi berkas snapshot ini."
+        details={[
+          { label: 'Jumlah Produk', value: jsonPreview?.products_count ? `${jsonPreview.products_count} item` : 'Auto-detect' },
+          { label: 'Waktu Snapshot', value: jsonPreview?.timestamp || 'Terbaru', highlight: true, color: '#0284c7' },
+        ]}
+        confirmText="⚡ Ya, Pulihkan Data Sekarang"
+        cancelText="Batal"
+        confirmVariant="warning"
+        iconType="alert"
+        loading={restoreLoading}
       />
     </div>
   );
