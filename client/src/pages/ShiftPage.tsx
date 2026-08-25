@@ -320,6 +320,14 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   const handleCloseShiftSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeShiftData?.shift?.shift_id) return;
+
+    const isConfirmed = window.confirm(
+      `🛑 KONFIRMASI PENUTUPAN SHIFT TOKO\n\n` +
+      `Apakah Anda yakin ingin menutup sesi Shift Aktif Toko ini?\n\n` +
+      `⚠️ PERHATIAN: Tindakan ini akan mengakhiri sesi shift untuk SELURUH tim kasir yang sedang bertugas.`
+    );
+    if (!isConfirmed) return;
+
     try {
       setCloseLoading(true);
       setError(null);
@@ -740,6 +748,17 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               </div>
 
               <form onSubmit={handleCloseShiftSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                {/* BANNER PERINGATAN SHIFT BERSAMA */}
+                <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderLeft: '4px solid #ea580c', borderRadius: '12px', padding: '0.85rem 1rem', display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
+                  <AlertTriangle size={20} color="#ea580c" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <div style={{ fontSize: '0.8rem', color: '#9a3412', lineHeight: '1.45' }}>
+                    <strong style={{ display: 'block', fontSize: '0.85rem', color: '#c2410c', marginBottom: '2px' }}>
+                      ⚠️ PERHATIAN: Sesi Shift Toko Bersama
+                    </strong>
+                    Shift ini digunakan oleh <strong>seluruh kasir toko yang sedang aktif</strong>. Menutup shift ini akan menyelesaikan sesi untuk seluruh tim bertugas.
+                  </div>
+                </div>
+
                 <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                     <span style={{ color: '#047857', fontWeight: 700 }}>🎯 Hasil Murni Jualan (Setoran):</span>
