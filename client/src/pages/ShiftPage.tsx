@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, Power, X, Edit3, Trash2, Plus, AlertTriangle } from 'lucide-react';
+import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, Power, X, Edit3, Trash2, Plus, AlertTriangle, Boxes, Search, PackageCheck, Sparkles, FileText } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
-import { User } from '../types';
+import { User, Product } from '../types';
 import { formatRupiah, formatDateIndoFull } from '../utils/formatters';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
 import { exportShiftToExcel, printShiftPDF } from '../utils/shiftReportExporter';
@@ -98,6 +98,135 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
   // Modal State Hapus Rekonsiliasi Confirmation
   const [showConfirmDeleteReconciliation, setShowConfirmDeleteReconciliation] = useState(false);
+
+  // State Mode Rekap Shift via Hitung Sisa Stok (Fast Stock Audit)
+  const [showStockAuditModal, setShowStockAuditModal] = useState(false);
+  const [auditProducts, setAuditProducts] = useState<Product[]>([]);
+  const [auditLoading, setAuditLoading] = useState(false);
+  const [auditSubmitting, setAuditSubmitting] = useState(false);
+  const [auditStockInput, setAuditStockInput] = useState<Record<string, string>>({});
+  const [auditFcPages, setAuditFcPages] = useState<string>('');
+  const [auditFcPrice, setAuditFcPrice] = useState<number>(250);
+  const [auditPrintRevenue, setAuditPrintRevenue] = useState<string>('');
+  const [auditSearch, setAuditSearch] = useState<string>('');
+
+  const handleOpenStockAuditModal = async () => {
+    setShowStockAuditModal(true);
+    setAuditLoading(true);
+    try {
+      const products = await apiService.getProducts();
+      const activeProds = products.filter((p) => p.is_active !== false);
+      setAuditProducts(activeProds);
+
+      const initialInputs: Record<string, string> = {};
+      activeProds.forEach((p) => {
+        if (p.manage_stock && p.stock !== undefined) {
+          initialInputs[p.product_id] = String(p.stock);
+        }
+      });
+      setAuditStockInput(initialInputs);
+    } catch (err: any) {
+      alert('Gagal memuat daftar produk untuk audit stok: ' + (err.message || err));
+    } finally {
+      setAuditLoading(false);
+    }
+  };
+
+  const handleAuditStockInputChange = (productId: string, value: string) => {
+    setAuditStockInput((prev) => ({
+      ...prev,
+      [productId]: value,
+    }));
+  };
+
+  const getAuditCalculations = () => {
+    let totalGoodsRevenue = 0;
+    let totalGoodsSoldQty = 0;
+    const soldItemsList: { product: Product; initialStock: number; remainingStock: number; soldQty: number; subtotal: number }[] = [];
+
+    auditProducts.forEach((p) => {
+      if (p.manage_stock) {
+        const initialStock = p.stock ?? 0;
+        const rawInput = auditStockInput[p.product_id];
+        const remainingStock = rawInput === '' || rawInput === undefined ? initialStock : Math.max(0, Number(rawInput));
+        const soldQty = Math.max(0, initialStock - remainingStock);
+        const subtotal = soldQty * (p.selling_price || 0);
+
+        if (soldQty > 0) {
+          totalGoodsSoldQty += soldQty;
+          totalGoodsRevenue += subtotal;
+          soldItemsList.push({
+            product: p,
+            initialStock,
+            remainingStock,
+            soldQty,
+            subtotal,
+          });
+        }
+      }
+    });
+
+    const fcPagesNum = Math.max(0, Number(auditFcPages) || 0);
+    const fcRevenue = fcPagesNum * (auditFcPrice || 0);
+    const printRevenue = Math.max(0, Number(auditPrintRevenue) || 0);
+    const totalServicesRevenue = fcRevenue + printRevenue;
+
+    const totalAuditSales = totalGoodsRevenue + totalServicesRevenue;
+    const currentShift = activeShiftData?.shift;
+    const initialCash = currentShift?.total_initial_cash || 0;
+    const cashExpenses = currentShift?.total_cash_expenses || 0;
+    const estimatedTheoreticalCash = initialCash + totalAuditSales - cashExpenses;
+
+    return {
+      soldItemsList,
+      totalGoodsSoldQty,
+      totalGoodsRevenue,
+      fcPagesNum,
+      fcRevenue,
+      printRevenue,
+      totalServicesRevenue,
+      totalAuditSales,
+      estimatedTheoreticalCash,
+    };
+  };
+
+  const handleApplyAuditToCloseShift = async () => {
+    const calc = getAuditCalculations();
+
+    const isConfirmed = window.confirm(
+      `📦 TERAPKAN REKAP PENJUALAN STOK SISA & TUTUP SHIFT\n\n` +
+      `Ringkasan Rekap Shift:\n` +
+      `- Total Barang Terjual: ${calc.totalGoodsSoldQty} pcs (${formatRupiah(calc.totalGoodsRevenue)})\n` +
+      `- Total Jasa (FC & Print): ${formatRupiah(calc.totalServicesRevenue)}\n` +
+      `- Total Estimasi Omzet Shift: ${formatRupiah(calc.totalAuditSales)}\n` +
+      `- Wajib Ada Uang Fisik di Laci: ${formatRupiah(calc.estimatedTheoreticalCash)}\n\n` +
+      `Lanjutkan ke penutupan resmi shift?`
+    );
+
+    if (!isConfirmed) return;
+
+    setAuditSubmitting(true);
+    try {
+      const transactionItemsDTO = calc.soldItemsList.map((item) => ({
+        product_id: item.product.product_id,
+        qty: item.soldQty,
+      }));
+
+      if (transactionItemsDTO.length > 0) {
+        await apiService.createTransaction('CASH', transactionItemsDTO, calc.totalGoodsRevenue).catch((err) => {
+          console.warn('Peringatan pencatatan rekap barang:', err);
+        });
+      }
+
+      setActualPhysicalCash(calc.estimatedTheoreticalCash);
+      setShowStockAuditModal(false);
+      setShowCloseModal(true);
+    } catch (err: any) {
+      alert('Gagal menerapkan rekap stok sisa: ' + (err.message || err));
+    } finally {
+      setAuditSubmitting(false);
+    }
+  };
 
   // Status Setelah Tutup Shift (Rincian Return Capital) - Tersimpan di LocalStorage agar tidak hilang saat di-refresh!
   const [closedShiftResult, setClosedShiftResult] = useState<ActiveShiftDetailsData | null>(() => {
@@ -521,6 +650,26 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               Export Excel Shift
             </button>
             <button
+              onClick={handleOpenStockAuditModal}
+              style={{
+                padding: '0.55rem 1rem',
+                background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.85rem',
+                borderRadius: '10px',
+                border: 'none',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)',
+              }}
+            >
+              <Boxes size={16} />
+              📦 Rekap via Hitung Stok Sisa
+            </button>
+            <button
               onClick={() => {
                 setActualPhysicalCash(shift.theoretical_cash);
                 setShowCloseModal(true);
@@ -751,6 +900,35 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 </div>
               </div>
 
+              {/* BANNER QUICK SWITCH KE MODE HITUNG STOK SISA */}
+              <div style={{ marginBottom: '1rem', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '12px', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+                <div>
+                  <strong style={{ fontSize: '0.8rem', color: '#0369a1', display: 'block' }}>📦 Mau Pakai Mode Rekap Stok Sisa?</strong>
+                  <span style={{ fontSize: '0.725rem', color: '#0284c7' }}>Hitung sisa barang di rak & lembar FC daripada ketik manual.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCloseModal(false);
+                    handleOpenStockAuditModal();
+                  }}
+                  style={{
+                    padding: '0.45rem 0.75rem',
+                    background: '#0284c7',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '0.75rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap',
+                    boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)',
+                  }}
+                >
+                  Buka Rekap
+                </button>
+              </div>
+
               <form onSubmit={handleCloseShiftSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                 {/* BANNER PERINGATAN SHIFT BERSAMA */}
                 <div style={{ background: '#fff7ed', border: '1px solid #ffedd5', borderLeft: '4px solid #ea580c', borderRadius: '12px', padding: '0.85rem 1rem', display: 'flex', alignItems: 'flex-start', gap: '0.65rem' }}>
@@ -836,6 +1014,337 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL REKAP SHIFT VIA HITUNG STOK SISA */}
+        {showStockAuditModal && (
+          <div
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(5px)',
+              zIndex: 99999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem',
+            }}
+          >
+            <div
+              style={{
+                background: '#ffffff',
+                borderRadius: '24px',
+                maxWidth: '850px',
+                width: '100%',
+                maxHeight: '90vh',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+                overflow: 'hidden',
+              }}
+            >
+              {/* Header Modal */}
+              <div
+                style={{
+                  padding: '1.25rem 1.5rem',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                  color: '#ffffff',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: 'rgba(255, 255, 255, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Boxes size={22} color="#ffffff" />
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0 }}>
+                      📦 Rekap Penjualan Shift via Hitung Stok Sisa
+                    </h3>
+                    <p style={{ fontSize: '0.78rem', color: '#e0f2fe', margin: '0.15rem 0 0 0' }}>
+                      Hitung sisa barang di rak. Sistem akan menghitung jumlah terjual & estimasi uang laci secara otomatis.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowStockAuditModal(false)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.2)',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#ffffff',
+                  }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Filter Search */}
+              <div style={{ padding: '1rem 1.5rem 0.5rem 1.5rem', background: '#f8fafc', borderBottom: '1px solid #e2e8f0', flexShrink: 0 }}>
+                <div style={{ position: 'relative' }}>
+                  <Search size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input
+                    type="text"
+                    value={auditSearch}
+                    onChange={(e) => setAuditSearch(e.target.value)}
+                    placeholder="Cari nama produk / snack / ATK..."
+                    style={{
+                      width: '100%',
+                      padding: '0.65rem 1rem 0.65rem 2.5rem',
+                      borderRadius: '12px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.875rem',
+                      outline: 'none',
+                      background: '#ffffff',
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Scrollable Content Body */}
+              <div style={{ padding: '1rem 1.5rem', overflowY: 'auto', flex: 1, display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                {auditLoading ? (
+                  <div style={{ textAlign: 'center', padding: '3rem 0', color: '#64748b' }}>
+                    <p style={{ fontWeight: 700 }}>Memuat daftar produk toko...</p>
+                  </div>
+                ) : (
+                  <>
+                    {/* BAGIAN 1: TABEL STOK BARANG FISIK */}
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                        <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <PackageCheck size={18} color="#0284c7" />
+                          1. Input Sisa Barang Fisik di Rak (Snack, Es Krim, ATK, dll)
+                        </h4>
+                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                          {auditProducts.filter(p => p.manage_stock).length} Produk Berstok
+                        </span>
+                      </div>
+
+                      <div style={{ border: '1px solid #cbd5e1', borderRadius: '14px', overflow: 'hidden' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                          <thead>
+                            <tr style={{ background: '#f1f5f9', color: '#334155', textAlign: 'left' }}>
+                              <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800 }}>Nama Produk</th>
+                              <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800 }}>Harga</th>
+                              <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800, textAlign: 'center' }}>Stok Awal</th>
+                              <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800, textAlign: 'center', width: '130px' }}>Sisa Fisik Rak</th>
+                              <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800, textAlign: 'center' }}>Terjual</th>
+                              <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800, textAlign: 'right' }}>Subtotal</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {auditProducts
+                              .filter((p) => p.manage_stock && p.product_name.toLowerCase().includes(auditSearch.toLowerCase()))
+                              .map((product) => {
+                                const initialStock = product.stock ?? 0;
+                                const rawInput = auditStockInput[product.product_id];
+                                const remaining = rawInput === '' || rawInput === undefined ? initialStock : Math.max(0, Number(rawInput));
+                                const soldQty = Math.max(0, initialStock - remaining);
+                                const subtotal = soldQty * product.selling_price;
+
+                                return (
+                                  <tr key={product.product_id} style={{ borderBottom: '1px solid #e2e8f0', background: soldQty > 0 ? '#f0fdf4' : '#ffffff' }}>
+                                    <td style={{ padding: '0.65rem 0.85rem', fontWeight: 700, color: '#0f172a' }}>
+                                      {product.product_name}
+                                      <span style={{ display: 'block', fontSize: '0.7rem', color: '#64748b', fontWeight: 500 }}>
+                                        {product.business_unit === 'FC_PRINT' ? '🖨️ FC / ATK' : '🍿 F&B / Snack'}
+                                      </span>
+                                    </td>
+                                    <td style={{ padding: '0.65rem 0.85rem', color: '#475569', fontWeight: 600 }}>
+                                      {formatRupiah(product.selling_price)}
+                                    </td>
+                                    <td style={{ padding: '0.65rem 0.85rem', textAlign: 'center', fontWeight: 800, color: '#475569' }}>
+                                      {initialStock} pcs
+                                    </td>
+                                    <td style={{ padding: '0.5rem 0.85rem', textAlign: 'center' }}>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max={initialStock}
+                                        value={auditStockInput[product.product_id] ?? initialStock}
+                                        onChange={(e) => handleAuditStockInputChange(product.product_id, e.target.value)}
+                                        style={{
+                                          width: '100%',
+                                          padding: '0.4rem',
+                                          borderRadius: '8px',
+                                          border: soldQty > 0 ? '2px solid #16a34a' : '1px solid #cbd5e1',
+                                          background: soldQty > 0 ? '#ffffff' : '#f8fafc',
+                                          textAlign: 'center',
+                                          fontWeight: 900,
+                                          fontSize: '0.95rem',
+                                          color: soldQty > 0 ? '#15803d' : '#0f172a',
+                                          outline: 'none',
+                                        }}
+                                      />
+                                    </td>
+                                    <td style={{ padding: '0.65rem 0.85rem', textAlign: 'center' }}>
+                                      {soldQty > 0 ? (
+                                        <span style={{ background: '#dcfce7', color: '#15803d', padding: '0.2rem 0.55rem', borderRadius: '12px', fontWeight: 900, fontSize: '0.8rem' }}>
+                                          {soldQty} pcs
+                                        </span>
+                                      ) : (
+                                        <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>0</span>
+                                      )}
+                                    </td>
+                                    <td style={{ padding: '0.65rem 0.85rem', textAlign: 'right', fontWeight: 800, color: soldQty > 0 ? '#15803d' : '#94a3b8' }}>
+                                      {formatRupiah(subtotal)}
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    {/* BAGIAN 2: ISIAN CEPAAT JASA (FOTOKOPI & PRINT) */}
+                    <div>
+                      <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.65rem 0', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                        <FileText size={18} color="#0284c7" />
+                        2. Input Hasil Jasa (Fotokopi & Print)
+                      </h4>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+                        {/* Card Fotokopi */}
+                        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                          <span style={{ fontSize: '0.825rem', fontWeight: 800, color: '#0f172a', display: 'block', marginBottom: '0.4rem' }}>
+                            📄 Total Lembaran Fotokopi:
+                          </span>
+                          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                            <input
+                              type="number"
+                              min="0"
+                              value={auditFcPages}
+                              onChange={(e) => setAuditFcPages(e.target.value)}
+                              placeholder="Contoh: 150 lembar"
+                              style={{ flex: 1, padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: '0.95rem', outline: 'none' }}
+                            />
+                            <span style={{ fontSize: '0.75rem', color: '#64748b' }}>lembar</span>
+                          </div>
+                          <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                              <span style={{ color: '#64748b' }}>Rp</span>
+                              <input
+                                type="number"
+                                value={auditFcPrice}
+                                onChange={(e) => setAuditFcPrice(Number(e.target.value) || 0)}
+                                style={{ width: '60px', padding: '0.15rem 0.35rem', fontSize: '0.75rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 700 }}
+                              />
+                              <span style={{ color: '#64748b' }}>/lbr</span>
+                            </div>
+                            <span style={{ fontWeight: 800, color: '#0369a1' }}>
+                              Subtotal: {formatRupiah((Number(auditFcPages) || 0) * auditFcPrice)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Card Print & Jasa Lain */}
+                        <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
+                          <span style={{ fontSize: '0.825rem', fontWeight: 800, color: '#0f172a', display: 'block', marginBottom: '0.4rem' }}>
+                            🖨️ Total Omzet Print / Jasa Ketik (Rp):
+                          </span>
+                          <input
+                            type="number"
+                            min="0"
+                            value={auditPrintRevenue}
+                            onChange={(e) => setAuditPrintRevenue(e.target.value)}
+                            placeholder="Contoh: 25000"
+                            style={{ width: '100%', padding: '0.5rem 0.75rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 800, fontSize: '0.95rem', outline: 'none' }}
+                          />
+                          <div style={{ marginTop: '0.5rem', textAlign: 'right', fontSize: '0.8rem' }}>
+                            <span style={{ fontWeight: 800, color: '#0369a1' }}>
+                              Subtotal: {formatRupiah(Number(auditPrintRevenue) || 0)}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Footer Summary Box & Action Buttons */}
+              {(() => {
+                const calc = getAuditCalculations();
+                return (
+                  <div style={{ padding: '1.25rem 1.5rem', background: '#f0f9ff', borderTop: '2px solid #bae6fd', flexShrink: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                      <div>
+                        <span style={{ fontSize: '0.78rem', color: '#0369a1', fontWeight: 700 }}>Ringkasan Hasil Rekap Shift:</span>
+                        <div style={{ display: 'flex', gap: '1rem', fontSize: '0.85rem', marginTop: '0.15rem' }}>
+                          <span>Barang: <strong>{calc.totalGoodsSoldQty} pcs ({formatRupiah(calc.totalGoodsRevenue)})</strong></span>
+                          <span>Jasa: <strong>{formatRupiah(calc.totalServicesRevenue)}</strong></span>
+                        </div>
+                      </div>
+
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 800 }}>💵 Total Uang Fisik Wajib Ada di Laci:</span>
+                        <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#15803d', margin: 0 }}>
+                          {formatRupiah(calc.estimatedTheoreticalCash)}
+                        </h3>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '0.75rem' }}>
+                      <button
+                        type="button"
+                        onClick={() => setShowStockAuditModal(false)}
+                        style={{
+                          flex: 1,
+                          padding: '0.75rem',
+                          borderRadius: '10px',
+                          border: '1px solid #cbd5e1',
+                          background: '#ffffff',
+                          color: '#475569',
+                          fontWeight: 800,
+                          cursor: 'pointer',
+                        }}
+                      >
+                        Batal
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleApplyAuditToCloseShift}
+                        disabled={auditSubmitting}
+                        style={{
+                          flex: 2,
+                          padding: '0.75rem',
+                          borderRadius: '10px',
+                          border: 'none',
+                          background: 'linear-gradient(135deg, #15803d 0%, #166534 100%)',
+                          color: '#ffffff',
+                          fontWeight: 800,
+                          cursor: auditSubmitting ? 'not-allowed' : 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.45rem',
+                          boxShadow: '0 4px 14px rgba(21, 128, 61, 0.35)',
+                        }}
+                      >
+                        <Sparkles size={18} />
+                        {auditSubmitting ? 'Memproses Rekap...' : '🚀 Terapkan Rekap & Lanjutkan ke Tutup Shift'}
+                      </button>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
