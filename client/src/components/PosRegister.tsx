@@ -1015,11 +1015,27 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                   alignItems: 'center',
                   gap: '0.35rem',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                  position: 'relative',
                 }}
                 title="Lihat riwayat nota transaksi shift ini atau batalkan nota jika kasir salah input"
               >
                 <RotateCw size={13} color="#2563eb" />
                 <span>Riwayat & Void Nota</span>
+                <span
+                  style={{
+                    fontSize: '0.58rem',
+                    fontWeight: 900,
+                    padding: '0.1rem 0.35rem',
+                    borderRadius: '4px',
+                    background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                    color: '#ffffff',
+                    letterSpacing: '0.04em',
+                    boxShadow: '0 2px 4px rgba(239, 68, 68, 0.3)',
+                    lineHeight: 1,
+                  }}
+                >
+                  NEW
+                </span>
               </button>
             </div>
 
