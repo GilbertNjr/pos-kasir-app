@@ -100,7 +100,6 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   // Modal State Hapus Rekonsiliasi Confirmation
   const [showConfirmDeleteReconciliation, setShowConfirmDeleteReconciliation] = useState(false);
   const [showConfirmCloseShiftModal, setShowConfirmCloseShiftModal] = useState(false);
-  const [showConfirmAuditApplyModal, setShowConfirmAuditApplyModal] = useState(false);
 
   // State Mode Rekap Shift via Hitung Sisa Stok (Fast Stock Audit)
   const [showStockAuditModal, setShowStockAuditModal] = useState(false);
@@ -205,12 +204,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     };
   };
 
-  const handleApplyAuditToCloseShift = () => {
-    setShowConfirmAuditApplyModal(true);
-  };
-
-  const executeApplyAuditToCloseShift = async () => {
-    setShowConfirmAuditApplyModal(false);
+  const handleApplyAuditToCloseShift = async () => {
     const calc = getAuditCalculations();
 
     setAuditSubmitting(true);
@@ -2099,25 +2093,6 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         loading={closeLoading}
       />
 
-      {/* Modal Custom Sleek: Konfirmasi Terapkan Rekap Stok Sisa */}
-      <CustomConfirmModal
-        isOpen={showConfirmAuditApplyModal}
-        onClose={() => setShowConfirmAuditApplyModal(false)}
-        onConfirm={executeApplyAuditToCloseShift}
-        title="Terapkan Rekap Stok Sisa & Lanjutkan"
-        subtitle="Semua hasil hitungan fisik stok & jasa akan dicatat otomatis ke sistem POS."
-        details={[
-          { label: 'Total Barang Terjual', value: `${getAuditCalculations().totalGoodsSoldQty} pcs (${formatRupiah(getAuditCalculations().totalGoodsRevenue)})` },
-          { label: 'Total Jasa (FC & Print)', value: formatRupiah(getAuditCalculations().totalServicesRevenue) },
-          { label: 'Total Estimasi Omzet', value: formatRupiah(getAuditCalculations().totalAuditSales), highlight: true, color: '#16a34a' },
-          { label: 'Wajib Uang Fisik Laci', value: formatRupiah(getAuditCalculations().estimatedTheoreticalCash), highlight: true, color: '#0284c7' },
-        ]}
-        confirmText="🚀 Terapkan & Tutup Shift"
-        cancelText="Batal"
-        confirmVariant="primary"
-        iconType="package"
-        loading={auditSubmitting}
-      />
     </div>
   );
 };
