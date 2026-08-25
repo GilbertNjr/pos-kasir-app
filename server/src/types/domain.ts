@@ -116,12 +116,14 @@ export interface TransactionEntity {
   payment_method: PaymentMethod;
   transaction_time: string;
   status: TransactionStatus;
+  items?: TransactionItemEntity[];
 }
 
 export interface TransactionItemEntity {
   transaction_item_id: string;
   transaction_id: string;
   product_id: string;
+  product_name?: string;
   unit_price: number;
   qty: number;
   subtotal: number;

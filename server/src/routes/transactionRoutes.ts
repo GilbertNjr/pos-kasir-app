@@ -29,6 +29,7 @@ const transactionController = new TransactionController(transactionService);
 router.post('/', authMiddleware, idempotencyMiddleware, transactionController.createTransaction);
 router.get('/', authMiddleware, transactionController.getTransactions);
 router.get('/payment-summary', authMiddleware, transactionController.getPaymentSummary);
+router.get('/:id/items', authMiddleware, transactionController.getTransactionItems);
 router.post('/:id/cancel', authMiddleware, transactionController.cancelTransaction);
 router.delete('/:id', authMiddleware, transactionController.deleteTransaction);
 

@@ -8,9 +8,11 @@ export class TransactionItemRepository implements IRepository<TransactionItemEnt
   async findAll(): Promise<TransactionItemEntity[]> {
     try {
       const res = await pool.query(
-        `SELECT item_id as transaction_item_id, transaction_id, product_id, 
-                unit_price::float, quantity::float as qty, subtotal::float, discount_amount::float
-         FROM transaction_items`
+        `SELECT ti.item_id as transaction_item_id, ti.transaction_id, ti.product_id, 
+                COALESCE(p.product_name, ti.product_name_snapshot, 'Produk POS') as product_name,
+                ti.unit_price::float, ti.quantity::float as qty, ti.subtotal::float, ti.discount_amount::float
+         FROM transaction_items ti
+         LEFT JOIN products p ON ti.product_id = p.product_id`
       );
       if (res.rows.length > 0) {
         this.inMemoryItems = res.rows;
@@ -26,10 +28,12 @@ export class TransactionItemRepository implements IRepository<TransactionItemEnt
   async findById(transaction_item_id: string): Promise<TransactionItemEntity | null> {
     try {
       const res = await pool.query(
-        `SELECT item_id as transaction_item_id, transaction_id, product_id, 
-                unit_price::float, quantity::float as qty, subtotal::float, discount_amount::float
-         FROM transaction_items
-         WHERE item_id = $1`,
+        `SELECT ti.item_id as transaction_item_id, ti.transaction_id, ti.product_id, 
+                COALESCE(p.product_name, ti.product_name_snapshot, 'Produk POS') as product_name,
+                ti.unit_price::float, ti.quantity::float as qty, ti.subtotal::float, ti.discount_amount::float
+         FROM transaction_items ti
+         LEFT JOIN products p ON ti.product_id = p.product_id
+         WHERE ti.item_id = $1`,
         [transaction_item_id]
       );
       if (res.rows.length > 0) return res.rows[0];
@@ -44,10 +48,12 @@ export class TransactionItemRepository implements IRepository<TransactionItemEnt
   async findByTransactionId(transaction_id: string): Promise<TransactionItemEntity[]> {
     try {
       const res = await pool.query(
-        `SELECT item_id as transaction_item_id, transaction_id, product_id, 
-                unit_price::float, quantity::float as qty, subtotal::float, discount_amount::float
-         FROM transaction_items
-         WHERE transaction_id = $1`,
+        `SELECT ti.item_id as transaction_item_id, ti.transaction_id, ti.product_id, 
+                COALESCE(p.product_name, ti.product_name_snapshot, 'Produk POS') as product_name,
+                ti.unit_price::float, ti.quantity::float as qty, ti.subtotal::float, ti.discount_amount::float
+         FROM transaction_items ti
+         LEFT JOIN products p ON ti.product_id = p.product_id
+         WHERE ti.transaction_id = $1`,
         [transaction_id]
       );
       if (res.rows.length > 0) return res.rows;

@@ -498,6 +498,20 @@ export const apiService = {
     return result.data;
   },
 
+  async getTransactionItems(transactionId: string): Promise<any[]> {
+    const token = this.getToken();
+    try {
+      const response = await fetch(`${API_BASE}/transactions/${transactionId}/items`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const result = await response.json();
+      if (!response.ok) return [];
+      return result.data || [];
+    } catch {
+      return [];
+    }
+  },
+
   async getPaymentSummary(shiftId: string): Promise<PaymentSummaryData> {
     const token = this.getToken();
     const response = await fetch(`${API_BASE}/transactions/payment-summary?shift_id=${shiftId}`, {

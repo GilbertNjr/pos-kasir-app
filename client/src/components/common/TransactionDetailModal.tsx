@@ -33,12 +33,27 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [usersList, setUsersList] = useState<User[]>([]);
+  const [fetchedItems, setFetchedItems] = useState<any[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       apiService.getUsers().then(setUsersList).catch(() => []);
+      
+      const initial = (items && items.length > 0) ? items : (transaction?.items || []);
+      if (initial.length > 0) {
+        setFetchedItems(initial);
+      } else if (transaction?.transaction_id || transaction?.id) {
+        const txId = transaction.transaction_id || transaction.id;
+        apiService.getTransactionItems(txId).then((res) => {
+          if (res && res.length > 0) {
+            setFetchedItems(res);
+          }
+        }).catch(() => []);
+      }
+    } else {
+      setFetchedItems([]);
     }
-  }, [isOpen]);
+  }, [isOpen, transaction, items]);
 
   if (!isOpen || !transaction) return null;
 
@@ -67,8 +82,22 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   const customerName = transaction.customer_name || 'Pelanggan Umum';
   const paymentMethod = (transaction.payment_method || 'CASH').toUpperCase();
 
-  // Combine items
-  const detailItems: any[] = items && items.length > 0 ? items : transaction.items || [];
+  // Combine items safely with fallback product names
+  const rawDetailItems: any[] = fetchedItems.length > 0 
+    ? fetchedItems 
+    : (items && items.length > 0 ? items : (transaction.items || []));
+
+  const detailItems: any[] = rawDetailItems.map((item: any) => {
+    const pId = item.product_id || item.product?.product_id;
+    const matchedProd = products.find((p) => p.product_id === pId);
+    return {
+      ...item,
+      product_id: pId,
+      product_name: item.product_name || item.name || (matchedProd ? matchedProd.product_name : 'Produk POS'),
+      unit_price: Number(item.unit_price || item.price || matchedProd?.selling_price || 0),
+      qty: Number(item.qty || item.quantity || 1),
+    };
+  });
 
   // Financial totals
   const subtotalVal = Number(transaction.subtotal_amount || transaction.final_total || 0);

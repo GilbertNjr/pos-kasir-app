@@ -1931,8 +1931,19 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                         </div>
 
                         <button
-                          onClick={() => {
-                            setSelectedTxForDetail(tx);
+                          onClick={async () => {
+                            let targetTx = tx;
+                            if (!tx.items || tx.items.length === 0) {
+                              try {
+                                const fetched = await apiService.getTransactionItems(tx.transaction_id || tx.id);
+                                if (fetched && fetched.length > 0) {
+                                  targetTx = { ...tx, items: fetched };
+                                }
+                              } catch (e) {
+                                console.warn('Gagal memuat item transaksi:', e);
+                              }
+                            }
+                            setSelectedTxForDetail(targetTx);
                             setShowVoidHistoryModal(false);
                           }}
                           style={{

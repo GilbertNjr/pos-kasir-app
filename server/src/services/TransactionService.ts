@@ -196,11 +196,23 @@ export class TransactionService {
   }
 
   async getAllTransactions(): Promise<TransactionEntity[]> {
-    return this.transactionRepository.findAll();
+    const list = await this.transactionRepository.findAll();
+    for (const tx of list) {
+      tx.items = await this.itemRepository.findByTransactionId(tx.transaction_id);
+    }
+    return list;
   }
 
   async getTransactionsByShift(shift_id: string): Promise<TransactionEntity[]> {
-    return this.transactionRepository.findByShiftId(shift_id);
+    const list = await this.transactionRepository.findByShiftId(shift_id);
+    for (const tx of list) {
+      tx.items = await this.itemRepository.findByTransactionId(tx.transaction_id);
+    }
+    return list;
+  }
+
+  async getTransactionItems(transaction_id: string): Promise<TransactionItemEntity[]> {
+    return this.itemRepository.findByTransactionId(transaction_id);
   }
 
   async getPaymentSummaryByShift(shift_id: string): Promise<PaymentSummary> {

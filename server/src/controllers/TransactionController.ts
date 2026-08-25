@@ -54,6 +54,16 @@ export class TransactionController {
     }
   };
 
+  public getTransactionItems = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+      const items = await this.transactionService.getTransactionItems(id);
+      return res.status(200).json({ data: items });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message || 'Gagal mengambil detail item transaksi' });
+    }
+  };
+
   public getPaymentSummary = async (req: AuthenticatedRequest, res: Response) => {
     try {
       const { shift_id } = req.query;
