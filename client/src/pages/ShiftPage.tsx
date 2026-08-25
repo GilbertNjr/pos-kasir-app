@@ -190,6 +190,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         currentUserFullName: currentUser.full_name,
         transactions: salesReport?.transactions || [],
         expenses: expensesData || [],
+        startTime: activeShiftData.shift.start_time,
+        endTime: activeShiftData.shift.end_time || new Date().toISOString(),
       });
     } catch (err: any) {
       alert('Gagal memuat data shift untuk cetak PDF: ' + (err.message || err));
@@ -227,6 +229,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         currentUserFullName: currentUser.full_name,
         transactions: salesReport?.transactions || [],
         expenses: expensesData || [],
+        startTime: activeShiftData.shift.start_time,
+        endTime: activeShiftData.shift.end_time || new Date().toISOString(),
       });
     } catch (err: any) {
       alert('Gagal memuat data shift untuk ekspor Excel: ' + (err.message || err));

@@ -8,7 +8,33 @@ export interface ShiftReportExportOptions {
   currentUserFullName?: string;
   transactions: any[];
   expenses: any[];
+  startTime?: string;
+  endTime?: string;
 }
+
+export const formatShiftDurationText = (startTime?: string, endTime?: string) => {
+  if (!startTime) return null;
+  const startD = new Date(startTime);
+  if (isNaN(startD.getTime())) return null;
+
+  const endD = endTime ? new Date(endTime) : new Date();
+
+  const startHHMM = startD.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  const endHHMM = endD.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+  const diffMs = endD.getTime() - startD.getTime();
+  if (diffMs <= 0) return `${startHHMM} WIB`;
+
+  const totalMinutes = Math.floor(diffMs / (1000 * 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  const durationStr = hours > 0
+    ? `${hours} Jam${minutes > 0 ? ` ${minutes} Mnt` : ''}`
+    : `${minutes} Mnt`;
+
+  return `${startHHMM} s/d ${endHHMM} WIB (${durationStr})`;
+};
 
 const extractBaseName = (name: string) => name.replace(/\s*\([^)]*\)/g, '').trim();
 
@@ -120,7 +146,11 @@ export const exportShiftToExcel = (options: ShiftReportExportOptions) => {
     currentUserFullName,
     transactions,
     expenses,
+    startTime,
+    endTime,
   } = options;
+
+  const shiftDurationStr = formatShiftDurationText(startTime, endTime);
 
   const { itemList, totalGrossSales, expenseList, totalExpenses, netTotal } = aggregateShiftData(
     transactions,
@@ -202,7 +232,8 @@ export const exportShiftToExcel = (options: ShiftReportExportOptions) => {
           <td><strong>Shift Sesi:</strong> ${shiftId}</td>
         </tr>
         <tr>
-          <td colspan="2"><strong>Pegawai Shift Jaga:</strong> ${dutyUsersStr}</td>
+          <td><strong>Jam Operasional:</strong> ${shiftDurationStr || 'Sesi Shift Aktif'}</td>
+          <td><strong>Pegawai Shift Jaga:</strong> ${dutyUsersStr}</td>
         </tr>
       </table>
 
@@ -275,9 +306,12 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
     currentUserFullName,
     transactions,
     expenses,
+    startTime,
+    endTime,
   } = options;
 
   const formattedDateStr = formatDateIndoFull(dateStr);
+  const shiftDurationStr = formatShiftDurationText(startTime, endTime);
 
   const { itemList, totalGrossSales, expenseList, totalExpenses, netTotal } = aggregateShiftData(
     transactions,
@@ -416,6 +450,13 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
           <td style="text-align: center; padding: 1px 0; vertical-align: top;">:</td>
           <td style="text-align: left; padding: 1px 0; word-break: break-word; font-weight: 600;">${formattedDateStr}</td>
         </tr>
+        ${shiftDurationStr ? `
+        <tr>
+          <td style="text-align: left; padding: 1px 0; vertical-align: top;">Jam Operasional</td>
+          <td style="text-align: center; padding: 1px 0; vertical-align: top;">:</td>
+          <td style="text-align: left; padding: 1px 0; word-break: break-word; font-weight: bold; color: #047857;">${shiftDurationStr}</td>
+        </tr>
+        ` : ''}
         <tr>
           <td style="text-align: left; padding: 1px 0;">Sesi Shift</td>
           <td style="text-align: center; padding: 1px 0;">:</td>
