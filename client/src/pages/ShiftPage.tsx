@@ -668,6 +668,21 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             >
               <Boxes size={16} />
               📦 Rekap via Hitung Stok Sisa
+              <span
+                style={{
+                  background: '#ef4444',
+                  color: '#ffffff',
+                  fontSize: '0.625rem',
+                  fontWeight: 900,
+                  padding: '0.12rem 0.4rem',
+                  borderRadius: '6px',
+                  letterSpacing: '0.5px',
+                  boxShadow: '0 2px 4px rgba(239, 68, 68, 0.4)',
+                  marginLeft: '0.2rem',
+                }}
+              >
+                BARU
+              </span>
             </button>
             <button
               onClick={() => {
@@ -903,7 +918,10 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               {/* BANNER QUICK SWITCH KE MODE HITUNG STOK SISA */}
               <div style={{ marginBottom: '1rem', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '12px', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
                 <div>
-                  <strong style={{ fontSize: '0.8rem', color: '#0369a1', display: 'block' }}>📦 Mau Pakai Mode Rekap Stok Sisa?</strong>
+                  <strong style={{ fontSize: '0.8rem', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    📦 Mau Pakai Mode Rekap Stok Sisa?
+                    <span style={{ background: '#ef4444', color: '#ffffff', fontSize: '0.6rem', fontWeight: 900, padding: '0.1rem 0.35rem', borderRadius: '4px' }}>FITUR BARU!</span>
+                  </strong>
                   <span style={{ fontSize: '0.725rem', color: '#0284c7' }}>Hitung sisa barang di rak & lembar FC daripada ketik manual.</span>
                 </div>
                 <button
