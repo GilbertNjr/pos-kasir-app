@@ -203,6 +203,62 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     loadProducts();
   };
 
+  const handleEditTransactionToCart = async (transaction: any, items: any[]) => {
+    try {
+      setSubmitLoading(true);
+      await apiService.cancelTransaction(transaction.transaction_id || transaction.id);
+
+      const newCart: CartItem[] = (items || []).map((item) => {
+        const pId = item.product_id || item.product?.product_id;
+        const foundProd: Product = products.find((p) => p.product_id === pId) || {
+          product_id: pId || `p-${Date.now()}`,
+          product_name: item.product_name || item.name || 'Produk Custom',
+          category_id: 'FC_PRINT',
+          business_unit: 'FC_PRINT',
+          selling_price: item.price || item.unit_price || 0,
+          stock: 999,
+          manage_stock: false,
+          is_active: true,
+        };
+        return {
+          product: foundProd,
+          qty: Number(item.qty || item.quantity || 1),
+          customPrice: item.unit_price ? Number(item.unit_price) : undefined,
+        };
+      });
+
+      setCart(newCart);
+      if (transaction.payment_method) {
+        setPaymentMethod(transaction.payment_method);
+      }
+      if (transaction.customer_name) {
+        setCustomerName(transaction.customer_name);
+      }
+
+      setSelectedTxForDetail(null);
+      setShowVoidHistoryModal(false);
+      await loadProducts();
+      await fetchRecentTransactions();
+      if (onTransactionComplete) onTransactionComplete();
+
+      setStockAlert({
+        isOpen: true,
+        title: '✏️ Nota Dimuat ke Keranjang Kasir',
+        message: `Nota ${transaction.transaction_number || transaction.transaction_id} berhasil dibatalkan & ${newCart.length} jenis item dimuat kembali ke Keranjang Kasir untuk disesuaikan.`,
+        type: 'INFO',
+      });
+    } catch (err: any) {
+      setStockAlert({
+        isOpen: true,
+        title: '❌ Gagal Mengedit Nota',
+        message: err.message || 'Terjadi kesalahan saat memuat nota ke keranjang.',
+        type: 'DANGER',
+      });
+    } finally {
+      setSubmitLoading(false);
+    }
+  };
+
   const handleDeleteHeldOrder = async (heldId: string) => {
     const target = heldOrders.find((h) => h.id === heldId);
     if (target) {
@@ -1297,6 +1353,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
             if (onTransactionComplete) onTransactionComplete();
           }}
           onTransactionComplete={loadProducts}
+          onEditTransaction={handleEditTransactionToCart}
         />
       )}
 
@@ -1858,7 +1915,10 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                         </div>
 
                         <button
-                          onClick={() => setSelectedTxForDetail(tx)}
+                          onClick={() => {
+                            setSelectedTxForDetail(tx);
+                            setShowVoidHistoryModal(false);
+                          }}
                           style={{
                             padding: '0.4rem 0.75rem',
                             borderRadius: '8px',

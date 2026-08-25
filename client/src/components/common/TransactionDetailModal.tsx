@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Printer, Trash2, AlertTriangle, QrCode, Banknote, CreditCard, User as UserIcon, ShoppingBag } from 'lucide-react';
+import { X, Printer, Trash2, AlertTriangle, QrCode, Banknote, CreditCard, User as UserIcon, ShoppingBag, Edit3 } from 'lucide-react';
 import { Transaction, TransactionItem, Product, User } from '../../types';
 import { formatRupiah, formatWaktuIndo } from '../../utils/formatters';
 import { apiService } from '../../services/api';
@@ -13,6 +13,7 @@ interface TransactionDetailModalProps {
   getUserName?: (userId: string) => string;
   onTransactionCancelled?: (transactionId: string) => void;
   onTransactionComplete?: () => void;
+  onEditTransaction?: (transaction: Transaction | any, items: any[]) => void;
   storeName?: string;
 }
 
@@ -24,9 +25,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   products = [],
   getUserName,
   onTransactionCancelled,
+  onEditTransaction,
   storeName = 'Kedai POS',
 }) => {
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
+  const [showConfirmEdit, setShowConfirmEdit] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [usersList, setUsersList] = useState<User[]>([]);
@@ -300,12 +303,12 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(15, 23, 42, 0.65)',
-          backdropFilter: 'blur(4px)',
+          background: 'rgba(15, 23, 42, 0.75)',
+          backdropFilter: 'blur(6px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          zIndex: 9999,
+          zIndex: 10050,
           padding: '1rem',
         }}
         onClick={onClose}
@@ -605,15 +608,15 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Footer Action Buttons (Identik Gambar Referensi User) */}
+          {/* Footer Action Buttons */}
           <div
             className="no-print"
             style={{
               padding: '1rem 1.5rem',
               borderTop: '1px solid #f1f5f9',
               display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '0.75rem',
+              gridTemplateColumns: !isCancelled && onEditTransaction ? '1fr 1.2fr 1fr' : '1fr 1fr',
+              gap: '0.5rem',
               background: '#ffffff',
             }}
           >
@@ -621,64 +624,89 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             <button
               onClick={handlePrintReceipt}
               style={{
-                padding: '0.8rem 1rem',
+                padding: '0.75rem 0.6rem',
                 borderRadius: '12px',
                 border: '1px solid #cbd5e1',
                 background: '#f1f5f9',
                 color: '#0f172a',
                 fontWeight: 800,
-                fontSize: '0.875rem',
+                fontSize: '0.8rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '0.45rem',
+                gap: '0.35rem',
                 boxShadow: '0 2px 4px rgba(0,0,0,0.03)',
                 transition: 'all 0.15s ease',
               }}
             >
-              <Printer size={18} color="#0f172a" /> Cetak Struk
+              <Printer size={16} color="#0f172a" /> Cetak
             </button>
 
-            {/* Tombol 2: Batalkan Transaksi */}
+            {/* Tombol 2: Edit / Load Ke Keranjang */}
+            {!isCancelled && onEditTransaction && (
+              <button
+                onClick={() => setShowConfirmEdit(true)}
+                style={{
+                  padding: '0.75rem 0.6rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.8rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.35rem',
+                  boxShadow: '0 2px 6px rgba(217, 119, 6, 0.25)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <Edit3 size={16} /> Edit Nota
+              </button>
+            )}
+
+            {/* Tombol 3: Batalkan Transaksi */}
             {!isCancelled ? (
               <button
                 onClick={() => setShowConfirmCancel(true)}
                 style={{
-                  padding: '0.8rem 1rem',
+                  padding: '0.75rem 0.6rem',
                   borderRadius: '12px',
                   border: '1px solid #fecaca',
                   background: '#fef2f2',
                   color: '#dc2626',
                   fontWeight: 800,
-                  fontSize: '0.875rem',
+                  fontSize: '0.8rem',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.45rem',
+                  gap: '0.35rem',
                   boxShadow: '0 2px 4px rgba(220, 38, 38, 0.05)',
                   transition: 'all 0.15s ease',
                 }}
               >
-                <Trash2 size={18} color="#dc2626" /> Batalkan Transaksi
+                <Trash2 size={16} color="#dc2626" /> Void / Batal
               </button>
             ) : (
               <button
                 disabled
                 style={{
-                  padding: '0.8rem 1rem',
+                  padding: '0.75rem 0.6rem',
                   borderRadius: '12px',
                   border: '1px solid #fecaca',
                   background: '#fff1f2',
                   color: '#991b1b',
                   fontWeight: 800,
-                  fontSize: '0.825rem',
+                  fontSize: '0.75rem',
                   cursor: 'not-allowed',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '0.45rem',
+                  gap: '0.35rem',
                 }}
               >
                 Telah Dibatalkan
@@ -699,7 +727,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 10005,
+            zIndex: 10060,
             padding: '1rem',
           }}
           onClick={() => !cancelling && setShowConfirmCancel(false)}
@@ -808,6 +836,127 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 }}
               >
                 {cancelling ? 'Membatalkan...' : 'Ya, Batalkan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Konfirmasi Edit & Load ke Keranjang */}
+      {showConfirmEdit && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.75)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10060,
+            padding: '1rem',
+          }}
+          onClick={() => !cancelling && setShowConfirmEdit(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              maxWidth: '440px',
+              width: '100%',
+              padding: '1.75rem 1.5rem',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
+              border: '1px solid #fde68a',
+              textAlign: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              animation: 'scaleUp 0.2s ease-out',
+            }}
+          >
+            <div
+              style={{
+                width: '64px',
+                height: '64px',
+                borderRadius: '20px',
+                background: '#fef3c7',
+                color: '#d97706',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                marginBottom: '1.15rem',
+                boxShadow: '0 8px 20px rgba(217, 119, 6, 0.18)',
+              }}
+            >
+              <Edit3 size={34} />
+            </div>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#92400e', margin: '0 0 0.5rem 0', letterSpacing: '-0.02em' }}>
+              Edit / Koreksi Nota Order
+            </h3>
+
+            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', padding: '0.35rem 0.85rem', borderRadius: '10px', fontSize: '0.85rem', fontWeight: 800, color: '#b45309', marginBottom: '1rem' }}>
+              Nota: {txNumber}
+            </div>
+
+            <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '14px', padding: '1rem', textAlign: 'left', marginBottom: '1.5rem', fontSize: '0.825rem', color: '#475569', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 0.5rem 0', fontWeight: 800, color: '#d97706', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                ✏️ ALUR EDIT & KOREKSI:
+              </p>
+              <ul style={{ margin: 0, paddingLeft: '1.1rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                <li>Nota <strong>{txNumber}</strong> ini akan dibatalkan otomatis agar stok dikembalikan.</li>
+                <li>Seluruh <strong>{detailItems.length} jenis item</strong> akan langsung dimasukkan kembali ke <strong>Keranjang Kasir Active</strong>.</li>
+                <li>Anda dapat mengubah jumlah, menambah/menghapus item, lalu memproses checkout ulang.</li>
+              </ul>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', width: '100%' }}>
+              <button
+                type="button"
+                onClick={() => setShowConfirmEdit(false)}
+                disabled={cancelling}
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: '12px',
+                  border: '1px solid #cbd5e1',
+                  background: '#f8fafc',
+                  color: '#334155',
+                  fontWeight: 800,
+                  fontSize: '0.875rem',
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
+                }}
+              >
+                Batal
+              </button>
+
+              <button
+                type="button"
+                onClick={async () => {
+                  if (onEditTransaction) {
+                    await onEditTransaction(transaction, detailItems);
+                  }
+                  setShowConfirmEdit(false);
+                  onClose();
+                }}
+                disabled={cancelling}
+                style={{
+                  padding: '0.75rem 1rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #d97706 0%, #b45309 100%)',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.875rem',
+                  cursor: cancelling ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 14px rgba(217, 119, 6, 0.3)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                {cancelling ? 'Memuat...' : '✏️ Load ke Keranjang'}
               </button>
             </div>
           </div>
