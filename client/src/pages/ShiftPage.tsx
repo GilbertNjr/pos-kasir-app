@@ -4,7 +4,6 @@ import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User, Product } from '../types';
 import { formatRupiah, formatDateIndoFull } from '../utils/formatters';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
-import { CustomConfirmModal } from '../components/common/CustomConfirmModal';
 import { exportShiftToExcel, printShiftPDF } from '../utils/shiftReportExporter';
 
 interface ShiftPageProps {
@@ -99,7 +98,6 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
   // Modal State Hapus Rekonsiliasi Confirmation
   const [showConfirmDeleteReconciliation, setShowConfirmDeleteReconciliation] = useState(false);
-  const [showConfirmCloseShiftModal, setShowConfirmCloseShiftModal] = useState(false);
 
   // State Mode Rekap Shift via Hitung Sisa Stok (Fast Stock Audit)
   const [showStockAuditModal, setShowStockAuditModal] = useState(false);
@@ -452,14 +450,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     }
   };
 
-  const handleCloseShiftSubmit = (e: React.FormEvent) => {
+  const handleCloseShiftSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeShiftData?.shift?.shift_id) return;
-    setShowConfirmCloseShiftModal(true);
-  };
-
-  const executeCloseShift = async () => {
-    setShowConfirmCloseShiftModal(false);
     if (!activeShiftData?.shift?.shift_id) return;
 
     try {
@@ -2068,29 +2060,6 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         isOpen={openLoading || capitalLoading}
         message="Memproses registrasi sesi shift ke backend POS..."
         submessage="Menyiapkan laci kas dan verifikasi hak akses..."
-      />
-
-      {/* Modal Custom Sleek: Konfirmasi Penutupan Shift Toko */}
-      <CustomConfirmModal
-        isOpen={showConfirmCloseShiftModal}
-        onClose={() => setShowConfirmCloseShiftModal(false)}
-        onConfirm={executeCloseShift}
-        title="Konfirmasi Penutupan Shift Toko"
-        subtitle="Apakah Anda yakin ingin menutup sesi Shift Aktif Toko saat ini?"
-        warningNote="Tindakan ini akan mengakhiri sesi shift untuk SELURUH tim kasir yang sedang bertugas."
-        details={[
-          {
-            label: 'Uang Fisik Laci Kasir',
-            value: formatRupiah(actualPhysicalCash === '' ? activeShiftData?.shift?.theoretical_cash || 0 : Number(actualPhysicalCash)),
-            highlight: true,
-            color: '#0284c7',
-          },
-        ]}
-        confirmText="🛑 Ya, Tutup Shift Sekarang"
-        cancelText="Batal / Kembali"
-        confirmVariant="danger"
-        iconType="power"
-        loading={closeLoading}
       />
 
     </div>
