@@ -104,6 +104,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
   // State Mode Rekap Shift via Hitung Sisa Stok (Fast Stock Audit)
   const [showStockAuditModal, setShowStockAuditModal] = useState(false);
+  const [auditMode, setAuditMode] = useState<'DIRECT_SOLD' | 'RACK_REMAINING'>('DIRECT_SOLD');
   const [auditProducts, setAuditProducts] = useState<Product[]>([]);
   const [auditLoading, setAuditLoading] = useState(false);
   const [auditSubmitting, setAuditSubmitting] = useState(false);
@@ -122,11 +123,13 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       setAuditProducts(activeProds);
 
       const initialInputs: Record<string, string> = {};
-      activeProds.forEach((p) => {
-        if (p.manage_stock && p.stock !== undefined) {
-          initialInputs[p.product_id] = String(p.stock);
-        }
-      });
+      if (auditMode === 'RACK_REMAINING') {
+        activeProds.forEach((p) => {
+          if (p.manage_stock && p.stock !== undefined) {
+            initialInputs[p.product_id] = String(p.stock);
+          }
+        });
+      }
       setAuditStockInput(initialInputs);
     } catch (err: any) {
       alert('Gagal memuat daftar produk untuk audit stok: ' + (err.message || err));
@@ -151,8 +154,17 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       if (p.manage_stock) {
         const initialStock = p.stock ?? 0;
         const rawInput = auditStockInput[p.product_id];
-        const remainingStock = rawInput === '' || rawInput === undefined ? initialStock : Math.max(0, Number(rawInput));
-        const soldQty = Math.max(0, initialStock - remainingStock);
+        let soldQty = 0;
+        let remainingStock = initialStock;
+
+        if (auditMode === 'DIRECT_SOLD') {
+          soldQty = rawInput === '' || rawInput === undefined ? 0 : Math.max(0, Number(rawInput));
+          remainingStock = Math.max(0, initialStock - soldQty);
+        } else {
+          remainingStock = rawInput === '' || rawInput === undefined ? initialStock : Math.max(0, Number(rawInput));
+          soldQty = Math.max(0, initialStock - remainingStock);
+        }
+
         const subtotal = soldQty * (p.selling_price || 0);
 
         if (soldQty > 0) {
@@ -1139,14 +1151,55 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   <>
                     {/* BAGIAN 1: TABEL STOK BARANG FISIK */}
                     <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.65rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                         <h4 style={{ fontSize: '0.95rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                           <PackageCheck size={18} color="#0284c7" />
-                          1. Input Sisa Barang Fisik di Rak (Snack, Es Krim, ATK, dll)
+                          1. Rekap Penjualan Barang Fisik (Snack, Es Krim, ATK, dll)
                         </h4>
-                        <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-                          {auditProducts.filter(p => p.manage_stock).length} Produk Berstok
-                        </span>
+
+                        {/* Mode Selector Toggle */}
+                        <div style={{ display: 'flex', background: '#e2e8f0', padding: '0.2rem', borderRadius: '10px', gap: '0.2rem' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuditMode('DIRECT_SOLD');
+                              setAuditStockInput({});
+                            }}
+                            style={{
+                              padding: '0.35rem 0.75rem',
+                              borderRadius: '8px',
+                              border: 'none',
+                              background: auditMode === 'DIRECT_SOLD' ? '#0284c7' : 'transparent',
+                              color: auditMode === 'DIRECT_SOLD' ? '#ffffff' : '#475569',
+                              fontWeight: 800,
+                              fontSize: '0.75rem',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            🛒 Mode Input Terjual Langsung
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setAuditMode('RACK_REMAINING');
+                              setAuditStockInput({});
+                            }}
+                            style={{
+                              padding: '0.35rem 0.75rem',
+                              borderRadius: '8px',
+                              border: 'none',
+                              background: auditMode === 'RACK_REMAINING' ? '#0284c7' : 'transparent',
+                              color: auditMode === 'RACK_REMAINING' ? '#ffffff' : '#475569',
+                              fontWeight: 800,
+                              fontSize: '0.75rem',
+                              cursor: 'pointer',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            📉 Mode Hitung Sisa Rak
+                          </button>
+                        </div>
                       </div>
 
                       <div style={{ border: '1px solid #cbd5e1', borderRadius: '14px', overflow: 'hidden' }}>
@@ -1156,7 +1209,9 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                               <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800 }}>Nama Produk</th>
                               <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800 }}>Harga</th>
                               <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800, textAlign: 'center' }}>Stok Awal</th>
-                              <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800, textAlign: 'center', width: '130px' }}>Sisa Fisik Rak</th>
+                              <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800, textAlign: 'center', width: '150px' }}>
+                                {auditMode === 'DIRECT_SOLD' ? '🛒 Input Qty Terjual' : '📉 Sisa Fisik Rak'}
+                              </th>
                               <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800, textAlign: 'center' }}>Terjual</th>
                               <th style={{ padding: '0.65rem 0.85rem', fontWeight: 800, textAlign: 'right' }}>Subtotal</th>
                             </tr>
@@ -1167,8 +1222,17 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                               .map((product) => {
                                 const initialStock = product.stock ?? 0;
                                 const rawInput = auditStockInput[product.product_id];
-                                const remaining = rawInput === '' || rawInput === undefined ? initialStock : Math.max(0, Number(rawInput));
-                                const soldQty = Math.max(0, initialStock - remaining);
+                                let soldQty = 0;
+                                let remaining = initialStock;
+
+                                if (auditMode === 'DIRECT_SOLD') {
+                                  soldQty = rawInput === '' || rawInput === undefined ? 0 : Math.max(0, Number(rawInput));
+                                  remaining = Math.max(0, initialStock - soldQty);
+                                } else {
+                                  remaining = rawInput === '' || rawInput === undefined ? initialStock : Math.max(0, Number(rawInput));
+                                  soldQty = Math.max(0, initialStock - remaining);
+                                }
+
                                 const subtotal = soldQty * product.selling_price;
 
                                 return (
@@ -1189,8 +1253,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                                       <input
                                         type="number"
                                         min="0"
-                                        max={initialStock}
-                                        value={auditStockInput[product.product_id] ?? initialStock}
+                                        placeholder={auditMode === 'DIRECT_SOLD' ? '0' : String(initialStock)}
+                                        value={auditStockInput[product.product_id] ?? (auditMode === 'DIRECT_SOLD' ? '' : initialStock)}
                                         onChange={(e) => handleAuditStockInputChange(product.product_id, e.target.value)}
                                         style={{
                                           width: '100%',

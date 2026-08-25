@@ -22,6 +22,7 @@ export interface CustomConfirmModalProps {
   confirmVariant?: 'danger' | 'primary' | 'warning' | 'success';
   iconType?: 'power' | 'package' | 'alert' | 'help';
   loading?: boolean;
+  zIndex?: number;
 }
 
 export const CustomConfirmModal: React.FC<CustomConfirmModalProps> = ({
@@ -38,6 +39,7 @@ export const CustomConfirmModal: React.FC<CustomConfirmModalProps> = ({
   confirmVariant = 'danger',
   iconType = 'alert',
   loading = false,
+  zIndex = 100050,
 }) => {
   if (!isOpen) return null;
 
@@ -106,7 +108,7 @@ export const CustomConfirmModal: React.FC<CustomConfirmModalProps> = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 10010,
+        zIndex: zIndex,
         padding: '1rem',
       }}
       onClick={() => !loading && onClose()}
