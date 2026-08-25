@@ -547,6 +547,18 @@ export const apiService = {
     return true;
   },
 
+  async restoreTransaction(transactionId: string): Promise<any> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/transactions/${transactionId}/restore`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Gagal mengembalikan transaksi');
+    return result.data;
+  },
+
   /* EXPENSE API SERVICES */
   async createExpense(category: string, description: string, amount: number): Promise<Expense> {
     const token = this.getToken();

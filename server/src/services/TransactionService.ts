@@ -279,6 +279,22 @@ export class TransactionService {
     }
     return true;
   }
+
+  async restoreTransaction(transaction_id: string): Promise<TransactionEntity> {
+    const tx = await this.transactionRepository.findById(transaction_id);
+    if (!tx) throw new Error('Transaksi tidak ditemukan.');
+    if (tx.status !== 'CANCELLED') throw new Error('Hanya transaksi dibatalkan yang dapat dikembalikan.');
+
+    const updatedTx = await this.transactionRepository.update(transaction_id, { status: 'COMPLETED' });
+
+    const items = await this.itemRepository.findByTransactionId(transaction_id);
+    if (this.stockService && items) {
+      for (const item of items) {
+        await this.stockService.deductStock(item.product_id, item.qty);
+      }
+    }
+    return updatedTx!;
+  }
 }
 
 export interface PaymentMethodStats {

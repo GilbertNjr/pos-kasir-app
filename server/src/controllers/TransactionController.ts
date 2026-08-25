@@ -104,4 +104,18 @@ export class TransactionController {
       return res.status(400).json({ error: error.message || 'Gagal menghapus transaksi' });
     }
   };
+
+  public restoreTransaction = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { id } = req.params;
+      const result = await this.transactionService.restoreTransaction(id);
+      sseManager.broadcast('TRANSACTION_RESTORED', {
+        transaction_id: id,
+        timestamp: new Date().toISOString(),
+      });
+      return res.status(200).json({ message: 'Transaksi berhasil dikembalikan ke status aktif', data: result });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message || 'Gagal mengembalikan transaksi' });
+    }
+  };
 }

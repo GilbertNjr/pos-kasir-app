@@ -5,6 +5,7 @@ import {
   ArrowRightLeft,
   TrendingUp,
   RefreshCw,
+  RotateCcw,
   Trash2,
   Calendar,
   Filter,
@@ -39,8 +40,9 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
   const [endDate, setEndDate] = useState<string>('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('ALL');
 
-  // Cancel / Delete Modal State
+  // Cancel / Delete / Restore Modal State
   const [confirmCancelTx, setConfirmCancelTx] = useState<any | null>(null);
+  const [confirmRestoreTx, setConfirmRestoreTx] = useState<any | null>(null);
   const [cancelLoading, setCancelLoading] = useState<boolean>(false);
   const [toastMessage, setToastMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 
@@ -245,6 +247,39 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
       setToastMessage({
         type: 'danger',
         text: err.message || 'Gagal membatalkan/menghapus transaksi',
+      });
+    } finally {
+      setCancelLoading(false);
+      setTimeout(() => setToastMessage(null), 5000);
+    }
+  };
+
+  // Execute transaction restore
+  const handleExecuteRestore = async () => {
+    if (!confirmRestoreTx) return;
+    try {
+      setCancelLoading(true);
+      await apiService.restoreTransaction(confirmRestoreTx.transaction_id);
+      if (onTriggerToast) {
+        onTriggerToast(
+          'success',
+          'Transaksi Dipulihkan',
+          `Transaksi #${confirmRestoreTx.transaction_number || confirmRestoreTx.transaction_id} berhasil dikembalikan ke status AKTIF.`
+        );
+      }
+      setToastMessage({
+        type: 'success',
+        text: `Transaksi #${confirmRestoreTx.transaction_number || confirmRestoreTx.transaction_id} berhasil dipulihkan & stok dikurangi kembali.`,
+      });
+      await loadSummary();
+      setConfirmRestoreTx(null);
+    } catch (err: any) {
+      if (onTriggerToast) {
+        onTriggerToast('danger', 'Gagal Mempulihkan', err.message || 'Gagal mengembalikan transaksi');
+      }
+      setToastMessage({
+        type: 'danger',
+        text: err.message || 'Gagal mengembalikan transaksi',
       });
     } finally {
       setCancelLoading(false);
@@ -654,13 +689,46 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
                       )}
                     </td>
                     <td style={{ padding: '0.65rem', textAlign: 'center' }}>
-                      <button
-                        onClick={() => setConfirmCancelTx(tx)}
-                        className="btn-action-delete"
-                        title="Hapus / Batalkan Transaksi"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                      {tx.status === 'CANCELLED' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+                          <button
+                            onClick={() => setConfirmRestoreTx(tx)}
+                            style={{
+                              padding: '0.35rem 0.65rem',
+                              borderRadius: '8px',
+                              border: '1px solid #a7f3d0',
+                              background: '#ecfdf5',
+                              color: '#047857',
+                              fontWeight: 800,
+                              fontSize: '0.75rem',
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.3rem',
+                              boxShadow: '0 1px 3px rgba(16, 185, 129, 0.15)',
+                            }}
+                            title="Kembalikan / Restore Transaksi yang Dibatalkan"
+                          >
+                            <RotateCcw size={13} />
+                            Kembalikan
+                          </button>
+                          <button
+                            onClick={() => setConfirmCancelTx(tx)}
+                            className="btn-action-delete"
+                            title="Hapus Permanen Transaksi Ini Dari Database"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => setConfirmCancelTx(tx)}
+                          className="btn-action-delete"
+                          title="Hapus / Batalkan Transaksi"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -679,10 +747,14 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
             </div>
 
             <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.4rem' }}>
-              Hapus Transaksi?
+              {confirmCancelTx.status === 'CANCELLED' ? 'Hapus Permanen Transaksi?' : 'Batalkan Transaksi?'}
             </h3>
             <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.5rem', lineHeight: 1.45 }}>
-              Transaksi <strong style={{ color: '#0f172a' }}>#{confirmCancelTx.transaction_number}</strong> senilai <strong style={{ color: '#ef4444' }}>{formatRupiah(confirmCancelTx.final_total || confirmCancelTx.total_amount || 0)}</strong> akan dibatalkan & stok akan dikembalikan otomatis.
+              {confirmCancelTx.status === 'CANCELLED' ? (
+                <>Transaksi <strong style={{ color: '#0f172a' }}>#{confirmCancelTx.transaction_number}</strong> akan <strong style={{ color: '#ef4444' }}>dihapus secara permanen</strong> dari database. Tindakan ini tidak dapat dibatalkan.</>
+              ) : (
+                <>Transaksi <strong style={{ color: '#0f172a' }}>#{confirmCancelTx.transaction_number}</strong> senilai <strong style={{ color: '#ef4444' }}>{formatRupiah(confirmCancelTx.final_total || confirmCancelTx.total_amount || 0)}</strong> akan dibatalkan & stok akan dikembalikan otomatis.</>
+              )}
             </p>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
@@ -720,7 +792,64 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
                   transition: 'all 0.15s ease',
                 }}
               >
-                {cancelLoading ? 'Membatalkan...' : 'Ya, Hapus'}
+                {cancelLoading ? 'Memproses...' : confirmCancelTx.status === 'CANCELLED' ? 'Ya, Hapus Permanen' : 'Ya, Batalkan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DIALOG KONFIRMASI KEMBALIKAN / RESTORE TRANSAKSI */}
+      {confirmRestoreTx && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(6px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '22px', maxWidth: '400px', width: '100%', padding: '1.5rem', boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)', border: '1px solid #a7f3d0', textAlign: 'center', animation: 'fadeIn 0.2s ease' }}>
+            <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#10b981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem auto' }}>
+              <RotateCcw size={26} />
+            </div>
+
+            <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', marginBottom: '0.4rem' }}>
+              Kembalikan Transaksi?
+            </h3>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', marginBottom: '1.5rem', lineHeight: 1.45 }}>
+              Transaksi <strong style={{ color: '#0f172a' }}>#{confirmRestoreTx.transaction_number}</strong> senilai <strong style={{ color: '#10b981' }}>{formatRupiah(confirmRestoreTx.final_total || confirmRestoreTx.total_amount || 0)}</strong> akan dipulihkan ke status <strong style={{ color: '#047857' }}>AKTIF (COMPLETED)</strong> dan stok barang akan dikurangi kembali.
+            </p>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+              <button
+                onClick={() => setConfirmRestoreTx(null)}
+                disabled={cancelLoading}
+                style={{
+                  padding: '0.7rem 1rem',
+                  borderRadius: '12px',
+                  border: '1px solid #cbd5e1',
+                  background: '#f8fafc',
+                  color: '#475569',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  cursor: cancelLoading ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                Batal
+              </button>
+
+              <button
+                onClick={handleExecuteRestore}
+                disabled={cancelLoading}
+                style={{
+                  padding: '0.7rem 1rem',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  color: '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.85rem',
+                  cursor: cancelLoading ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {cancelLoading ? 'Memproses...' : 'Ya, Kembalikan'}
               </button>
             </div>
           </div>

@@ -31,6 +31,7 @@ router.get('/', authMiddleware, transactionController.getTransactions);
 router.get('/payment-summary', authMiddleware, transactionController.getPaymentSummary);
 router.get('/:id/items', authMiddleware, transactionController.getTransactionItems);
 router.post('/:id/cancel', authMiddleware, transactionController.cancelTransaction);
+router.post('/:id/restore', authMiddleware, transactionController.restoreTransaction);
 router.delete('/:id', authMiddleware, transactionController.deleteTransaction);
 
 export default router;
