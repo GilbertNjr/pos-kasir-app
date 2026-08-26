@@ -112,9 +112,9 @@ export const App: React.FC = () => {
   const handleStoreProfileUpdate = (profile: { name: string; ownerName?: string; logoUrl: string }) => {
     setStoreProfile((prev) => {
       const nextProfile = {
-        name: profile.name || prev.name,
-        ownerName: profile.ownerName ?? prev.ownerName,
-        logoUrl: profile.logoUrl,
+        name: profile.name !== undefined ? profile.name : prev.name,
+        ownerName: profile.ownerName !== undefined ? profile.ownerName : prev.ownerName,
+        logoUrl: profile.logoUrl !== undefined ? profile.logoUrl : prev.logoUrl,
       };
       try {
         localStorage.setItem('pos_store_profile', JSON.stringify(nextProfile));
@@ -122,7 +122,7 @@ export const App: React.FC = () => {
       return nextProfile;
     });
 
-    if (profile.ownerName && !profile.ownerName.startsWith('Masukan ')) {
+    if (profile.ownerName && !profile.ownerName.startsWith('Masukan ') && !profile.ownerName.startsWith('Masukkan ')) {
       setCurrentUser((prev) => {
         if (prev && prev.role === 'OWNER') {
           const updated = { ...prev, full_name: profile.ownerName! };

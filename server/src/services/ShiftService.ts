@@ -4,6 +4,8 @@ import { ShiftCapitalContributionRepository } from '../repositories/ShiftCapital
 import { UserRepository } from '../repositories/UserRepository';
 import { ShiftEntity, ShiftCapitalContributionEntity, ReconciliationStatus } from '../types/domain';
 
+import { BackupService } from './BackupService';
+
 export interface ActiveShiftUserDetail {
   shift_user_id: string;
   shift_id: string;
@@ -27,17 +29,20 @@ export class ShiftService {
   private shiftUserRepository: ShiftUserRepository;
   private capitalRepository: ShiftCapitalContributionRepository;
   private userRepository?: UserRepository;
+  private backupService?: BackupService;
 
   constructor(
     shiftRepository: ShiftRepository,
     shiftUserRepository: ShiftUserRepository,
     capitalRepository: ShiftCapitalContributionRepository,
-    userRepository?: UserRepository
+    userRepository?: UserRepository,
+    backupService?: BackupService
   ) {
     this.shiftRepository = shiftRepository;
     this.shiftUserRepository = shiftUserRepository;
     this.capitalRepository = capitalRepository;
     this.userRepository = userRepository;
+    this.backupService = backupService;
   }
 
   async getActiveShift(): Promise<ActiveShiftDetails | null> {
@@ -204,6 +209,15 @@ export class ShiftService {
       reconciliation_status: reconStatus,
       shift_status: 'CLOSED',
     });
+
+    // Otomatis buat snapshot backup & sync Google Drive/Sheets saat shift ditutup
+    if (this.backupService) {
+      try {
+        await this.backupService.createAutoShiftBackup(executor_user_id, shift_id);
+      } catch (err: any) {
+        console.warn('[ShiftService] Auto backup on shift close notice:', err.message);
+      }
+    }
 
     return updatedShift!;
   }

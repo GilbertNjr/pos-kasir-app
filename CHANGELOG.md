@@ -2,6 +2,20 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.5.0] - 2026-08-27 - Otomatisasi Backup Shift, One-Click Restore, & Perbaikan Filter Laporan Bulanan
+
+### 💾 Backup Otomatis Tutup Shift & Penamaan File Standardized (`BackupService.ts`, `ShiftService.ts`, `BackupRestorePage.tsx`)
+- **Penamaan Snapshot Terbaca Manusia:**
+  - Standarisasi format ID dan file download snapshot menjadi `BACKUP_TUTUP_SHIFT_DD-MM-YYYY_HH-mm.json` (otomatis saat kasir tutup shift) dan `BACKUP_MANUAL_DD-MM-YYYY_HH-mm.json` (manual).
+- **Fitur 1-Click Restore:**
+  - Menambahkan tombol pulihkan 1-Klik (`⚡`) langsung dari tabel Riwayat Backup tanpa perlu *copy-paste* file JSON secara manual.
+
+### 📊 Perbaikan Filter Real-Time Laporan Penjualan Bulanan (`ReportController.ts`, `ReportService.ts`, `DashboardService.ts`, `OwnerTransactionsPage.tsx`)
+- **Penyelarasan Query Parameter `period` & `period_type`:**
+  - Menyelaraskan penerimaan parameter filter di backend sehingga pilihan "Bulan Ini" (`MONTHLY`) membaca seluruh rentang transaksi bulan berjalan secara real-time.
+- **Kalkulasi Rentang Tanggal Akhir Bulan:**
+  - Memperbarui pencocokan `endDate` filter `MONTHLY` agar mencakup hingga hari terakhir bulan berjalan pukul `23:59:59`.
+
 ## [v1.4.13] - 2026-08-20 - Custom Shift Registration Form, Duty Staff Prioritization & Filter Bar Cleanup
 
 ### 🚀 Shift Custom Registration Form & Access Gating (`ShiftPage.tsx`, `PosRegister.tsx`)

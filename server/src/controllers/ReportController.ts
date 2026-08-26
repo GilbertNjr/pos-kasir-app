@@ -11,10 +11,11 @@ export class ReportController {
 
   public getSalesReport = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { period_type, start_date, end_date, user_id, shift_id, business_unit, payment_method } = req.query;
+      const { period_type, period, start_date, end_date, user_id, shift_id, business_unit, payment_method } = req.query;
+      const effectivePeriod = ((period_type || period) as any) || 'DAILY';
 
       const report = await this.reportService.generateSalesReport({
-        period_type: (period_type as any) || 'DAILY',
+        period_type: effectivePeriod,
         start_date: start_date as string,
         end_date: end_date as string,
         user_id: user_id as string,

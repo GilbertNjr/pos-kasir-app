@@ -259,7 +259,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
     reader.onload = (event) => {
       const rawBase64 = event.target?.result as string;
 
-      // Auto compress image via Canvas to max 500px dimension
+      // Auto compress image via Canvas to max 250px dimension and JPEG format for ultra-small size (~20KB)
       const img = new Image();
 
       img.onerror = () => {
@@ -271,7 +271,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
       img.onload = () => {
         try {
           const canvas = document.createElement('canvas');
-          const maxDim = 500;
+          const maxDim = 250;
           let width = img.width;
           let height = img.height;
 
@@ -292,7 +292,7 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, width, height);
-            const compressedBase64 = canvas.toDataURL('image/png', 0.85);
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
             setLogoUrl(compressedBase64);
             if (onStoreProfileUpdate) {
               onStoreProfileUpdate({

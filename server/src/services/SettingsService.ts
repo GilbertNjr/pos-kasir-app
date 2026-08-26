@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { UserRepository } from '../repositories/UserRepository';
+import { pool } from '../database/db';
 
 const DATA_DIR = path.join(process.cwd(), 'data');
 const SETTINGS_FILE_PATH = path.join(DATA_DIR, 'system_settings.json');
@@ -66,6 +67,7 @@ export interface SystemSettingsData {
 
 class SettingsService {
   private settings: SystemSettingsData;
+  private isDbInitialized: boolean = false;
 
   constructor() {
     this.settings = this.loadFromDisk();
@@ -122,6 +124,37 @@ class SettingsService {
     };
   }
 
+  private async ensureDbTable(): Promise<void> {
+    if (this.isDbInitialized) return;
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS system_settings (
+          setting_id VARCHAR(36) PRIMARY KEY DEFAULT 'GLOBAL_SETTING',
+          store_name VARCHAR(150),
+          store_phone VARCHAR(50),
+          store_address TEXT,
+          store_logo_url TEXT,
+          tax_ppn_percent NUMERIC(5,2) DEFAULT 11.00,
+          service_charge_percent NUMERIC(5,2) DEFAULT 5.00,
+          cash_active BOOLEAN DEFAULT TRUE,
+          qris_active BOOLEAN DEFAULT TRUE,
+          debit_card_active BOOLEAN DEFAULT FALSE,
+          full_settings JSONB,
+          updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+      `);
+      await pool.query(`
+        ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS full_settings JSONB;
+      `);
+      await pool.query(`
+        ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS store_logo_url TEXT;
+      `);
+      this.isDbInitialized = true;
+    } catch (err: any) {
+      console.warn('[SettingsService Notice] DB Table Init:', err.message);
+    }
+  }
+
   private loadFromDisk(): SystemSettingsData {
     const defaultData = this.getDefaultSettings();
     try {
@@ -172,7 +205,112 @@ class SettingsService {
     }
   }
 
+  private async saveToDb(settings: SystemSettingsData): Promise<void> {
+    try {
+      await this.ensureDbTable();
+      const storeName = settings.store_profile?.name || '';
+      const storePhone = settings.store_profile?.phone || '';
+      const storeAddress = settings.store_profile?.address || '';
+      const storeLogoUrl = settings.store_profile?.logo_url || '';
+      const taxPpn = settings.finance_and_transactions?.tax_ppn_percent ?? 11;
+      const serviceCharge = settings.finance_and_transactions?.service_charge_percent ?? 5;
+      const cashActive = settings.finance_and_transactions?.payment_methods?.cash ?? true;
+      const qrisActive = settings.finance_and_transactions?.payment_methods?.qris ?? true;
+      const debitActive = settings.finance_and_transactions?.payment_methods?.debit_card ?? false;
+
+      const query = `
+        INSERT INTO system_settings (
+          setting_id, store_name, store_phone, store_address, store_logo_url,
+          tax_ppn_percent, service_charge_percent, cash_active, qris_active, debit_card_active,
+          full_settings, updated_at
+        ) VALUES (
+          'GLOBAL_SETTING', $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW()
+        )
+        ON CONFLICT (setting_id) DO UPDATE SET
+          store_name = EXCLUDED.store_name,
+          store_phone = EXCLUDED.store_phone,
+          store_address = EXCLUDED.store_address,
+          store_logo_url = EXCLUDED.store_logo_url,
+          tax_ppn_percent = EXCLUDED.tax_ppn_percent,
+          service_charge_percent = EXCLUDED.service_charge_percent,
+          cash_active = EXCLUDED.cash_active,
+          qris_active = EXCLUDED.qris_active,
+          debit_card_active = EXCLUDED.debit_card_active,
+          full_settings = EXCLUDED.full_settings,
+          updated_at = NOW();
+      `;
+
+      await pool.query(query, [
+        storeName,
+        storePhone,
+        storeAddress,
+        storeLogoUrl,
+        taxPpn,
+        serviceCharge,
+        cashActive,
+        qrisActive,
+        debitActive,
+        JSON.stringify(settings),
+      ]);
+    } catch (err: any) {
+      console.warn('[SettingsService] Database saveToDb fallback notice:', err.message);
+    }
+  }
+
   public async getSettings(): Promise<SystemSettingsData> {
+    try {
+      await this.ensureDbTable();
+      const res = await pool.query("SELECT * FROM system_settings WHERE setting_id = 'GLOBAL_SETTING'");
+      if (res.rows && res.rows.length > 0) {
+        const row = res.rows[0];
+        let dbSettings: Partial<SystemSettingsData> = {};
+        if (row.full_settings) {
+          dbSettings = typeof row.full_settings === 'string' ? JSON.parse(row.full_settings) : row.full_settings;
+        }
+
+        const defaultData = this.getDefaultSettings();
+        const merged: SystemSettingsData = {
+          ...defaultData,
+          ...this.settings,
+          ...dbSettings,
+          store_profile: {
+            ...defaultData.store_profile,
+            ...(this.settings.store_profile || {}),
+            ...(dbSettings.store_profile || {}),
+            name: row.store_name || dbSettings.store_profile?.name || this.settings.store_profile?.name || '',
+            phone: row.store_phone || dbSettings.store_profile?.phone || this.settings.store_profile?.phone || '',
+            address: row.store_address || dbSettings.store_profile?.address || this.settings.store_profile?.address || '',
+            logo_url: dbSettings.store_profile?.logo_url || row.store_logo_url || this.settings.store_profile?.logo_url || '',
+          },
+          theme_settings: {
+            ...defaultData.theme_settings,
+            ...(this.settings.theme_settings || {}),
+            ...(dbSettings.theme_settings || {}),
+          },
+          operating_hours: {
+            ...defaultData.operating_hours,
+            ...(this.settings.operating_hours || {}),
+            ...(dbSettings.operating_hours || {}),
+          },
+          store_preferences: {
+            ...defaultData.store_preferences,
+            ...(this.settings.store_preferences || {}),
+            ...(dbSettings.store_preferences || {}),
+          },
+          finance_and_transactions: {
+            ...defaultData.finance_and_transactions,
+            ...(this.settings.finance_and_transactions || {}),
+            ...(dbSettings.finance_and_transactions || {}),
+          },
+        };
+
+        this.settings = merged;
+        this.saveToDisk();
+        return { ...this.settings };
+      }
+    } catch (err: any) {
+      console.warn('[SettingsService] Database getSettings fallback to disk/memory:', err.message);
+    }
     return { ...this.settings };
   }
 
@@ -233,12 +371,14 @@ class SettingsService {
 
     this.settings.updated_at = new Date().toISOString();
     this.saveToDisk();
+    await this.saveToDb(this.settings);
     return { ...this.settings };
   }
 
   public async updateLastBackupTime(): Promise<void> {
     this.settings.last_backup_time = new Date().toISOString();
     this.saveToDisk();
+    await this.saveToDb(this.settings);
   }
 }
 

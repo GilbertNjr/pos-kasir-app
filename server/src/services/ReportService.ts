@@ -65,7 +65,9 @@ export class ReportService {
 
   async generateSalesReport(filter: SalesReportFilterDTO): Promise<SalesReportResult> {
     const allTransactions = await this.transactionRepository.findAll();
-    const completedTx = allTransactions.filter((t) => t.status === 'COMPLETED');
+    const completedTx = allTransactions.filter(
+      (t) => (t.status || 'COMPLETED').toUpperCase() !== 'CANCELLED'
+    );
     const allUsers = await this.userRepository.findAll();
     const allExpenses = await this.expenseRepository.findAll();
     const allItems = await this.itemRepository.findAll();
@@ -96,24 +98,33 @@ export class ReportService {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
       endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     } else if (filter.period_type === 'WEEKLY') {
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      endDate = now;
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     } else if (filter.period_type === 'MONTHLY') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-      endDate = now;
+      startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
     } else if (filter.period_type === 'YEARLY') {
-      startDate = new Date(now.getFullYear(), 0, 1);
-      endDate = now;
+      startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
+      endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
     } else if (filter.period_type === 'CUSTOM' && filter.start_date && filter.end_date) {
       startDate = new Date(filter.start_date);
+      if (isNaN(startDate.getTime())) startDate = null;
       endDate = new Date(filter.end_date);
+      if (!isNaN(endDate.getTime())) {
+        endDate.setHours(23, 59, 59, 999);
+      } else {
+        endDate = null;
+      }
     }
 
     const filteredTransactions = completedTx.filter((tx) => {
-      const txTime = new Date(tx.transaction_time);
+      const rawDateStr = tx.transaction_time || (tx as any).created_at || (tx as any).date;
+      const txTime = rawDateStr ? new Date(rawDateStr) : null;
 
-      if (startDate && txTime < startDate) return false;
-      if (endDate && txTime > endDate) return false;
+      if (txTime && !isNaN(txTime.getTime())) {
+        if (startDate && txTime < startDate) return false;
+        if (endDate && txTime > endDate) return false;
+      }
       if (filter.user_id && tx.created_by_user_id !== filter.user_id) return false;
       if (filter.shift_id && tx.shift_id !== filter.shift_id) return false;
       if (filter.payment_method && filter.payment_method !== 'ALL' && tx.payment_method !== filter.payment_method) {

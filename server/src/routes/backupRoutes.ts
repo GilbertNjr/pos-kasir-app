@@ -1,30 +1,9 @@
 import { Router } from 'express';
-import {
-  userRepository,
-  categoryRepository,
-  productRepository,
-  shiftRepository,
-  transactionRepository,
-  transactionItemRepository as itemRepository,
-  expenseRepository,
-  stockRepository,
-} from '../repositories/sharedRepositories';
-import { BackupService } from '../services/BackupService';
+import { backupService } from '../repositories/sharedRepositories';
 import { BackupController } from '../controllers/BackupController';
 import { authMiddleware } from '../middlewares/AuthMiddleware';
 
 const router = Router();
-
-const backupService = new BackupService(
-  userRepository,
-  categoryRepository,
-  productRepository,
-  shiftRepository,
-  transactionRepository,
-  itemRepository,
-  expenseRepository,
-  stockRepository
-);
 
 const backupController = new BackupController(backupService);
 

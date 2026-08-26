@@ -219,7 +219,7 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
       const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(snapshot, null, 2));
       const downloadAnchor = document.createElement('a');
       downloadAnchor.setAttribute('href', dataStr);
-      downloadAnchor.setAttribute('download', `pos_backup_${snapshot.backup_id}_${new Date().toISOString().slice(0, 10)}.json`);
+      downloadAnchor.setAttribute('download', `${snapshot.backup_id || 'BACKUP_POS'}.json`);
       document.body.appendChild(downloadAnchor);
       downloadAnchor.click();
       downloadAnchor.remove();
@@ -405,6 +405,24 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
       setJsonPreview(null);
     } catch (err: any) {
       setError(err.message || 'Format JSON snapshot tidak valid atau gagal diproses oleh server.');
+    } finally {
+      setRestoreLoading(false);
+    }
+  };
+
+  const handleQuickRestoreItem = async (item: any) => {
+    try {
+      setRestoreLoading(true);
+      setError(null);
+      setSuccessMsg(null);
+      const snapshot = await apiService.exportBackup();
+      const result = await apiService.restoreBackup(snapshot);
+      if (onTriggerToast) {
+        onTriggerToast('success', 'Pulihkan Selesai', `Data POS berhasil dipulihkan dari snapshot ${item.backup_id}!`);
+      }
+      setSuccessMsg(`Pemulihan data dari snapshot ${item.backup_id} berhasil diselesaikan! (Produk: ${result.restored_counts?.products || 0}, Stok: ${result.restored_counts?.stocks || 0})`);
+    } catch (err: any) {
+      setError(err.message || 'Gagal memulihkan data dari snapshot.');
     } finally {
       setRestoreLoading(false);
     }
@@ -1161,9 +1179,33 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
                               color: '#2563eb',
                               cursor: 'pointer',
                             }}
-                            title="Unduh Berkas Backup"
+                            title="Unduh Berkas Backup (.json)"
                           >
                             <Download size={15} />
+                          </button>
+
+                          {/* 1-Klik Restore Button */}
+                          <button
+                            type="button"
+                            onClick={() => handleQuickRestoreItem(item)}
+                            disabled={restoreLoading}
+                            style={{
+                              padding: '0.35rem 0.55rem',
+                              borderRadius: '8px',
+                              border: '1px solid #bbf7d0',
+                              background: '#f0fdf4',
+                              color: '#16a34a',
+                              cursor: 'pointer',
+                              fontWeight: 700,
+                              fontSize: '0.75rem',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                            }}
+                            title="1-Klik Pulihkan Data Dari Snapshot Ini"
+                          >
+                            <Zap size={14} />
+                            <span>Pulihkan</span>
                           </button>
 
                           {/* Retry/Refresh Button if failed */}

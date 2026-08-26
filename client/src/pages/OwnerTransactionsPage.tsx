@@ -61,7 +61,7 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
       setUsersList(usersData);
 
       // 2. Load transactions
-      const txParams: Record<string, string> = { period: periodType };
+      const txParams: Record<string, string> = { period: periodType, period_type: periodType };
       if (periodType === 'CUSTOM') {
         if (startDate) txParams.start_date = startDate;
         if (endDate) txParams.end_date = endDate;

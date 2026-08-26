@@ -82,8 +82,16 @@ export class BackupService {
     const expenses = await this.expenseRepository.findAll();
     const stocks = await this.stockRepository.findAll();
 
-    const backupId = `bkp-${Date.now()}`;
-    const createdAt = new Date().toISOString();
+    const now = new Date();
+    const d = String(now.getDate()).padStart(2, '0');
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const y = now.getFullYear();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const dateTag = `${d}-${m}-${y}_${hh}-${mm}`;
+
+    const backupId = `BACKUP_MANUAL_${dateTag}`;
+    const createdAt = now.toISOString();
 
     const snapshot: BackupPayload = {
       backup_id: backupId,
@@ -129,6 +137,89 @@ export class BackupService {
       );
     } catch (err: any) {
       console.warn('[BackupService] DB insert log fallback to memory:', err.message);
+    }
+
+    return snapshot;
+  }
+
+  async createAutoShiftBackup(userId: string, shiftId: string): Promise<BackupPayload> {
+    const users = await this.userRepository.findAll();
+    const safeUsers = users.map(({ password_hash, ...u }) => u);
+
+    const categories = await this.categoryRepository.findAll();
+    const products = await this.productRepository.findAll();
+    const shifts = await this.shiftRepository.findAll();
+    const transactions = await this.transactionRepository.findAll();
+    const transaction_items = await this.itemRepository.findAll();
+    const expenses = await this.expenseRepository.findAll();
+    const stocks = await this.stockRepository.findAll();
+
+    const now = new Date();
+    const d = String(now.getDate()).padStart(2, '0');
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const y = now.getFullYear();
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const dateTag = `${d}-${m}-${y}_${hh}-${mm}`;
+
+    const backupId = `BACKUP_TUTUP_SHIFT_${dateTag}`;
+    const createdAt = now.toISOString();
+
+    const snapshot: BackupPayload = {
+      backup_id: backupId,
+      created_at: createdAt,
+      created_by_user_id: userId,
+      system_version: 'v1.0.0-pos',
+      data: {
+        users: safeUsers,
+        categories,
+        products,
+        shifts,
+        transactions,
+        transaction_items,
+        expenses,
+        stocks,
+      },
+    };
+
+    const sizeBytes = Buffer.byteLength(JSON.stringify(snapshot));
+    const logItem: BackupHistoryLog = {
+      backup_id: backupId,
+      created_at: createdAt,
+      created_by_user_id: userId,
+      size_bytes: sizeBytes,
+      type: 'Otomatis (Tutup Shift)',
+      location: 'GOOGLE_DRIVE_SHEETS',
+      description: `Backup otomatis penutupan shift #${shiftId} (${transactions.length} trx, ${products.length} produk)`,
+      status: 'SUCCESS',
+    };
+
+    this.backupHistoryLogs.unshift(logItem);
+
+    try {
+      const usersList = await this.userRepository.findAll().catch(() => []);
+      const validUserId = usersList.some((u) => u.user_id === userId)
+        ? userId
+        : usersList[0]?.user_id || 'usr-system';
+
+      await pool.query(
+        `INSERT INTO backups (backup_id, created_by_user_id, backup_type, size_bytes, created_at)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (backup_id) DO NOTHING`,
+        [backupId, validUserId, 'AUTO_SHIFT_CLOSE', sizeBytes, createdAt]
+      );
+    } catch (err: any) {
+      console.warn('[BackupService] DB insert auto backup log fallback:', err.message);
+    }
+
+    // Auto sync to Google Sheets if configured
+    try {
+      const syncService = new GoogleSheetsSyncService();
+      if (syncService.getStatus().is_connected) {
+        await syncService.syncSnapshotToSheets(snapshot.data);
+      }
+    } catch (err: any) {
+      console.warn('[BackupService] Auto Google Sheets sync notice:', err.message);
     }
 
     return snapshot;

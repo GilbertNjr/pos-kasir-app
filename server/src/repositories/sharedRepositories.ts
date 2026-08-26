@@ -11,6 +11,8 @@ import { UserRepository } from './UserRepository';
 import { AuditLogRepository } from './AuditLogRepository';
 import { ActivationTokenRepository } from './ActivationTokenRepository';
 
+import { BackupService } from '../services/BackupService';
+
 // Singleton Repositories Shared Across All Services & Routes
 export const productRepository = new ProductRepository();
 export const stockRepository = new StockRepository();
@@ -24,3 +26,15 @@ export const expenseRepository = new ExpenseRepository();
 export const userRepository = new UserRepository();
 export const auditLogRepository = new AuditLogRepository();
 export const activationTokenRepository = new ActivationTokenRepository();
+
+// Singleton Backup Service Shared Across Routes & Shift Closing Trigger
+export const backupService = new BackupService(
+  userRepository,
+  categoryRepository,
+  productRepository,
+  shiftRepository,
+  transactionRepository,
+  transactionItemRepository,
+  expenseRepository,
+  stockRepository
+);

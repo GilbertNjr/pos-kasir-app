@@ -127,16 +127,23 @@ export class DashboardService {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
       endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     } else if (period_type === 'WEEKLY') {
-      startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     } else if (period_type === 'MONTHLY') {
       startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
     } else if (period_type === 'YEARLY') {
       startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
+      endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
     } else if (period_type === 'CUSTOM' && filter?.start_date && filter?.end_date) {
       startDate = new Date(filter.start_date);
       endDate = new Date(filter.end_date);
+      if (!isNaN(endDate.getTime())) {
+        endDate.setHours(23, 59, 59, 999);
+      }
     } else {
       startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
     }
 
     // Read all base entities concurrently in parallel for ultra-fast performance
@@ -170,9 +177,13 @@ export class DashboardService {
 
     // Filter Completed Transactions by Period
     const periodTransactions = allTransactions.filter((t) => {
-      if (t.status !== 'COMPLETED') return false;
-      const tTime = new Date(t.transaction_time);
-      return tTime >= startDate && tTime <= endDate;
+      if ((t.status || 'COMPLETED').toUpperCase() === 'CANCELLED') return false;
+      const rawDateStr = t.transaction_time || (t as any).created_at || (t as any).date;
+      const tTime = rawDateStr ? new Date(rawDateStr) : null;
+      if (tTime && !isNaN(tTime.getTime())) {
+        return tTime >= startDate && tTime <= endDate;
+      }
+      return true;
     });
 
     const periodTxIds = new Set(periodTransactions.map((t) => t.transaction_id));
