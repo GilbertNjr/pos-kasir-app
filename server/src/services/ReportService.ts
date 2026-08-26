@@ -4,6 +4,7 @@ import { ProductRepository } from '../repositories/ProductRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { ExpenseRepository } from '../repositories/ExpenseRepository';
 import { TransactionEntity, PaymentMethod, BusinessUnit } from '../types/domain';
+import { getWIBDateRange } from '../utils/timezoneUtils';
 
 export interface SalesReportFilterDTO {
   period_type?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
@@ -89,33 +90,12 @@ export class ReportService {
       }
     }
 
-    // Filter berdasarkan rentang waktu / tanggal
-    const now = new Date();
-    let startDate: Date | null = null;
-    let endDate: Date | null = null;
-
-    if (filter.period_type === 'DAILY') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-    } else if (filter.period_type === 'WEEKLY') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-    } else if (filter.period_type === 'MONTHLY') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    } else if (filter.period_type === 'YEARLY') {
-      startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
-      endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
-    } else if (filter.period_type === 'CUSTOM' && filter.start_date && filter.end_date) {
-      startDate = new Date(filter.start_date);
-      if (isNaN(startDate.getTime())) startDate = null;
-      endDate = new Date(filter.end_date);
-      if (!isNaN(endDate.getTime())) {
-        endDate.setHours(23, 59, 59, 999);
-      } else {
-        endDate = null;
-      }
-    }
+    // Import WIB Date Range Helper
+    const { startDate, endDate } = getWIBDateRange(
+      filter.period_type,
+      filter.start_date,
+      filter.end_date
+    );
 
     const filteredTransactions = completedTx.filter((tx) => {
       const rawDateStr = tx.transaction_time || (tx as any).created_at || (tx as any).date;

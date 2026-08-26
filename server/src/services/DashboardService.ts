@@ -5,6 +5,7 @@ import { ExpenseRepository } from '../repositories/ExpenseRepository';
 import { ShiftRepository } from '../repositories/ShiftRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { aiService, BusinessInsightItem } from './AIService';
+import { getWIBDateRange } from '../utils/timezoneUtils';
 
 export interface DashboardFilterDTO {
   period_type?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
@@ -119,32 +120,11 @@ export class DashboardService {
 
   async getDashboardMetrics(filter?: DashboardFilterDTO): Promise<ComprehensiveDashboardMetrics> {
     const period_type = filter?.period_type || 'DAILY';
-    const now = new Date();
-    let startDate: Date;
-    let endDate: Date = new Date();
-
-    if (period_type === 'DAILY') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-    } else if (period_type === 'WEEKLY') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 6, 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-    } else if (period_type === 'MONTHLY') {
-      startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-    } else if (period_type === 'YEARLY') {
-      startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
-      endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
-    } else if (period_type === 'CUSTOM' && filter?.start_date && filter?.end_date) {
-      startDate = new Date(filter.start_date);
-      endDate = new Date(filter.end_date);
-      if (!isNaN(endDate.getTime())) {
-        endDate.setHours(23, 59, 59, 999);
-      }
-    } else {
-      startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-      endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
-    }
+    const { startDate, endDate } = getWIBDateRange(
+      period_type,
+      filter?.start_date,
+      filter?.end_date
+    );
 
     // Read all base entities concurrently in parallel for ultra-fast performance
     const [
@@ -372,8 +352,8 @@ export class DashboardService {
     return {
       period_info: {
         period_type,
-        start_date: startDate.toISOString(),
-        end_date: endDate.toISOString(),
+        start_date: (startDate || new Date()).toISOString(),
+        end_date: (endDate || new Date()).toISOString(),
       },
       kpi: {
         total_omzet,
