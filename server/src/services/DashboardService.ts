@@ -232,22 +232,23 @@ export class DashboardService {
           total_revenue: stats.revenue,
         };
       })
-      .sort((a, b) => b.qty_sold - a.qty_sold)
-      .slice(0, 5)
+      .sort((a, b) => b.qty_sold - a.qty_sold || b.total_revenue - a.total_revenue)
       .map((p, idx) => ({ ...p, rank: idx + 1 }));
 
     const slow_moving_products: SlowMovingProductSummary[] = allProducts
       .map((p) => {
         const stats = prodStatsMap.get(p.product_id) || { qty: 0, revenue: 0 };
         return {
+          rank: 0,
           product_id: p.product_id,
           product_name: p.product_name,
           business_unit: p.business_unit,
           qty_sold: stats.qty,
+          total_revenue: stats.revenue,
         };
       })
-      .sort((a, b) => a.qty_sold - b.qty_sold)
-      .slice(0, 5);
+      .sort((a, b) => a.qty_sold - b.qty_sold || a.total_revenue - b.total_revenue)
+      .map((p, idx) => ({ ...p, rank: idx + 1 }));
 
     // Employee Performance Breakdown
     const activeShiftUserIds = new Set<string>();

@@ -131,10 +131,10 @@ DATA KINERJA OPERASIONAL TOKO:
 - Total Barang/Jasa Terjual: ${ctx.total_items_sold} unit
 
 PRODUK TERLARIS (BARANG TERJUAL TINGGI):
-${ctx.top_selling_products.length > 0 ? ctx.top_selling_products.map((p, i) => `${i + 1}. ${p.product_name} (${p.business_unit}) - ${p.qty_sold} terjual, Omzet: Rp ${p.total_revenue.toLocaleString('id-ID')}`).join('\n') : 'Belum ada transaksi terjual'}
+${ctx.top_selling_products.length > 0 ? ctx.top_selling_products.slice(0, 5).map((p, i) => `${i + 1}. ${p.product_name} (${p.business_unit}) - ${p.qty_sold} terjual, Omzet: Rp ${p.total_revenue.toLocaleString('id-ID')}`).join('\n') : 'Belum ada transaksi terjual'}
 
 PRODUK SLOW MOVING / BELUM TERJUAL (PERHATIAN STOK):
-${ctx.slow_moving_products.length > 0 ? ctx.slow_moving_products.map((p, i) => `${i + 1}. ${p.product_name} (${p.business_unit}) - ${p.qty_sold} terjual`).join('\n') : 'Semua produk memiliki perputaran baik'}
+${ctx.slow_moving_products.length > 0 ? ctx.slow_moving_products.slice(0, 5).map((p, i) => `${i + 1}. ${p.product_name} (${p.business_unit}) - ${p.qty_sold} terjual`).join('\n') : 'Semua produk memiliki perputaran baik'}
 
 DISTRIBUSI KATEGORI:
 ${ctx.category_distribution.length > 0 ? ctx.category_distribution.map((c) => `- ${c.category_name} (${c.business_unit}): Rp ${c.omzet.toLocaleString('id-ID')}`).join('\n') : 'Belum ada data kategori'}
