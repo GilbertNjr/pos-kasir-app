@@ -18,6 +18,8 @@ import {
   CheckCircle2,
   Inbox,
   PackageX,
+  History,
+  ArrowRight,
 } from 'lucide-react';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { PeriodFilterBar } from '../components/dashboard/PeriodFilterBar';
@@ -414,177 +416,281 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
         />
       </div>
 
-      {/* 8. TOP PRODUCTS & LOW SELLING PRODUCTS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.6rem' }}>
-        {/* Top Selling Products Card */}
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', padding: '1.6rem', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', margin: 0 }}>
-              <Layers size={20} color="#047857" />
-              Produk Terlaris (Top 5 Qty)
+      {/* 8. TOP PRODUCTS & LOW SELLING PRODUCTS WITH ALL MOVEMENTS NAVIGATION */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+        {/* Section Action Header */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', padding: '0 0.25rem' }}>
+          <div>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Layers size={22} color="#047857" />
+              Perputaran & Pergerakan Produk Toko
             </h3>
-            <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, background: '#f1f5f9', padding: '0.25rem 0.65rem', borderRadius: '10px' }}>
-              Volume Penjualan
-            </span>
+            <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
+              Analisis produk paling cepat & paling lambat terjual periode ini
+            </p>
           </div>
 
-          {(() => {
-            const activeTopProducts = (metrics?.top_selling_products || []).filter((p: any) => (p.qty_sold || 0) > 0);
-            if (activeTopProducts.length === 0) {
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('STOCKS')}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                background: '#047857',
+                color: '#ffffff',
+                border: 'none',
+                padding: '0.55rem 1.15rem',
+                borderRadius: '12px',
+                fontSize: '0.825rem',
+                fontWeight: 800,
+                cursor: 'pointer',
+                boxShadow: '0 4px 12px rgba(4, 120, 87, 0.2)',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#065f46')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#047857')}
+            >
+              <History size={16} />
+              <span>Lihat Semua Pergerakan Stok</span>
+              <ArrowUpRight size={16} />
+            </button>
+          )}
+        </div>
+
+        {/* 2-Card Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.6rem' }}>
+          {/* Top Selling Products Card */}
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', padding: '1.6rem', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', margin: 0 }}>
+                <Layers size={20} color="#047857" />
+                Produk Terlaris (Top 5 Qty)
+              </h3>
+              <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700, background: '#f1f5f9', padding: '0.25rem 0.65rem', borderRadius: '10px' }}>
+                Volume Penjualan
+              </span>
+            </div>
+
+            {(() => {
+              const activeTopProducts = (metrics?.top_selling_products || []).filter((p: any) => (p.qty_sold || 0) > 0);
+              if (activeTopProducts.length === 0) {
+                return (
+                  <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#94a3b8' }}>
+                    <Inbox size={32} color="#cbd5e1" style={{ marginBottom: '0.5rem' }} />
+                    <div style={{ fontWeight: 800, color: '#64748b', fontSize: '0.9rem' }}>Belum Ada Produk Terjual</div>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Data produk terlaris akan muncul secara otomatis saat terjadi transaksi.</div>
+                  </div>
+                );
+              }
               return (
-                <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#94a3b8' }}>
-                  <Inbox size={32} color="#cbd5e1" style={{ marginBottom: '0.5rem' }} />
-                  <div style={{ fontWeight: 800, color: '#64748b', fontSize: '0.9rem' }}>Belum Ada Produk Terjual</div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Data produk terlaris akan muncul secara otomatis saat terjadi transaksi.</div>
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        <th style={{ padding: '0.75rem 0.25rem' }}>#</th>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Produk / Jasa</th>
+                        <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Qty</th>
+                        <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Omzet</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {activeTopProducts.map((p: any, idx: number) => {
+                        const rank = idx + 1;
+                        const pct = Math.round((p.qty_sold / (maxTopQty || 1)) * 100);
+                        const isGold = rank === 1;
+                        const isSilver = rank === 2;
+                        const isBronze = rank === 3;
+
+                        return (
+                          <tr key={p.product_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '0.85rem 0.25rem' }}>
+                              <span
+                                style={{
+                                  width: '26px',
+                                  height: '26px',
+                                  borderRadius: '50%',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 900,
+                                  background: isGold ? '#fef3c7' : isSilver ? '#f1f5f9' : isBronze ? '#fff7ed' : '#f8fafc',
+                                  color: isGold ? '#b45309' : isSilver ? '#475569' : isBronze ? '#c2410c' : '#64748b',
+                                  border: `1px solid ${isGold ? '#fde68a' : isSilver ? '#cbd5e1' : isBronze ? '#ffedd5' : '#e2e8f0'}`,
+                                }}
+                              >
+                                {rank}
+                              </span>
+                            </td>
+                            <td style={{ padding: '0.85rem 0.5rem' }}>
+                              <div style={{ fontWeight: 800, color: '#0f172a' }}>{p.product_name}</div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+                                <span style={{
+                                  fontSize: '0.65rem',
+                                  fontWeight: 800,
+                                  padding: '0.15rem 0.5rem',
+                                  borderRadius: '6px',
+                                  background: p.business_unit === 'FC_PRINT' ? '#eff6ff' : '#ecfdf5',
+                                  color: p.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#047857',
+                                }}>
+                                  {p.business_unit}
+                                </span>
+                                <div style={{ width: '80px', height: '5px', borderRadius: '3px', background: '#e2e8f0', overflow: 'hidden' }}>
+                                  <div style={{ width: `${pct}%`, height: '100%', background: isGold ? '#f59e0b' : '#2563eb', borderRadius: '3px' }} />
+                                </div>
+                              </div>
+                            </td>
+                            <td style={{ padding: '0.85rem 0.5rem', textAlign: 'center', fontWeight: 900, color: '#0f172a' }}>
+                              {p.qty_sold} {p.unit || 'pcs'}
+                            </td>
+                            <td style={{ padding: '0.85rem 0.5rem', textAlign: 'right', fontWeight: 900, color: '#047857' }}>
+                              {formatRupiah(p.total_revenue)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               );
-            }
-            return (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      <th style={{ padding: '0.75rem 0.25rem' }}>#</th>
-                      <th style={{ padding: '0.75rem 0.5rem' }}>Produk / Jasa</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Qty</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Omzet</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {activeTopProducts.map((p: any, idx: number) => {
-                      const rank = idx + 1;
-                      const pct = Math.round((p.qty_sold / (maxTopQty || 1)) * 100);
-                      const isGold = rank === 1;
-                      const isSilver = rank === 2;
-                      const isBronze = rank === 3;
+            })()}
+          </div>
 
-                      return (
+          {/* Low Selling Products Card (Slow Moving) */}
+          <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', padding: '1.6rem', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', margin: 0 }}>
+                <AlertCircle size={20} color="#ef4444" />
+                Produk Penjualan Rendah (Slow Moving)
+              </h3>
+              <span style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: 700, background: '#fef2f2', padding: '0.25rem 0.65rem', borderRadius: '10px' }}>
+                Perhatian Stok
+              </span>
+            </div>
+
+            {(() => {
+              const hasTotalSales = (kpi?.total_items_sold || 0) > 0;
+              const slowMovingList = metrics?.slow_moving_products || [];
+              if (!hasTotalSales || slowMovingList.length === 0) {
+                return (
+                  <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#94a3b8' }}>
+                    <PackageX size={32} color="#cbd5e1" style={{ marginBottom: '0.5rem' }} />
+                    <div style={{ fontWeight: 800, color: '#64748b', fontSize: '0.9rem' }}>Belum Ada Perputaran Stok</div>
+                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Lakukan transaksi penjualan terlebih dahulu untuk menganalisis produk slow moving.</div>
+                  </div>
+                );
+              }
+              return (
+                <div style={{ overflowX: 'auto' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                        <th style={{ padding: '0.75rem 0.5rem' }}>Produk / Jasa</th>
+                        <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Qty Terjual</th>
+                        <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Status Perputaran</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {slowMovingList.map((p: any) => (
                         <tr key={p.product_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '0.85rem 0.25rem' }}>
-                            <span
-                              style={{
-                                width: '26px',
-                                height: '26px',
-                                borderRadius: '50%',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '0.75rem',
-                                fontWeight: 900,
-                                background: isGold ? '#fef3c7' : isSilver ? '#f1f5f9' : isBronze ? '#fff7ed' : '#f8fafc',
-                                color: isGold ? '#b45309' : isSilver ? '#475569' : isBronze ? '#c2410c' : '#64748b',
-                                border: `1px solid ${isGold ? '#fde68a' : isSilver ? '#cbd5e1' : isBronze ? '#ffedd5' : '#e2e8f0'}`,
-                              }}
-                            >
-                              {rank}
-                            </span>
-                          </td>
                           <td style={{ padding: '0.85rem 0.5rem' }}>
                             <div style={{ fontWeight: 800, color: '#0f172a' }}>{p.product_name}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
-                              <span style={{
-                                fontSize: '0.65rem',
-                                fontWeight: 800,
-                                padding: '0.15rem 0.5rem',
-                                borderRadius: '6px',
-                                background: p.business_unit === 'FC_PRINT' ? '#eff6ff' : '#ecfdf5',
-                                color: p.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#047857',
-                              }}>
-                                {p.business_unit}
-                              </span>
-                              <div style={{ width: '80px', height: '5px', borderRadius: '3px', background: '#e2e8f0', overflow: 'hidden' }}>
-                                <div style={{ width: `${pct}%`, height: '100%', background: isGold ? '#f59e0b' : '#2563eb', borderRadius: '3px' }} />
-                              </div>
-                            </div>
+                            <span style={{
+                              fontSize: '0.65rem',
+                              fontWeight: 800,
+                              padding: '0.15rem 0.5rem',
+                              borderRadius: '6px',
+                              background: p.business_unit === 'FC_PRINT' ? '#eff6ff' : '#ecfdf5',
+                              color: p.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#047857',
+                            }}>
+                              {p.business_unit}
+                            </span>
                           </td>
-                          <td style={{ padding: '0.85rem 0.5rem', textAlign: 'center', fontWeight: 900, color: '#0f172a' }}>
+                          <td style={{ padding: '0.85rem 0.5rem', textAlign: 'center', fontWeight: 900, color: '#ef4444' }}>
                             {p.qty_sold} {p.unit || 'pcs'}
                           </td>
-                          <td style={{ padding: '0.85rem 0.5rem', textAlign: 'right', fontWeight: 900, color: '#047857' }}>
-                            {formatRupiah(p.total_revenue)}
+                          <td style={{ padding: '0.85rem 0.5rem', textAlign: 'right', fontSize: '0.78rem', color: '#64748b', fontWeight: 700 }}>
+                            {p.qty_sold === 0 ? (
+                              <span style={{ color: '#dc2626', background: '#fef2f2', padding: '0.2rem 0.55rem', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                                ⚠️ Nol Penjualan
+                              </span>
+                            ) : (
+                              <span style={{ color: '#d97706', background: '#fffbeb', padding: '0.2rem 0.55rem', borderRadius: '8px', border: '1px solid #fde68a' }}>
+                                🐢 Slow Moving
+                              </span>
+                            )}
                           </td>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            );
-          })()}
-        </div>
-
-        {/* Low Selling Products Card (Slow Moving) */}
-        <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', padding: '1.6rem', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-            <h3 style={{ fontSize: '1.1rem', fontWeight: 900, display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', margin: 0 }}>
-              <AlertCircle size={20} color="#ef4444" />
-              Produk Penjualan Rendah (Slow Moving)
-            </h3>
-            <span style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: 700, background: '#fef2f2', padding: '0.25rem 0.65rem', borderRadius: '10px' }}>
-              Perhatian Stok
-            </span>
-          </div>
-
-          {(() => {
-            const hasTotalSales = (kpi?.total_items_sold || 0) > 0;
-            const slowMovingList = metrics?.slow_moving_products || [];
-            if (!hasTotalSales || slowMovingList.length === 0) {
-              return (
-                <div style={{ padding: '2.5rem 1rem', textAlign: 'center', color: '#94a3b8' }}>
-                  <PackageX size={32} color="#cbd5e1" style={{ marginBottom: '0.5rem' }} />
-                  <div style={{ fontWeight: 800, color: '#64748b', fontSize: '0.9rem' }}>Belum Ada Perputaran Stok</div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Lakukan transaksi penjualan terlebih dahulu untuk menganalisis produk slow moving.</div>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               );
-            }
-            return (
-              <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-                  <thead>
-                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      <th style={{ padding: '0.75rem 0.5rem' }}>Produk / Jasa</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Qty Terjual</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Status Perputaran</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {slowMovingList.map((p: any) => (
-                      <tr key={p.product_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                        <td style={{ padding: '0.85rem 0.5rem' }}>
-                          <div style={{ fontWeight: 800, color: '#0f172a' }}>{p.product_name}</div>
-                          <span style={{
-                            fontSize: '0.65rem',
-                            fontWeight: 800,
-                            padding: '0.15rem 0.5rem',
-                            borderRadius: '6px',
-                            background: p.business_unit === 'FC_PRINT' ? '#eff6ff' : '#ecfdf5',
-                            color: p.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#047857',
-                          }}>
-                            {p.business_unit}
-                          </span>
-                        </td>
-                        <td style={{ padding: '0.85rem 0.5rem', textAlign: 'center', fontWeight: 900, color: '#ef4444' }}>
-                          {p.qty_sold} {p.unit || 'pcs'}
-                        </td>
-                        <td style={{ padding: '0.85rem 0.5rem', textAlign: 'right', fontSize: '0.78rem', color: '#64748b', fontWeight: 700 }}>
-                          {p.qty_sold === 0 ? (
-                            <span style={{ color: '#dc2626', background: '#fef2f2', padding: '0.2rem 0.55rem', borderRadius: '8px', border: '1px solid #fecaca' }}>
-                              ⚠️ Nol Penjualan
-                            </span>
-                          ) : (
-                            <span style={{ color: '#d97706', background: '#fffbeb', padding: '0.2rem 0.55rem', borderRadius: '8px', border: '1px solid #fde68a' }}>
-                              🐢 Slow Moving
-                            </span>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            );
-          })()}
+            })()}
+          </div>
         </div>
+
+        {/* Card Footer Action Banner */}
+        {onNavigateTab && (
+          <div
+            style={{
+              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+              border: '1px dashed #cbd5e1',
+              borderRadius: '18px',
+              padding: '0.95rem 1.35rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              flexWrap: 'wrap',
+              gap: '0.75rem',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <History size={18} color="#047857" />
+              </div>
+              <div>
+                <div style={{ fontWeight: 800, fontSize: '0.875rem', color: '#0f172a' }}>
+                  Ingin melihat seluruh riwayat pergerakan & log mutasi stok toko?
+                </div>
+                <div style={{ fontSize: '0.775rem', color: '#64748b' }}>
+                  Akses audit log real-time, sisa kuantitas gudang, serta pencarian mutasi seluruh item.
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => onNavigateTab('STOCKS')}
+              style={{
+                background: '#ffffff',
+                color: '#047857',
+                border: '1.5px solid #047857',
+                padding: '0.45rem 0.95rem',
+                borderRadius: '10px',
+                fontSize: '0.8rem',
+                fontWeight: 900,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = '#047857';
+                e.currentTarget.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = '#ffffff';
+                e.currentTarget.style.color = '#047857';
+              }}
+            >
+              <span>Buka Log Pergerakan Stok Lengkap</span>
+              <ArrowRight size={15} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* 9. KASIR & PEGAWAI PERFORMANCE PERMANENT SECTION */}
