@@ -21,6 +21,9 @@ import {
   History,
   ArrowRight,
   X,
+  Search,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { PeriodFilterBar } from '../components/dashboard/PeriodFilterBar';
@@ -47,6 +50,15 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeSummary | null>(null);
   const [showTopProductsModal, setShowTopProductsModal] = useState(false);
   const [showSlowMovingModal, setShowSlowMovingModal] = useState(false);
+
+  // Search, filter & pagination states for modals
+  const [topProductSearch, setTopProductSearch] = useState('');
+  const [topProductCategory, setTopProductCategory] = useState<'ALL' | 'FC_PRINT' | 'FNB'>('ALL');
+  const [topProductPage, setTopProductPage] = useState(1);
+
+  const [slowMovingSearch, setSlowMovingSearch] = useState('');
+  const [slowMovingCategory, setSlowMovingCategory] = useState<'ALL' | 'FC_PRINT' | 'FNB'>('ALL');
+  const [slowMovingPage, setSlowMovingPage] = useState(1);
 
   if (loading && !metrics) {
     return <DashboardSkeleton />;
@@ -1095,303 +1107,557 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
       <EmployeePerformanceModal employee={selectedEmployee} onClose={() => setSelectedEmployee(null)} />
 
       {/* Modal 1: Peringkat Produk Terjual (Semua Produk) */}
-      {showTopProductsModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.75)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10050,
-            padding: 'clamp(0.4rem, 2vw, 1rem)',
-          }}
-          onClick={() => setShowTopProductsModal(false)}
-        >
+      {showTopProductsModal && (() => {
+        const ITEMS_PER_PAGE = 8;
+        const allTopActive = (metrics?.top_selling_products || []).filter((p: any) => (p.qty_sold || 0) > 0);
+        const filteredList = allTopActive.filter((p: any) => {
+          const matchCat = topProductCategory === 'ALL' || p.business_unit === topProductCategory;
+          const matchSearch = !topProductSearch || p.product_name.toLowerCase().includes(topProductSearch.toLowerCase());
+          return matchCat && matchSearch;
+        });
+        const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE) || 1;
+        const currentPage = Math.min(topProductPage, totalPages);
+        const paginated = filteredList.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+        return (
           <div
-            onClick={(e) => e.stopPropagation()}
             style={{
-              background: '#ffffff',
-              width: '100%',
-              maxWidth: '680px',
-              borderRadius: '24px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              border: '1px solid #cbd5e1',
-              overflow: 'hidden',
-              maxHeight: '90vh',
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(6px)',
               display: 'flex',
-              flexDirection: 'column',
-              animation: 'scaleUp 0.2s ease-out',
-              boxSizing: 'border-box',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10050,
+              padding: 'clamp(0.4rem, 2vw, 1rem)',
             }}
+            onClick={() => setShowTopProductsModal(false)}
           >
-            {/* Modal Header */}
             <div
+              onClick={(e) => e.stopPropagation()}
               style={{
-                padding: '1.25rem 1.5rem',
-                borderBottom: '1px solid #f1f5f9',
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
                 background: '#ffffff',
-                gap: '1rem',
+                width: '100%',
+                maxWidth: '680px',
+                borderRadius: '24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                border: '1px solid #cbd5e1',
+                overflow: 'hidden',
+                maxHeight: '90vh',
+                display: 'flex',
+                flexDirection: 'column',
+                animation: 'scaleUp 0.2s ease-out',
+                boxSizing: 'border-box',
               }}
             >
-              <div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
-                  Peringkat Produk Terjual ({((metrics?.top_selling_products || []).filter((p: any) => (p.qty_sold || 0) > 0)).length})
-                </h3>
-                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.25rem 0 0 0' }}>
-                  Daftar item produk & jasa yang paling sering dibeli pelanggan
-                </p>
-              </div>
-              <button
-                onClick={() => setShowTopProductsModal(false)}
+              {/* Modal Header */}
+              <div
                 style={{
-                  background: '#f1f5f9',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '34px',
-                  height: '34px',
+                  padding: '1.25rem 1.5rem',
+                  borderBottom: '1px solid #f1f5f9',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#64748b',
-                  flexShrink: 0,
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  background: '#ffffff',
+                  gap: '1rem',
                 }}
               >
-                <X size={18} />
-              </button>
-            </div>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
+                    Peringkat Produk Terjual ({allTopActive.length})
+                  </h3>
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.25rem 0 0 0' }}>
+                    Daftar item produk & jasa yang paling sering dibeli pelanggan
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowTopProductsModal(false)}
+                  style={{
+                    background: '#f1f5f9',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '34px',
+                    height: '34px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#64748b',
+                    flexShrink: 0,
+                  }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
 
-            {/* Modal Content List */}
-            <div style={{ padding: '1rem 1.25rem', overflowY: 'auto', flex: 1 }}>
-              <div style={{ borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#ffffff' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                  <thead>
-                    <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      <th style={{ padding: '0.75rem 0.6rem 0.75rem 1rem', width: '60px' }}>Rank</th>
-                      <th style={{ padding: '0.75rem 0.75rem' }}>Nama Produk / Jasa</th>
-                      <th style={{ padding: '0.75rem 0.75rem', textAlign: 'center', width: '110px' }}>Terjual (pcs)</th>
-                      <th style={{ padding: '0.75rem 1rem 0.75rem 0.75rem', textAlign: 'right', width: '140px' }}>Total Omzet Penjualan</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {((metrics?.top_selling_products || []).filter((p: any) => (p.qty_sold || 0) > 0)).map((p: any, idx: number) => {
-                      const rank = idx + 1;
-                      const isGold = rank === 1;
-                      const isSilver = rank === 2;
-                      const isBronze = rank === 3;
+              {/* Search & Filter Toolbar */}
+              <div style={{ padding: '0.85rem 1.25rem', borderBottom: '1px solid #f1f5f9', display: 'flex', flexWrap: 'wrap', gap: '0.65rem', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
+                <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '160px' }}>
+                  <Search size={15} color="#94a3b8" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                  <input
+                    type="text"
+                    placeholder="Cari nama produk..."
+                    value={topProductSearch}
+                    onChange={(e) => {
+                      setTopProductSearch(e.target.value);
+                      setTopProductPage(1);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.45rem 0.75rem 0.45rem 2.2rem',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.825rem',
+                      outline: 'none',
+                      background: '#ffffff',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
 
-                      return (
-                        <tr key={p.product_id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '0.75rem 0.6rem 0.75rem 1rem' }}>
-                            <span
-                              style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '50%',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '0.78rem',
-                                fontWeight: 900,
-                                background: isGold ? '#fef3c7' : isSilver ? '#f1f5f9' : isBronze ? '#fff7ed' : '#f8fafc',
-                                color: isGold ? '#b45309' : isSilver ? '#475569' : isBronze ? '#c2410c' : '#64748b',
-                                border: `1px solid ${isGold ? '#fde68a' : isSilver ? '#cbd5e1' : isBronze ? '#ffedd5' : '#e2e8f0'}`,
-                              }}
-                            >
-                              #{rank}
-                            </span>
-                          </td>
-                          <td style={{ padding: '0.75rem 0.75rem' }}>
-                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>{p.product_name}</div>
-                            <span
-                              style={{
-                                fontSize: '0.65rem',
-                                fontWeight: 800,
-                                padding: '0.12rem 0.45rem',
-                                borderRadius: '6px',
-                                background: p.business_unit === 'FC_PRINT' ? '#eff6ff' : '#ecfdf5',
-                                color: p.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#047857',
-                                display: 'inline-block',
-                                marginTop: '0.2rem',
-                              }}
-                            >
-                              {p.business_unit}
-                            </span>
-                          </td>
-                          <td style={{ padding: '0.75rem 0.75rem', textAlign: 'center', fontWeight: 900, color: '#0f172a' }}>
-                            {p.qty_sold} {p.unit || 'pcs'}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem 0.75rem 0.75rem', textAlign: 'right', fontWeight: 900, color: '#2563eb', whiteSpace: 'nowrap' }}>
-                            {formatRupiah(p.total_revenue)}
-                          </td>
+                <div style={{ display: 'flex', gap: '0.35rem' }}>
+                  {[
+                    { id: 'ALL', label: 'Semua' },
+                    { id: 'FC_PRINT', label: 'FC & Print' },
+                    { id: 'FNB', label: 'F&B' },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setTopProductCategory(cat.id as any);
+                        setTopProductPage(1);
+                      }}
+                      style={{
+                        padding: '0.35rem 0.75rem',
+                        borderRadius: '8px',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        border: 'none',
+                        cursor: 'pointer',
+                        background: topProductCategory === cat.id ? '#047857' : '#e2e8f0',
+                        color: topProductCategory === cat.id ? '#ffffff' : '#475569',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal Content List */}
+              <div style={{ padding: '1rem 1.25rem', overflowY: 'auto', flex: 1 }}>
+                {paginated.length === 0 ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                    Tidak ada produk terlaris yang sesuai pencarian/filter.
+                  </div>
+                ) : (
+                  <div style={{ borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#ffffff' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          <th style={{ padding: '0.75rem 0.6rem 0.75rem 1rem', width: '60px' }}>Rank</th>
+                          <th style={{ padding: '0.75rem 0.75rem' }}>Nama Produk / Jasa</th>
+                          <th style={{ padding: '0.75rem 0.75rem', textAlign: 'center', width: '110px' }}>Terjual</th>
+                          <th style={{ padding: '0.75rem 1rem 0.75rem 0.75rem', textAlign: 'right', width: '140px' }}>Total Omzet</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {paginated.map((p: any) => {
+                          const rank = p.rank || (allTopActive.findIndex((x: any) => x.product_id === p.product_id) + 1);
+                          const isGold = rank === 1;
+                          const isSilver = rank === 2;
+                          const isBronze = rank === 3;
+
+                          return (
+                            <tr key={p.product_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={{ padding: '0.75rem 0.6rem 0.75rem 1rem' }}>
+                                <span
+                                  style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '50%',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '0.78rem',
+                                    fontWeight: 900,
+                                    background: isGold ? '#fef3c7' : isSilver ? '#f1f5f9' : isBronze ? '#fff7ed' : '#f8fafc',
+                                    color: isGold ? '#b45309' : isSilver ? '#475569' : isBronze ? '#c2410c' : '#64748b',
+                                    border: `1px solid ${isGold ? '#fde68a' : isSilver ? '#cbd5e1' : isBronze ? '#ffedd5' : '#e2e8f0'}`,
+                                  }}
+                                >
+                                  #{rank}
+                                </span>
+                              </td>
+                              <td style={{ padding: '0.75rem 0.75rem' }}>
+                                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>{p.product_name}</div>
+                                <span
+                                  style={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: 800,
+                                    padding: '0.12rem 0.45rem',
+                                    borderRadius: '6px',
+                                    background: p.business_unit === 'FC_PRINT' ? '#eff6ff' : '#ecfdf5',
+                                    color: p.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#047857',
+                                    display: 'inline-block',
+                                    marginTop: '0.2rem',
+                                  }}
+                                >
+                                  {p.business_unit}
+                                </span>
+                              </td>
+                              <td style={{ padding: '0.75rem 0.75rem', textAlign: 'center', fontWeight: 900, color: '#0f172a' }}>
+                                {p.qty_sold} {p.unit || 'pcs'}
+                              </td>
+                              <td style={{ padding: '0.75rem 1rem 0.75rem 0.75rem', textAlign: 'right', fontWeight: 900, color: '#2563eb', whiteSpace: 'nowrap' }}>
+                                {formatRupiah(p.total_revenue)}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Pagination Footer */}
+              <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#ffffff', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700 }}>
+                  Item {filteredList.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredList.length)} dari {filteredList.length}
+                </span>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <button
+                    disabled={currentPage <= 1}
+                    onClick={() => setTopProductPage((p) => Math.max(p - 1, 1))}
+                    style={{
+                      padding: '0.35rem 0.65rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: currentPage <= 1 ? '#f1f5f9' : '#ffffff',
+                      color: currentPage <= 1 ? '#94a3b8' : '#0f172a',
+                      cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}
+                  >
+                    <ChevronLeft size={14} /> Prev
+                  </button>
+
+                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>
+                    {currentPage} / {totalPages}
+                  </span>
+
+                  <button
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setTopProductPage((p) => Math.min(p + 1, totalPages))}
+                    style={{
+                      padding: '0.35rem 0.65rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: currentPage >= totalPages ? '#f1f5f9' : '#ffffff',
+                      color: currentPage >= totalPages ? '#94a3b8' : '#0f172a',
+                      cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}
+                  >
+                    Next <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* Modal 2: Produk Penjualan Rendah / Slow Moving */}
-      {showSlowMovingModal && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.75)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 10050,
-            padding: 'clamp(0.4rem, 2vw, 1rem)',
-          }}
-          onClick={() => setShowSlowMovingModal(false)}
-        >
+      {showSlowMovingModal && (() => {
+        const ITEMS_PER_PAGE = 8;
+        const allSlowList = metrics?.slow_moving_products || [];
+        const filteredList = allSlowList.filter((p: any) => {
+          const matchCat = slowMovingCategory === 'ALL' || p.business_unit === slowMovingCategory;
+          const matchSearch = !slowMovingSearch || p.product_name.toLowerCase().includes(slowMovingSearch.toLowerCase());
+          return matchCat && matchSearch;
+        });
+        const totalPages = Math.ceil(filteredList.length / ITEMS_PER_PAGE) || 1;
+        const currentPage = Math.min(slowMovingPage, totalPages);
+        const paginated = filteredList.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+
+        return (
           <div
-            onClick={(e) => e.stopPropagation()}
             style={{
-              background: '#ffffff',
-              width: '100%',
-              maxWidth: '680px',
-              borderRadius: '24px',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-              border: '1px solid #cbd5e1',
-              overflow: 'hidden',
-              maxHeight: '90vh',
+              position: 'fixed',
+              inset: 0,
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(6px)',
               display: 'flex',
-              flexDirection: 'column',
-              animation: 'scaleUp 0.2s ease-out',
-              boxSizing: 'border-box',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10050,
+              padding: 'clamp(0.4rem, 2vw, 1rem)',
             }}
+            onClick={() => setShowSlowMovingModal(false)}
           >
-            {/* Modal Header */}
             <div
+              onClick={(e) => e.stopPropagation()}
               style={{
-                padding: '1.25rem 1.5rem',
-                borderBottom: '1px solid #f1f5f9',
-                display: 'flex',
-                alignItems: 'flex-start',
-                justifyContent: 'space-between',
                 background: '#ffffff',
-                gap: '1rem',
+                width: '100%',
+                maxWidth: '680px',
+                borderRadius: '24px',
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+                border: '1px solid #cbd5e1',
+                overflow: 'hidden',
+                maxHeight: '90vh',
+                display: 'flex',
+                flexDirection: 'column',
+                animation: 'scaleUp 0.2s ease-out',
+                boxSizing: 'border-box',
               }}
             >
-              <div>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
-                  Produk Penjualan Rendah / Slow Moving ({(metrics?.slow_moving_products || []).length})
-                </h3>
-                <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.25rem 0 0 0' }}>
-                  Daftar item produk & jasa dengan perputaran penjualan terendah / belum terjual
-                </p>
-              </div>
-              <button
-                onClick={() => setShowSlowMovingModal(false)}
+              {/* Modal Header */}
+              <div
                 style={{
-                  background: '#f1f5f9',
-                  border: 'none',
-                  borderRadius: '50%',
-                  width: '34px',
-                  height: '34px',
+                  padding: '1.25rem 1.5rem',
+                  borderBottom: '1px solid #f1f5f9',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  color: '#64748b',
-                  flexShrink: 0,
+                  alignItems: 'flex-start',
+                  justifyContent: 'space-between',
+                  background: '#ffffff',
+                  gap: '1rem',
                 }}
               >
-                <X size={18} />
-              </button>
-            </div>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
+                    Produk Penjualan Rendah / Slow Moving ({allSlowList.length})
+                  </h3>
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0.25rem 0 0 0' }}>
+                    Daftar item produk & jasa dengan perputaran penjualan terendah / belum terjual
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowSlowMovingModal(false)}
+                  style={{
+                    background: '#f1f5f9',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '34px',
+                    height: '34px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#64748b',
+                    flexShrink: 0,
+                  }}
+                >
+                  <X size={18} />
+                </button>
+              </div>
 
-            {/* Modal Content List */}
-            <div style={{ padding: '1rem 1.25rem', overflowY: 'auto', flex: 1 }}>
-              <div style={{ borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#ffffff' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
-                  <thead>
-                    <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                      <th style={{ padding: '0.75rem 0.6rem 0.75rem 1rem', width: '60px' }}>Rank</th>
-                      <th style={{ padding: '0.75rem 0.75rem' }}>Nama Produk / Jasa</th>
-                      <th style={{ padding: '0.75rem 0.75rem', textAlign: 'center', width: '110px' }}>Terjual (pcs)</th>
-                      <th style={{ padding: '0.75rem 1rem 0.75rem 0.75rem', textAlign: 'right', width: '160px' }}>Status Perputaran</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {(metrics?.slow_moving_products || []).map((p: any, idx: number) => {
-                      const rank = idx + 1;
+              {/* Search & Filter Toolbar */}
+              <div style={{ padding: '0.85rem 1.25rem', borderBottom: '1px solid #f1f5f9', display: 'flex', flexWrap: 'wrap', gap: '0.65rem', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc' }}>
+                <div style={{ position: 'relative', flex: '1 1 200px', minWidth: '160px' }}>
+                  <Search size={15} color="#94a3b8" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                  <input
+                    type="text"
+                    placeholder="Cari nama produk..."
+                    value={slowMovingSearch}
+                    onChange={(e) => {
+                      setSlowMovingSearch(e.target.value);
+                      setSlowMovingPage(1);
+                    }}
+                    style={{
+                      width: '100%',
+                      padding: '0.45rem 0.75rem 0.45rem 2.2rem',
+                      borderRadius: '10px',
+                      border: '1px solid #cbd5e1',
+                      fontSize: '0.825rem',
+                      outline: 'none',
+                      background: '#ffffff',
+                      boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
 
-                      return (
-                        <tr key={p.product_id || idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                          <td style={{ padding: '0.75rem 0.6rem 0.75rem 1rem' }}>
-                            <span
-                              style={{
-                                width: '28px',
-                                height: '28px',
-                                borderRadius: '50%',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                fontSize: '0.75rem',
-                                fontWeight: 800,
-                                background: '#f8fafc',
-                                color: '#64748b',
-                                border: '1px solid #e2e8f0',
-                              }}
-                            >
-                              #{rank}
-                            </span>
-                          </td>
-                          <td style={{ padding: '0.75rem 0.75rem' }}>
-                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>{p.product_name}</div>
-                            <span
-                              style={{
-                                fontSize: '0.65rem',
-                                fontWeight: 800,
-                                padding: '0.12rem 0.45rem',
-                                borderRadius: '6px',
-                                background: p.business_unit === 'FC_PRINT' ? '#eff6ff' : '#ecfdf5',
-                                color: p.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#047857',
-                                display: 'inline-block',
-                                marginTop: '0.2rem',
-                              }}
-                            >
-                              {p.business_unit}
-                            </span>
-                          </td>
-                          <td style={{ padding: '0.75rem 0.75rem', textAlign: 'center', fontWeight: 900, color: p.qty_sold === 0 ? '#dc2626' : '#d97706' }}>
-                            {p.qty_sold} {p.unit || 'pcs'}
-                          </td>
-                          <td style={{ padding: '0.75rem 1rem 0.75rem 0.75rem', textAlign: 'right', fontSize: '0.78rem', color: '#64748b', fontWeight: 700, whiteSpace: 'nowrap' }}>
-                            {p.qty_sold === 0 ? (
-                              <span style={{ color: '#dc2626', background: '#fef2f2', padding: '0.2rem 0.55rem', borderRadius: '8px', border: '1px solid #fecaca' }}>
-                                ⚠️ Nol Penjualan
-                              </span>
-                            ) : (
-                              <span style={{ color: '#d97706', background: '#fffbeb', padding: '0.2rem 0.55rem', borderRadius: '8px', border: '1px solid #fde68a' }}>
-                                🐢 Slow Moving
-                              </span>
-                            )}
-                          </td>
+                <div style={{ display: 'flex', gap: '0.35rem' }}>
+                  {[
+                    { id: 'ALL', label: 'Semua' },
+                    { id: 'FC_PRINT', label: 'FC & Print' },
+                    { id: 'FNB', label: 'F&B' },
+                  ].map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => {
+                        setSlowMovingCategory(cat.id as any);
+                        setSlowMovingPage(1);
+                      }}
+                      style={{
+                        padding: '0.35rem 0.75rem',
+                        borderRadius: '8px',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        border: 'none',
+                        cursor: 'pointer',
+                        background: slowMovingCategory === cat.id ? '#dc2626' : '#e2e8f0',
+                        color: slowMovingCategory === cat.id ? '#ffffff' : '#475569',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Modal Content List */}
+              <div style={{ padding: '1rem 1.25rem', overflowY: 'auto', flex: 1 }}>
+                {paginated.length === 0 ? (
+                  <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+                    Tidak ada produk slow moving yang sesuai pencarian/filter.
+                  </div>
+                ) : (
+                  <div style={{ borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#ffffff' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                      <thead>
+                        <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                          <th style={{ padding: '0.75rem 0.6rem 0.75rem 1rem', width: '60px' }}>Rank</th>
+                          <th style={{ padding: '0.75rem 0.75rem' }}>Nama Produk / Jasa</th>
+                          <th style={{ padding: '0.75rem 0.75rem', textAlign: 'center', width: '110px' }}>Terjual</th>
+                          <th style={{ padding: '0.75rem 1rem 0.75rem 0.75rem', textAlign: 'right', width: '160px' }}>Status Perputaran</th>
                         </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                      </thead>
+                      <tbody>
+                        {paginated.map((p: any) => {
+                          const rank = p.rank || (allSlowList.findIndex((x: any) => x.product_id === p.product_id) + 1);
+
+                          return (
+                            <tr key={p.product_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={{ padding: '0.75rem 0.6rem 0.75rem 1rem' }}>
+                                <span
+                                  style={{
+                                    width: '28px',
+                                    height: '28px',
+                                    borderRadius: '50%',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    fontSize: '0.75rem',
+                                    fontWeight: 800,
+                                    background: '#f8fafc',
+                                    color: '#64748b',
+                                    border: '1px solid #e2e8f0',
+                                  }}
+                                >
+                                  #{rank}
+                                </span>
+                              </td>
+                              <td style={{ padding: '0.75rem 0.75rem' }}>
+                                <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.875rem' }}>{p.product_name}</div>
+                                <span
+                                  style={{
+                                    fontSize: '0.65rem',
+                                    fontWeight: 800,
+                                    padding: '0.12rem 0.45rem',
+                                    borderRadius: '6px',
+                                    background: p.business_unit === 'FC_PRINT' ? '#eff6ff' : '#ecfdf5',
+                                    color: p.business_unit === 'FC_PRINT' ? '#1d4ed8' : '#047857',
+                                    display: 'inline-block',
+                                    marginTop: '0.2rem',
+                                  }}
+                                >
+                                  {p.business_unit}
+                                </span>
+                              </td>
+                              <td style={{ padding: '0.75rem 0.75rem', textAlign: 'center', fontWeight: 900, color: p.qty_sold === 0 ? '#dc2626' : '#d97706' }}>
+                                {p.qty_sold} {p.unit || 'pcs'}
+                              </td>
+                              <td style={{ padding: '0.75rem 1rem 0.75rem 0.75rem', textAlign: 'right', fontSize: '0.78rem', color: '#64748b', fontWeight: 700, whiteSpace: 'nowrap' }}>
+                                {p.qty_sold === 0 ? (
+                                  <span style={{ color: '#dc2626', background: '#fef2f2', padding: '0.2rem 0.55rem', borderRadius: '8px', border: '1px solid #fecaca' }}>
+                                    ⚠️ Nol Penjualan
+                                  </span>
+                                ) : (
+                                  <span style={{ color: '#d97706', background: '#fffbeb', padding: '0.2rem 0.55rem', borderRadius: '8px', border: '1px solid #fde68a' }}>
+                                    🐢 Slow Moving
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Pagination Footer */}
+              <div style={{ padding: '0.75rem 1.25rem', borderTop: '1px solid #f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#ffffff', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 700 }}>
+                  Item {filteredList.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredList.length)} dari {filteredList.length}
+                </span>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <button
+                    disabled={currentPage <= 1}
+                    onClick={() => setSlowMovingPage((p) => Math.max(p - 1, 1))}
+                    style={{
+                      padding: '0.35rem 0.65rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: currentPage <= 1 ? '#f1f5f9' : '#ffffff',
+                      color: currentPage <= 1 ? '#94a3b8' : '#0f172a',
+                      cursor: currentPage <= 1 ? 'not-allowed' : 'pointer',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}
+                  >
+                    <ChevronLeft size={14} /> Prev
+                  </button>
+
+                  <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }}>
+                    {currentPage} / {totalPages}
+                  </span>
+
+                  <button
+                    disabled={currentPage >= totalPages}
+                    onClick={() => setSlowMovingPage((p) => Math.min(p + 1, totalPages))}
+                    style={{
+                      padding: '0.35rem 0.65rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: currentPage >= totalPages ? '#f1f5f9' : '#ffffff',
+                      color: currentPage >= totalPages ? '#94a3b8' : '#0f172a',
+                      cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}
+                  >
+                    Next <ChevronRight size={14} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
