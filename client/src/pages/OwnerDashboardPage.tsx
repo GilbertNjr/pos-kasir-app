@@ -1132,7 +1132,11 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
               zIndex: 10050,
               padding: 'clamp(0.4rem, 2vw, 1rem)',
             }}
-            onClick={() => setShowTopProductsModal(false)}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowTopProductsModal(false);
+              }
+            }}
           >
             <div
               onClick={(e) => e.stopPropagation()}
@@ -1406,7 +1410,11 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
               zIndex: 10050,
               padding: 'clamp(0.4rem, 2vw, 1rem)',
             }}
-            onClick={() => setShowSlowMovingModal(false)}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) {
+                setShowSlowMovingModal(false);
+              }
+            }}
           >
             <div
               onClick={(e) => e.stopPropagation()}

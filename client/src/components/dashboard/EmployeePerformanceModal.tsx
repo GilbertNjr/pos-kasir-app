@@ -41,8 +41,13 @@ export const EmployeePerformanceModal: React.FC<EmployeePerformanceModalProps> =
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        zIndex: 100,
+        zIndex: 10050,
         padding: '1rem',
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
       }}
     >
       <div

@@ -1490,7 +1490,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
 
       {/* MODAL 1: LIHAT SEMUA TRANSAKSI */}
       {showAllTxModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10050, padding: '1rem' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAllTxModal(false);
+            }
+          }}
+        >
           <div style={{ background: '#ffffff', width: '100%', maxWidth: '850px', maxHeight: '90vh', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', overflowY: 'auto', border: '1px solid #e2e8f0', padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid #f1f5f9' }}>
               <div>
@@ -1530,7 +1537,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                           </span>
                         </td>
                         <td style={{ padding: '0.6rem 0.5rem', textAlign: 'center' }}>
-                          <button onClick={() => { setShowAllTxModal(false); setSelectedTx(tx); }} style={{ padding: '0.3rem 0.65rem', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>
+                          <button onClick={(e) => { e.stopPropagation(); setSelectedTx(tx); }} style={{ padding: '0.3rem 0.65rem', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '8px', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer' }}>
                             Detail
                           </button>
                         </td>
@@ -1552,7 +1559,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
 
       {/* MODAL 2: LIHAT SEMUA PRODUK TERLARIS */}
       {showAllProductsModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10050, padding: '1rem' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowAllProductsModal(false);
+            }
+          }}
+        >
           <div style={{ background: '#ffffff', width: '100%', maxWidth: '700px', maxHeight: '90vh', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', overflowY: 'auto', border: '1px solid #e2e8f0', padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid #f1f5f9' }}>
               <div>
@@ -1602,7 +1616,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
 
       {/* MODAL 3: DETAIL LABA RUGI OPERASIONAL */}
       {showProfitLossModal && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}>
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10050, padding: '1rem' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowProfitLossModal(false);
+            }
+          }}
+        >
           <div style={{ background: '#ffffff', width: '100%', maxWidth: '620px', maxHeight: '90vh', borderRadius: '24px', boxShadow: '0 20px 40px rgba(0,0,0,0.2)', overflowY: 'auto', border: '1px solid #e2e8f0', padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', paddingBottom: '0.75rem', borderBottom: '1px solid #f1f5f9' }}>
               <div>

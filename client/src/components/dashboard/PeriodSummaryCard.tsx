@@ -266,8 +266,13 @@ export const PeriodSummaryCard: React.FC<PeriodSummaryCardProps> = ({
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 100,
+            zIndex: 10050,
             padding: '1rem',
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setShowDetailModal(false);
+            }
           }}
         >
           <div

@@ -34,10 +34,14 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
   const [cancelError, setCancelError] = useState<string | null>(null);
   const [usersList, setUsersList] = useState<User[]>([]);
   const [fetchedItems, setFetchedItems] = useState<any[]>([]);
+  const [fetchedProducts, setFetchedProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     if (isOpen) {
       apiService.getUsers().then(setUsersList).catch(() => []);
+      if (!products || products.length === 0) {
+        apiService.getProducts().then(setFetchedProducts).catch(() => []);
+      }
       
       const initial = (items && items.length > 0) ? items : (transaction?.items || []);
       if (initial.length > 0) {
@@ -53,7 +57,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     } else {
       setFetchedItems([]);
     }
-  }, [isOpen, transaction, items]);
+  }, [isOpen, transaction, items, products]);
 
   if (!isOpen || !transaction) return null;
 
@@ -87,9 +91,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
     ? fetchedItems 
     : (items && items.length > 0 ? items : (transaction.items || []));
 
+  const allAvailableProducts = (products && products.length > 0) ? products : fetchedProducts;
+
   const detailItems: any[] = rawDetailItems.map((item: any) => {
     const pId = item.product_id || item.product?.product_id;
-    const matchedProd = products.find((p) => p.product_id === pId);
+    const matchedProd = allAvailableProducts.find((p) => p.product_id === pId);
     return {
       ...item,
       product_id: pId,
@@ -340,7 +346,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           zIndex: 10050,
           padding: 'clamp(0.35rem, 2vw, 1rem)',
         }}
-        onClick={onClose}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onClose();
+          }
+        }}
       >
         <div
           className="printable-receipt-modal"
