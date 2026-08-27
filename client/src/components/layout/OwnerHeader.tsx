@@ -79,7 +79,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
           </h1>
           <p
             style={{
-              fontSize: '0.7rem',
+              fontSize: '0.675rem',
               color: '#64748b',
               margin: '0.1rem 0 0 0',
               lineHeight: 1.2,
@@ -88,10 +88,11 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
               textOverflow: 'ellipsis',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.35rem',
+              gap: '0.25rem',
             }}
           >
-            <span>{formatWaktuIndo(new Date().toISOString())} • POS Realtime</span>
+            <span>{formatWaktuIndo(new Date().toISOString())}</span>
+            <span className="header-hide-mobile">• POS Realtime</span>
             <span
               className="header-hide-mobile"
               style={{

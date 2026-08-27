@@ -152,6 +152,16 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
     return topCat;
   }, [expenses]);
 
+  // Formatted category name for KPI Card 4
+  const formattedTopCategoryName = useMemo(() => {
+    if (!topCategoryName || topCategoryName === '-') return '-';
+    if (topCategoryName === 'BAHAN_BAKU') return 'Bahan Baku';
+    if (topCategoryName === 'OPERASIONAL') return 'Operasional';
+    if (topCategoryName === 'ATK') return 'ATK';
+    if (topCategoryName === 'LAIN_LAIN') return 'Lain-lain';
+    return topCategoryName;
+  }, [topCategoryName]);
+
   // Filtering Logic
   const filteredExpenses = useMemo(() => {
     return expenses.filter((item) => {
@@ -199,7 +209,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', paddingBottom: '3rem' }}>
       {!activeShiftId && currentUser?.role !== 'OWNER' && (
         <div style={{ padding: '0.85rem 1.25rem', background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', borderRadius: '16px', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <AlertCircle size={20} />
@@ -213,49 +223,49 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
         </div>
       )}
 
-      {/* 1. TOP METRIC CARDS BAR (4 DYNAMIC REAL-TIME CARDS - GAMBAR 2) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '1rem' }}>
+      {/* 1. TOP METRIC CARDS BAR (4 DYNAMIC REAL-TIME CARDS - RESPONSIVE MOBILE OPTIMIZED) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(135px, 1fr))', gap: '0.75rem' }}>
         {/* CARD 1: TOTAL PENGELUARAN */}
-        <div style={{ background: '#ffffff', padding: '1rem 1.15rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <TrendingDown size={22} />
+        <div style={{ background: '#ffffff', padding: '0.85rem 0.95rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fef2f2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <TrendingDown size={18} />
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2 }}>Total Pengeluaran</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(totalExpensesAmount)}</div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: '0.675rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Total Pengeluaran</div>
+            <div style={{ fontSize: 'clamp(0.925rem, 3.8vw, 1.2rem)', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(totalExpensesAmount)}</div>
           </div>
         </div>
 
         {/* CARD 2: PENGELUARAN HARI INI */}
-        <div style={{ background: '#ffffff', padding: '1rem 1.15rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Calendar size={22} />
+        <div style={{ background: '#ffffff', padding: '0.85rem 0.95rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Calendar size={18} />
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2 }}>Pengeluaran Hari Ini</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(todayExpensesAmount)}</div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: '0.675rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Pengeluaran Hari Ini</div>
+            <div style={{ fontSize: 'clamp(0.925rem, 3.8vw, 1.2rem)', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formatRupiah(todayExpensesAmount)}</div>
           </div>
         </div>
 
         {/* CARD 3: TRANSAKSI PENGELUARAN */}
-        <div style={{ background: '#ffffff', padding: '1rem 1.15rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <FileText size={22} />
+        <div style={{ background: '#ffffff', padding: '0.85rem 0.95rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#eff6ff', color: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <FileText size={18} />
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2 }}>Transaksi Pengeluaran</div>
-            <div style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2 }}>{expenses.length} <span style={{ fontSize: '0.75rem', fontWeight: 700, color: '#94a3b8' }}>Item</span></div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: '0.675rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Transaksi Kas</div>
+            <div style={{ fontSize: 'clamp(0.925rem, 3.8vw, 1.2rem)', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{expenses.length} <span style={{ fontSize: '0.725rem', fontWeight: 700, color: '#94a3b8' }}>Item</span></div>
           </div>
         </div>
 
         {/* CARD 4: KATEGORI TERBANYAK */}
-        <div style={{ background: '#ffffff', padding: '1rem 1.15rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
-          <div style={{ width: '42px', height: '42px', borderRadius: '12px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Tag size={22} />
+        <div style={{ background: '#ffffff', padding: '0.85rem 0.95rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: '#f5f3ff', color: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Tag size={18} />
           </div>
-          <div style={{ minWidth: 0 }}>
-            <div style={{ fontSize: '0.725rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.04em', lineHeight: 1.2 }}>Kategori Dominan</div>
-            <div style={{ fontSize: '1.05rem', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, textTransform: 'uppercase', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{topCategoryName}</div>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: '0.675rem', fontWeight: 800, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.03em', lineHeight: 1.25, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Kategori Dominan</div>
+            <div style={{ fontSize: 'clamp(0.85rem, 3.2vw, 1.05rem)', fontWeight: 900, color: '#0f172a', lineHeight: 1.2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{formattedTopCategoryName}</div>
           </div>
         </div>
       </div>
