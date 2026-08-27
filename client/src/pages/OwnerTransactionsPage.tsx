@@ -202,11 +202,11 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
   const todayCount = todayTxs.length;
   const yesterdayCount = yesterdayTxs.length;
   const countTrendPct =
-    yesterdayCount > 0
+    todayCount === 0
+      ? 0
+      : yesterdayCount > 0
       ? ((todayCount - yesterdayCount) / yesterdayCount) * 100
-      : todayCount > 0
-      ? 100
-      : 0;
+      : 100;
 
   // 2. Sales Revenue Trend
   const todaySales = todayTxs.reduce(
@@ -218,21 +218,21 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
     0
   );
   const salesTrendPct =
-    yesterdaySales > 0
+    todaySales === 0
+      ? 0
+      : yesterdaySales > 0
       ? ((todaySales - yesterdaySales) / yesterdaySales) * 100
-      : todaySales > 0
-      ? 100
-      : 0;
+      : 100;
 
   // 3. Average Per Transaction Trend
   const todayAvg = todayCount > 0 ? Math.round(todaySales / todayCount) : 0;
   const yesterdayAvg = yesterdayCount > 0 ? Math.round(yesterdaySales / yesterdayCount) : 0;
   const avgTrendPct =
-    yesterdayAvg > 0
+    todayAvg === 0
+      ? 0
+      : yesterdayAvg > 0
       ? ((todayAvg - yesterdayAvg) / yesterdayAvg) * 100
-      : todayAvg > 0
-      ? 100
-      : 0;
+      : 100;
 
   // Trend Badge Component
   const renderTrendBadge = (pct: number) => {

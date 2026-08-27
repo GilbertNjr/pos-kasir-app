@@ -157,9 +157,16 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             const isProdUpdate = l.action.includes('PRODUCT_UPDATE') || (l.details?.includes('diperbarui') && !l.details?.includes('+'));
             const isTransaction = l.action.includes('TRANSACTION');
             const isNeg = isDelete || isTransaction || l.details?.includes('-');
-            const matchQty = l.details ? l.details.match(/([+-]\d+)/) : null;
-            
-            let qtyStr = matchQty ? `${matchQty[0]} Pcs` : isDelete ? '-1 Pcs' : isProdUpdate ? '0 Pcs' : isNeg ? '-1 Pcs' : '+1 Pcs';
+
+            let qtyStr = '1 Pcs';
+            if (isTransaction) {
+              const itemsMatch = l.details ? l.details.match(/-\s*(\d+)\s*Items/i) : null;
+              const itemCount = itemsMatch ? itemsMatch[1] : '1';
+              qtyStr = `-${itemCount} Items`;
+            } else {
+              const matchQty = l.details ? l.details.match(/([+-]\d+)/) : null;
+              qtyStr = matchQty ? `${matchQty[0]} Pcs` : isDelete ? '-1 Pcs' : isProdUpdate ? '0 Pcs' : isNeg ? '-1 Pcs' : '+1 Pcs';
+            }
             
             let typeLabel = 'Koreksi Stok';
             if (isTransaction) {
@@ -176,9 +183,13 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               typeLabel = 'Pengurangan';
             }
 
+            const productNameDisplay = isTransaction
+              ? (l.affected_entity && l.affected_entity.startsWith('TRX-') ? `Nota #${l.affected_entity}` : l.affected_entity || 'Transaksi POS')
+              : (l.affected_entity || 'Stok Barang');
+
             return {
               time: formatWaktuIndo(l.timestamp),
-              product: l.affected_entity || 'Stok Barang',
+              product: productNameDisplay,
               type: typeLabel,
               qty: qtyStr,
               isNegative: isNeg,
