@@ -35,6 +35,7 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [allTransactions, setAllTransactions] = useState<any[]>([]);
   const [usersList, setUsersList] = useState<User[]>([]);
   const [selectedTx, setSelectedTx] = useState<any | null>(null);
 
@@ -69,15 +70,20 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
       if (selectedCashier) txParams.user_id = selectedCashier;
       if (selectedPaymentMethod !== 'ALL') txParams.payment_method = selectedPaymentMethod;
 
-      const reportRes = await apiService.getSalesReport(txParams).catch(() => null);
+      const [reportRes, allTxsData] = await Promise.all([
+        apiService.getSalesReport(txParams).catch(() => null),
+        apiService.getTransactions().catch(() => []),
+      ]);
+
       let rawTxs: any[] = [];
       if (reportRes && Array.isArray(reportRes.transactions)) {
         rawTxs = reportRes.transactions;
       } else {
-        rawTxs = await apiService.getTransactions().catch(() => []);
+        rawTxs = allTxsData || [];
       }
 
       setTransactions(rawTxs);
+      setAllTransactions(allTxsData || rawTxs || []);
       if (rawTxs.length > 0 && !selectedTx) {
         setSelectedTx(rawTxs[0]);
       }
@@ -161,31 +167,36 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
   const nonCashPct =
     totalSalesAmount > 0 ? ((totalNonCashSales / totalSalesAmount) * 100).toFixed(1) : '0';
 
-  // Helper to parse transaction date YYYY-MM-DD local
+  // Helper to parse transaction date YYYY-MM-DD in Asia/Jakarta (WIB)
   const getTxDateStr = (tx: any): string => {
     const rawDate = tx.created_at || tx.transaction_time || tx.created_at_date || tx.date;
     if (!rawDate) return '';
     const d = new Date(rawDate);
     if (isNaN(d.getTime())) return '';
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+    try {
+      return d.toLocaleDateString('en-CA', { timeZone: 'Asia/Jakarta' });
+    } catch {
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
   };
 
-  // Compare Today vs Yesterday Metrics
-  const now = new Date();
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const yest = new Date(now);
-  yest.setDate(yest.getDate() - 1);
-  const yesterdayStr = `${yest.getFullYear()}-${String(yest.getMonth() + 1).padStart(2, '0')}-${String(yest.getDate()).padStart(2, '0')}`;
+  // Compare Today vs Yesterday Metrics using global database transactions
+  const nowWIB = new Date();
+  const todayStr = getTxDateStr({ created_at: nowWIB });
+  const yestWIB = new Date(nowWIB);
+  yestWIB.setDate(yestWIB.getDate() - 1);
+  const yesterdayStr = getTxDateStr({ created_at: yestWIB });
 
-  const allCompletedTxs = transactions.filter(
+  const globalTxList = allTransactions.length > 0 ? allTransactions : transactions;
+  const allCompletedGlobal = globalTxList.filter(
     (tx) => (tx.status || 'COMPLETED').toUpperCase() !== 'CANCELLED'
   );
 
-  const todayTxs = allCompletedTxs.filter((tx) => getTxDateStr(tx) === todayStr);
-  const yesterdayTxs = allCompletedTxs.filter((tx) => getTxDateStr(tx) === yesterdayStr);
+  const todayTxs = allCompletedGlobal.filter((tx) => getTxDateStr(tx) === todayStr);
+  const yesterdayTxs = allCompletedGlobal.filter((tx) => getTxDateStr(tx) === yesterdayStr);
 
   // 1. Transaction Count Trend
   const todayCount = todayTxs.length;
