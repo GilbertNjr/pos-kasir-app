@@ -18,6 +18,7 @@ import {
   FileSpreadsheet,
   Printer,
   Plus,
+  History,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { User, Category, Product } from '../types';
@@ -92,6 +93,10 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   const [editProdCatId, setEditProdCatId] = useState('');
   const [updateProdLoading, setUpdateProdLoading] = useState(false);
   const [recentMovements, setRecentMovements] = useState<any[]>([]);
+  const [allMovements, setAllMovements] = useState<any[]>([]);
+  const [showAllMovementsModal, setShowAllMovementsModal] = useState(false);
+  const [movementSearchQuery, setMovementSearchQuery] = useState('');
+  const [movementTypeFilter, setMovementTypeFilter] = useState('ALL');
 
   // Modal 4: Konfirmasi Peringatan Hapus Stok & Produk
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<StockItem | null>(null);
@@ -147,7 +152,6 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               l.action.includes('TRANSACTION') ||
               l.action.includes('PRODUCT'))
           )
-          .slice(0, 10)
           .map((l: any) => {
             const isDelete = l.action.includes('DELETE') || l.details?.includes('Penghapusan');
             const isProdUpdate = l.action.includes('PRODUCT_UPDATE') || (l.details?.includes('diperbarui') && !l.details?.includes('+'));
@@ -178,13 +182,15 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               type: typeLabel,
               qty: qtyStr,
               isNegative: isNeg,
-              details: l.details,
-              warehouse: 'Gudang Utama',
-              user: l.username || 'Kasir',
+              details: l.details || '',
+              warehouse: l.details?.includes('Etalase') ? 'Etalase Toko' : 'Gudang Utama',
+              user: l.user_name || l.username || l.user_id || 'Kasir',
             };
           });
-        setRecentMovements(relevantLogs);
+        setAllMovements(relevantLogs);
+        setRecentMovements(relevantLogs.slice(0, 10));
       } else {
+        setAllMovements([]);
         setRecentMovements([]);
       }
     } catch (err: any) {
@@ -1920,7 +1926,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '0.75rem' }}>
                 <button
                   onClick={() => {
-                    if (onTriggerToast) onTriggerToast('info', 'Audit Log', 'Membuka seluruh riwayat pergerakan stok...');
+                    setShowAllMovementsModal(true);
                   }}
                   style={{ background: 'none', border: 'none', color: '#2563eb', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                 >
@@ -2507,6 +2513,141 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               >
                 <Trash2 size={16} />
                 {deleteLoading ? 'Menghapus...' : 'Ya, Hapus Stok'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL 5: RIWAYAT PERGERAKAN STOK LENGKAP (AUDIT LOG) */}
+      {/* ======================================================== */}
+      {showAllMovementsModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110, padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '850px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.25)' }}>
+            {/* Modal Header */}
+            <div style={{ padding: '1.25rem 1.5rem', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <History size={20} color="#38bdf8" />
+                  Riwayat Pergerakan Stok Lengkap (Audit Log)
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.25rem 0 0 0' }}>
+                  Seluruh catatan mutasi stok, transaksi POS, restock, dan koreksi barang ({allMovements.length} Catatan)
+                </p>
+              </div>
+              <button onClick={() => setShowAllMovementsModal(false)} style={{ background: 'rgba(255,255,255,0.1)', border: 'none', color: '#ffffff', width: '32px', height: '32px', borderRadius: '50%', cursor: 'pointer', fontSize: '1.1rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+            </div>
+
+            {/* Modal Filter Bar */}
+            <div style={{ padding: '1rem 1.5rem', borderBottom: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', flexShrink: 0 }}>
+              <div style={{ flex: 1, minWidth: '200px', position: 'relative' }}>
+                <Search size={16} color="#94a3b8" style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)' }} />
+                <input
+                  type="text"
+                  placeholder="Cari produk, user, atau rincian..."
+                  value={movementSearchQuery}
+                  onChange={(e) => setMovementSearchQuery(e.target.value)}
+                  style={{ width: '100%', padding: '0.55rem 0.75rem 0.55rem 2.2rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, outline: 'none' }}
+                />
+              </div>
+
+              <div style={{ minWidth: '160px' }}>
+                <select
+                  value={movementTypeFilter}
+                  onChange={(e) => setMovementTypeFilter(e.target.value)}
+                  style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}
+                >
+                  <option value="ALL">Semua Jenis Mutasi</option>
+                  <option value="Penjualan POS">Penjualan POS</option>
+                  <option value="Restock / Masuk">Restock / Masuk</option>
+                  <option value="Pengurangan">Pengurangan</option>
+                  <option value="Koreksi Stok">Koreksi Stok</option>
+                  <option value="Produk Baru">Produk Baru</option>
+                  <option value="Hapus Produk">Hapus Produk</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Modal Body: Scrollable Table / Cards */}
+            <div style={{ padding: '1.25rem 1.5rem', overflowY: 'auto', flex: 1 }}>
+              {(() => {
+                const filteredMovements = allMovements.filter((mv) => {
+                  const matchSearch =
+                    !movementSearchQuery ||
+                    mv.product.toLowerCase().includes(movementSearchQuery.toLowerCase()) ||
+                    mv.user.toLowerCase().includes(movementSearchQuery.toLowerCase()) ||
+                    mv.type.toLowerCase().includes(movementSearchQuery.toLowerCase()) ||
+                    mv.details.toLowerCase().includes(movementSearchQuery.toLowerCase());
+                  
+                  const matchType = movementTypeFilter === 'ALL' || mv.type === movementTypeFilter;
+
+                  return matchSearch && matchType;
+                });
+
+                if (filteredMovements.length === 0) {
+                  return (
+                    <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem' }}>Tidak ada riwayat pergerakan yang cocok dengan pencarian.</p>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    {filteredMovements.map((mv, idx) => (
+                      <div
+                        key={idx}
+                        style={{
+                          background: '#ffffff',
+                          border: '1px solid #e2e8f0',
+                          borderRadius: '14px',
+                          padding: '0.85rem 1.15rem',
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          gap: '1rem',
+                          boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                        }}
+                      >
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem', minWidth: 0, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                            <span style={{ padding: '0.15rem 0.5rem', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 800, background: mv.isNegative ? '#fef2f2' : '#f0fdf4', color: mv.isNegative ? '#dc2626' : '#16a34a', border: `1px solid ${mv.isNegative ? '#fecaca' : '#bbf7d0'}` }}>
+                              {mv.type}
+                            </span>
+                            <span style={{ fontSize: '0.725rem', color: '#64748b', fontWeight: 600 }}>{mv.time}</span>
+                          </div>
+                          <div style={{ fontSize: '0.925rem', fontWeight: 900, color: '#0f172a', margin: '0.1rem 0' }}>
+                            {mv.product}
+                          </div>
+                          <div style={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600 }}>
+                            {mv.warehouse} • <span style={{ color: '#2563eb', fontWeight: 700 }}>Oleh: {mv.user}</span>
+                            {mv.details && <span style={{ color: '#94a3b8' }}> — {mv.details}</span>}
+                          </div>
+                        </div>
+
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <div style={{ fontSize: '1.1rem', fontWeight: 900, color: mv.isNegative ? '#dc2626' : '#16a34a' }}>
+                            {mv.qty}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div style={{ padding: '1rem 1.5rem', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+              <span style={{ fontSize: '0.8rem', color: '#64748b', fontWeight: 700 }}>
+                Menampilkan seluruh {allMovements.length} catatan audit log
+              </span>
+              <button
+                onClick={() => setShowAllMovementsModal(false)}
+                style={{ padding: '0.55rem 1.25rem', borderRadius: '10px', background: '#0f172a', color: '#ffffff', border: 'none', fontWeight: 800, fontSize: '0.85rem', cursor: 'pointer' }}
+              >
+                Tutup
               </button>
             </div>
           </div>
