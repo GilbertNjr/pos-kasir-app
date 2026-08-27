@@ -30,6 +30,7 @@ export interface AIServiceContext {
     omzet: number;
     business_unit: string;
   }>;
+  peak_hour_summary?: string;
 }
 
 class AIService {
@@ -276,6 +277,29 @@ Berikan respon HANYA berupa JSON Array murni (tanpa markdown formatting seperti 
           action_recommendation: 'Sediakan promo paket cetak atau tambahkan etalase ATK populer di area F&B.',
         });
       }
+    }
+
+    // 4. Analisis Jam Sibuk Toko (Peak Hours Analysis)
+    if (ctx.peak_hour_summary) {
+      insights.push({
+        type: 'TIP',
+        title: 'Analisis Jam Sibuk Toko (Peak Hours)',
+        message: `Puncak keramaian & volume transaksi toko terjadi pada kurun waktu ${ctx.peak_hour_summary}.`,
+        action_recommendation: 'Pastikan ketersediaan pecahan uang kembalian dan siapkan minimal 2 kasir aktif di jam sibuk tersebut.',
+      });
+    }
+
+    // 5. Strategi Bundling & Cross-Selling Lintas Kategori
+    const topItem = activeTop.length > 0 ? activeTop[0] : null;
+    const slowItem = zeroSold.length > 0 ? zeroSold[0] : null;
+
+    if (topItem && slowItem) {
+      insights.push({
+        type: 'TIP',
+        title: `Strategi Bundling (${topItem.product_name} + ${slowItem.product_name})`,
+        message: `Produk terlaris (${topItem.product_name}) berpotensi mendongkrak perputaran produk lambat (${slowItem.product_name}).`,
+        action_recommendation: `Buat paket bundling promo hemat menggabungkan ${topItem.product_name} dengan ${slowItem.product_name} untuk mempercepat omzet.`,
+      });
     }
 
     return insights;

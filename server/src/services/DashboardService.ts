@@ -337,6 +337,15 @@ export class DashboardService {
     }).length;
     const low_stock_products_count = 0; // stok alert placeholder
 
+    // Calculate Peak Hour Summary for AI Insights
+    const peakPoint = revenue_chart.reduce(
+      (max, p) => (p.transaction_count > max.transaction_count ? p : max),
+      { label: '', omzet: 0, transaction_count: 0 }
+    );
+    const peak_hour_summary = peakPoint.transaction_count > 0
+      ? `${peakPoint.label} (${peakPoint.transaction_count} Nota)`
+      : undefined;
+
     // AI Business Insights Engine (with 5-Key Fallback & Machine Learning Heuristic Engine)
     const business_insights: BusinessInsightItem[] = await aiService.generateBusinessInsights({
       period_type,
@@ -347,6 +356,7 @@ export class DashboardService {
       top_selling_products,
       slow_moving_products,
       category_distribution,
+      peak_hour_summary,
     });
 
     return {
