@@ -612,6 +612,10 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       return 'Fotokopi & Print';
     }
 
+    if (rawCat.includes('obat') || rawCat.includes('kesehatan') || rawCat.includes('farmasi') || rawCat.includes('medis')) {
+      return 'Obat & Kesehatan';
+    }
+
     // 2. Standardized Category Bucket Fallback
     const bucket = getProductCategoryBucket(
       { product_name: item.product_name, business_unit: item.business_unit },
@@ -625,6 +629,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     if (bucket === 'snack') return 'Makanan & Snack';
     if (bucket === 'atk') return 'ATK & Persediaan';
     if (bucket === 'fotokopi' || bucket === 'printing' || bucket === 'jasa') return 'Fotokopi & Print';
+    if (bucket === 'obat') return 'Obat & Kesehatan';
 
     // 3. Fallback to raw DB category name if present, or business unit default
     if (item.category_name) return item.category_name;
@@ -682,6 +687,13 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         border: '#fecdd3',
       };
     }
+    if (cat.includes('obat') || cat.includes('kesehatan') || cat.includes('farmasi') || cat.includes('medis')) {
+      return {
+        bg: '#e6fffa',       // Soft Pastel Teal / Emerald
+        text: '#047857',
+        border: '#a7f3d0',
+      };
+    }
 
     // Default Fallback Color
     return {
@@ -719,7 +731,8 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
           (selectedNorm.includes('es krim') && (itemCatNorm.includes('es krim') || itemCatNorm.includes('eskrim') || rawCatName.includes('es krim') || rawPName.includes('kul') || rawPName.includes('aice'))) ||
           (selectedNorm.includes('makanan') && (itemCatNorm.includes('makanan') || itemCatNorm.includes('snack') || rawCatName.includes('makanan') || rawCatName.includes('snack') || rawCatName.includes('camilan'))) ||
           (selectedNorm.includes('minuman') && (itemCatNorm.includes('minuman') || rawCatName.includes('minuman') || rawCatName.includes('kopi') || rawCatName.includes('teh') || rawPName.includes('teh') || rawPName.includes('chocolatos'))) ||
-          (selectedNorm.includes('gorengan') && (itemCatNorm.includes('gorengan') || rawCatName.includes('gorengan') || rawCatName.includes('goreng')));
+          (selectedNorm.includes('gorengan') && (itemCatNorm.includes('gorengan') || rawCatName.includes('gorengan') || rawCatName.includes('goreng'))) ||
+          (selectedNorm.includes('obat') && (itemCatNorm.includes('obat') || rawCatName.includes('obat') || rawPName.includes('bodrex') || rawPName.includes('paracetamol') || rawPName.includes('poldan') || rawPName.includes('tolak angin')));
 
         if (!matches) return false;
       }
@@ -1049,6 +1062,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             <option value="Makanan & Snack">🍿 Makanan & Snack</option>
             <option value="ATK & Persediaan">✏️ ATK & Persediaan</option>
             <option value="Fotokopi & Print">📑 Fotokopi & Print</option>
+            <option value="Obat & Kesehatan">💊 Obat & Kesehatan</option>
           </select>
 
           {/* Dropdown Semua Status */}
