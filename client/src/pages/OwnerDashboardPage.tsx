@@ -745,73 +745,185 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
       </div>
 
       {/* 10. REKOMENDASI INSIGHTS BISNIS OTOMATIS (REALTIME DYNAMIC STOK & OPERASIONAL) */}
-      <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', padding: '1.75rem', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.03)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: '#fffbeb', color: '#d97706', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <Lightbulb size={22} color="#d97706" />
+      <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '24px', padding: '1.75rem', boxShadow: '0 10px 30px -10px rgba(0,0,0,0.04)' }}>
+        {/* Sleek AI Header Banner */}
+        <div
+          style={{
+            background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)',
+            borderRadius: '20px',
+            padding: '1.25rem 1.5rem',
+            color: '#ffffff',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '1.5rem',
+            boxShadow: '0 8px 24px rgba(15, 23, 42, 0.15)',
+            flexWrap: 'wrap',
+            gap: '1rem',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+            <div
+              style={{
+                width: '44px',
+                height: '44px',
+                borderRadius: '14px',
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexShrink: 0,
+              }}
+            >
+              <Sparkles size={24} color="#38bdf8" />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#ffffff', margin: 0, letterSpacing: '-0.01em' }}>
+                Rekomendasi Insights Bisnis Otomatis
+              </h3>
+              <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>
+                Analisis cerdas pola penjualan & peluang peningkatan margin omzet toko
+              </p>
+            </div>
           </div>
-          <div>
-            <h3 style={{ fontSize: '1.125rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
-              Rekomendasi Insights Bisnis Otomatis
-            </h3>
-            <p style={{ fontSize: '0.825rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
-              Analisis cerdas pola penjualan & peluang peningkatan margin omzet toko
-            </p>
+
+          <div
+            style={{
+              background: 'rgba(16, 185, 129, 0.12)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              color: '#34d399',
+              padding: '0.4rem 0.85rem',
+              borderRadius: '20px',
+              fontSize: '0.75rem',
+              fontWeight: 800,
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981' }} />
+            AI Engine Active
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+        {/* Insight Cards Container */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.15rem' }}>
           {metrics?.business_insights?.map((item: any, idx: number) => {
             const isPositive = item.type === 'POSITIVE';
             const isWarning = item.type === 'WARNING';
             const isTip = item.type === 'TIP';
 
-            const borderLeftColor = isPositive ? '#10b981' : isWarning ? '#f59e0b' : isTip ? '#8b5cf6' : '#3b82f6';
+            const accentColor = isPositive ? '#10b981' : isWarning ? '#f59e0b' : isTip ? '#8b5cf6' : '#3b82f6';
             const itemBgColor = isPositive ? '#f0fdf4' : isWarning ? '#fffbeb' : isTip ? '#f5f3ff' : '#f0f6ff';
+            const borderColor = isPositive ? '#bbf7d0' : isWarning ? '#fde68a' : isTip ? '#ddd6fe' : '#bfdbfe';
+            const badgeBg = isPositive ? '#dcfce7' : isWarning ? '#fef3c7' : isTip ? '#ede9fe' : '#dbeafe';
+            const badgeText = isPositive ? '#166534' : isWarning ? '#92400e' : isTip ? '#5b21b6' : '#1e40af';
+            const badgeLabel = isPositive ? 'PERFORMA UNGGUL' : isWarning ? 'PERHATIAN STOK' : isTip ? 'SARAN STRATEGIS' : 'ANALISIS SISTEM';
+
+            // Function to render product items inside brackets as styled tag chips
+            const renderMessageWithTags = (msg: string) => {
+              if (!msg) return null;
+              const match = msg.match(/^(.*?)\((.*?)\)(.*)$/);
+              if (match) {
+                const prefix = match[1];
+                const itemsStr = match[2];
+                const suffix = match[3];
+                const items = itemsStr.split(',').map((s) => s.trim()).filter(Boolean);
+
+                return (
+                  <div style={{ fontSize: '0.875rem', color: '#334155', lineHeight: 1.65 }}>
+                    {prefix}
+                    <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: '0.3rem', margin: '0 0.35rem', verticalAlign: 'middle' }}>
+                      {items.map((it, i) => (
+                        <span
+                          key={i}
+                          style={{
+                            background: '#ffffff',
+                            border: `1px solid ${borderColor}`,
+                            padding: '0.15rem 0.55rem',
+                            borderRadius: '8px',
+                            fontSize: '0.775rem',
+                            fontWeight: 800,
+                            color: '#0f172a',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                          }}
+                        >
+                          {it}
+                        </span>
+                      ))}
+                    </span>
+                    {suffix}
+                  </div>
+                );
+              }
+              return <div style={{ fontSize: '0.875rem', color: '#334155', lineHeight: 1.65 }}>{msg}</div>;
+            };
 
             return (
               <div
                 key={idx}
                 style={{
-                  padding: '1.25rem 1.5rem',
-                  borderRadius: '18px',
+                  padding: '1.35rem 1.5rem',
+                  borderRadius: '20px',
                   background: itemBgColor,
-                  borderLeft: `4px solid ${borderLeftColor}`,
-                  borderTop: '1px solid rgba(0,0,0,0.02)',
-                  borderRight: '1px solid rgba(0,0,0,0.02)',
-                  borderBottom: '1px solid rgba(0,0,0,0.02)',
+                  border: `1.5px solid ${borderColor}`,
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '0.35rem',
+                  gap: '0.85rem',
+                  boxShadow: '0 4px 14px rgba(0,0,0,0.02)',
                 }}
               >
-                <div style={{ fontWeight: 900, fontSize: '0.975rem', color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  {isPositive && <CheckCircle2 size={18} color="#10b981" />}
-                  {isWarning && <AlertCircle size={18} color="#f59e0b" />}
-                  {isTip && <Sparkles size={18} color="#8b5cf6" />}
-                  {!isPositive && !isWarning && !isTip && <Lightbulb size={18} color="#3b82f6" />}
-                  {item.title}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#475569', lineHeight: 1.55 }}>{item.message}</div>
+                {/* Header Row */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                    <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: badgeBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      {isPositive && <CheckCircle2 size={18} color={accentColor} />}
+                      {isWarning && <AlertCircle size={18} color={accentColor} />}
+                      {isTip && <Sparkles size={18} color={accentColor} />}
+                      {!isPositive && !isWarning && !isTip && <Lightbulb size={18} color={accentColor} />}
+                    </div>
+                    <h4 style={{ fontWeight: 900, fontSize: '1.025rem', color: '#0f172a', margin: 0 }}>
+                      {item.title}
+                    </h4>
+                  </div>
 
+                  <span style={{ padding: '0.25rem 0.65rem', borderRadius: '8px', background: badgeBg, color: badgeText, fontSize: '0.7rem', fontWeight: 900, letterSpacing: '0.03em' }}>
+                    {badgeLabel}
+                  </span>
+                </div>
+
+                {/* Message Body */}
+                {renderMessageWithTags(item.message)}
+
+                {/* Action Recommendation Box ("Saran AI") */}
                 {item.action_recommendation && (
                   <div
                     style={{
-                      marginTop: '0.5rem',
-                      padding: '0.6rem 0.85rem',
-                      borderRadius: '12px',
+                      marginTop: '0.25rem',
+                      padding: '0.85rem 1.15rem',
+                      borderRadius: '14px',
                       background: '#ffffff',
-                      border: `1px solid ${borderLeftColor}30`,
-                      fontSize: '0.78rem',
-                      color: '#0f172a',
-                      fontWeight: 700,
+                      border: `1px solid ${borderColor}`,
                       display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.4rem',
+                      alignItems: 'flex-start',
+                      gap: '0.75rem',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                     }}
                   >
-                    <span style={{ color: borderLeftColor }}>💡</span>
-                    <span><strong>Saran AI:</strong> {item.action_recommendation}</span>
+                    <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: badgeBg, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '0.1rem' }}>
+                      <Lightbulb size={16} color={accentColor} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <span style={{ fontSize: '0.725rem', fontWeight: 900, color: badgeText, textTransform: 'uppercase', letterSpacing: '0.04em', display: 'block' }}>
+                        💡 Rekomendasi Tindakan AI
+                      </span>
+                      <div style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: 700, marginTop: '0.2rem', lineHeight: 1.5 }}>
+                        {item.action_recommendation}
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
