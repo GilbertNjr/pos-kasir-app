@@ -327,7 +327,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
   return (
     <>
-      {/* 1. UTAMA: MODAL DETAIL TRANSAKSI (Sesuai Referensi Desain Screenshot) */}
+      {/* 1. UTAMA: MODAL DETAIL TRANSAKSI (RESPONSIVE MOBILE OPTIMIZED) */}
       <div
         style={{
           position: 'fixed',
@@ -338,7 +338,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 10050,
-          padding: '1rem',
+          padding: 'clamp(0.35rem, 2vw, 1rem)',
         }}
         onClick={onClose}
       >
@@ -349,21 +349,22 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             background: '#ffffff',
             width: '100%',
             maxWidth: '460px',
-            borderRadius: '24px',
+            borderRadius: '20px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
             border: '1px solid #cbd5e1',
             overflow: 'hidden',
-            maxHeight: '90vh',
+            maxHeight: '92vh',
             display: 'flex',
             flexDirection: 'column',
             animation: 'scaleUp 0.2s ease-out',
+            boxSizing: 'border-box',
           }}
         >
           {/* Header Bar */}
           <div
             className="no-print"
             style={{
-              padding: '1.25rem 1.5rem',
+              padding: '0.95rem 1.15rem',
               borderBottom: '1px solid #f1f5f9',
               display: 'flex',
               alignItems: 'center',
@@ -371,7 +372,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
               background: '#ffffff',
             }}
           >
-            <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
+            <h3 style={{ fontSize: 'clamp(1rem, 3.5vw, 1.15rem)', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.01em' }}>
               Detail Transaksi
             </h3>
             <button
@@ -388,6 +389,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 cursor: 'pointer',
                 color: '#64748b',
                 transition: 'all 0.15s ease',
+                flexShrink: 0,
               }}
             >
               <X size={18} />
@@ -395,10 +397,10 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           </div>
 
           {/* Scrollable Content Body */}
-          <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
+          <div style={{ padding: '1rem 0.85rem', overflowY: 'auto', flex: 1 }}>
             {/* Header Nota ID & Status Badge */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.35rem' }}>
-              <h2 style={{ fontSize: '1.35rem', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', gap: '0.5rem' }}>
+              <h2 style={{ fontSize: 'clamp(1.15rem, 4vw, 1.35rem)', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {txNumber}
               </h2>
               {isCancelled ? (
@@ -407,10 +409,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     background: '#fef2f2',
                     color: '#dc2626',
                     border: '1px solid #fecaca',
-                    fontSize: '0.75rem',
+                    fontSize: '0.725rem',
                     fontWeight: 800,
-                    padding: '0.2rem 0.65rem',
+                    padding: '0.2rem 0.55rem',
                     borderRadius: '8px',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   Dibatalkan
@@ -421,10 +424,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                     background: '#dcfce7',
                     color: '#16a34a',
                     border: '1px solid #bbf7d0',
-                    fontSize: '0.75rem',
+                    fontSize: '0.725rem',
                     fontWeight: 800,
-                    padding: '0.2rem 0.65rem',
+                    padding: '0.2rem 0.55rem',
                     borderRadius: '8px',
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   Lunas
@@ -433,35 +437,35 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             </div>
 
             {/* Timestamp & Kasir Line */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.825rem', color: '#64748b', marginBottom: '1.25rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.78rem', color: '#64748b', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.25rem' }}>
               <span>{txTime}</span>
               <span style={{ fontWeight: 700, color: '#475569' }}>Kasir: {cashierName}</span>
             </div>
 
             {/* Card: Informasi Pelanggan */}
-            <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: '0.75rem', fontWeight: 800, color: '#2563eb', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <UserIcon size={14} /> Informasi Pelanggan
+            <div style={{ background: '#f8fafc', padding: '0.75rem 0.85rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.725rem', fontWeight: 800, color: '#2563eb', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <UserIcon size={13} /> Informasi Pelanggan
               </div>
-              <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
                 👤 {customerName}
               </div>
             </div>
 
             {/* Section: Detail Item */}
-            <div style={{ marginBottom: '1.25rem' }}>
-              <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#334155', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                <ShoppingBag size={14} color="#6366f1" /> Detail Item
+            <div style={{ marginBottom: '1rem' }}>
+              <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#334155', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <ShoppingBag size={13} color="#6366f1" /> Detail Item
               </div>
 
-              <div style={{ borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#ffffff' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', tableLayout: 'fixed' }}>
+              <div style={{ borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#ffffff', width: '100%' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', tableLayout: 'fixed' }}>
                   <thead>
-                    <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.725rem' }}>
-                      <th style={{ padding: '0.6rem 0.5rem 0.6rem 0.75rem', width: '38%' }}>Produk</th>
-                      <th style={{ padding: '0.6rem 0.25rem', textAlign: 'center', width: '14%' }}>Qty</th>
-                      <th style={{ padding: '0.6rem 0.35rem', textAlign: 'right', width: '24%' }}>Harga</th>
-                      <th style={{ padding: '0.6rem 0.75rem 0.6rem 0.35rem', textAlign: 'right', width: '24%' }}>Subtotal</th>
+                    <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.7rem' }}>
+                      <th style={{ padding: '0.5rem 0.2rem 0.5rem 0.4rem', width: '38%' }}>Produk</th>
+                      <th style={{ padding: '0.5rem 0.1rem', textAlign: 'center', width: '14%' }}>Qty</th>
+                      <th style={{ padding: '0.5rem 0.2rem', textAlign: 'right', width: '24%' }}>Harga</th>
+                      <th style={{ padding: '0.5rem 0.4rem 0.5rem 0.2rem', textAlign: 'right', width: '24%' }}>Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -475,16 +479,16 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
                         return (
                           <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '0.6rem 0.5rem 0.6rem 0.75rem', fontWeight: 700, color: '#0f172a', wordBreak: 'break-word', lineHeight: 1.35 }}>{pName}</td>
-                            <td style={{ padding: '0.6rem 0.25rem', textAlign: 'center', fontWeight: 700, color: '#475569' }}>{qty}</td>
-                            <td style={{ padding: '0.6rem 0.35rem', textAlign: 'right', color: '#64748b', fontSize: '0.75rem' }}>{formatRupiah(price)}</td>
-                            <td style={{ padding: '0.6rem 0.75rem 0.6rem 0.35rem', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontSize: '0.78rem' }}>{formatRupiah(sub)}</td>
+                            <td style={{ padding: '0.5rem 0.2rem 0.5rem 0.4rem', fontWeight: 700, color: '#0f172a', wordBreak: 'break-word', lineHeight: 1.3, fontSize: '0.775rem' }}>{pName}</td>
+                            <td style={{ padding: '0.5rem 0.1rem', textAlign: 'center', fontWeight: 700, color: '#475569' }}>{qty}</td>
+                            <td style={{ padding: '0.5rem 0.2rem', textAlign: 'right', color: '#64748b', fontSize: '0.725rem', whiteSpace: 'nowrap' }}>{formatRupiah(price)}</td>
+                            <td style={{ padding: '0.5rem 0.4rem 0.5rem 0.2rem', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontSize: 'clamp(0.725rem, 2.7vw, 0.78rem)', whiteSpace: 'nowrap' }}>{formatRupiah(sub)}</td>
                           </tr>
                         );
                       })
                     ) : (
                       <tr>
-                        <td colSpan={4} style={{ padding: '1.25rem', textAlign: 'center', color: '#94a3b8' }}>
+                        <td colSpan={4} style={{ padding: '1rem', textAlign: 'center', color: '#94a3b8' }}>
                           Detail rincian item produk tidak tersedia.
                         </td>
                       </tr>
@@ -495,40 +499,40 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
             </div>
 
             {/* Rincian Finansial Summary */}
-            <div style={{ background: '#ffffff', padding: '0.75rem 0', display: 'flex', flexDirection: 'column', gap: '0.45rem', fontSize: '0.85rem' }}>
+            <div style={{ background: '#ffffff', padding: '0.5rem 0.25rem', display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.825rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#64748b' }}>
                 <span>Subtotal</span>
-                <span style={{ fontWeight: 700, color: '#0f172a' }}>{formatRupiah(subtotalVal)}</span>
+                <span style={{ fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap' }}>{formatRupiah(subtotalVal)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', color: discountVal > 0 ? '#dc2626' : '#64748b' }}>
                 <span>Diskon</span>
-                <span style={{ fontWeight: 700 }}>{discountVal > 0 ? `- ${formatRupiah(discountVal)}` : '- Rp 0'}</span>
+                <span style={{ fontWeight: 700, whiteSpace: 'nowrap' }}>{discountVal > 0 ? `- ${formatRupiah(discountVal)}` : '- Rp 0'}</span>
               </div>
 
               <div
                 style={{
                   display: 'flex',
                   justifyContent: 'space-between',
-                  fontSize: '1.2rem',
+                  fontSize: 'clamp(1rem, 3.8vw, 1.2rem)',
                   fontWeight: 900,
                   color: '#2563eb',
-                  paddingTop: '0.5rem',
+                  paddingTop: '0.45rem',
                   borderTop: '1px solid #e2e8f0',
-                  marginTop: '0.2rem',
+                  marginTop: '0.15rem',
                 }}
               >
                 <span>Total</span>
-                <span>{formatRupiah(finalTotalVal)}</span>
+                <span style={{ whiteSpace: 'nowrap' }}>{formatRupiah(finalTotalVal)}</span>
               </div>
 
-              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569', paddingTop: '0.25rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#475569', paddingTop: '0.2rem' }}>
                 <span>Dibayar</span>
-                <span style={{ fontWeight: 700, color: '#0f172a' }}>{formatRupiah(cashTenderedVal)}</span>
+                <span style={{ fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap' }}>{formatRupiah(cashTenderedVal)}</span>
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'space-between', color: '#16a34a', fontWeight: 800 }}>
                 <span>Kembalian</span>
-                <span>{formatRupiah(changeDueVal)}</span>
+                <span style={{ whiteSpace: 'nowrap' }}>{formatRupiah(changeDueVal)}</span>
               </div>
             </div>
 

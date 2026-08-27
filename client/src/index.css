@@ -1275,48 +1275,75 @@ html, body, #root {
     padding: 1rem 0.75rem !important;
   }
 
-  /* Employee Performance 2-Column Mobile Grid */
+  /* Employee Performance 2-Column Mobile Grid (Responsive Overflow Protected) */
   .employee-performance-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-    gap: 0.65rem !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
   }
 
   .employee-card-item {
-    padding: 0.85rem 0.65rem !important;
-    border-radius: 16px !important;
+    padding: 0.75rem 0.5rem !important;
+    border-radius: 14px !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+  }
+
+  .employee-card-item * {
+    min-width: 0 !important;
   }
 
   .emp-card-header {
     flex-direction: column !important;
     align-items: flex-start !important;
-    gap: 0.4rem !important;
-    margin-bottom: 0.5rem !important;
+    gap: 0.35rem !important;
+    margin-bottom: 0.45rem !important;
   }
 
   .emp-card-avatar {
-    width: 32px !important;
-    height: 32px !important;
-    font-size: 0.85rem !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 0.8rem !important;
+    flex-shrink: 0 !important;
   }
 
   .emp-card-name {
-    font-size: 0.825rem !important;
+    font-size: clamp(0.75rem, 2.7vw, 0.825rem) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
   }
 
   .emp-card-role {
-    font-size: 0.65rem !important;
+    font-size: clamp(0.625rem, 2.3vw, 0.68rem) !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    width: 100% !important;
   }
 
   .emp-card-shift-badge {
     align-self: flex-start !important;
-    font-size: 0.625rem !important;
-    padding: 0.15rem 0.45rem !important;
+    font-size: 0.6rem !important;
+    padding: 0.12rem 0.4rem !important;
+    border-radius: 6px !important;
   }
 
   .emp-card-footer {
-    font-size: 0.72rem !important;
-    margin-top: 0.5rem !important;
-    padding-top: 0.5rem !important;
+    font-size: clamp(0.675rem, 2.4vw, 0.75rem) !important;
+    margin-top: 0.45rem !important;
+    padding-top: 0.45rem !important;
+    gap: 0.2rem !important;
+  }
+
+  .emp-card-footer span {
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
   }
 
   /* Revenue Chart Horizontal Scroll for Mobile */

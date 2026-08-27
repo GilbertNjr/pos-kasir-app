@@ -795,7 +795,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                                   display: 'block',
                                 }}
                               >
-                                Role: {emp.is_pj || emp.role === 'PENANGGUNG_JAWAB' ? 'PJ' : emp.role === 'OWNER' ? 'Owner' : 'Kasir Operasional'}
+                                Role: {emp.is_pj || emp.role === 'PENANGGUNG_JAWAB' ? 'PJ' : emp.role === 'OWNER' ? 'Owner' : 'Kasir'}
                               </span>
                             </div>
                           </div>
