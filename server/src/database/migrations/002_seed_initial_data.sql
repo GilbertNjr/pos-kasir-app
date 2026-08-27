@@ -31,7 +31,8 @@ INSERT INTO categories (category_id, category_name, business_unit, is_active) VA
   ('cat-minuman', 'Minuman & Kopi', 'FNB', true),
   ('cat-makanan', 'Makanan Utama', 'FNB', true),
   ('cat-gorengan', 'Gorengan', 'FNB', true),
-  ('cat-eskrim', 'Es Krim', 'FNB', true)
+  ('cat-eskrim', 'Es Krim', 'FNB', true),
+  ('cat-obat', 'Obat & Kesehatan', 'FNB', true)
 ON CONFLICT (category_id) DO NOTHING;
 
 -- 4. SEED PROFIL TOKO & PENGATURAN SYSTEM

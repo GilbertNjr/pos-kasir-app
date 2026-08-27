@@ -81,6 +81,10 @@ export const getProductCategoryBucket = (
     if (catName.includes('jasa') || catName.includes('desain') || catName.includes('ketik') || catName.includes('laminasi')) {
       return 'jasa';
     }
+
+    if (catName.includes('obat') || catName.includes('kesehatan') || catName.includes('farmasi') || catName.includes('medis')) {
+      return 'obat';
+    }
   }
 
   // ----------------------------------------------------
@@ -199,6 +203,36 @@ export const getProductCategoryBucket = (
 
   if (isJasaProduct) return 'jasa';
 
+  const isObatProduct =
+    normPName.includes('obat') ||
+    normPName.includes('bodrex') ||
+    normPName.includes('paracetamol') ||
+    normPName.includes('poldan') ||
+    normPName.includes('mixagrip') ||
+    normPName.includes('promag') ||
+    normPName.includes('panadol') ||
+    normPName.includes('tolak angin') ||
+    normPName.includes('antangin') ||
+    normPName.includes('minyak kayu putih') ||
+    normPName.includes('kayu putih') ||
+    normPName.includes('freshcare') ||
+    normPName.includes('safe care') ||
+    normPName.includes('betadine') ||
+    normPName.includes('vitamin') ||
+    normPName.includes('procold') ||
+    normPName.includes('neozep') ||
+    normPName.includes('diapet') ||
+    normPName.includes('salep') ||
+    normPName.includes('perban') ||
+    normPName.includes('kassa') ||
+    normPName.includes('alkohol') ||
+    normPName.includes('rivanol') ||
+    normPName.includes('hansaplast') ||
+    normPName.includes('plaster') ||
+    normPName.includes('bintang boedjoe');
+
+  if (isObatProduct) return 'obat';
+
   // ----------------------------------------------------
   // PRIORITY 4: GENERIC CATEGORY FALLBACK (e.g. Makanan Utama)
   // ----------------------------------------------------
@@ -238,6 +272,8 @@ export const getNormalizedCategoryName = (
       return 'Printing & Cetak';
     case 'jasa':
       return 'Jasa Ketik & Desain';
+    case 'obat':
+      return 'Obat & Kesehatan';
     default:
       return rawCategoryName || (product.business_unit === 'FC_PRINT' ? 'ATK & Perlengkapan' : 'Snack & Camilan');
   }
@@ -279,6 +315,9 @@ export const getCategoryBadgeStyle = (
   }
   if (name.includes('jasa') || name.includes('desain') || name.includes('ketik')) {
     return { bg: '#fff1f2', color: '#be123c', border: '#fecdd3' }; // Rose
+  }
+  if (name.includes('obat') || name.includes('kesehatan') || name.includes('farmasi') || name.includes('medis')) {
+    return { bg: '#e6fffa', color: '#047857', border: '#a7f3d0' }; // Emerald / Teal Soft
   }
 
   // Fallback styling based on business unit

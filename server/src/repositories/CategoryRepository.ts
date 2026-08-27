@@ -27,6 +27,7 @@ export class CategoryRepository implements IRepository<CategoryEntity> {
       { category_id: 'cat-makanan', category_name: 'Makanan Utama', business_unit: 'FNB', is_active: true },
       { category_id: 'cat-gorengan', category_name: 'Gorengan', business_unit: 'FNB', is_active: true },
       { category_id: 'cat-eskrim', category_name: 'Es Krim', business_unit: 'FNB', is_active: true },
+      { category_id: 'cat-obat', category_name: 'Obat & Kesehatan', business_unit: 'FNB', is_active: true },
     ];
   }
 

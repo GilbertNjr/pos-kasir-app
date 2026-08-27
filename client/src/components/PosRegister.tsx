@@ -615,6 +615,15 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     return map;
   }, [categories]);
 
+  // Map kuantitas produk di keranjang aktif (product_id -> qty)
+  const cartQtyMap = React.useMemo(() => {
+    const map = new Map<string, number>();
+    cart.forEach((item) => {
+      map.set(item.product.product_id, item.qty);
+    });
+    return map;
+  }, [cart]);
+
   // Daftar Sub-Kategori Cepat (Es Krim, Gorengan, Snack, Minuman, DLL / Makanan Utama, dll.)
   const subCategoryFilters = React.useMemo(() => {
     if (selectedUnit === 'FNB') {
@@ -625,6 +634,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         { id: 'gorengan', name: 'Gorengan', emoji: '🥟' },
         { id: 'snack', name: 'Snack', emoji: '🍿' },
         { id: 'minuman', name: 'Minuman', emoji: '🥤' },
+        { id: 'obat', name: 'Obat', emoji: '💊' },
         { id: 'dll_makanan', name: 'DLL / Makanan Utama', emoji: '🍱' },
       ];
     } else if (selectedUnit === 'FC_PRINT') {
@@ -644,6 +654,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         { id: 'gorengan', name: 'Gorengan', emoji: '🥟' },
         { id: 'snack', name: 'Snack', emoji: '🍿' },
         { id: 'minuman', name: 'Minuman', emoji: '🥤' },
+        { id: 'obat', name: 'Obat', emoji: '💊' },
         { id: 'dll_makanan', name: 'DLL / Makanan', emoji: '🍱' },
         { id: 'atk', name: 'ATK', emoji: '✏️' },
         { id: 'fotokopi', name: 'Fotokopi', emoji: '📄' },
@@ -679,6 +690,8 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         } else if (normSubCat === 'minuman' && (normPName.includes('teh') || normPName.includes('kopi') || normPName.includes('jus') || normPName.includes('drink') || normPName.includes('chocolatos') || normCatName.includes('minuman'))) {
           isMatch = true;
         } else if (normSubCat === 'gorengan' && (normPName.includes('goreng') || normCatName.includes('goreng'))) {
+          isMatch = true;
+        } else if (normSubCat === 'obat' && (normPName.includes('obat') || normPName.includes('bodrex') || normPName.includes('paracetamol') || normCatName.includes('obat') || normCatName.includes('kesehatan'))) {
           isMatch = true;
         } else if ((normSubCat === 'snack' || normSubCat === 'dll_makanan') && (normCatName.includes('makanan') || normCatName.includes('snack') || normCatName.includes('camilan'))) {
           isMatch = true;
@@ -848,84 +861,130 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
           ) : (
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.65rem' }}>
               {filteredProducts.map((p) => {
-              const isOutOfStock = p.manage_stock && p.stock === 0;
+                const qtyInCart = cartQtyMap.get(p.product_id) || 0;
+                const effectiveStock = p.manage_stock ? Math.max(0, (p.stock ?? 0) - qtyInCart) : 999999;
+                const isOutOfStock = p.manage_stock && effectiveStock === 0;
 
-              return (
-                <div
-                  key={p.product_id}
-                  onClick={() => !isOutOfStock && addToCart(p)}
-                  className="card-glass"
-                  style={{
-                    padding: '0.85rem',
-                    borderRadius: 'var(--radius-md)',
-                    background: isOutOfStock ? '#f8fafc' : '#ffffff',
-                    border: '1px solid var(--border-color)',
-                    cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                    opacity: isOutOfStock ? 0.6 : 1,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    position: 'relative',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {p.manage_stock && (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: '0.5rem',
-                        right: '0.5rem',
-                        fontSize: '0.68rem',
-                        fontWeight: 800,
-                        padding: '0.15rem 0.4rem',
-                        borderRadius: '4px',
-                        background: (p.stock ?? 0) <= 5 ? '#fef2f2' : '#f0fdf4',
-                        color: (p.stock ?? 0) <= 5 ? '#dc2626' : '#16a34a',
-                        border: `1px solid ${(p.stock ?? 0) <= 5 ? '#fecaca' : '#bbf7d0'}`,
-                      }}
-                    >
-                      Stok: {p.stock}
-                    </span>
-                  )}
+                return (
+                  <div
+                    key={p.product_id}
+                    onClick={() => !isOutOfStock && addToCart(p)}
+                    className="card-glass"
+                    style={{
+                      padding: '0.85rem',
+                      borderRadius: 'var(--radius-md)',
+                      background: isOutOfStock ? '#f8fafc' : qtyInCart > 0 ? '#f0fdf4' : '#ffffff',
+                      border: qtyInCart > 0 ? '1.5px solid #a7f3d0' : '1px solid var(--border-color)',
+                      cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                      opacity: isOutOfStock ? 0.6 : 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      position: 'relative',
+                      transition: 'all 0.15s ease',
+                      boxShadow: qtyInCart > 0 ? '0 4px 12px rgba(16, 185, 129, 0.12)' : 'none',
+                    }}
+                  >
+                    {p.manage_stock && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '0.45rem',
+                          right: '0.45rem',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'flex-end',
+                          gap: '0.15rem',
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: '0.68rem',
+                            fontWeight: 800,
+                            padding: '0.15rem 0.4rem',
+                            borderRadius: '4px',
+                            background: effectiveStock <= 3 ? '#fef2f2' : '#f0fdf4',
+                            color: effectiveStock <= 3 ? '#dc2626' : '#16a34a',
+                            border: `1px solid ${effectiveStock <= 3 ? '#fecaca' : '#bbf7d0'}`,
+                          }}
+                        >
+                          Sisa: {effectiveStock}
+                        </span>
+                        {qtyInCart > 0 && (
+                          <span
+                            style={{
+                              fontSize: '0.6rem',
+                              fontWeight: 800,
+                              padding: '0.1rem 0.35rem',
+                              borderRadius: '4px',
+                              background: '#047857',
+                              color: '#ffffff',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                            }}
+                          >
+                            🛒 {qtyInCart} di keranjang
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {!p.manage_stock && qtyInCart > 0 && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: '0.45rem',
+                          right: '0.45rem',
+                          fontSize: '0.6rem',
+                          fontWeight: 800,
+                          padding: '0.1rem 0.35rem',
+                          borderRadius: '4px',
+                          background: '#047857',
+                          color: '#ffffff',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                        }}
+                      >
+                        🛒 {qtyInCart} di keranjang
+                      </span>
+                    )}
 
-                  <div style={{ marginBottom: '0.5rem', paddingTop: '0.2rem' }}>
-                    <span
-                      className={p.business_unit === 'FC_PRINT' ? 'badge badge-fc' : 'badge badge-fnb'}
-                      style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px', display: 'inline-block', marginBottom: '0.35rem' }}
-                    >
-                      {p.business_unit === 'FC_PRINT' ? 'FC/Print' : 'F&B'}
-                    </span>
-                    <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-                      {p.product_name}
-                    </h4>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '0.5rem' }}>
-                    <div>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--primary-600)' }}>{formatRupiah(p.selling_price)}</div>
+                    <div style={{ marginBottom: '0.5rem', paddingTop: '0.2rem' }}>
+                      <span
+                        className={p.business_unit === 'FC_PRINT' ? 'badge badge-fc' : 'badge badge-fnb'}
+                        style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px', display: 'inline-block', marginBottom: '0.35rem' }}
+                      >
+                        {p.business_unit === 'FC_PRINT' ? 'FC/Print' : 'F&B'}
+                      </span>
+                      <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                        {p.product_name}
+                      </h4>
                     </div>
-                    <button
-                      type="button"
-                      disabled={isOutOfStock}
-                      style={{
-                        width: '26px',
-                        height: '26px',
-                        borderRadius: '50%',
-                        background: isOutOfStock ? '#cbd5e1' : 'var(--primary-600)',
-                        color: '#ffffff',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      <Plus size={16} />
-                    </button>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginTop: '0.5rem' }}>
+                      <div>
+                        <div style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--primary-600)' }}>{formatRupiah(p.selling_price)}</div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={isOutOfStock}
+                        style={{
+                          width: '26px',
+                          height: '26px',
+                          borderRadius: '50%',
+                          background: isOutOfStock ? '#cbd5e1' : qtyInCart > 0 ? '#047857' : 'var(--primary-600)',
+                          color: '#ffffff',
+                          border: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: isOutOfStock ? 'not-allowed' : 'pointer',
+                          transition: 'all 0.15s ease',
+                        }}
+                      >
+                        <Plus size={16} />
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
           </div>
           )}
         </div>

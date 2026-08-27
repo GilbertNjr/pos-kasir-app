@@ -2,6 +2,22 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.6.0] - 2026-08-28 - Penambahan Kategori Obat & Kesehatan (Additive Non-Destructive Update)
+
+### 💊 Dukungan Kategori "Obat & Kesehatan" Tanpa Mengubah Skema Data Historis (`categoryUtils.ts`, `PosRegister.tsx`, `CategoryRepository.ts`, `006_seed_obat_category.sql`)
+- **Penambahan Kategori Dinamis `Obat & Kesehatan` (`cat-obat`):**
+  - Mendaftarkan kategori baru `cat-obat` ("Obat & Kesehatan") ke dalam tabel `categories` dan repositori in-memory tanpa mengubah skema tabel (Zero Schema Change).
+  - Menjamin data transaksi riil 1 minggu terakhir tetap 100% utuh, aman, dan dapat diakses tanpa resiko kerusakan relasi (*Foreign Key*).
+- **Normalisasi Keyword & Badge Visual UI (`categoryUtils.ts`):**
+  - Menambahkan kata kunci pencocokan produk obat ritel (`obat`, `paracetamol`, `bodrex`, `tolak angin`, `antangin`, `minyak kayu putih`, `freshcare`, `safe care`, `betadine`, `vitamin`, `procold`, `neozep`, `diapet`, `salep`, `perban`, `kassa`, `alkohol`, `rivanol`, `hansaplast`, `plaster`, `bintang boedjoe`).
+  - Menetapkan visual badge khas **Vibrant Emerald / Soft Teal** (`bg: #e6fffa`, `color: #047857`, `border: #a7f3d0`) untuk kategori Obat & Kesehatan di layar Kasir, Inventaris, dan Dashboard Owner.
+- **Dukungan Filter Pill POS Kasir (`PosRegister.tsx`):**
+  - Menambahkan tombol filter cepat **`💊 Obat`** pada bilah sub-kategori kasir agar barang obat bebas ritel dapat langsung dicari dan diproses cepat saat toko ramai.
+- **Kalkulasi Real-Time Stok Efektif di Kartu Kasir (`PosRegister.tsx`):**
+  - Mengimplementasikan kalkulasi stok efektif secara instan: `Stok Tersedia = Stok Database - Kuantitas di Keranjang`.
+  - Menampilkan indikator visual hijau `🛒 X di keranjang` dan menurunkan sisa stok secara real-time saat kasir mengklik barang ke keranjang.
+  - Mencegah kasir dari *over-selling* (membeli/mengklik melampaui stok fisik toko) secara otomatis dengan mengunci kartu saat `Sisa = 0`.
+
 ## [v1.5.0] - 2026-08-27 - Otomatisasi Backup Shift, One-Click Restore, & Perbaikan Filter Laporan Bulanan
 
 ### 💾 Backup Otomatis Tutup Shift & Penamaan File Standardized (`BackupService.ts`, `ShiftService.ts`, `BackupRestorePage.tsx`)
