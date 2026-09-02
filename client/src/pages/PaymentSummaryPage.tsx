@@ -35,7 +35,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
   const [error, setError] = useState<string | null>(null);
 
   // Filter Period State
-  const [selectedPeriod, setSelectedPeriod] = useState<string>('ACTIVE_SHIFT');
+  const [selectedPeriod, setSelectedPeriod] = useState<string>('ALL');
   const [startDate, setStartDate] = useState<string>('');
   const [endDate, setEndDate] = useState<string>('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('ALL');
@@ -481,12 +481,12 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
             onChange={(e) => setSelectedPeriod(e.target.value)}
             className="payment-filter-select"
           >
-            {activeShift && <option value="ACTIVE_SHIFT">⚡ Shift Aktif Saat Ini</option>}
+            <option value="ALL">📦 Semua Riwayat Transaksi</option>
             <option value="TODAY">📅 Hari Ini</option>
+            {activeShift && <option value="ACTIVE_SHIFT">⚡ Shift Aktif Saat Ini</option>}
             <option value="THIS_WEEK">📆 Minggu Ini (Senin - Minggu)</option>
             <option value="THIS_MONTH">🗓️ Bulan Ini</option>
             <option value="CUSTOM">🔍 Rentang Tanggal Custom</option>
-            <option value="ALL">📦 Semua Riwayat Transaksi</option>
           </select>
 
           {selectedPeriod === 'CUSTOM' && (

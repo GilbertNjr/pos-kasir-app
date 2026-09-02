@@ -4,6 +4,17 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
 
 ---
 
+## [1.7.4] - 3 September 2026
+
+### Added & Enhanced
+- **Optimasi Filter Default Rekap Pembayaran (`PaymentSummaryPage.tsx`)**:
+  - Mengubah default periode filter saat modul *Rekap Pembayaran & Riwayat Transaksi* dibuka pertama kali menjadi **Semua Riwayat Transaksi (`ALL`)** untuk menyajikan gambaran omzet akumulasi keseluruhan toko.
+  - Memindah opsi **Hari Ini (`TODAY`)** ke posisi opsi nomor 2 agar penyaringan omzet realtime hari ini tetap mudah diakses.
+- **Pembaruan Versi Terpusat (v1.7.4)**:
+  - Synchronized seluruh badge versi aplikasi di `LoginPage`, `OwnerSidebar`, `OwnerHeader`, `CashierLayout`, serta file konfig `client/package.json` & `server/package.json`.
+
+---
+
 ## [1.7.3] - 2 September 2026
 
 ### Added & Enhanced
