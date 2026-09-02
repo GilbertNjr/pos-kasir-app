@@ -390,19 +390,29 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
     if (activeReportSubTab === 'STOCKS_LOG') {
       exportStockToExcel(stockList, stockAuditLogs, storeName);
     } else {
+      const activeUserFilter = selectedUser || (currentUser.role !== 'OWNER' && !currentUser.is_pj ? currentUser.user_id : '');
+      const exportTxs = activeUserFilter
+        ? (reportData?.transactions || []).filter((tx: any) => tx.created_by_user_id === activeUserFilter || tx.created_by === activeUserFilter || tx.user_id === activeUserFilter)
+        : (reportData?.transactions || []);
+      const exportExps = activeUserFilter
+        ? (expenseList || []).filter((exp: any) => exp.created_by_user_id === activeUserFilter || exp.user_id === activeUserFilter || exp.recorded_by === activeUserFilter)
+        : (expenseList || []);
+
+      const activeUserObj = usersList.find((u) => u.user_id === activeUserFilter);
+
       exportShiftToExcel({
         storeName: storeName || 'Kedai POS',
         dateStr: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
         shiftId: periodType === 'DAILY' ? 'Hari Ini' : `Periode ${periodType}`,
-        dutyUsers: getDutyUsersList(),
-        currentUserFullName: currentUser.full_name,
-        transactions: reportData?.transactions || [],
-        expenses: expenseList || [],
+        dutyUsers: activeUserObj ? [activeUserObj.full_name] : getDutyUsersList(),
+        currentUserFullName: activeUserObj?.full_name || currentUser.full_name,
+        transactions: exportTxs,
+        expenses: exportExps,
       });
     }
   };
 
-  const loadReport = async () => {
+  const loadReport = async (overrideUserId?: string) => {
     try {
       setLoading(true);
       setError(null);
@@ -412,7 +422,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
         payment_method: selectedPaymentMethod,
       };
 
-      if (selectedUser) params.user_id = selectedUser;
+      const activeUserId = overrideUserId !== undefined ? overrideUserId : selectedUser;
+      if (activeUserId) params.user_id = activeUserId;
       if (periodType === 'CUSTOM') {
         if (startDate) params.start_date = startDate;
         if (endDate) params.end_date = endDate;
@@ -445,7 +456,12 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
 
   useEffect(() => {
     loadUsers();
-    loadReport();
+    if (currentUser && currentUser.role !== 'OWNER' && !currentUser.is_pj) {
+      setSelectedUser(currentUser.user_id);
+      loadReport(currentUser.user_id);
+    } else {
+      loadReport();
+    }
   }, []);
 
   const handleApplyFilter = (e: React.FormEvent) => {
@@ -469,14 +485,24 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
     if (activeReportSubTab === 'STOCKS_LOG') {
       printStockPDF(stockList, stockAuditLogs, storeName);
     } else {
+      const activeUserFilter = selectedUser || (currentUser.role !== 'OWNER' && !currentUser.is_pj ? currentUser.user_id : '');
+      const exportTxs = activeUserFilter
+        ? (reportData?.transactions || []).filter((tx: any) => tx.created_by_user_id === activeUserFilter || tx.created_by === activeUserFilter || tx.user_id === activeUserFilter)
+        : (reportData?.transactions || []);
+      const exportExps = activeUserFilter
+        ? (expenseList || []).filter((exp: any) => exp.created_by_user_id === activeUserFilter || exp.user_id === activeUserFilter || exp.recorded_by === activeUserFilter)
+        : (expenseList || []);
+
+      const activeUserObj = usersList.find((u) => u.user_id === activeUserFilter);
+
       printShiftPDF({
         storeName: storeName || 'Kedai POS',
         dateStr: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
         shiftId: periodType === 'DAILY' ? 'Hari Ini' : `Periode ${periodType}`,
-        dutyUsers: getDutyUsersList(),
-        currentUserFullName: currentUser.full_name,
-        transactions: reportData?.transactions || [],
-        expenses: expenseList || [],
+        dutyUsers: activeUserObj ? [activeUserObj.full_name] : getDutyUsersList(),
+        currentUserFullName: activeUserObj?.full_name || currentUser.full_name,
+        transactions: exportTxs,
+        expenses: exportExps,
       });
     }
   };

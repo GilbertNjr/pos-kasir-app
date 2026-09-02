@@ -84,6 +84,9 @@ export interface Shift {
   cash_variance?: number;
   reconciliation_status?: ReconciliationStatus;
   shift_status: ShiftStatus;
+  duty_staff_names?: string;
+  shift_category?: string;
+  shift_metadata?: Record<string, any>;
 }
 
 export interface ShiftUser {

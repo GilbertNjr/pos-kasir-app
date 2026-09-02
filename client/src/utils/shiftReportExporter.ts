@@ -446,6 +446,11 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
           <td style="width: 64%; text-align: left; padding: 1px 0;">${new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB</td>
         </tr>
         <tr>
+          <td style="text-align: left; padding: 1px 0;">Akun Login</td>
+          <td style="text-align: center; padding: 1px 0;">:</td>
+          <td style="text-align: left; font-weight: bold; padding: 1px 0; color: #0f172a;">${currentUserFullName || 'Kasir (Akun Login)'}</td>
+        </tr>
+        <tr>
           <td style="text-align: left; padding: 1px 0; vertical-align: top;">Tanggal Shift</td>
           <td style="text-align: center; padding: 1px 0; vertical-align: top;">:</td>
           <td style="text-align: left; padding: 1px 0; word-break: break-word; font-weight: 600;">${formattedDateStr}</td>

@@ -1,6 +1,6 @@
 {
   "name": "pos-kasir-server",
-  "version": "1.0.0",
+  "version": "1.7.2",
   "private": true,
   "main": "dist/app.js",
   "scripts": {

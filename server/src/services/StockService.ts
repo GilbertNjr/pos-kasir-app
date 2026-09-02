@@ -44,8 +44,8 @@ export class StockService {
         }
 
         const totalStock = stock.current_stock;
-        const etalase = stock.stock_etalase !== undefined ? stock.stock_etalase : Math.min(totalStock, 5);
-        const gudang = stock.stock_gudang !== undefined ? stock.stock_gudang : Math.max(0, totalStock - etalase);
+        const etalase = stock.stock_etalase !== undefined && stock.stock_etalase !== null ? stock.stock_etalase : 0;
+        const gudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? stock.stock_gudang : Math.max(0, totalStock - etalase);
 
         result.push({
           ...stock,
@@ -82,8 +82,8 @@ export class StockService {
     }
 
     // Deduct primarily from etalase, then from gudang
-    let etalase = stock.stock_etalase !== undefined ? stock.stock_etalase : Math.min(stock.current_stock, 5);
-    let gudang = stock.stock_gudang !== undefined ? stock.stock_gudang : Math.max(0, stock.current_stock - etalase);
+    let etalase = stock.stock_etalase !== undefined && stock.stock_etalase !== null ? stock.stock_etalase : 0;
+    let gudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? stock.stock_gudang : Math.max(0, stock.current_stock - etalase);
 
     let remainingDeduct = qty;
     if (etalase >= remainingDeduct) {
@@ -112,8 +112,8 @@ export class StockService {
     let stock = await this.stockRepository.findByProductId(product_id);
     if (!stock) return null;
 
-    let etalase = stock.stock_etalase !== undefined ? stock.stock_etalase : Math.min(stock.current_stock, 5);
-    let gudang = stock.stock_gudang !== undefined ? stock.stock_gudang : Math.max(0, stock.current_stock - etalase);
+    let etalase = stock.stock_etalase !== undefined && stock.stock_etalase !== null ? stock.stock_etalase : 0;
+    let gudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? stock.stock_gudang : Math.max(0, stock.current_stock - etalase);
     etalase += qty; // Kembalikan stok ke etalase
 
     const newStockAmount = gudang + etalase;
@@ -134,17 +134,38 @@ export class StockService {
       throw new Error('Item ini tidak dikonfigurasi untuk mengelola stok fisik.');
     }
 
-    let gudang = inputGudang;
-    let etalase = inputEtalase;
+    let stock = await this.stockRepository.findByProductId(product_id);
 
-    if (gudang === undefined || etalase === undefined) {
-      etalase = Math.min(newQuantity, 5);
-      gudang = Math.max(0, newQuantity - etalase);
-    } else {
+    let gudang: number;
+    let etalase: number;
+
+    if (inputGudang !== undefined && inputEtalase !== undefined) {
+      gudang = Math.max(0, inputGudang);
+      etalase = Math.max(0, inputEtalase);
       newQuantity = gudang + etalase;
+    } else if (inputGudang !== undefined) {
+      gudang = Math.max(0, inputGudang);
+      etalase = Math.max(0, newQuantity - gudang);
+    } else if (inputEtalase !== undefined) {
+      etalase = Math.max(0, inputEtalase);
+      gudang = Math.max(0, newQuantity - etalase);
+    } else if (stock) {
+      // Pertahankan rasio atau pembagian gudang/etalase yang sudah ada
+      const currentEtalase = stock.stock_etalase ?? 0;
+      const currentGudang = stock.stock_gudang ?? (stock.current_stock - currentEtalase);
+      if (currentEtalase + currentGudang > 0) {
+        const etalaseRatio = currentEtalase / (currentEtalase + currentGudang);
+        etalase = Math.round(newQuantity * etalaseRatio);
+        gudang = Math.max(0, newQuantity - etalase);
+      } else {
+        etalase = newQuantity;
+        gudang = 0;
+      }
+    } else {
+      etalase = newQuantity;
+      gudang = 0;
     }
 
-    let stock = await this.stockRepository.findByProductId(product_id);
     if (!stock) {
       return this.stockRepository.create({
         stock_id: `stk-${Date.now()}`,

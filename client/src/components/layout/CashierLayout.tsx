@@ -153,7 +153,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
                   border: '1px solid rgba(37,99,235,0.2)',
                 }}
               >
-                v1.2.0
+                v1.7.2
               </span>
             </div>
           </div>
@@ -572,7 +572,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
         </button>
 
         <div style={{ fontSize: '0.675rem', fontWeight: 800, color: 'var(--sidebar-subtext, #94a3b8)', textAlign: 'center', marginTop: '0.6rem', letterSpacing: '0.03em' }}>
-          POS Kasir App • <span style={{ color: '#2563eb' }}>v1.2.0</span>
+          POS Kasir App • <span style={{ color: '#2563eb' }}>v1.7.2</span>
         </div>
       </div>
     </div>

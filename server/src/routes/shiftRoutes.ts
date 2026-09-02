@@ -18,6 +18,7 @@ const shiftController = new ShiftController(shiftService);
 // Authenticated Routes
 router.get('/active', authMiddleware, shiftController.getActiveShift);
 router.post('/open', authMiddleware, shiftController.openShift);
+router.put('/metadata', authMiddleware, shiftController.updateShiftMetadata);
 router.post('/capital', authMiddleware, shiftController.addCapitalContribution);
 router.post('/close', authMiddleware, shiftController.closeShift);
 router.post('/return-capital', authMiddleware, shiftController.returnCapitalContribution);

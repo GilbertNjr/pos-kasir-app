@@ -366,7 +366,12 @@ export const apiService = {
     return result.data;
   },
 
-  async openShift(initialCash: number): Promise<ActiveShiftDetailsData> {
+  async openShift(
+    initialCash: number,
+    dutyStaffNames?: string | string[],
+    shiftCategory?: string,
+    shiftMetadata?: Record<string, any>
+  ): Promise<ActiveShiftDetailsData> {
     const token = this.getToken();
     const response = await fetch(`${API_BASE}/shifts/open`, {
       method: 'POST',
@@ -374,11 +379,42 @@ export const apiService = {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ initial_cash: initialCash }),
+      body: JSON.stringify({
+        initial_cash: initialCash,
+        duty_staff_names: dutyStaffNames,
+        shift_category: shiftCategory,
+        shift_metadata: shiftMetadata,
+      }),
     });
 
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || 'Gagal membuka shift');
+    return result.data;
+  },
+
+  async updateShiftMetadata(
+    shiftId: string,
+    dutyStaffNames?: string | string[],
+    shiftCategory?: string,
+    shiftMetadata?: Record<string, any>
+  ): Promise<any> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/shifts/metadata`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        shift_id: shiftId,
+        duty_staff_names: dutyStaffNames,
+        shift_category: shiftCategory,
+        shift_metadata: shiftMetadata,
+      }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Gagal memperbarui metadata shift');
     return result.data;
   },
 

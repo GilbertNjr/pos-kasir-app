@@ -12,7 +12,7 @@ export class ShiftRepository implements IRepository<ShiftEntity> {
                 start_time::text, end_time::text, total_initial_cash::float, net_cash_sales::float, 
                 total_qris_sales::float, total_transfer_sales::float, total_cash_expenses::float, 
                 theoretical_cash::float, actual_physical_cash::float, cash_variance::float, 
-                reconciliation_status, shift_status 
+                reconciliation_status, shift_status, duty_staff_names, shift_category, shift_metadata
          FROM shifts 
          ORDER BY start_time DESC`
       );
@@ -34,7 +34,7 @@ export class ShiftRepository implements IRepository<ShiftEntity> {
                 start_time::text, end_time::text, total_initial_cash::float, net_cash_sales::float, 
                 total_qris_sales::float, total_transfer_sales::float, total_cash_expenses::float, 
                 theoretical_cash::float, actual_physical_cash::float, cash_variance::float, 
-                reconciliation_status, shift_status 
+                reconciliation_status, shift_status, duty_staff_names, shift_category, shift_metadata
          FROM shifts 
          WHERE shift_id = $1`,
         [shift_id]
@@ -55,7 +55,7 @@ export class ShiftRepository implements IRepository<ShiftEntity> {
                 start_time::text, end_time::text, total_initial_cash::float, net_cash_sales::float, 
                 total_qris_sales::float, total_transfer_sales::float, total_cash_expenses::float, 
                 theoretical_cash::float, actual_physical_cash::float, cash_variance::float, 
-                reconciliation_status, shift_status 
+                reconciliation_status, shift_status, duty_staff_names, shift_category, shift_metadata
          FROM shifts 
          WHERE shift_status = 'ACTIVE' 
          ORDER BY start_time DESC LIMIT 1`
@@ -78,13 +78,13 @@ export class ShiftRepository implements IRepository<ShiftEntity> {
     try {
       const res = await pool.query(
         `INSERT INTO shifts 
-         (shift_id, opened_by_user_id, start_time, total_initial_cash, net_cash_sales, total_qris_sales, total_transfer_sales, total_cash_expenses, theoretical_cash, shift_status)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         (shift_id, opened_by_user_id, start_time, total_initial_cash, net_cash_sales, total_qris_sales, total_transfer_sales, total_cash_expenses, theoretical_cash, shift_status, duty_staff_names, shift_category, shift_metadata)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
          RETURNING shift_id, opened_by_user_id, opened_by_user_id as shift_leader_user_id, closed_by_user_id, 
                    start_time::text, end_time::text, total_initial_cash::float, net_cash_sales::float, 
                    total_qris_sales::float, total_transfer_sales::float, total_cash_expenses::float, 
                    theoretical_cash::float, actual_physical_cash::float, cash_variance::float, 
-                   reconciliation_status, shift_status`,
+                   reconciliation_status, shift_status, duty_staff_names, shift_category, shift_metadata`,
         [
           shift.shift_id,
           shift.opened_by_user_id,
@@ -96,6 +96,9 @@ export class ShiftRepository implements IRepository<ShiftEntity> {
           shift.total_cash_expenses || 0,
           shift.theoretical_cash || shift.total_initial_cash,
           shift.shift_status || 'ACTIVE',
+          shift.duty_staff_names || null,
+          shift.shift_category || null,
+          shift.shift_metadata ? JSON.stringify(shift.shift_metadata) : null,
         ]
       );
       const created = res.rows[0];
@@ -125,6 +128,9 @@ export class ShiftRepository implements IRepository<ShiftEntity> {
       if (item.cash_variance !== undefined) { fields.push(`cash_variance = $${idx++}`); values.push(item.cash_variance); }
       if (item.reconciliation_status !== undefined) { fields.push(`reconciliation_status = $${idx++}`); values.push(item.reconciliation_status); }
       if (item.shift_status !== undefined) { fields.push(`shift_status = $${idx++}`); values.push(item.shift_status); }
+      if (item.duty_staff_names !== undefined) { fields.push(`duty_staff_names = $${idx++}`); values.push(item.duty_staff_names); }
+      if (item.shift_category !== undefined) { fields.push(`shift_category = $${idx++}`); values.push(item.shift_category); }
+      if (item.shift_metadata !== undefined) { fields.push(`shift_metadata = $${idx++}`); values.push(JSON.stringify(item.shift_metadata)); }
 
       if (fields.length > 0) {
         values.push(shift_id);
@@ -133,7 +139,7 @@ export class ShiftRepository implements IRepository<ShiftEntity> {
                                     start_time::text, end_time::text, total_initial_cash::float, net_cash_sales::float, 
                                     total_qris_sales::float, total_transfer_sales::float, total_cash_expenses::float, 
                                     theoretical_cash::float, actual_physical_cash::float, cash_variance::float, 
-                                    reconciliation_status, shift_status`;
+                                    reconciliation_status, shift_status, duty_staff_names, shift_category, shift_metadata`;
         const res = await pool.query(queryStr, values);
         if (res.rows.length > 0) {
           const updated = res.rows[0];

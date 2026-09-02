@@ -299,17 +299,18 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         apiService.getExpenses(activeShiftData.shift.shift_id).catch(() => []),
       ]);
 
-      let storedMeta: any = null;
+      let storedMeta: any = activeShiftData.shift.shift_metadata || null;
       try {
         const raw = localStorage.getItem(`pos_shift_meta_${activeShiftData.shift.shift_id}`);
         if (raw) storedMeta = JSON.parse(raw);
       } catch {}
 
-      const dutyUsers = storedMeta?.dutyStaffNames || activeShiftData.contributions.map((c) => getUserDisplayName(c.user_id));
+      const rawDutyStr = activeShiftData.shift.duty_staff_names;
+      const dbDutyList = rawDutyStr ? rawDutyStr.split(',').map((s) => s.trim()).filter(Boolean) : [];
 
-      const shiftLabel = storedMeta?.shiftCategory
-        ? storedMeta.shiftCategory
-        : storedMeta?.shiftName || 'Shift Operasional';
+      const dutyUsers = storedMeta?.dutyStaffNames || (dbDutyList.length > 0 ? dbDutyList : activeShiftData.contributions.map((c) => getUserDisplayName(c.user_id)));
+
+      const shiftLabel = storedMeta?.shiftCategory || activeShiftData.shift.shift_category || storedMeta?.shiftName || 'Shift Operasional';
 
       printShiftPDF({
         storeName: storeName || 'Kedai POS',
@@ -338,17 +339,18 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
         apiService.getExpenses(activeShiftData.shift.shift_id).catch(() => []),
       ]);
 
-      let storedMeta: any = null;
+      let storedMeta: any = activeShiftData.shift.shift_metadata || null;
       try {
         const raw = localStorage.getItem(`pos_shift_meta_${activeShiftData.shift.shift_id}`);
         if (raw) storedMeta = JSON.parse(raw);
       } catch {}
 
-      const dutyUsers = storedMeta?.dutyStaffNames || activeShiftData.contributions.map((c) => getUserDisplayName(c.user_id));
+      const rawDutyStr = activeShiftData.shift.duty_staff_names;
+      const dbDutyList = rawDutyStr ? rawDutyStr.split(',').map((s) => s.trim()).filter(Boolean) : [];
 
-      const shiftLabel = storedMeta?.shiftCategory
-        ? storedMeta.shiftCategory
-        : storedMeta?.shiftName || 'Shift Operasional';
+      const dutyUsers = storedMeta?.dutyStaffNames || (dbDutyList.length > 0 ? dbDutyList : activeShiftData.contributions.map((c) => getUserDisplayName(c.user_id)));
+
+      const shiftLabel = storedMeta?.shiftCategory || activeShiftData.shift.shift_category || storedMeta?.shiftName || 'Shift Operasional';
 
       exportShiftToExcel({
         storeName: storeName || 'Kedai POS',
@@ -390,17 +392,18 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       const finalShiftName = `${categoryName} - ${staffList.join(', ')}`;
       const initialCashNum = Number(openInitialCash) || 0;
 
-      const data = await apiService.openShift(initialCashNum);
+      const meta = {
+        shiftCategory: categoryName,
+        shiftName: finalShiftName,
+        date: shiftDateInput,
+        time: shiftTimeInput,
+        dutyStaffNames: staffList,
+        initialCash: initialCashNum,
+      };
+
+      const data = await apiService.openShift(initialCashNum, staffList.join(', '), categoryName, meta);
 
       if (data?.shift?.shift_id) {
-        const meta = {
-          shiftCategory: categoryName,
-          shiftName: finalShiftName,
-          date: shiftDateInput,
-          time: shiftTimeInput,
-          dutyStaffNames: staffList,
-          initialCash: initialCashNum,
-        };
         localStorage.setItem(`pos_shift_meta_${data.shift.shift_id}`, JSON.stringify(meta));
         sessionStorage.setItem(`pos_shift_activated_${currentUser.user_id}`, data.shift.shift_id);
       }

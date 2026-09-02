@@ -2,6 +2,50 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.7.2] - 2026-09-02 - Sinkronisasi Rekonsiliasi Kas Shift saat Pembatalan Transaksi
+
+### 💵 Penyesuaian Omzet & Kas Teoritis Shift saat Pembatalan Transaksi (`TransactionService.ts`)
+- **Fix Discrepancy Rekonsiliasi Kas Shift:**
+  - Sebelumnya, ketika transaksi dibatalkan (`cancelTransaction`), stok barang dikembalikan namun omzet shift (`net_cash_sales`, `total_qris_sales`, `total_transfer_sales`) dan kas teoritis (`theoretical_cash`) pada tabel `shifts` tidak ikut berkurang. Akibatnya, saat Tutup Shift terjadi selisih kas fisik (*Variance* "KURANG").
+  - Menambahkan pengurang/penyesuai otomatis pada `cancelTransaction`, `deleteTransaction`, dan `restoreTransaction` di `TransactionService.ts` untuk menjamin rekonsiliasi kas shift selalu 100% presisi dan cocok dengan fisik kas laci.
+
+## [v1.7.1] - 2026-09-02 - Persistensi Metadata Shift ke Server Database & Pengecekan Akun Login di Struk Laporan
+
+### 👤 Persistensi Metadata Shift Server-Side (`shifts` Database Table)
+- **Problem Fixed:** Metadata shift (`duty_staff_names`, `shift_category`, `shift_metadata`) sebelumnya hanya tersimpan di `localStorage` browser, sehingga hilang/kosong saat dicetak dari Laptop Owner atau perangkat lain.
+- **Solusi Database:**
+  - Menambahkan kolom `duty_staff_names`, `shift_category`, dan `shift_metadata` di tabel database Supabase `shifts` (`007_add_shift_metadata_columns.sql`).
+  - Memperbarui `ShiftRepository.ts`, `ShiftService.ts`, dan `ShiftController.ts` untuk menyimpan dan membaca metadata shift dari server.
+  - Menambahkan endpoint `PUT /api/shifts/metadata` untuk sinkronisasi pembaruan tim shift.
+
+### 📄 Penambahan Informasi Akun Login pada Struk Thermal & PDF (`shiftReportExporter.ts`)
+- **Penjelasan Transparan di Struk:**
+  - Baris khusus **`Akun Login`** kini selalu ditampilkan secara tegas di bagian header struk cetak thermal 58mm maupun PDF (Menunjukkan akun yang sedang menekan tombol cetak laporan).
+  - Baris **`Tim Bertugas`** menampilkan seluruh anggota kasir yang bertugas di shift tersebut dengan penanda `(Akun Login)` atau efek garis bawah.
+
+## [v1.7.0] - 2026-09-02 - Perbaikan Ketidakseimbangan Stok, Otomatisasi Pembersihan Audit Log 7 Hari, & Ekspor Laporan Shift Per-Kasir
+
+### 📦 Eliminasi Alokasi Stok Otomatis (Fix Discrepancy Stok Gudang & Etalase) (`StockService.ts`)
+- **Penyebab Ketidakseimbangan Stok Sebelumnya:**
+  - `StockService.ts` sebelumnya memiliki logika *hardcoded* `Math.min(totalStock, 5)` yang secara otomatis memaksakan 5 unit ke etalase dan sisanya ke gudang setiap kali stok dibaca, dikurangi, atau diperbarui.
+  - Akibatnya, nilai stok fisik gudang dan etalase berpindah-pindah sendiri secara rancu tanpa instruksi pengguna.
+- **Solusi & Penguatan Logic:**
+  - Menghapus angka *magic* `5` secara menyeluruh dari kalkulasi `getAllStocksWithProducts`, `deductStock`, `restoreStock`, dan `updateStockQuantity`.
+  - Sistem kini 100% mempertahankan nilai riil `stock_gudang` dan `stock_etalase` sesuai input aktual kasir/owner.
+  - Pengurangan stok transaksi kasir mengutamakan stok etalase terlebih dahulu, kemudian gudang jika etalase tidak mencukupi, tanpa pernah mengalokasikan stok secara otomatis.
+
+### 🧹 Otomatisasi Scheduled Purge Audit Logs > 7 Hari (`AuditLogRepository.ts`, `app.ts`)
+- **Otomatisasi Pembersihan Log:**
+  - Menambahkan metode `purgeLogsOlderThanDays(7)` pada `AuditLogRepository.ts` yang menghapus data audit log berumur lebih dari 7 hari dari database PostgreSQL Supabase (`created_at < NOW() - 7 days`) serta memori server.
+  - Penjadwalan otomatis (*Scheduled Routine*) pada `app.ts` yang dieksekusi saat server boot dan berjalan rutin setiap 24 jam sekali untuk mencegah pembengkakan database dan menjaga performa query.
+
+### 📊 Isolasi & Ekspor Laporan Shift Per-Kasir / Karyawan (`ReportsPage.tsx`)
+- **Default Scoping Hak Akses Kasir:**
+  - Kasir / Karyawan non-owner yang membuka `ReportsPage` secara otomatis disesuaikan filter default-nya ke `currentUser.user_id` agar transaksi miliknya langsung ditampilkan.
+- **Isolasi Laporan Shift Ekspor PDF & Excel:**
+  - Memperbarui handler `handleExportExcel` dan `handlePrintPDF` di `ReportsPage.tsx` agar saat mengekspor laporan shift kasir tertentu, transaksi dan pengeluaran secara ketat difilter berdasarkan `user_id` kasir tersebut.
+  - Memungkinkan karyawan mencetak ulang laporan shift pribadinya secara mandiri tanpa mencampur data transaksi kasir lain meskipun shift telah ditutup.
+
 ## [v1.6.0] - 2026-08-28 - Penambahan Kategori Obat & Kesehatan (Additive Non-Destructive Update)
 
 ### 💊 Dukungan Kategori "Obat & Kesehatan" Tanpa Mengubah Skema Data Historis (`categoryUtils.ts`, `PosRegister.tsx`, `CategoryRepository.ts`, `006_seed_obat_category.sql`)

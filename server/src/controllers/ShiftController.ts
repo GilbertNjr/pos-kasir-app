@@ -23,10 +23,16 @@ export class ShiftController {
     try {
       if (!req.user) return res.status(401).json({ error: 'Tidak terautentikasi' });
 
-      const { initial_cash } = req.body;
+      const { initial_cash, duty_staff_names, shift_category, shift_metadata } = req.body;
       const initialCashNum = Number(initial_cash ?? 0);
 
-      const result = await this.shiftService.openShift(req.user.user_id, initialCashNum);
+      const result = await this.shiftService.openShift(
+        req.user.user_id,
+        initialCashNum,
+        typeof duty_staff_names === 'string' ? duty_staff_names : (Array.isArray(duty_staff_names) ? duty_staff_names.join(', ') : undefined),
+        shift_category,
+        shift_metadata
+      );
 
       // Broadcast Realtime SSE Event to all connected Dashboards (including Owner Dashboard)
       sseManager.broadcast('SHIFT_OPENED', {
@@ -44,6 +50,27 @@ export class ShiftController {
       });
     } catch (error: any) {
       return res.status(400).json({ error: error.message || 'Gagal membuka shift' });
+    }
+  };
+
+  public updateShiftMetadata = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      if (!req.user) return res.status(401).json({ error: 'Tidak terautentikasi' });
+
+      const { shift_id, duty_staff_names, shift_category, shift_metadata } = req.body;
+      const updated = await this.shiftService.updateShiftMetadata(
+        shift_id,
+        typeof duty_staff_names === 'string' ? duty_staff_names : (Array.isArray(duty_staff_names) ? duty_staff_names.join(', ') : undefined),
+        shift_category,
+        shift_metadata
+      );
+
+      return res.status(200).json({
+        message: 'Metadata shift berhasil diperbarui',
+        data: updated,
+      });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message || 'Gagal memperbarui metadata shift' });
     }
   };
 

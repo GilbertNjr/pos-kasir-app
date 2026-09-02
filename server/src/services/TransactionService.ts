@@ -258,6 +258,27 @@ export class TransactionService {
         await this.stockService.restoreStock(item.product_id, item.qty);
       }
     }
+
+    // Sync shift sales totals & theoretical cash
+    if (tx.shift_id) {
+      const shift = await this.shiftRepository.findById(tx.shift_id);
+      if (shift) {
+        const shiftUpdates: Partial<ShiftEntity> = {};
+        if (tx.payment_method === 'CASH') {
+          const newNetCash = Math.max(0, Math.round(shift.net_cash_sales - tx.final_total));
+          shiftUpdates.net_cash_sales = newNetCash;
+          shiftUpdates.theoretical_cash = Math.round(
+            shift.total_initial_cash + newNetCash - shift.total_cash_expenses
+          );
+        } else if (tx.payment_method === 'QRIS') {
+          shiftUpdates.total_qris_sales = Math.max(0, Math.round((shift.total_qris_sales ?? 0) - tx.final_total));
+        } else if (tx.payment_method === 'TRANSFER') {
+          shiftUpdates.total_transfer_sales = Math.max(0, Math.round((shift.total_transfer_sales ?? 0) - tx.final_total));
+        }
+        await this.shiftRepository.update(shift.shift_id, shiftUpdates);
+      }
+    }
+
     return updatedTx!;
   }
 
@@ -270,6 +291,26 @@ export class TransactionService {
       if (this.stockService && items) {
         for (const item of items) {
           await this.stockService.restoreStock(item.product_id, item.qty);
+        }
+      }
+
+      // Sync shift sales totals if tx was completed
+      if (tx.shift_id) {
+        const shift = await this.shiftRepository.findById(tx.shift_id);
+        if (shift) {
+          const shiftUpdates: Partial<ShiftEntity> = {};
+          if (tx.payment_method === 'CASH') {
+            const newNetCash = Math.max(0, Math.round(shift.net_cash_sales - tx.final_total));
+            shiftUpdates.net_cash_sales = newNetCash;
+            shiftUpdates.theoretical_cash = Math.round(
+              shift.total_initial_cash + newNetCash - shift.total_cash_expenses
+            );
+          } else if (tx.payment_method === 'QRIS') {
+            shiftUpdates.total_qris_sales = Math.max(0, Math.round((shift.total_qris_sales ?? 0) - tx.final_total));
+          } else if (tx.payment_method === 'TRANSFER') {
+            shiftUpdates.total_transfer_sales = Math.max(0, Math.round((shift.total_transfer_sales ?? 0) - tx.final_total));
+          }
+          await this.shiftRepository.update(shift.shift_id, shiftUpdates);
         }
       }
     }
@@ -293,6 +334,27 @@ export class TransactionService {
         await this.stockService.deductStock(item.product_id, item.qty);
       }
     }
+
+    // Sync shift sales totals & theoretical cash
+    if (tx.shift_id) {
+      const shift = await this.shiftRepository.findById(tx.shift_id);
+      if (shift) {
+        const shiftUpdates: Partial<ShiftEntity> = {};
+        if (tx.payment_method === 'CASH') {
+          const newNetCash = Math.round(shift.net_cash_sales + tx.final_total);
+          shiftUpdates.net_cash_sales = newNetCash;
+          shiftUpdates.theoretical_cash = Math.round(
+            shift.total_initial_cash + newNetCash - shift.total_cash_expenses
+          );
+        } else if (tx.payment_method === 'QRIS') {
+          shiftUpdates.total_qris_sales = Math.round((shift.total_qris_sales ?? 0) + tx.final_total);
+        } else if (tx.payment_method === 'TRANSFER') {
+          shiftUpdates.total_transfer_sales = Math.round((shift.total_transfer_sales ?? 0) + tx.final_total);
+        }
+        await this.shiftRepository.update(shift.shift_id, shiftUpdates);
+      }
+    }
+
     return updatedTx!;
   }
 }

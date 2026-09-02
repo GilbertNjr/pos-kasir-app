@@ -79,4 +79,30 @@ export class AuditLogRepository {
 
     return newLog;
   }
+
+  async purgeLogsOlderThanDays(days: number = 7): Promise<number> {
+    const cutoffTime = Date.now() - days * 24 * 60 * 60 * 1000;
+    let deletedCount = 0;
+    try {
+      const res = await pool.query(
+        `DELETE FROM audit_logs WHERE created_at < NOW() - ($1 || ' days')::INTERVAL`,
+        [days]
+      );
+      deletedCount = res.rowCount || 0;
+      if (deletedCount > 0) {
+        console.log(`[AuditLogRetention] Purged ${deletedCount} audit log records older than ${days} days.`);
+      }
+    } catch (err) {
+      console.warn('[AuditLogRepository] Database log purge notice:', (err as Error).message);
+    }
+
+    const initialLen = this.inMemoryAuditLogs.length;
+    this.inMemoryAuditLogs = this.inMemoryAuditLogs.filter(
+      (l) => new Date(l.timestamp).getTime() >= cutoffTime
+    );
+    const memoryPurged = initialLen - this.inMemoryAuditLogs.length;
+
+    return Math.max(deletedCount, memoryPurged);
+  }
 }
+

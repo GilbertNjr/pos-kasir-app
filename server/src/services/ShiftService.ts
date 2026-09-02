@@ -71,7 +71,13 @@ export class ShiftService {
     };
   }
 
-  async openShift(user_id: string, initialCashAmount: number): Promise<ActiveShiftDetails> {
+  async openShift(
+    user_id: string,
+    initialCashAmount: number,
+    dutyStaffNames?: string,
+    shiftCategory?: string,
+    shiftMetadata?: Record<string, any>
+  ): Promise<ActiveShiftDetails> {
     const existingActive = await this.shiftRepository.findActiveShift();
     if (existingActive) {
       throw new Error('Shift lain sedang berjalan (ACTIVE). Harap tutup shift aktif terlebih dahulu.');
@@ -97,6 +103,9 @@ export class ShiftService {
       total_cash_expenses: 0,
       theoretical_cash: initialCashAmount,
       shift_status: 'ACTIVE',
+      duty_staff_names: dutyStaffNames,
+      shift_category: shiftCategory,
+      shift_metadata: shiftMetadata,
     };
 
     await this.shiftRepository.create(newShift);
@@ -128,6 +137,23 @@ export class ShiftService {
       contributions: firstContribution ? [firstContribution] : [],
       usersCount: 1,
     };
+  }
+
+  async updateShiftMetadata(
+    shift_id: string,
+    dutyStaffNames?: string,
+    shiftCategory?: string,
+    shiftMetadata?: Record<string, any>
+  ): Promise<ShiftEntity | null> {
+    const shift = await this.shiftRepository.findById(shift_id);
+    if (!shift) {
+      throw new Error('Shift tidak ditemukan');
+    }
+    return this.shiftRepository.update(shift_id, {
+      duty_staff_names: dutyStaffNames,
+      shift_category: shiftCategory,
+      shift_metadata: shiftMetadata,
+    });
   }
 
   async addCapitalContribution(shift_id: string, user_id: string, amount: number): Promise<ShiftCapitalContributionEntity> {

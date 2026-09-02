@@ -101,10 +101,20 @@ const startServer = () => {
   });
 };
 
+import { auditLogRepository } from './repositories/sharedRepositories';
+
 // Start Server if not imported as module
 if (require.main === module) {
   runMigrations()
-    .then(() => console.log('[Database] PostgreSQL Supabase Cloud schema & seed ready.'))
+    .then(() => {
+      console.log('[Database] PostgreSQL Supabase Cloud schema & seed ready.');
+      // Auto-purge logs older than 7 days on server boot
+      auditLogRepository.purgeLogsOlderThanDays(7).catch(() => {});
+      // Schedule daily purge routine (every 24 hours)
+      setInterval(() => {
+        auditLogRepository.purgeLogsOlderThanDays(7).catch(() => {});
+      }, 24 * 60 * 60 * 1000);
+    })
     .catch((err) => console.warn('[Database Migration Notice]:', err.message));
 
   startServer();
