@@ -20,6 +20,7 @@ import { User } from '../types';
 import { ToastType } from '../components/ToastNotification';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { TransactionDetailModal } from '../components/common/TransactionDetailModal';
+import { renderFullPageReportHeaderHtml } from '../utils/storeBrandingHelper';
 
 interface OwnerTransactionsPageProps {
   currentUser: User;
@@ -351,10 +352,11 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="title">REKAPITULASI TRANSAKSI PENJUALAN</div>
-          <div class="subtitle">${storeName || 'Kedai POS'} | Tanggal Cetak: ${todayStr} | Periode: ${periodType}</div>
-        </div>
+        ${renderFullPageReportHeaderHtml({
+          title: 'REKAPITULASI TRANSAKSI PENJUALAN',
+          subtitle: `Cetak: ${todayStr} | Periode: ${periodType}`,
+          storeName,
+        })}
         <div class="summary-box">
           <div class="card"><div>Total Transaksi</div><div class="card-val">${totalTransactionsCount} Tx</div></div>
           <div class="card"><div>Total Penjualan</div><div class="card-val">${formatRupiah(totalSalesAmount)}</div></div>

@@ -24,6 +24,7 @@ import { CashierBadge } from '../components/common/CashierBadge';
 import { TransactionDetailModal } from '../components/common/TransactionDetailModal';
 import { exportShiftToExcel, printShiftPDF } from '../utils/shiftReportExporter';
 import { exportStockToExcel, printStockPDF } from '../utils/stockReportExporter';
+import { getStoredBrandingProfile } from '../utils/storeBrandingHelper';
 
 interface DonutSegment {
   name: string;
@@ -581,15 +582,35 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
   return (
     <div style={{ paddingBottom: '3rem' }}>
       {/* Header Kop Surat Dokumen Resmi saat di-print ke PDF */}
-      <div className="print-only" style={{ marginBottom: '1.5rem', textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '1rem' }}>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>POS KASIR USAHA CAMPURAN</h1>
-        <p style={{ fontSize: '0.9rem', margin: '0.2rem 0' }}>Fotokopi / Printing & Food & Beverage (FNB)</p>
-        <h3 style={{ fontSize: '1.1rem', fontWeight: 600, marginTop: '0.5rem', textTransform: 'uppercase' }}>
-          LAPORAN PENJUALAN RESMI ({periodType})
-        </h3>
-        <p style={{ fontSize: '0.8rem', color: '#555' }}>
-          Dicetak Pada: {new Date().toLocaleString('id-ID')} | Petugas: {currentUser.full_name} ({currentUser.role === 'OWNER' ? 'Owner' : (currentUser.role === 'PENANGGUNG_JAWAB' || currentUser.is_pj) ? 'Penanggung Jawab (PJ)' : 'Kasir Operasional'})
-        </p>
+      <div className="print-only" style={{ marginBottom: '1.5rem', borderBottom: '2px solid #0f172a', paddingBottom: '1rem' }}>
+        {(() => {
+          const profile = getStoredBrandingProfile();
+          const activeStoreName = storeName || profile.name || 'POS KASIR';
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                {profile.logoUrl && (
+                  <img src={profile.logoUrl} alt={activeStoreName} style={{ height: '55px', maxWidth: '140px', objectFit: 'contain' }} />
+                )}
+                <div>
+                  <h1 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#0f172a', textTransform: 'uppercase' }}>
+                    {activeStoreName}
+                  </h1>
+                  {profile.address && <p style={{ fontSize: '0.8rem', margin: '2px 0 0 0', color: '#475569', fontWeight: 600 }}>{profile.address}</p>}
+                  {profile.phone && <p style={{ fontSize: '0.75rem', margin: '1px 0 0 0', color: '#64748b' }}>Telp: {profile.phone}</p>}
+                </div>
+              </div>
+              <div style={{ textAlign: 'right' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 900, margin: 0, color: '#2563eb', textTransform: 'uppercase' }}>
+                  LAPORAN PENJUALAN RESMI ({periodType})
+                </h3>
+                <p style={{ fontSize: '0.75rem', color: '#64748b', margin: '3px 0 0 0', fontWeight: 600 }}>
+                  Cetak: {new Date().toLocaleString('id-ID')} | Petugas: {currentUser.full_name}
+                </p>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {error && (

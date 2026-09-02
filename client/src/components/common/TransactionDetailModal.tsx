@@ -3,6 +3,7 @@ import { X, Printer, Trash2, AlertTriangle, QrCode, Banknote, CreditCard, User a
 import { Transaction, TransactionItem, Product, User } from '../../types';
 import { formatRupiah, formatWaktuIndo } from '../../utils/formatters';
 import { apiService } from '../../services/api';
+import { renderThermalReceiptHeaderHtml, renderFullPageReportHeaderHtml } from '../../utils/storeBrandingHelper';
 
 interface TransactionDetailModalProps {
   isOpen: boolean;
@@ -192,17 +193,11 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           </style>
         </head>
         <body>
-          <div class="header-container">
-            <div>
-              <div class="store-name">${(storeName || 'KEDAI POS / PRINTING & FNB').toUpperCase()}</div>
-              <div class="store-sub">Layanan Fotokopi, Printing, ATK & Kuliner F&B</div>
-              <div class="store-sub">Nota Transaksi Bukti Pembayaran Resmi</div>
-            </div>
-            <div>
-              <div class="invoice-title">KWITANSI / NOTA</div>
-              <div style="text-align: right; font-weight: 700; color: #64748b; font-size: 12px;">NO: ${txNumber}</div>
-            </div>
-          </div>
+          ${renderFullPageReportHeaderHtml({
+            title: 'KWITANSI / NOTA',
+            subtitle: `NO: ${txNumber}`,
+            storeName,
+          })}
 
           <div class="meta-grid">
             <div>
@@ -295,8 +290,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         </style>
       </head>
       <body>
-        <div class="center bold" style="font-size: 14px;">${(storeName || 'Kedai POS').toUpperCase()}</div>
-        <div class="center" style="font-size: 10px;">Nota POS Resmi & Shift Transaction</div>
+        ${renderThermalReceiptHeaderHtml({ storeName, subtitle: 'Nota POS Resmi & Shift Transaction' })}
         <div class="line"></div>
         <div>No. Nota : ${txNumber}</div>
         <div>Waktu    : ${txTime}</div>

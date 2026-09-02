@@ -1,3 +1,5 @@
+import { renderThermalReceiptHeaderHtml } from './storeBrandingHelper';
+
 export interface StockItem {
   stock_id?: string;
   product_id?: string;
@@ -440,10 +442,7 @@ export const printStockPDF = (stockList: StockItem[], _stockAuditLogs: any[] = [
       </style>
     </head>
     <body>
-      <div class="center">
-        <div class="store-title">${(storeName || 'KEDAI POS').toUpperCase()}</div>
-        <div class="report-subtitle">STRUK MONITORING STOK & RESTOK</div>
-      </div>
+      ${renderThermalReceiptHeaderHtml({ storeName, subtitle: 'STRUK MONITORING STOK & RESTOK' })}
       <div class="dashed-line"></div>
 
       <div class="meta-item"><span>Tanggal Cetak</span><span>: ${todayDateStr}</span></div>

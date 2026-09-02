@@ -406,8 +406,13 @@ export const SettingsPage: React.FC<SettingsPageProps> = ({ onTriggerToast, onSt
       await apiService.updateSettings(payload);
       applyGlobalTheme(selectedThemeColor, sidebarColor, dashboardBgColor);
 
+      const profileData = { name: storeName, ownerName, logoUrl, address, phone, email };
+      try {
+        localStorage.setItem('pos_store_profile', JSON.stringify(profileData));
+      } catch {}
+
       if (onStoreProfileUpdate) {
-        onStoreProfileUpdate({ name: storeName, ownerName, logoUrl });
+        onStoreProfileUpdate(profileData);
       }
 
       window.dispatchEvent(

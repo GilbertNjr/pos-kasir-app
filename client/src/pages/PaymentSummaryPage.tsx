@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { apiService, PaymentSummaryData } from '../services/api';
 import { Shift, User } from '../types';
+import { renderFullPageReportHeaderHtml } from '../utils/storeBrandingHelper';
 import { formatRupiah, formatDateIndoFull } from '../utils/formatters';
 import { PaymentMethodBadge } from '../components/common/PaymentMethodBadge';
 
@@ -361,10 +362,11 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
         </style>
       </head>
       <body>
-        <div class="header">
-          <div class="title">REKAP PEMBAYARAN & RIWAYAT TRANSAKSI</div>
-          <div class="subtitle">${storeName || 'Kedai POS'} | Cetak: ${todayStr} | Periode: ${selectedPeriod}</div>
-        </div>
+        ${renderFullPageReportHeaderHtml({
+          title: 'REKAP PEMBAYARAN & TRANSAKSI',
+          subtitle: `Cetak: ${todayStr} | Periode: ${selectedPeriod}`,
+          storeName,
+        })}
         <div class="summary-box">
           <div class="card"><div>Total Omzet</div><div class="card-val">${formatRupiah(activeSummary.total_revenue)}</div></div>
           <div class="card"><div>Tunai (Cash)</div><div class="card-val">${formatRupiah(activeSummary.cash.amount)}</div></div>

@@ -146,7 +146,14 @@ export const App: React.FC = () => {
           const oName = rawOwner.startsWith('Masukan ') ? '' : rawOwner;
           const lUrl = s.store_profile.logo_url || '';
 
-          const updated = { name: sName, ownerName: oName, logoUrl: lUrl };
+          const updated = {
+            name: sName,
+            ownerName: oName,
+            logoUrl: lUrl,
+            address: s.store_profile.address || '',
+            phone: s.store_profile.phone || '',
+            email: s.store_profile.email || '',
+          };
           setStoreProfile(updated);
           try {
             localStorage.setItem('pos_store_profile', JSON.stringify(updated));
@@ -192,6 +199,9 @@ export const App: React.FC = () => {
             name: rawName.startsWith('Masukan ') ? '' : rawName,
             ownerName: rawOwner.startsWith('Masukan ') ? '' : rawOwner,
             logoUrl: sp.logo_url || '',
+            address: sp.address || '',
+            phone: sp.phone || '',
+            email: sp.email || '',
           };
           setStoreProfile(updated);
           try {

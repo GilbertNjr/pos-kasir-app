@@ -1,4 +1,5 @@
 import { formatRupiah, formatDateIndoFull } from './formatters';
+import { renderThermalReceiptHeaderHtml } from './storeBrandingHelper';
 
 export interface ShiftReportExportOptions {
   storeName?: string;
@@ -433,10 +434,7 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
       </style>
     </head>
     <body>
-      <div class="center">
-        <div class="store-title">${(storeName || 'KEDAI POS').toUpperCase()}</div>
-        <div class="report-subtitle">STRUK REKAPITULASI SHIFT KASIR</div>
-      </div>
+      ${renderThermalReceiptHeaderHtml({ storeName, subtitle: 'STRUK REKAPITULASI SHIFT KASIR' })}
       <div class="dashed-line"></div>
 
       <table style="width: 100%; border-collapse: collapse; font-size: 9px; table-layout: fixed; margin-bottom: 2px;">
