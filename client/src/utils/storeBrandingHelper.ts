@@ -39,7 +39,7 @@ export function getStoredBrandingProfile(): StoreBrandingProfile {
 
 /**
  * Renders HTML Header for Thermal Receipts (58mm / 80mm compact format).
- * Dynamically displays logo if present, and gracefully handles deleted/missing logos.
+ * Compact logo inline to the left of the store name (matched to font height).
  */
 export function renderThermalReceiptHeaderHtml(options: {
   storeName?: string;
@@ -59,15 +59,15 @@ export function renderThermalReceiptHeaderHtml(options: {
 
   return `
     <div class="center" style="text-align: center; margin-bottom: 4px;">
-      ${
-        hasLogo
-          ? `<div style="margin-bottom: 6px; text-align: center;">
-              <img src="${logo}" alt="${name}" style="max-height: 52px; max-width: 130px; object-fit: contain; display: inline-block;" />
-            </div>`
-          : ''
-      }
-      <div style="font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #000000; line-height: 1.2;">
-        ${name.toUpperCase()}
+      <div style="display: flex; align-items: center; justify-content: center; gap: 6px; margin-bottom: 2px;">
+        ${
+          hasLogo
+            ? `<img src="${logo}" alt="${name}" style="height: 18px; max-width: 32px; object-fit: contain; vertical-align: middle; display: inline-block;" />`
+            : ''
+        }
+        <span style="font-size: 14px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; color: #000000; line-height: 1.2;">
+          ${name.toUpperCase()}
+        </span>
       </div>
       ${addr ? `<div style="font-size: 9.5px; color: #334155; margin-top: 2px;">${addr}</div>` : ''}
       ${ph ? `<div style="font-size: 9.5px; color: #334155;">Telp: ${ph}</div>` : ''}
@@ -80,7 +80,7 @@ export function renderThermalReceiptHeaderHtml(options: {
 
 /**
  * Renders HTML Header for Full Page / PDF Reports (A4 / Full Sheet format).
- * Features a modern corporate header with dynamic logo & profile details.
+ * Features a modern corporate header with dynamic logo inline to the left of the store name.
  */
 export function renderFullPageReportHeaderHtml(options: {
   title: string;
@@ -103,23 +103,21 @@ export function renderFullPageReportHeaderHtml(options: {
 
   return `
     <div style="border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 16px;">
-      <div style="display: flex; alignItems: center; gap: 14px;">
-        ${
-          hasLogo
-            ? `<img src="${logo}" alt="${name}" style="height: 60px; max-width: 150px; object-fit: contain; border-radius: 8px;" />`
-            : `<div style="width: 50px; height: 50px; border-radius: 12px; background: #2563eb; color: #ffffff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 1.25rem;">
-                ${name.charAt(0).toUpperCase()}
-               </div>`
-        }
-        <div>
-          <h2 style="margin: 0; font-size: 1.25rem; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: -0.01em;">
+      <div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          ${
+            hasLogo
+              ? `<img src="${logo}" alt="${name}" style="height: 24px; max-width: 42px; object-fit: contain; vertical-align: middle; border-radius: 4px; display: inline-block;" />`
+              : ''
+          }
+          <h2 style="margin: 0; font-size: 1.25rem; font-weight: 900; color: #0f172a; text-transform: uppercase; letter-spacing: -0.01em; display: inline-block;">
             ${name}
           </h2>
-          ${addr ? `<div style="font-size: 0.8rem; color: #475569; margin-top: 2px; font-weight: 600;">${addr}</div>` : ''}
-          <div style="font-size: 0.775rem; color: #64748b; margin-top: 1px; display: flex; gap: 10px;">
-            ${ph ? `<span>📞 ${ph}</span>` : ''}
-            ${emailStr ? `<span>✉️ ${emailStr}</span>` : ''}
-          </div>
+        </div>
+        ${addr ? `<div style="font-size: 0.8rem; color: #475569; margin-top: 2px; font-weight: 600;">${addr}</div>` : ''}
+        <div style="font-size: 0.775rem; color: #64748b; margin-top: 1px; display: flex; gap: 10px;">
+          ${ph ? `<span>📞 ${ph}</span>` : ''}
+          ${emailStr ? `<span>✉️ ${emailStr}</span>` : ''}
         </div>
       </div>
 

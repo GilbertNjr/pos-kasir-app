@@ -588,17 +588,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
           const activeStoreName = storeName || profile.name || 'POS KASIR';
           return (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                {profile.logoUrl && (
-                  <img src={profile.logoUrl} alt={activeStoreName} style={{ height: '55px', maxWidth: '140px', objectFit: 'contain' }} />
-                )}
-                <div>
-                  <h1 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#0f172a', textTransform: 'uppercase' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {profile.logoUrl && (
+                    <img src={profile.logoUrl} alt={activeStoreName} style={{ height: '24px', maxWidth: '42px', objectFit: 'contain', verticalAlign: 'middle', display: 'inline-block' }} />
+                  )}
+                  <h1 style={{ fontSize: '1.35rem', fontWeight: 900, margin: 0, color: '#0f172a', textTransform: 'uppercase', display: 'inline-block' }}>
                     {activeStoreName}
                   </h1>
-                  {profile.address && <p style={{ fontSize: '0.8rem', margin: '2px 0 0 0', color: '#475569', fontWeight: 600 }}>{profile.address}</p>}
-                  {profile.phone && <p style={{ fontSize: '0.75rem', margin: '1px 0 0 0', color: '#64748b' }}>Telp: {profile.phone}</p>}
                 </div>
+                {profile.address && <p style={{ fontSize: '0.8rem', margin: '2px 0 0 0', color: '#475569', fontWeight: 600 }}>{profile.address}</p>}
+                {profile.phone && <p style={{ fontSize: '0.75rem', margin: '1px 0 0 0', color: '#64748b' }}>Telp: {profile.phone}</p>}
               </div>
               <div style={{ textAlign: 'right' }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: 900, margin: 0, color: '#2563eb', textTransform: 'uppercase' }}>
