@@ -4,6 +4,18 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
 
 ---
 
+## [1.7.3] - 2 September 2026
+
+### Added & Enhanced
+- **Visual Loading Indicators & UX Protection**:
+  - Penambahan indikator loading visual (`spin-icon`) pada tombol **Close Shift** dan **Rekap Stok Sisa** untuk mencegah duplikasi penutupan shift saat respon lambat.
+  - Penambahan indikator loading pada proses **Tahan Order (Draft)** dan **Muat Kembali (Restore)** di register POS untuk memberikan feedback transparan dan mencegah bentrok pengembalian stok.
+  - Tombol tindakan ("Batal", "Tutup Shift", "Simpan di Draft", "Muat Kembali", "Hapus") kini dinonaktifkan (`disabled`) secara otomatis saat async operation sedang berjalan.
+- **Pembaruan Versi Terpusat (v1.7.3)**:
+  - Synchronized seluruh badge versi aplikasi di `LoginPage`, `OwnerSidebar`, `OwnerHeader`, `CashierLayout`, serta file konfig `client/package.json` & `server/package.json`.
+
+---
+
 ## [1.0.0-blueprint] - 14 Agustus 2026
 
 ### Added (Tahap 1 - Blueprint & Perencanaan Sistem Completed)

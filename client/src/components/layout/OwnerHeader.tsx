@@ -104,7 +104,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
                 fontSize: '0.65rem',
               }}
             >
-              v1.7.2
+              v1.7.3
             </span>
           </p>
         </div>

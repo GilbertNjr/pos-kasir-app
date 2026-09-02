@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, Power, X, Edit3, Trash2, Plus, AlertTriangle, Boxes, Search, PackageCheck, Sparkles, FileText } from 'lucide-react';
+import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, Power, X, Edit3, Trash2, Plus, AlertTriangle, Boxes, Search, PackageCheck, Sparkles, FileText, Loader2 } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User, Product } from '../types';
 import { formatRupiah, formatDateIndoFull } from '../utils/formatters';
@@ -990,7 +990,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                   <button
                     type="button"
-                    onClick={() => setShowCloseModal(false)}
+                    onClick={() => !closeLoading && setShowCloseModal(false)}
+                    disabled={closeLoading}
                     style={{
                       flex: 1,
                       padding: '0.75rem',
@@ -999,7 +1000,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                       background: '#ffffff',
                       color: '#475569',
                       fontWeight: 800,
-                      cursor: 'pointer',
+                      cursor: closeLoading ? 'not-allowed' : 'pointer',
                     }}
                   >
                     Batal
@@ -1012,7 +1013,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                       padding: '0.75rem',
                       borderRadius: '10px',
                       border: 'none',
-                      background: 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                      background: closeLoading ? '#94a3b8' : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
                       color: '#ffffff',
                       fontWeight: 800,
                       cursor: closeLoading ? 'not-allowed' : 'pointer',
@@ -1023,8 +1024,17 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                       boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
                     }}
                   >
-                    <Power size={18} />
-                    {closeLoading ? 'Menutup Shift...' : '🛑 Ya, Tutup Shift Resmi'}
+                    {closeLoading ? (
+                      <>
+                        <Loader2 size={18} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} />
+                        <span>Menutup Shift Sesi...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Power size={18} />
+                        <span>🛑 Ya, Tutup Shift Resmi</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </form>
@@ -1370,7 +1380,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                     <div style={{ display: 'flex', gap: '0.75rem' }}>
                       <button
                         type="button"
-                        onClick={() => setShowStockAuditModal(false)}
+                        onClick={() => !auditSubmitting && setShowStockAuditModal(false)}
+                        disabled={auditSubmitting}
                         style={{
                           flex: 1,
                           padding: '0.75rem',
@@ -1379,7 +1390,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                           background: '#ffffff',
                           color: '#475569',
                           fontWeight: 800,
-                          cursor: 'pointer',
+                          cursor: auditSubmitting ? 'not-allowed' : 'pointer',
                         }}
                       >
                         Batal
@@ -1393,7 +1404,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                           padding: '0.75rem',
                           borderRadius: '10px',
                           border: 'none',
-                          background: 'linear-gradient(135deg, #15803d 0%, #166534 100%)',
+                          background: auditSubmitting ? '#94a3b8' : 'linear-gradient(135deg, #15803d 0%, #166534 100%)',
                           color: '#ffffff',
                           fontWeight: 800,
                           cursor: auditSubmitting ? 'not-allowed' : 'pointer',
@@ -1404,8 +1415,17 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                           boxShadow: '0 4px 14px rgba(21, 128, 61, 0.35)',
                         }}
                       >
-                        <Sparkles size={18} />
-                        {auditSubmitting ? 'Memproses Rekap...' : '🚀 Terapkan Rekap & Lanjutkan ke Tutup Shift'}
+                        {auditSubmitting ? (
+                          <>
+                            <Loader2 size={18} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} />
+                            <span>Memproses Rekap Barang...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles size={18} />
+                            <span>🚀 Terapkan Rekap & Lanjutkan ke Tutup Shift</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>

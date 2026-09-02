@@ -18,6 +18,7 @@ import {
   RotateCw,
   Clock,
   X,
+  Loader2,
 } from 'lucide-react';
 import { apiService, CreateTransactionResultData } from '../services/api';
 import { Product, User, PaymentMethod, Category } from '../types';
@@ -84,6 +85,9 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   const [showHoldModal, setShowHoldModal] = useState(false);
   const [holdCustomerName, setHoldCustomerName] = useState('');
   const [showHoldPromptModal, setShowHoldPromptModal] = useState(false);
+  const [holdProcessing, setHoldProcessing] = useState(false);
+  const [restoringHoldId, setRestoringHoldId] = useState<string | null>(null);
+  const [deletingHoldId, setDeletingHoldId] = useState<string | null>(null);
 
   // 5. Fitur Void / Riwayat Nota Shift State
   const [showVoidHistoryModal, setShowVoidHistoryModal] = useState(false);
@@ -146,61 +150,76 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   };
 
   const confirmHoldCart = async () => {
-    if (cart.length === 0) return;
+    if (cart.length === 0 || holdProcessing) return;
 
-    // Potong stok di database untuk produk yang mengelola stok saat ditahan
-    for (const item of cart) {
-      if (item.product.manage_stock) {
-        const currentStock = item.product.stock ?? 0;
-        const newStock = Math.max(0, currentStock - item.qty);
-        try {
-          await apiService.updateStock(item.product.product_id, newStock);
-        } catch (err) {
-          console.warn('Gagal memotong stok saat tahan order:', err);
+    setHoldProcessing(true);
+    try {
+      // Potong stok di database untuk produk yang mengelola stok saat ditahan
+      for (const item of cart) {
+        if (item.product.manage_stock) {
+          const currentStock = item.product.stock ?? 0;
+          const newStock = Math.max(0, currentStock - item.qty);
+          try {
+            await apiService.updateStock(item.product.product_id, newStock);
+          } catch (err) {
+            console.warn('Gagal memotong stok saat tahan order:', err);
+          }
         }
       }
-    }
 
-    const newHold: HeldOrder = {
-      id: `HOLD-${Date.now()}`,
-      customerName: holdCustomerName.trim() || `Pelanggan ${heldOrders.length + 1}`,
-      items: [...cart],
-      paymentMethod,
-      timestamp: new Date().toISOString(),
-      totalAmount: rawTotal,
-    };
-    setHeldOrders((prev) => [newHold, ...prev]);
-    setCart([]);
-    setHoldCustomerName('');
-    setShowHoldPromptModal(false);
-    loadProducts();
+      const newHold: HeldOrder = {
+        id: `HOLD-${Date.now()}`,
+        customerName: holdCustomerName.trim() || `Pelanggan ${heldOrders.length + 1}`,
+        items: [...cart],
+        paymentMethod,
+        timestamp: new Date().toISOString(),
+        totalAmount: rawTotal,
+      };
+      setHeldOrders((prev) => [newHold, ...prev]);
+      setCart([]);
+      setHoldCustomerName('');
+      setShowHoldPromptModal(false);
+      await loadProducts();
+    } catch (err) {
+      console.warn('Gagal menahan order:', err);
+    } finally {
+      setHoldProcessing(false);
+    }
   };
 
   const handleRestoreHeldOrder = async (heldId: string) => {
+    if (restoringHoldId) return;
     const target = heldOrders.find((h) => h.id === heldId);
     if (!target) return;
 
-    // Kembalikan stok sementara ke database agar saat transaksi diproses/checkout tidak terpotong double
-    for (const item of target.items) {
-      if (item.product.manage_stock) {
-        const currentStock = item.product.stock ?? 0;
-        const newStock = currentStock + item.qty;
-        try {
-          await apiService.updateStock(item.product.product_id, newStock);
-        } catch (err) {
-          console.warn('Gagal mengembalikan stok saat memuat ulang tahan order:', err);
+    setRestoringHoldId(heldId);
+    try {
+      // Kembalikan stok sementara ke database agar saat transaksi diproses/checkout tidak terpotong double
+      for (const item of target.items) {
+        if (item.product.manage_stock) {
+          const currentStock = item.product.stock ?? 0;
+          const newStock = currentStock + item.qty;
+          try {
+            await apiService.updateStock(item.product.product_id, newStock);
+          } catch (err) {
+            console.warn('Gagal mengembalikan stok saat memuat ulang tahan order:', err);
+          }
         }
       }
-    }
 
-    setCart(target.items);
-    setPaymentMethod(target.paymentMethod);
-    if (target.customerName && !target.customerName.startsWith('Pelanggan ')) {
-      setCustomerName(target.customerName);
+      setCart(target.items);
+      setPaymentMethod(target.paymentMethod);
+      if (target.customerName && !target.customerName.startsWith('Pelanggan ')) {
+        setCustomerName(target.customerName);
+      }
+      setHeldOrders((prev) => prev.filter((h) => h.id !== heldId));
+      setShowHoldModal(false);
+      await loadProducts();
+    } catch (err) {
+      console.warn('Gagal memuat ulang order tertahan:', err);
+    } finally {
+      setRestoringHoldId(null);
     }
-    setHeldOrders((prev) => prev.filter((h) => h.id !== heldId));
-    setShowHoldModal(false);
-    loadProducts();
   };
 
   const handleEditTransactionToCart = async (transaction: any, items: any[]) => {
@@ -260,22 +279,30 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   };
 
   const handleDeleteHeldOrder = async (heldId: string) => {
+    if (deletingHoldId) return;
     const target = heldOrders.find((h) => h.id === heldId);
-    if (target) {
-      for (const item of target.items) {
-        if (item.product.manage_stock) {
-          const currentStock = item.product.stock ?? 0;
-          const newStock = currentStock + item.qty;
-          try {
-            await apiService.updateStock(item.product.product_id, newStock);
-          } catch (err) {
-            console.warn('Gagal mengembalikan stok saat menghapus tahan order:', err);
+    setDeletingHoldId(heldId);
+    try {
+      if (target) {
+        for (const item of target.items) {
+          if (item.product.manage_stock) {
+            const currentStock = item.product.stock ?? 0;
+            const newStock = currentStock + item.qty;
+            try {
+              await apiService.updateStock(item.product.product_id, newStock);
+            } catch (err) {
+              console.warn('Gagal mengembalikan stok saat menghapus tahan order:', err);
+            }
           }
         }
       }
+      setHeldOrders((prev) => prev.filter((h) => h.id !== heldId));
+      await loadProducts();
+    } catch (err) {
+      console.warn('Gagal menghapus order tertahan:', err);
+    } finally {
+      setDeletingHoldId(null);
     }
-    setHeldOrders((prev) => prev.filter((h) => h.id !== heldId));
-    loadProducts();
   };
 
   // Fetch Riwayat Transaksi Shift
@@ -1841,17 +1868,26 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
             <div style={{ display: 'flex', gap: '0.75rem' }}>
               <button
                 type="button"
-                onClick={() => setShowHoldPromptModal(false)}
-                style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 700, cursor: 'pointer' }}
+                onClick={() => !holdProcessing && setShowHoldPromptModal(false)}
+                disabled={holdProcessing}
+                style={{ flex: 1, padding: '0.65rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 700, cursor: holdProcessing ? 'not-allowed' : 'pointer' }}
               >
                 Batal
               </button>
               <button
                 type="button"
                 onClick={confirmHoldCart}
-                style={{ flex: 1.5, padding: '0.65rem', borderRadius: '8px', border: 'none', background: '#d97706', color: '#ffffff', fontWeight: 800, cursor: 'pointer', boxShadow: '0 4px 10px rgba(217,119,6,0.25)' }}
+                disabled={holdProcessing}
+                style={{ flex: 1.5, padding: '0.65rem', borderRadius: '8px', border: 'none', background: holdProcessing ? '#cbd5e1' : '#d97706', color: '#ffffff', fontWeight: 800, cursor: holdProcessing ? 'not-allowed' : 'pointer', boxShadow: '0 4px 10px rgba(217,119,6,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
               >
-                ⏸️ Simpan di Draft
+                {holdProcessing ? (
+                  <>
+                    <Loader2 size={16} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} />
+                    <span>Menahan Order...</span>
+                  </>
+                ) : (
+                  <span>⏸️ Simpan di Draft</span>
+                )}
               </button>
             </div>
           </div>
@@ -1866,7 +1902,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <Clock color="#1d4ed8" /> Daftar Order Tertahan ({heldOrders.length})
               </h3>
-              <button onClick={() => setShowHoldModal(false)} style={{ border: 'none', background: 'none', cursor: 'pointer', color: '#64748b' }}>
+              <button onClick={() => !restoringHoldId && !deletingHoldId && setShowHoldModal(false)} disabled={!!restoringHoldId || !!deletingHoldId} style={{ border: 'none', background: 'none', cursor: restoringHoldId || deletingHoldId ? 'not-allowed' : 'pointer', color: '#64748b' }}>
                 <X size={20} />
               </button>
             </div>
@@ -1899,15 +1935,23 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                       <div style={{ display: 'flex', gap: '0.4rem' }}>
                         <button
                           onClick={() => handleDeleteHeldOrder(h.id)}
-                          style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid #fecaca', background: '#fef2f2', color: '#dc2626', fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer' }}
+                          disabled={deletingHoldId === h.id || restoringHoldId === h.id}
+                          style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid #fecaca', background: deletingHoldId === h.id ? '#e2e8f0' : '#fef2f2', color: deletingHoldId === h.id ? '#64748b' : '#dc2626', fontSize: '0.75rem', fontWeight: 700, cursor: deletingHoldId === h.id || restoringHoldId === h.id ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                         >
-                          Hapus
+                          {deletingHoldId === h.id ? <Loader2 size={12} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} /> : null}
+                          <span>{deletingHoldId === h.id ? 'Hapus...' : 'Hapus'}</span>
                         </button>
                         <button
                           onClick={() => handleRestoreHeldOrder(h.id)}
-                          style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: '#1d4ed8', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                          disabled={restoringHoldId === h.id || deletingHoldId === h.id}
+                          style={{ padding: '0.35rem 0.85rem', borderRadius: '6px', border: 'none', background: restoringHoldId === h.id ? '#94a3b8' : '#1d4ed8', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, cursor: restoringHoldId === h.id || deletingHoldId === h.id ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                         >
-                          <PlayCircle size={13} /> Muat Kembali
+                          {restoringHoldId === h.id ? (
+                            <Loader2 size={13} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} />
+                          ) : (
+                            <PlayCircle size={13} />
+                          )}
+                          <span>{restoringHoldId === h.id ? 'Memuat kembali...' : 'Muat Kembali'}</span>
                         </button>
                       </div>
                     </div>
