@@ -86,6 +86,26 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   // Form State Tutup Shift
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [actualPhysicalCash, setActualPhysicalCash] = useState<number | ''>('');
+  const [heldOrdersList, setHeldOrdersList] = useState<any[]>([]);
+  const [confirmIgnoreHeldOrders, setConfirmIgnoreHeldOrders] = useState(false);
+
+  const checkAndSetHeldOrders = () => {
+    try {
+      const raw = localStorage.getItem('pos_held_orders');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          setHeldOrdersList(parsed);
+          setConfirmIgnoreHeldOrders(false);
+          return;
+        }
+      }
+    } catch {
+      // ignore error
+    }
+    setHeldOrdersList([]);
+    setConfirmIgnoreHeldOrders(false);
+  };
 
   // Loading Modals
   const [openLoading, setOpenLoading] = useState(false);
@@ -683,6 +703,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
             <button
               onClick={() => {
                 setActualPhysicalCash(shift.theoretical_cash);
+                checkAndSetHeldOrders();
                 setShowCloseModal(true);
               }}
               style={{
@@ -955,6 +976,73 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   </div>
                 </div>
 
+                {/* BANNER WARNING ORDER TERTAHAN (DRAFT) */}
+                {heldOrdersList.length > 0 && (
+                  <div
+                    style={{
+                      background: '#fffbeb',
+                      border: '1px solid #fde68a',
+                      borderLeft: '4px solid #d97706',
+                      borderRadius: '12px',
+                      padding: '0.85rem 1rem',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '0.45rem',
+                      boxShadow: '0 2px 8px rgba(217, 119, 6, 0.08)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 800, fontSize: '0.875rem', color: '#b45309' }}>
+                      <AlertTriangle size={18} color="#d97706" style={{ flexShrink: 0 }} />
+                      <span>⚠️ ADA {heldOrdersList.length} ORDER TERTAHAN (DRAFT) BELUM SELESAI</span>
+                    </div>
+                    <p style={{ margin: 0, fontSize: '0.775rem', color: '#78350f', lineHeight: 1.45 }}>
+                      Masih terdapat transaksi draft yang disimpan sementara. Jika shift ditutup sekarang, omzet order ini <strong>tidak akan tercatat</strong> pada rekap shift ini.
+                    </p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.35rem', marginTop: '0.15rem' }}>
+                      {heldOrdersList.map((h, idx) => (
+                        <span
+                          key={h.id || idx}
+                          style={{
+                            background: '#fef3c7',
+                            border: '1px solid #fcd34d',
+                            padding: '0.2rem 0.5rem',
+                            borderRadius: '6px',
+                            fontSize: '0.725rem',
+                            fontWeight: 800,
+                            color: '#92400e',
+                          }}
+                        >
+                          👤 {h.customerName || 'Draft'} ({formatRupiah(h.totalAmount || 0)})
+                        </span>
+                      ))}
+                    </div>
+                    <label
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        marginTop: '0.4rem',
+                        padding: '0.5rem 0.65rem',
+                        background: '#fef2f2',
+                        border: '1px solid #fecaca',
+                        borderRadius: '8px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        color: '#991b1b',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={confirmIgnoreHeldOrders}
+                        onChange={(e) => setConfirmIgnoreHeldOrders(e.target.checked)}
+                        style={{ width: '15px', height: '15px', cursor: 'pointer', accentColor: '#dc2626' }}
+                      />
+                      <span>Saya paham & bersedia tutup shift meski ada draft tertahan.</span>
+                    </label>
+                  </div>
+                )}
+
                 <div style={{ background: '#f8fafc', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
                     <span style={{ color: '#047857', fontWeight: 700 }}>🎯 Hasil Murni Jualan (Setoran):</span>
@@ -1008,21 +1096,21 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   </button>
                   <button
                     type="submit"
-                    disabled={closeLoading}
+                    disabled={closeLoading || (heldOrdersList.length > 0 && !confirmIgnoreHeldOrders)}
                     style={{
                       flex: 1.5,
                       padding: '0.75rem',
                       borderRadius: '10px',
                       border: 'none',
-                      background: closeLoading ? '#94a3b8' : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
-                      color: '#ffffff',
+                      background: closeLoading || (heldOrdersList.length > 0 && !confirmIgnoreHeldOrders) ? '#cbd5e1' : 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)',
+                      color: closeLoading || (heldOrdersList.length > 0 && !confirmIgnoreHeldOrders) ? '#64748b' : '#ffffff',
                       fontWeight: 800,
-                      cursor: closeLoading ? 'not-allowed' : 'pointer',
+                      cursor: closeLoading || (heldOrdersList.length > 0 && !confirmIgnoreHeldOrders) ? 'not-allowed' : 'pointer',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '0.4rem',
-                      boxShadow: closeLoading ? 'none' : '0 4px 14px rgba(220, 38, 38, 0.35)',
+                      boxShadow: closeLoading || (heldOrdersList.length > 0 && !confirmIgnoreHeldOrders) ? 'none' : '0 4px 14px rgba(220, 38, 38, 0.35)',
                     }}
                   >
                     {closeLoading ? (

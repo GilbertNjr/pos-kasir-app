@@ -4,6 +4,18 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
 
 ---
 
+## [1.7.7] - 3 September 2026
+
+### Added & Enhanced
+- **Peringatan & Validasi Order Tertahan (Draft) Saat Tutup Shift (`ShiftPage.tsx`)**:
+  - Menambahkan pendeteksian otomatis *Draft Order* yang masih tertahan saat kasir membuka modal Tutup Shift.
+  - Menampilkan **Banner Peringatan Amber (Warning Card)** yang merinci daftar nama pelanggan dan nominal order draft yang belum diselesaikan.
+  - Memasang **Checkbox Konfirmasi Kesadaran Kasir** (`Saya paham & bersedia tutup shift meski ada draft tertahan`) yang memblokir tombol *"🛑 Ya, Tutup Shift Resmi"* jika belum dicentang.
+- **Pembaruan Versi Terpusat (v1.7.7)**:
+  - Synchronized seluruh versi aplikasi di `LoginPage`, `OwnerSidebar`, `OwnerHeader`, `CashierLayout`, serta file konfig `client/package.json` & `server/package.json`.
+
+---
+
 ## [1.7.6] - 3 September 2026
 
 ### Added & Enhanced
