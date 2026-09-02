@@ -8,7 +8,7 @@ import { aiService, BusinessInsightItem } from './AIService';
 import { getWIBDateRange } from '../utils/timezoneUtils';
 
 export interface DashboardFilterDTO {
-  period_type?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
+  period_type?: 'ALL' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
   start_date?: string;
   end_date?: string;
 }
@@ -119,7 +119,7 @@ export class DashboardService {
   }
 
   async getDashboardMetrics(filter?: DashboardFilterDTO): Promise<ComprehensiveDashboardMetrics> {
-    const period_type = filter?.period_type || 'DAILY';
+    const period_type = filter?.period_type || 'ALL';
     const { startDate, endDate } = getWIBDateRange(
       period_type,
       filter?.start_date,

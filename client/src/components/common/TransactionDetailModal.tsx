@@ -407,10 +407,10 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           </div>
 
           {/* Scrollable Content Body */}
-          <div style={{ padding: '1rem 0.85rem', overflowY: 'auto', flex: 1 }}>
+          <div style={{ padding: 'clamp(0.65rem, 2.5vw, 1rem)', overflowY: 'auto', flex: 1 }}>
             {/* Header Nota ID & Status Badge */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem', gap: '0.5rem' }}>
-              <h2 style={{ fontSize: 'clamp(1.15rem, 4vw, 1.35rem)', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+              <h2 style={{ fontSize: 'clamp(1.1rem, 4vw, 1.35rem)', fontWeight: 900, color: '#0f172a', margin: 0, letterSpacing: '-0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                 {txNumber}
               </h2>
               {isCancelled ? (
@@ -468,14 +468,14 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                 <ShoppingBag size={13} color="#6366f1" /> Detail Item
               </div>
 
-              <div style={{ borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#ffffff', width: '100%' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem', tableLayout: 'fixed' }}>
+              <div style={{ borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: '#ffffff', width: '100%' }}>
+                <table style={{ width: '100%', minWidth: '290px', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
                   <thead>
                     <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.7rem' }}>
-                      <th style={{ padding: '0.5rem 0.2rem 0.5rem 0.4rem', width: '38%' }}>Produk</th>
-                      <th style={{ padding: '0.5rem 0.1rem', textAlign: 'center', width: '14%' }}>Qty</th>
-                      <th style={{ padding: '0.5rem 0.2rem', textAlign: 'right', width: '24%' }}>Harga</th>
-                      <th style={{ padding: '0.5rem 0.4rem 0.5rem 0.2rem', textAlign: 'right', width: '24%' }}>Subtotal</th>
+                      <th style={{ padding: '0.5rem 0.2rem 0.5rem 0.4rem', width: '40%' }}>Produk</th>
+                      <th style={{ padding: '0.5rem 0.1rem', textAlign: 'center', width: '15%' }}>Qty</th>
+                      <th style={{ padding: '0.5rem 0.2rem', textAlign: 'right', width: '22.5%' }}>Harga</th>
+                      <th style={{ padding: '0.5rem 0.4rem 0.5rem 0.2rem', textAlign: 'right', width: '22.5%' }}>Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -491,8 +491,8 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                           <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
                             <td style={{ padding: '0.5rem 0.2rem 0.5rem 0.4rem', fontWeight: 700, color: '#0f172a', wordBreak: 'break-word', lineHeight: 1.3, fontSize: '0.775rem' }}>{pName}</td>
                             <td style={{ padding: '0.5rem 0.1rem', textAlign: 'center', fontWeight: 700, color: '#475569' }}>{qty}</td>
-                            <td style={{ padding: '0.5rem 0.2rem', textAlign: 'right', color: '#64748b', fontSize: '0.725rem', whiteSpace: 'nowrap' }}>{formatRupiah(price)}</td>
-                            <td style={{ padding: '0.5rem 0.4rem 0.5rem 0.2rem', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontSize: 'clamp(0.725rem, 2.7vw, 0.78rem)', whiteSpace: 'nowrap' }}>{formatRupiah(sub)}</td>
+                            <td style={{ padding: '0.5rem 0.2rem', textAlign: 'right', color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>{formatRupiah(price)}</td>
+                            <td style={{ padding: '0.5rem 0.4rem 0.5rem 0.2rem', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontSize: 'clamp(0.7rem, 2.7vw, 0.775rem)', whiteSpace: 'nowrap' }}>{formatRupiah(sub)}</td>
                           </tr>
                         );
                       })

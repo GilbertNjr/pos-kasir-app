@@ -1,7 +1,7 @@
 import { apiService } from './api';
 
 export interface DashboardFilterParams {
-  period_type: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
+  period_type: 'ALL' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
   start_date?: string;
   end_date?: string;
 }

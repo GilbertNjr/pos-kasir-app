@@ -25,6 +25,13 @@ export function getWIBDateRange(
 ): { startDate: Date; endDate: Date } {
   const parts = getWIBDateParts(new Date());
 
+  if (period_type === 'ALL') {
+    return {
+      startDate: new Date(0),
+      endDate: new Date('2099-12-31T23:59:59.999Z'),
+    };
+  }
+
   if (period_type === 'DAILY') {
     // 00:00:00 WIB of current WIB day to 23:59:59 WIB of current WIB day
     const startWIBMs = Date.UTC(parts.year, parts.month, parts.date, 0, 0, 0) - (7 * 3600 * 1000);

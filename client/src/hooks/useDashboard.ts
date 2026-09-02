@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { dashboardRepository, DashboardFilterParams, DashboardMetricsData } from '../services/dashboardRepository';
 
-export function useDashboard(initialFilter: DashboardFilterParams = { period_type: 'DAILY' }) {
+export function useDashboard(initialFilter: DashboardFilterParams = { period_type: 'ALL' }) {
   const [filter, setFilter] = useState<DashboardFilterParams>(initialFilter);
   const [data, setData] = useState<DashboardMetricsData | null>(null);
   const [loading, setLoading] = useState<boolean>(true);

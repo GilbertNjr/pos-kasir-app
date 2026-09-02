@@ -44,7 +44,7 @@ interface OwnerDashboardPageProps {
 
 export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTriggerToast, onNavigateTab }) => {
   const { filter, setFilter, data: metrics, loading, error, isSseConnected, lastUpdated, refresh } = useDashboard({
-    period_type: 'DAILY',
+    period_type: 'ALL',
   });
 
   const [selectedEmployee, setSelectedEmployee] = useState<EmployeeSummary | null>(null);
@@ -393,23 +393,7 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
         </div>
       </div>
 
-      {/* 5. OPERATIONAL ALERTS NOTICE */}
-      {metrics?.alerts && (metrics.alerts.unresolved_shift_variances > 0 || metrics.alerts.low_stock_products_count > 0) && (
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', borderRadius: '20px', padding: '1.25rem 1.5rem', color: '#92400e', display: 'flex', alignItems: 'center', gap: '1.15rem', boxShadow: '0 4px 14px rgba(245,158,11,0.08)' }}>
-          <div style={{ width: '44px', height: '44px', borderRadius: '14px', background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <AlertCircle size={24} color="#d97706" />
-          </div>
-          <div style={{ fontSize: '0.88rem', lineHeight: 1.45 }}>
-            <strong style={{ color: '#b45309', fontWeight: 900 }}>PERHATIAN OPERASIONAL TOKO:</strong>{' '}
-            {metrics.alerts.unresolved_shift_variances > 0 && (
-              <span>Terdeteksi <strong>{metrics.alerts.unresolved_shift_variances} sesi shift</strong> dengan selisih kas yang belum terselesaikan. Harap periksa di menu laporan shift kasir. </span>
-            )}
-            {metrics.alerts.low_stock_products_count > 0 && (
-              <span>Terdeteksi <strong>{metrics.alerts.low_stock_products_count} produk</strong> dengan stok menipis.</span>
-            )}
-          </div>
-        </div>
-      )}
+
 
       {/* 6. REVENUE PERFORMANCE CHART */}
       <div style={{ minHeight: '350px' }}>
@@ -502,8 +486,8 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                 const top5Preview = activeTopProducts.slice(0, 5);
                 return (
                   <>
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                      <table style={{ width: '100%', minWidth: '340px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                         <thead>
                           <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                             <th style={{ padding: '0.75rem 0.25rem' }}>#</th>
@@ -624,8 +608,8 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                 const slow5Preview = slowMovingList.slice(0, 5);
                 return (
                   <>
-                    <div style={{ overflowX: 'auto' }}>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                      <table style={{ width: '100%', minWidth: '340px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                         <thead>
                           <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                             <th style={{ padding: '0.75rem 0.5rem' }}>Produk / Jasa</th>
@@ -1251,14 +1235,14 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
               </div>
 
               {/* Modal Content List */}
-              <div style={{ padding: '1rem 1.25rem', overflowY: 'auto', flex: 1 }}>
+              <div style={{ padding: '0.85rem clamp(0.5rem, 2vw, 1.25rem)', overflowY: 'auto', flex: 1 }}>
                 {paginated.length === 0 ? (
                   <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
                     Tidak ada produk terlaris yang sesuai pencarian/filter.
                   </div>
                 ) : (
-                  <div style={{ borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#ffffff' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                  <div style={{ borderRadius: '16px', border: '1px solid #e2e8f0', overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: '#ffffff' }}>
+                    <table style={{ width: '100%', minWidth: '440px', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                       <thead>
                         <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           <th style={{ padding: '0.75rem 0.6rem 0.75rem 1rem', width: '60px' }}>Rank</th>
@@ -1529,14 +1513,14 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
               </div>
 
               {/* Modal Content List */}
-              <div style={{ padding: '1rem 1.25rem', overflowY: 'auto', flex: 1 }}>
+              <div style={{ padding: '0.85rem clamp(0.5rem, 2vw, 1.25rem)', overflowY: 'auto', flex: 1 }}>
                 {paginated.length === 0 ? (
                   <div style={{ padding: '2rem', textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
                     Tidak ada produk slow moving yang sesuai pencarian/filter.
                   </div>
                 ) : (
-                  <div style={{ borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', background: '#ffffff' }}>
-                    <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                  <div style={{ borderRadius: '16px', border: '1px solid #e2e8f0', overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: '#ffffff' }}>
+                    <table style={{ width: '100%', minWidth: '450px', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                       <thead>
                         <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                           <th style={{ padding: '0.75rem 0.6rem 0.75rem 1rem', width: '60px' }}>Rank</th>

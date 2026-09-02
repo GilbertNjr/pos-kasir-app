@@ -2,6 +2,20 @@
 
 Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pengembangan Sistem POS Usaha Campuran (FC/Printing & FNB).
 
+## [1.7.8] - 3 September 2026
+
+### Added & Enhanced
+- **Default Filter "Semua Riwayat" di Dashboard Utama Owner**:
+  - Mengubah default inisialisasi filter periode waktu pada `OwnerDashboardPage` & `useDashboard` dari `Hari Ini` (`DAILY`) menjadi `Semua Riwayat` (`ALL`).
+  - Menempatkan pill tombol `Semua Riwayat` di posisi #1 pada `PeriodFilterBar.tsx` agar pengguna dapat langsung melihat total akumulasi omzet keseluruhan toko saat pertama kali masuk.
+- **Peningkatan Responsivitas Mobile Modal & Tabel**:
+  - Mengoptimalkan `TransactionDetailModal` dengan touch horizontal scroll (`overflowX: auto`, `-webkit-overflow-scrolling: touch`) dan min-width kolom agar subtotal nota tidak terpotong di HP.
+  - Memperbaiki tabel pada Modal Top Products & Slow Moving di `OwnerDashboardPage` sehingga seluruh kolom status perputaran dan omzet dapat digeser dengan mulus pada layar smartphone.
+- **Pembersihan Banner Peringatan Operasional Toko**:
+  - Menyembunyikan banner peringatan selisih kas pada dashboard utama agar tampilan antarmuka awal owner lebih bersih, ringkas, dan fokus pada angka kinerja toko.
+- **Pembaruan Versi Terpusat (v1.7.8)**:
+  - Synchronized seluruh versi aplikasi di `LoginPage`, `OwnerSidebar`, `OwnerHeader`, `CashierLayout`, serta file konfig `client/package.json` & `server/package.json`.
+
 ---
 
 ## [1.7.7] - 3 September 2026

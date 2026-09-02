@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Filter } from 'lucide-react';
 
-export type PeriodType = 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
+export type PeriodType = 'ALL' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
 
 export interface PeriodFilterState {
   period_type: PeriodType;
@@ -39,6 +39,7 @@ export const PeriodFilterBar: React.FC<PeriodFilterBarProps> = ({ currentFilter,
   };
 
   const options: { type: PeriodType; label: string; icon?: string }[] = [
+    { type: 'ALL', label: 'Semua Riwayat' },
     { type: 'DAILY', label: 'Hari Ini' },
     { type: 'WEEKLY', label: '7 Hari Terakhir' },
     { type: 'MONTHLY', label: 'Bulan Ini' },
