@@ -1878,7 +1878,9 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 type="button"
                 onClick={confirmHoldCart}
                 disabled={holdProcessing}
-                style={{ flex: 1.5, padding: '0.65rem', borderRadius: '8px', border: 'none', background: holdProcessing ? '#cbd5e1' : '#d97706', color: '#ffffff', fontWeight: 800, cursor: holdProcessing ? 'not-allowed' : 'poin                {holdProcessing ? (
+                style={{ flex: 1.5, padding: '0.65rem', borderRadius: '8px', border: 'none', background: holdProcessing ? '#cbd5e1' : '#d97706', color: '#ffffff', fontWeight: 800, cursor: holdProcessing ? 'not-allowed' : 'pointer', boxShadow: '0 4px 10px rgba(217,119,6,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+              >
+                {holdProcessing ? (
                   <>
                     <Loader2 size={16} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} />
                     <span>Memproses Permintaan Server...</span>
@@ -1950,12 +1952,6 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                             <PlayCircle size={13} />
                           )}
                           <span>{restoringHoldId === h.id ? 'Memproses Permintaan Server...' : 'Muat Kembali'}</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}/span>
                         </button>
                       </div>
                     </div>
