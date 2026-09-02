@@ -14,6 +14,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   XCircle,
+  Loader2,
 } from 'lucide-react';
 import { apiService, PaymentSummaryData } from '../services/api';
 import { Shift, User } from '../types';
@@ -757,18 +758,20 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
               )}
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+            <div style={{ display: 'flex', flexDirection: cancelLoading ? 'column-reverse' : 'row', gap: '0.65rem' }}>
               <button
                 onClick={() => setConfirmCancelTx(null)}
                 disabled={cancelLoading}
                 style={{
-                  padding: '0.7rem 1rem',
+                  flex: 1,
+                  padding: '0.75rem 1rem',
                   borderRadius: '12px',
                   border: '1px solid #cbd5e1',
                   background: '#f8fafc',
                   color: '#475569',
                   fontWeight: 800,
                   fontSize: '0.85rem',
+                  opacity: cancelLoading ? 0.5 : 1,
                   cursor: cancelLoading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -780,19 +783,34 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
                 onClick={handleExecuteCancel}
                 disabled={cancelLoading}
                 style={{
-                  padding: '0.7rem 1rem',
+                  flex: cancelLoading ? undefined : 1,
+                  width: cancelLoading ? '100%' : undefined,
+                  padding: '0.75rem 1rem',
                   borderRadius: '12px',
                   border: 'none',
-                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  background: cancelLoading ? '#94a3b8' : 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
                   color: '#ffffff',
                   fontWeight: 800,
                   fontSize: '0.85rem',
                   cursor: cancelLoading ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 14px rgba(239, 68, 68, 0.35)',
+                  boxShadow: cancelLoading ? 'none' : '0 4px 14px rgba(239, 68, 68, 0.35)',
                   transition: 'all 0.15s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
                 }}
               >
-                {cancelLoading ? 'Memproses...' : confirmCancelTx.status === 'CANCELLED' ? 'Ya, Hapus Permanen' : 'Ya, Batalkan'}
+                {cancelLoading ? (
+                  <>
+                    <Loader2 size={18} className="spinning" />
+                    <span>Memproses Permintaan Server...</span>
+                  </>
+                ) : confirmCancelTx.status === 'CANCELLED' ? (
+                  'Ya, Hapus Permanen'
+                ) : (
+                  'Ya, Batalkan'
+                )}
               </button>
             </div>
           </div>
@@ -814,18 +832,20 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
               Transaksi <strong style={{ color: '#0f172a' }}>#{confirmRestoreTx.transaction_number}</strong> senilai <strong style={{ color: '#10b981' }}>{formatRupiah(confirmRestoreTx.final_total || confirmRestoreTx.total_amount || 0)}</strong> akan dipulihkan ke status <strong style={{ color: '#047857' }}>AKTIF (COMPLETED)</strong> dan stok barang akan dikurangi kembali.
             </p>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem' }}>
+            <div style={{ display: 'flex', flexDirection: cancelLoading ? 'column-reverse' : 'row', gap: '0.65rem' }}>
               <button
                 onClick={() => setConfirmRestoreTx(null)}
                 disabled={cancelLoading}
                 style={{
-                  padding: '0.7rem 1rem',
+                  flex: 1,
+                  padding: '0.75rem 1rem',
                   borderRadius: '12px',
                   border: '1px solid #cbd5e1',
                   background: '#f8fafc',
                   color: '#475569',
                   fontWeight: 800,
                   fontSize: '0.85rem',
+                  opacity: cancelLoading ? 0.5 : 1,
                   cursor: cancelLoading ? 'not-allowed' : 'pointer',
                   transition: 'all 0.15s ease',
                 }}
@@ -837,19 +857,32 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
                 onClick={handleExecuteRestore}
                 disabled={cancelLoading}
                 style={{
-                  padding: '0.7rem 1rem',
+                  flex: cancelLoading ? undefined : 1,
+                  width: cancelLoading ? '100%' : undefined,
+                  padding: '0.75rem 1rem',
                   borderRadius: '12px',
                   border: 'none',
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  background: cancelLoading ? '#94a3b8' : 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
                   color: '#ffffff',
                   fontWeight: 800,
                   fontSize: '0.85rem',
                   cursor: cancelLoading ? 'not-allowed' : 'pointer',
-                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.35)',
+                  boxShadow: cancelLoading ? 'none' : '0 4px 14px rgba(16, 185, 129, 0.35)',
                   transition: 'all 0.15s ease',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
                 }}
               >
-                {cancelLoading ? 'Memproses...' : 'Ya, Kembalikan'}
+                {cancelLoading ? (
+                  <>
+                    <Loader2 size={18} className="spinning" />
+                    <span>Memproses Permintaan Server...</span>
+                  </>
+                ) : (
+                  'Ya, Kembalikan'
+                )}
               </button>
             </div>
           </div>

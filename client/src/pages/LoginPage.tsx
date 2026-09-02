@@ -212,7 +212,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               <h1 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, letterSpacing: '-0.02em', color: '#ffffff' }}>
                 POS Kasir Usaha
               </h1>
-              <span style={{ padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.25)', color: '#60a5fa', fontSize: '0.75rem', fontWeight: 900, border: '1px solid rgba(96, 165, 250, 0.35)' }}>v1.7.4</span>
+              <span style={{ padding: '0.15rem 0.55rem', borderRadius: '12px', background: 'rgba(59, 130, 246, 0.25)', color: '#60a5fa', fontSize: '0.75rem', fontWeight: 900, border: '1px solid rgba(96, 165, 250, 0.35)' }}>v1.7.5</span>
             </div>
             <p style={{ fontSize: '0.875rem', color: '#94a3b8', margin: 0, lineHeight: 1.5, maxWidth: '340px' }}>
               Sistem kasir & manajemen operasional toko dalam satu platform.

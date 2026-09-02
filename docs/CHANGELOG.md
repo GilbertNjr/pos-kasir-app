@@ -4,6 +4,17 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
 
 ---
 
+## [1.7.5] - 3 September 2026
+
+### Added & Enhanced
+- **Visual Server Request Loading Bar Modal (`PaymentSummaryPage.tsx`)**:
+  - Mengganti pesan generik `"Memproses..."` saat menghapus / membatalkan / mengembalikan transaksi dengan indikator transparan **`⏳ Memproses Permintaan Server...`** lengkap dengan ikon animasi `Loader2`.
+  - Mengunci seluruh tombol aksi modal (`Batal` dan tombol aksi utama) secara otomatis saat proses ke server backend sedang berlangsung untuk mencegah *double request*.
+- **Pembaruan Versi Terpusat (v1.7.5)**:
+  - Synchronized seluruh badge versi aplikasi di `LoginPage`, `OwnerSidebar`, `OwnerHeader`, `CashierLayout`, serta file konfig `client/package.json` & `server/package.json`.
+
+---
+
 ## [1.7.4] - 3 September 2026
 
 ### Added & Enhanced
