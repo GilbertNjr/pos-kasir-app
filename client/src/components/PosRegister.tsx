@@ -1878,12 +1878,10 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 type="button"
                 onClick={confirmHoldCart}
                 disabled={holdProcessing}
-                style={{ flex: 1.5, padding: '0.65rem', borderRadius: '8px', border: 'none', background: holdProcessing ? '#cbd5e1' : '#d97706', color: '#ffffff', fontWeight: 800, cursor: holdProcessing ? 'not-allowed' : 'pointer', boxShadow: '0 4px 10px rgba(217,119,6,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
-              >
-                {holdProcessing ? (
+                style={{ flex: 1.5, padding: '0.65rem', borderRadius: '8px', border: 'none', background: holdProcessing ? '#cbd5e1' : '#d97706', color: '#ffffff', fontWeight: 800, cursor: holdProcessing ? 'not-allowed' : 'poin                {holdProcessing ? (
                   <>
                     <Loader2 size={16} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} />
-                    <span>Menahan Order...</span>
+                    <span>Memproses Permintaan Server...</span>
                   </>
                 ) : (
                   <span>⏸️ Simpan di Draft</span>
@@ -1939,7 +1937,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                           style={{ padding: '0.35rem 0.6rem', borderRadius: '6px', border: '1px solid #fecaca', background: deletingHoldId === h.id ? '#e2e8f0' : '#fef2f2', color: deletingHoldId === h.id ? '#64748b' : '#dc2626', fontSize: '0.75rem', fontWeight: 700, cursor: deletingHoldId === h.id || restoringHoldId === h.id ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                         >
                           {deletingHoldId === h.id ? <Loader2 size={12} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} /> : null}
-                          <span>{deletingHoldId === h.id ? 'Hapus...' : 'Hapus'}</span>
+                          <span>{deletingHoldId === h.id ? 'Memproses Server...' : 'Hapus'}</span>
                         </button>
                         <button
                           onClick={() => handleRestoreHeldOrder(h.id)}
@@ -1951,7 +1949,13 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                           ) : (
                             <PlayCircle size={13} />
                           )}
-                          <span>{restoringHoldId === h.id ? 'Memuat kembali...' : 'Muat Kembali'}</span>
+                          <span>{restoringHoldId === h.id ? 'Memproses Permintaan Server...' : 'Muat Kembali'}</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}/span>
                         </button>
                       </div>
                     </div>

@@ -4,6 +4,17 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
 
 ---
 
+## [1.7.6] - 3 September 2026
+
+### Added & Enhanced
+- **Standardized Server Request Loading Indicators across Modals**:
+  - **Tahan Order & Draft (`PosRegister.tsx`)**: Mengganti teks status dengan `⏳ Memproses Permintaan Server...` saat menahan keranjang atau memuat kembali draft order.
+  - **Tutup Shift Modal (`ShiftPage.tsx`)**: Mengganti teks status tombol dengan `⏳ Memproses Permintaan Server...` serta mengunci tombol `Batal` saat rekonsiliasi shift dikirim ke backend.
+- **Pembaruan Versi Terpusat (v1.7.6)**:
+  - Synchronized seluruh versi aplikasi di `LoginPage`, `OwnerSidebar`, `OwnerHeader`, `CashierLayout`, serta file konfig `client/package.json` & `server/package.json`.
+
+---
+
 ## [1.7.5] - 3 September 2026
 
 ### Added & Enhanced

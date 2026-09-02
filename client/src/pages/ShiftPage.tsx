@@ -1000,6 +1000,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                       background: '#ffffff',
                       color: '#475569',
                       fontWeight: 800,
+                      opacity: closeLoading ? 0.5 : 1,
                       cursor: closeLoading ? 'not-allowed' : 'pointer',
                     }}
                   >
@@ -1021,13 +1022,13 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '0.4rem',
-                      boxShadow: '0 4px 14px rgba(220, 38, 38, 0.35)',
+                      boxShadow: closeLoading ? 'none' : '0 4px 14px rgba(220, 38, 38, 0.35)',
                     }}
                   >
                     {closeLoading ? (
                       <>
                         <Loader2 size={18} className="spin-icon" style={{ animation: 'spin 1s linear infinite' }} />
-                        <span>Menutup Shift Sesi...</span>
+                        <span>Memproses Permintaan Server...</span>
                       </>
                     ) : (
                       <>
