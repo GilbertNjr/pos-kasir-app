@@ -2,6 +2,23 @@
 
 Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pengembangan Sistem POS Usaha Campuran (FC/Printing & FNB).
 
+## [1.7.9] - 4 September 2026
+
+### Added & Enhanced
+- **Akurasi & Integritas Laporan Omzet Periode Bulanan & Kasir (`ReportService.ts` & `timezoneUtils.ts`)**:
+  - Mengimplementasikan *Flexible User Resolver* di backend untuk mencocokkan `user_id`, `username`, dan `full_name` kasir secara otomatis saat penyaringan laporan individual.
+  - Memperbarui `parseAsWIBDate` agar mampu membaca berbagai format timestamp tanggal tanpa kehilangan data omzet pada filter Bulanan, Mingguan, dan Tahunan.
+- **Deteksi Tim Bertugas Shift Multi-Source (`ReportsPage.tsx`)**:
+  - Menggabungkan data tim bertugas dari 4 sumber (*performance logs*, *transactions*, *shift history*, dan *current user*) agar nama seluruh kasir yang bertugas di shift tersebut selalu tercantum pada ekspor struk laporan offline.
+- **Pembaruan Filter Kasir Laporan (`ReportsPage.tsx`)**:
+  - Mengubah default filter Kasir / Pengguna saat pertama kali halaman laporan dibuka menjadi **Semua Kasir** (`selectedUser = ''`).
+  - Menghapus akun dengan role **OWNER** dari daftar dropdown pilihan filter kasir karena Owner tidak melakukan transaksi operasional.
+  - Memfilter dan menghapus akun **OWNER** dari baris tabel *Laporan Performa Penjualan & Pengeluaran Per Karyawan / Kasir*.
+- **Pembaruan Versi Terpusat (v1.7.9)**:
+  - Synchronized seluruh versi aplikasi di `LoginPage`, `OwnerSidebar`, `OwnerHeader`, `CashierLayout`, serta file konfig `client/package.json` & `server/package.json`.
+
+---
+
 ## [1.7.8] - 3 September 2026
 
 ### Added & Enhanced
