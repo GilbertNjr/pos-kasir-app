@@ -603,9 +603,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
       ]);
 
       const hiddenIds = getHiddenEmployeeIds();
-      if (data && Array.isArray(data.employee_performance) && hiddenIds.length > 0) {
+      if (data && Array.isArray(data.employee_performance)) {
         data.employee_performance = data.employee_performance.filter(
-          (emp: any) => !hiddenIds.includes(emp.user_id)
+          (emp: any) => (emp.role || '').toUpperCase() !== 'OWNER' && !hiddenIds.includes(emp.user_id)
         );
       }
 

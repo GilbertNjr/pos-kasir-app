@@ -197,6 +197,7 @@ export class ReportService {
     // Performa Kasir / Karyawan
     const empMap = new Map<string, EmployeePerformanceSummary>();
     for (const u of allUsers) {
+      if ((u.role || '').toUpperCase() === 'OWNER') continue;
       empMap.set(u.user_id, {
         user_id: u.user_id,
         username: u.username,
