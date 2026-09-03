@@ -3,6 +3,12 @@ import { ShiftUserRepository } from '../repositories/ShiftUserRepository';
 import { ShiftCapitalContributionRepository } from '../repositories/ShiftCapitalContributionRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { ShiftEntity, ShiftCapitalContributionEntity, ReconciliationStatus } from '../types/domain';
+import {
+  transactionRepository,
+  transactionItemRepository,
+  productRepository,
+  expenseRepository,
+} from '../repositories/sharedRepositories';
 
 import { BackupService } from './BackupService';
 
@@ -68,6 +74,100 @@ export class ShiftService {
       contributions,
       shift_users: detailedShiftUsers,
       usersCount: detailedShiftUsers.length,
+    };
+  }
+
+  async getShiftHistory(): Promise<any[]> {
+    const shifts = await this.shiftRepository.findAll();
+    const allUsers = this.userRepository ? await this.userRepository.findAll() : [];
+    const allTxs = await transactionRepository.findAll();
+    const allExps = await expenseRepository.findAll();
+
+    const userMap = new Map<string, string>();
+    for (const u of allUsers) {
+      userMap.set(u.user_id, u.full_name);
+    }
+
+    const history = shifts.map((s) => {
+      const shiftTxs = allTxs.filter(
+        (t) => t.shift_id === s.shift_id && (t.status || 'COMPLETED').toUpperCase() !== 'CANCELLED'
+      );
+      const shiftExps = allExps.filter((e) => e.shift_id === s.shift_id);
+
+      const totalSales = shiftTxs.reduce((sum, t) => sum + Number(t.final_total || 0), 0);
+      const totalExpenses = shiftExps.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+      return {
+        ...s,
+        opened_by_user_name: userMap.get(s.opened_by_user_id) || s.opened_by_user_id,
+        closed_by_user_name: s.closed_by_user_id ? (userMap.get(s.closed_by_user_id) || s.closed_by_user_id) : '-',
+        transaction_count: shiftTxs.length,
+        total_sales: totalSales,
+        total_expenses: totalExpenses,
+        net_setoran: totalSales - totalExpenses,
+      };
+    });
+
+    return history;
+  }
+
+  async getShiftDetails(shift_id: string): Promise<any> {
+    const shift = await this.shiftRepository.findById(shift_id);
+    if (!shift) throw new Error('Shift tidak ditemukan');
+
+    const allUsers = this.userRepository ? await this.userRepository.findAll() : [];
+    const allTxs = await transactionRepository.findAll();
+    const allItems = await transactionItemRepository.findAll();
+    const allProducts = await productRepository.findAll();
+    const allExps = await expenseRepository.findAll();
+    const contributions = await this.capitalRepository.findByShiftId(shift_id);
+    const shiftUsers = await this.shiftUserRepository.findByShiftId(shift_id);
+
+    const userMap = new Map<string, string>();
+    for (const u of allUsers) {
+      userMap.set(u.user_id, u.full_name);
+    }
+
+    const prodMap = new Map<string, any>();
+    for (const p of allProducts) {
+      prodMap.set(p.product_id, p);
+    }
+
+    const itemsByTxMap = new Map<string, any[]>();
+    for (const item of allItems) {
+      const prod = prodMap.get(item.product_id);
+      const enrichedItem = {
+        ...item,
+        product_name: prod ? prod.product_name : 'Produk',
+      };
+      if (!itemsByTxMap.has(item.transaction_id)) {
+        itemsByTxMap.set(item.transaction_id, []);
+      }
+      itemsByTxMap.get(item.transaction_id)!.push(enrichedItem);
+    }
+
+    const shiftTxs = allTxs
+      .filter((t) => t.shift_id === shift_id && (t.status || 'COMPLETED').toUpperCase() !== 'CANCELLED')
+      .map((tx) => ({
+        ...tx,
+        items: itemsByTxMap.get(tx.transaction_id) || [],
+      }));
+
+    const shiftExps = allExps.filter((e) => e.shift_id === shift_id);
+
+    const detailedShiftUsers = shiftUsers.map((su) => ({
+      ...su,
+      full_name: userMap.get(su.user_id) || su.user_id,
+    }));
+
+    return {
+      shift,
+      opened_by_user_name: userMap.get(shift.opened_by_user_id) || shift.opened_by_user_id,
+      closed_by_user_name: shift.closed_by_user_id ? (userMap.get(shift.closed_by_user_id) || shift.closed_by_user_id) : '-',
+      transactions: shiftTxs,
+      expenses: shiftExps,
+      contributions,
+      shift_users: detailedShiftUsers,
     };
   }
 
@@ -267,3 +367,4 @@ export class ShiftService {
     return updated!;
   }
 }
+

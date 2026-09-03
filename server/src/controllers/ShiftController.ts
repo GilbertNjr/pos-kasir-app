@@ -19,6 +19,25 @@ export class ShiftController {
     }
   };
 
+  public getShiftHistory = async (_req: AuthenticatedRequest, res: Response) => {
+    try {
+      const history = await this.shiftService.getShiftHistory();
+      return res.status(200).json({ data: history });
+    } catch (error: any) {
+      return res.status(500).json({ error: error.message || 'Gagal mengambil riwayat shift' });
+    }
+  };
+
+  public getShiftDetails = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { shift_id } = req.params;
+      const details = await this.shiftService.getShiftDetails(shift_id);
+      return res.status(200).json({ data: details });
+    } catch (error: any) {
+      return res.status(404).json({ error: error.message || 'Detail shift tidak ditemukan' });
+    }
+  };
+
   public openShift = async (req: AuthenticatedRequest, res: Response) => {
     try {
       if (!req.user) return res.status(401).json({ error: 'Tidak terautentikasi' });

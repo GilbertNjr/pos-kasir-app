@@ -466,6 +466,28 @@ export const apiService = {
     return result.data;
   },
 
+  async getShiftHistory(): Promise<any[]> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/shifts/history`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Gagal mengambil riwayat sesi shift');
+    return result.data;
+  },
+
+  async getShiftDetails(shiftId: string): Promise<any> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/shifts/${shiftId}/details`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Gagal mengambil detail sesi shift');
+    return result.data;
+  },
+
   /* TRANSACTION API SERVICES */
   async createTransaction(
     paymentMethod: PaymentMethod,

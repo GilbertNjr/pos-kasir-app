@@ -16,13 +16,14 @@ import {
   AlertTriangle,
   ChevronLeft,
   ChevronRight,
+  Clock,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { User } from '../types';
-import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
+import { formatRupiah, formatWaktuIndo, formatDateIndoFull } from '../utils/formatters';
 import { CashierBadge } from '../components/common/CashierBadge';
 import { TransactionDetailModal } from '../components/common/TransactionDetailModal';
-import { exportShiftToExcel, printShiftPDF } from '../utils/shiftReportExporter';
+import { exportShiftToExcel, printShiftPDF, formatShiftDurationText } from '../utils/shiftReportExporter';
 import { exportStockToExcel, printStockPDF } from '../utils/stockReportExporter';
 import { getStoredBrandingProfile } from '../utils/storeBrandingHelper';
 
@@ -292,11 +293,108 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('ALL');
   const [lineChartMode, setLineChartMode] = useState<'Per Jam' | 'Harian'>('Per Jam');
 
-  // Sub-Tab Switcher State: Laporan Shift & Penjualan vs Laporan Stok & Inventaris
-  const [activeReportSubTab, setActiveReportSubTab] = useState<'SHIFT_SALES' | 'STOCKS_LOG'>('SHIFT_SALES');
+  // Sub-Tab Switcher State: Laporan Shift & Penjualan vs Laporan Stok & Inventaris vs Riwayat Sesi Shift
+  const [activeReportSubTab, setActiveReportSubTab] = useState<'SHIFT_SALES' | 'STOCKS_LOG' | 'SHIFT_HISTORY'>('SHIFT_SALES');
   const [stockList, setStockList] = useState<any[]>([]);
   const [stockAuditLogs, setStockAuditLogs] = useState<any[]>([]);
   const [expenseList, setExpenseList] = useState<any[]>([]);
+
+  // Shift History State
+  const [shiftHistoryList, setShiftHistoryList] = useState<any[]>([]);
+  const [loadingShiftHistory, setLoadingShiftHistory] = useState<boolean>(false);
+  const [printingShiftId, setPrintingShiftId] = useState<string | null>(null);
+
+  const loadShiftHistory = async () => {
+    setLoadingShiftHistory(true);
+    try {
+      const history = await apiService.getShiftHistory();
+      setShiftHistoryList(history || []);
+    } catch (err: any) {
+      console.error('Gagal memuat riwayat shift:', err);
+    } finally {
+      setLoadingShiftHistory(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeReportSubTab === 'SHIFT_HISTORY') {
+      loadShiftHistory();
+    }
+  }, [activeReportSubTab]);
+
+  const handlePrintSpecificShift = async (shiftId: string) => {
+    try {
+      setPrintingShiftId(shiftId);
+      const details = await apiService.getShiftDetails(shiftId);
+      if (!details || !details.shift) {
+        throw new Error('Data shift tidak ditemukan');
+      }
+
+      const s = details.shift;
+      const dutyUsers = details.shift_users && details.shift_users.length > 0
+        ? details.shift_users.map((u: any) => u.full_name || u.user_id)
+        : (s.duty_staff_names ? String(s.duty_staff_names).split(',').map((n: string) => n.trim()) : [details.opened_by_user_name]);
+
+      printShiftPDF({
+        storeName: storeName || 'Kedai POS',
+        dateStr: s.start_time ? formatDateIndoFull(s.start_time) : '-',
+        shiftId: s.shift_category || s.shift_id,
+        dutyUsers,
+        currentUserFullName: details.opened_by_user_name || currentUser.full_name,
+        transactions: details.transactions || [],
+        expenses: details.expenses || [],
+        startTime: s.start_time,
+        endTime: s.end_time,
+      });
+
+      if (onTriggerToast) {
+        onTriggerToast('success', 'Struk Shift Dicetak', `Struk untuk ${s.shift_category || s.shift_id} berhasil dicetak.`);
+      }
+    } catch (err: any) {
+      if (onTriggerToast) {
+        onTriggerToast('danger', 'Gagal Cetak Shift', err.message || 'Gagal memuat data detail shift');
+      }
+    } finally {
+      setPrintingShiftId(null);
+    }
+  };
+
+  const handleExportSpecificShiftExcel = async (shiftId: string) => {
+    try {
+      setPrintingShiftId(shiftId);
+      const details = await apiService.getShiftDetails(shiftId);
+      if (!details || !details.shift) {
+        throw new Error('Data shift tidak ditemukan');
+      }
+
+      const s = details.shift;
+      const dutyUsers = details.shift_users && details.shift_users.length > 0
+        ? details.shift_users.map((u: any) => u.full_name || u.user_id)
+        : (s.duty_staff_names ? String(s.duty_staff_names).split(',').map((n: string) => n.trim()) : [details.opened_by_user_name]);
+
+      exportShiftToExcel({
+        storeName: storeName || 'Kedai POS',
+        dateStr: s.start_time ? formatDateIndoFull(s.start_time) : '-',
+        shiftId: s.shift_category || s.shift_id,
+        dutyUsers,
+        currentUserFullName: details.opened_by_user_name || currentUser.full_name,
+        transactions: details.transactions || [],
+        expenses: details.expenses || [],
+        startTime: s.start_time,
+        endTime: s.end_time,
+      });
+
+      if (onTriggerToast) {
+        onTriggerToast('success', 'Excel Shift Diunduh', `Laporan Excel untuk ${s.shift_category || s.shift_id} berhasil diunduh.`);
+      }
+    } catch (err: any) {
+      if (onTriggerToast) {
+        onTriggerToast('danger', 'Gagal Export Excel', err.message || 'Gagal memuat data detail shift');
+      }
+    } finally {
+      setPrintingShiftId(null);
+    }
+  };
 
   // Pagination State for Laporan Inventaris Stok & Pergerakan Barang
   const [stockCurrentPage, setStockCurrentPage] = useState<number>(1);
@@ -929,6 +1027,21 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
             <ShoppingBag size={15} color={activeReportSubTab === 'STOCKS_LOG' ? '#2563eb' : '#64748b'} />
             Laporan Stok & Restok
           </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveReportSubTab('SHIFT_HISTORY')}
+            className="responsive-tab-button"
+            style={{
+              border: activeReportSubTab === 'SHIFT_HISTORY' ? '1px solid #cbd5e1' : 'none',
+              background: activeReportSubTab === 'SHIFT_HISTORY' ? '#ffffff' : 'transparent',
+              color: activeReportSubTab === 'SHIFT_HISTORY' ? '#2563eb' : '#64748b',
+              boxShadow: activeReportSubTab === 'SHIFT_HISTORY' ? '0 1px 4px rgba(0,0,0,0.08)' : 'none',
+            }}
+          >
+            <Clock size={15} color={activeReportSubTab === 'SHIFT_HISTORY' ? '#2563eb' : '#64748b'} />
+            Riwayat Sesi Shift
+          </button>
         </div>
 
         {/* Right Side: Export & Print Action Buttons */}
@@ -988,7 +1101,169 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
 
 
 
-      {activeReportSubTab === 'STOCKS_LOG' ? (
+      {activeReportSubTab === 'SHIFT_HISTORY' ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '24px', border: '1px solid #e2e8f0', boxShadow: '0 10px 30px rgba(0,0,0,0.03)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  🕒 Riwayat Sesi Shift Kasir (Shift History)
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.25rem 0 0 0' }}>
+                  Daftar seluruh sesi shift yang pernah dibuka & ditutup. Gunakan fitur cetak ulang jika kasir lupa mencetak struk saat penutupan shift.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={loadShiftHistory}
+                style={{
+                  padding: '0.5rem 0.9rem',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  background: '#f8fafc',
+                  color: '#334155',
+                  fontSize: '0.8rem',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                }}
+              >
+                🔄 Refresh Shift
+              </button>
+            </div>
+
+            {loadingShiftHistory ? (
+              <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+                Memuat riwayat sesi shift...
+              </div>
+            ) : shiftHistoryList.length === 0 ? (
+              <div style={{ padding: '3rem', textAlign: 'center', color: '#94a3b8' }}>
+                Belum ada riwayat sesi shift yang dicatat di database.
+              </div>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', textTransform: 'uppercase', fontSize: '0.72rem', textAlign: 'left' }}>
+                      <th style={{ padding: '0.75rem 0.5rem' }}>Sesi & Tanggal Shift</th>
+                      <th style={{ padding: '0.75rem 0.5rem' }}>Kasir Lead / PJ</th>
+                      <th style={{ padding: '0.75rem 0.5rem' }}>Tim Bertugas</th>
+                      <th style={{ padding: '0.75rem 0.5rem' }}>Jam Operasional</th>
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Status</th>
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Total Omzet</th>
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Pengeluaran Kas</th>
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Setoran Murni</th>
+                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Aksi Struk Snapshot</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shiftHistoryList.map((shift: any) => {
+                      const isActive = shift.shift_status === 'ACTIVE';
+                      const isPrintingThis = printingShiftId === shift.shift_id;
+                      const durationStr = formatShiftDurationText(shift.start_time, shift.end_time);
+
+                      return (
+                        <tr key={shift.shift_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '0.75rem 0.5rem', fontWeight: 800, color: '#0f172a' }}>
+                            <div>{shift.shift_category || 'Shift Pagi'}</div>
+                            <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 500 }}>
+                              {shift.start_time ? formatDateIndoFull(shift.start_time) : '-'}
+                            </div>
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem' }}>
+                            <CashierBadge name={shift.opened_by_user_name || shift.opened_by_user_id} role="LEAD" size="sm" />
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem', fontSize: '0.78rem', color: '#334155' }}>
+                            {shift.duty_staff_names || shift.opened_by_user_name || '-'}
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem', fontSize: '0.78rem', color: '#475569' }}>
+                            {durationStr || (shift.start_time ? formatWaktuIndo(shift.start_time) : '-')}
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>
+                            <span
+                              style={{
+                                padding: '0.2rem 0.6rem',
+                                borderRadius: '999px',
+                                fontSize: '0.7rem',
+                                fontWeight: 800,
+                                background: isActive ? '#dcfce7' : '#f1f5f9',
+                                color: isActive ? '#15803d' : '#64748b',
+                                border: isActive ? '1px solid #86efac' : '1px solid #cbd5e1',
+                              }}
+                            >
+                              {isActive ? '● ACTIVE' : 'CLOSED'}
+                            </span>
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 800, color: '#2563eb' }}>
+                            {formatRupiah(shift.total_sales || 0)}
+                            <div style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: 500 }}>{shift.transaction_count || 0} tx</div>
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 800, color: '#dc2626' }}>
+                            -{formatRupiah(shift.total_expenses || 0)}
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem', textAlign: 'right', fontWeight: 900, color: '#047857' }}>
+                            {formatRupiah(shift.net_setoran || 0)}
+                          </td>
+                          <td style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>
+                            <div style={{ display: 'flex', gap: '0.35rem', justifyContent: 'center' }}>
+                              <button
+                                type="button"
+                                disabled={isPrintingThis}
+                                onClick={() => handlePrintSpecificShift(shift.shift_id)}
+                                title="Cetak Ulang Struk Shift Spesifik"
+                                style={{
+                                  padding: '0.35rem 0.65rem',
+                                  borderRadius: '8px',
+                                  border: '1px solid #059669',
+                                  background: '#ecfdf5',
+                                  color: '#047857',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.3rem',
+                                }}
+                              >
+                                <Printer size={13} />
+                                {isPrintingThis ? 'Proses...' : 'Cetak Struk'}
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isPrintingThis}
+                                onClick={() => handleExportSpecificShiftExcel(shift.shift_id)}
+                                title="Export Excel Sesi Shift Spesifik"
+                                style={{
+                                  padding: '0.35rem 0.65rem',
+                                  borderRadius: '8px',
+                                  border: '1px solid #cbd5e1',
+                                  background: '#ffffff',
+                                  color: '#334155',
+                                  fontSize: '0.75rem',
+                                  fontWeight: 700,
+                                  cursor: 'pointer',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '0.3rem',
+                                }}
+                              >
+                                <FileText size={13} color="#059669" />
+                                Excel
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : activeReportSubTab === 'STOCKS_LOG' ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           {/* Stock Metrics 4-Cards (RESPONSIVE: 2x2 Grid on Mobile, 4 Cols on Desktop) */}
           <div className="responsive-summary-2x2-grid">
