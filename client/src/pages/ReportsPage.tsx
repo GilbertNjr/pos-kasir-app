@@ -623,12 +623,8 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
   useEffect(() => {
     loadUsers();
     loadShiftHistory();
-    if (currentUser && currentUser.role !== 'OWNER' && !currentUser.is_pj) {
-      setSelectedUser(currentUser.user_id);
-      loadReport(currentUser.user_id);
-    } else {
-      loadReport();
-    }
+    setSelectedUser('');
+    loadReport('');
   }, []);
 
   const handleApplyFilter = (e: React.FormEvent) => {
@@ -829,12 +825,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
               onChange={(e) => setSelectedUser(e.target.value)}
               style={{ width: '100%', padding: '0.55rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a' }}
             >
-              <option value="">Semua Kasir & Owner</option>
-              {usersList.map((u) => (
-                <option key={u.user_id} value={u.user_id}>
-                  {u.full_name} ({u.role})
-                </option>
-              ))}
+              <option value="">Semua Kasir</option>
+              {usersList
+                .filter((u) => (u.role || '').toUpperCase() !== 'OWNER')
+                .map((u) => (
+                  <option key={u.user_id} value={u.user_id}>
+                    {u.full_name} ({u.role})
+                  </option>
+                ))}
             </select>
           </div>
 
