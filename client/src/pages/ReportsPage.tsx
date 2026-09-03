@@ -487,6 +487,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
 
   const getDutyUsersList = () => {
     const set = new Set<string>();
+
+    // 1. Check employee_performance summary in reportData
+    if (reportData?.employee_performance && Array.isArray(reportData.employee_performance)) {
+      reportData.employee_performance.forEach((emp: any) => {
+        if (emp.full_name && !emp.full_name.startsWith('usr-')) {
+          set.add(emp.full_name);
+        }
+      });
+    }
+
+    // 2. Check transactions list in reportData
     const txs = reportData?.transactions || [];
     txs.forEach((tx: any) => {
       if (tx.created_by_user_id) {
@@ -497,6 +508,25 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
         set.add(tx.created_by_user_name);
       }
     });
+
+    // 3. Check shift history & active shift duty staff
+    if (Array.isArray(shiftHistoryList)) {
+      shiftHistoryList.forEach((s: any) => {
+        if (s.duty_staff_names) {
+          const names = String(s.duty_staff_names).split(',').map((n: string) => n.replace(/\s*\([^)]*\)/g, '').trim()).filter(Boolean);
+          names.forEach((n: string) => set.add(n));
+        }
+        if (s.opened_by_user_name && !s.opened_by_user_name.startsWith('usr-')) {
+          set.add(s.opened_by_user_name);
+        }
+      });
+    }
+
+    // 4. Always include currentUser if logged in
+    if (currentUser?.full_name) {
+      set.add(currentUser.full_name);
+    }
+
     return set.size > 0 ? Array.from(set) : [currentUser.full_name];
   };
 
@@ -592,6 +622,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
 
   useEffect(() => {
     loadUsers();
+    loadShiftHistory();
     if (currentUser && currentUser.role !== 'OWNER' && !currentUser.is_pj) {
       setSelectedUser(currentUser.user_id);
       loadReport(currentUser.user_id);
