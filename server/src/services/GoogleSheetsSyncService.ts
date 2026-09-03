@@ -121,21 +121,65 @@ export class GoogleSheetsSyncService {
       },
     ];
 
+    // 1. Coba Single Batch Update (1 Request HTTP untuk seluruh 8 tab -> Efisiensi Kuota API 87.5%)
+    try {
+      const dataPayload = tabsMapping.map((item) => ({
+        range: `${item.tab}!A1`,
+        values: [item.headers, ...item.rows],
+      }));
+
+      await this.executeWithRetry(async () => {
+        await sheets.spreadsheets.values.batchUpdate({
+          spreadsheetId,
+          requestBody: {
+            valueInputOption: 'USER_ENTERED',
+            data: dataPayload,
+          },
+        });
+      });
+
+      return { success: true, synced_tabs: tabsMapping.map((t) => t.tab) };
+    } catch (batchErr: any) {
+      console.warn('[GoogleSheetsSyncService] Batch update gagal/terkendala, beralih ke mode throttled per-tab fallback:', batchErr.message);
+    }
+
+    // 2. Fallback Mode: Update Per-Tab dengan Throttling 250ms per request (Mencegah Error 429)
     for (const item of tabsMapping) {
       try {
         const values = [item.headers, ...item.rows];
-        await sheets.spreadsheets.values.update({
-          spreadsheetId,
-          range: `${item.tab}!A1`,
-          valueInputOption: 'USER_ENTERED',
-          requestBody: { values },
+        await this.executeWithRetry(async () => {
+          await sheets.spreadsheets.values.update({
+            spreadsheetId,
+            range: `${item.tab}!A1`,
+            valueInputOption: 'USER_ENTERED',
+            requestBody: { values },
+          });
         });
         syncedTabs.push(item.tab);
+        // Delay 250ms aman untuk throttle kuota API
+        await new Promise((resolve) => setTimeout(resolve, 250));
       } catch (err: any) {
         console.warn(`[GoogleSheetsSyncService] Skip tab '${item.tab}':`, err.message);
       }
     }
 
     return { success: true, synced_tabs: syncedTabs };
+  }
+
+  /**
+   * Helper Utilitas Retry dengan Exponential Backoff (Mencegah HTTP 429 Rate Limit)
+   */
+  private async executeWithRetry<T>(fn: () => Promise<T>, retries = 3, delayMs = 1000): Promise<T> {
+    try {
+      return await fn();
+    } catch (err: any) {
+      const isRateLimit = err?.status === 429 || String(err?.message || '').includes('429') || String(err?.message || '').toLowerCase().includes('quota');
+      if (retries > 0 && isRateLimit) {
+        console.warn(`[GoogleSheetsSyncService] Rate limit HTTP 429 terdeteksi. Mencoba kembali dalam ${delayMs}ms... (${retries} percobaan tersisa)`);
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        return this.executeWithRetry(fn, retries - 1, delayMs * 2);
+      }
+      throw err;
+    }
   }
 }
