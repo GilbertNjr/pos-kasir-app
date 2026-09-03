@@ -22,7 +22,7 @@ import { User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { CashierBadge } from '../components/common/CashierBadge';
 import { TransactionDetailModal } from '../components/common/TransactionDetailModal';
-import { exportShiftToExcel, printShiftA4PDF } from '../utils/shiftReportExporter';
+import { exportShiftToExcel, printShiftPDF } from '../utils/shiftReportExporter';
 import { exportStockToExcel, printStockPDF } from '../utils/stockReportExporter';
 import { getStoredBrandingProfile } from '../utils/storeBrandingHelper';
 
@@ -396,7 +396,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
         ? (reportData?.transactions || []).filter((tx: any) => tx.created_by_user_id === activeUserFilter || tx.created_by === activeUserFilter || tx.user_id === activeUserFilter)
         : (reportData?.transactions || []);
       const exportExps = activeUserFilter
-        ? (expenseList || []).filter((exp: any) => exp.recorded_by_user_id === activeUserFilter || exp.created_by_user_id === activeUserFilter || exp.user_id === activeUserFilter || exp.recorded_by === activeUserFilter)
+        ? (expenseList || []).filter((exp: any) => exp.created_by_user_id === activeUserFilter || exp.user_id === activeUserFilter || exp.recorded_by === activeUserFilter)
         : (expenseList || []);
 
       const activeUserObj = usersList.find((u) => u.user_id === activeUserFilter);
@@ -491,12 +491,12 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
         ? (reportData?.transactions || []).filter((tx: any) => tx.created_by_user_id === activeUserFilter || tx.created_by === activeUserFilter || tx.user_id === activeUserFilter)
         : (reportData?.transactions || []);
       const exportExps = activeUserFilter
-        ? (expenseList || []).filter((exp: any) => exp.recorded_by_user_id === activeUserFilter || exp.created_by_user_id === activeUserFilter || exp.user_id === activeUserFilter || exp.recorded_by === activeUserFilter)
+        ? (expenseList || []).filter((exp: any) => exp.created_by_user_id === activeUserFilter || exp.user_id === activeUserFilter || exp.recorded_by === activeUserFilter)
         : (expenseList || []);
 
       const activeUserObj = usersList.find((u) => u.user_id === activeUserFilter);
 
-      printShiftA4PDF({
+      printShiftPDF({
         storeName: storeName || 'Kedai POS',
         dateStr: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
         shiftId: periodType === 'DAILY' ? 'Hari Ini' : `Periode ${periodType}`,

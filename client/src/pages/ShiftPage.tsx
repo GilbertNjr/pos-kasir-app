@@ -4,7 +4,7 @@ import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User, Product } from '../types';
 import { formatRupiah, formatDateIndoFull } from '../utils/formatters';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
-import { exportShiftToExcel, printShiftA4PDF } from '../utils/shiftReportExporter';
+import { exportShiftToExcel, printShiftPDF } from '../utils/shiftReportExporter';
 
 interface ShiftPageProps {
   currentUser: User;
@@ -332,7 +332,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
       const shiftLabel = storedMeta?.shiftCategory || activeShiftData.shift.shift_category || storedMeta?.shiftName || 'Shift Operasional';
 
-      printShiftA4PDF({
+      printShiftPDF({
         storeName: storeName || 'Kedai POS',
         dateStr: formatDateIndoFull(storedMeta?.date || activeShiftData.shift.start_time, storedMeta?.time),
         shiftId: shiftLabel,
