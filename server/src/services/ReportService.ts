@@ -185,7 +185,16 @@ export class ReportService {
     }
 
     for (const tx of filteredTransactions) {
-      const emp = empMap.get(tx.created_by_user_id);
+      const empId = tx.created_by_user_id || (tx as any).created_by || (tx as any).user_id;
+      let emp = empMap.get(empId);
+      if (!emp && empId) {
+        const matchedUser = allUsers.find(
+          (u) => u.user_id === empId || u.username === empId || u.full_name.toLowerCase() === String(empId).toLowerCase()
+        );
+        if (matchedUser) {
+          emp = empMap.get(matchedUser.user_id);
+        }
+      }
       if (emp) {
         emp.transaction_count += 1;
         emp.total_sales += tx.final_total;
@@ -196,8 +205,16 @@ export class ReportService {
     }
 
     for (const exp of filteredExpenses) {
-      const empId = exp.recorded_by_user_id || (exp as any).user_id || (exp as any).created_by_user_id;
-      const emp = empMap.get(empId);
+      const empId = exp.recorded_by_user_id || (exp as any).user_id || (exp as any).created_by_user_id || (exp as any).recorded_by;
+      let emp = empMap.get(empId);
+      if (!emp && empId) {
+        const matchedUser = allUsers.find(
+          (u) => u.user_id === empId || u.username === empId || u.full_name.toLowerCase() === String(empId).toLowerCase()
+        );
+        if (matchedUser) {
+          emp = empMap.get(matchedUser.user_id);
+        }
+      }
       if (emp) {
         emp.recorded_expenses_amount += Number(exp.amount || 0);
       }
@@ -226,9 +243,15 @@ export class ReportService {
       items: itemsByTxMap.get(tx.transaction_id) || [],
     }));
 
-    const employee_performance = Array.from(empMap.values()).filter(
-      (e) => e.transaction_count > 0 || e.recorded_expenses_amount > 0
-    );
+    let employee_performance = Array.from(empMap.values()).filter((e) => {
+      if (filter.user_id) return e.user_id === filter.user_id;
+      return e.transaction_count > 0 || e.recorded_expenses_amount > 0;
+    });
+
+    if (employee_performance.length === 0 && !filter.user_id) {
+      employee_performance = Array.from(empMap.values());
+    }
+
 
     return {
       summary: {
