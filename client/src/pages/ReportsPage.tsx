@@ -501,16 +501,19 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
   };
 
   const getExportDateStr = (exportTxs: any[]) => {
+    if (periodType === 'DAILY') {
+      return formatDateIndoFull(new Date());
+    }
     if (exportTxs.length > 0 && (exportTxs[0].transaction_time || exportTxs[0].created_at)) {
       try {
         const rawDate = exportTxs[0].transaction_time || exportTxs[0].created_at;
         const d = new Date(rawDate);
         if (!isNaN(d.getTime())) {
-          return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+          return formatDateIndoFull(d);
         }
       } catch {}
     }
-    return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return formatDateIndoFull(new Date());
   };
 
   const handleExportExcel = () => {

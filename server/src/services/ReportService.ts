@@ -103,11 +103,18 @@ export class ReportService {
       const rawDateStr = tx.transaction_time || (tx as any).created_at || (tx as any).date;
       const txTime = parseAsWIBDate(rawDateStr);
 
-      if (txTime && !isNaN(txTime.getTime())) {
-        if (startDate && txTime < startDate) return false;
-        if (endDate && txTime > endDate) return false;
+      if (startDate && endDate) {
+        if (!txTime || isNaN(txTime.getTime())) return false;
+        if (txTime < startDate || txTime > endDate) return false;
       }
-      if (filter.user_id && tx.created_by_user_id !== filter.user_id) return false;
+      if (
+        filter.user_id &&
+        tx.created_by_user_id !== filter.user_id &&
+        (tx as any).created_by !== filter.user_id &&
+        (tx as any).user_id !== filter.user_id
+      ) {
+        return false;
+      }
       if (filter.shift_id && tx.shift_id !== filter.shift_id) return false;
       if (filter.payment_method && filter.payment_method !== 'ALL' && tx.payment_method !== filter.payment_method) {
         return false;
@@ -127,17 +134,13 @@ export class ReportService {
       const rawDateStr = exp.expense_time || (exp as any).created_at || (exp as any).date;
       const expTime = parseAsWIBDate(rawDateStr);
 
-      if (expTime && !isNaN(expTime.getTime())) {
-        if (startDate && expTime < startDate) return false;
-        if (endDate && expTime > endDate) return false;
+      if (startDate && endDate) {
+        if (!expTime || isNaN(expTime.getTime())) return false;
+        if (expTime < startDate || expTime > endDate) return false;
       }
-      if (
-        filter.user_id &&
-        exp.recorded_by_user_id !== filter.user_id &&
-        (exp as any).user_id !== filter.user_id &&
-        (exp as any).created_by_user_id !== filter.user_id
-      ) {
-        return false;
+      if (filter.user_id) {
+        const expUserId = exp.recorded_by_user_id || (exp as any).user_id || (exp as any).created_by_user_id || (exp as any).recorded_by;
+        if (expUserId !== filter.user_id) return false;
       }
       if (filter.shift_id && exp.shift_id !== filter.shift_id) return false;
 
