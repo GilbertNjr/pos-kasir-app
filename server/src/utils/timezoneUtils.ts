@@ -82,17 +82,32 @@ export function getWIBDateRange(
  * Safely parse date strings into Date objects, ensuring strings without explicit timezone offsets
  * are treated as WIB (UTC+7) time so server-side comparisons remain accurate.
  */
-export function parseAsWIBDate(dateInput?: string | Date | null): Date | null {
+export function parseAsWIBDate(dateInput?: string | number | Date | null): Date | null {
   if (!dateInput) return null;
   if (dateInput instanceof Date) return isNaN(dateInput.getTime()) ? null : dateInput;
+  if (typeof dateInput === 'number') {
+    const d = new Date(dateInput);
+    return isNaN(d.getTime()) ? null : d;
+  }
 
   const str = String(dateInput).trim();
   if (!str) return null;
 
+  // Check numeric timestamp string
+  if (/^\d{10,13}$/.test(str)) {
+    const num = Number(str);
+    const d = new Date(num > 9999999999 ? num : num * 1000);
+    if (!isNaN(d.getTime())) return d;
+  }
+
+  // Try direct Date parse first
+  const directD = new Date(str);
+  if (!isNaN(directD.getTime())) return directD;
+
   // ISO string with timezone (Z or +XX:XX or -XX:XX offset)
   if (str.includes('Z') || /[+-]\d{2}:\d{2}$/.test(str)) {
     const d = new Date(str);
-    return isNaN(d.getTime()) ? null : d;
+    if (!isNaN(d.getTime())) return d;
   }
 
   // String without timezone like "2026-09-04 01:18:00" or "2026-09-04T01:18:00"

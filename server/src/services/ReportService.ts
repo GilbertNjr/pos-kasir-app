@@ -99,6 +99,24 @@ export class ReportService {
       filter.end_date
     );
 
+    // Resolve target user if filter.user_id is provided
+    let targetUser: any = null;
+    let allowedUserKeys = new Set<string>();
+    if (filter.user_id) {
+      targetUser = allUsers.find(
+        (u) =>
+          u.user_id === filter.user_id ||
+          u.username === filter.user_id ||
+          u.full_name.toLowerCase() === String(filter.user_id).toLowerCase()
+      );
+      allowedUserKeys.add(String(filter.user_id).toLowerCase());
+      if (targetUser) {
+        if (targetUser.user_id) allowedUserKeys.add(String(targetUser.user_id).toLowerCase());
+        if (targetUser.username) allowedUserKeys.add(String(targetUser.username).toLowerCase());
+        if (targetUser.full_name) allowedUserKeys.add(String(targetUser.full_name).toLowerCase());
+      }
+    }
+
     const filteredTransactions = completedTx.filter((tx) => {
       const rawDateStr = tx.transaction_time || (tx as any).created_at || (tx as any).date;
       const txTime = parseAsWIBDate(rawDateStr);
@@ -107,14 +125,14 @@ export class ReportService {
         if (!txTime || isNaN(txTime.getTime())) return false;
         if (txTime < startDate || txTime > endDate) return false;
       }
-      if (
-        filter.user_id &&
-        tx.created_by_user_id !== filter.user_id &&
-        (tx as any).created_by !== filter.user_id &&
-        (tx as any).user_id !== filter.user_id
-      ) {
-        return false;
+
+      if (filter.user_id) {
+        const creatorId = String(tx.created_by_user_id || (tx as any).created_by || (tx as any).user_id || '').toLowerCase();
+        const creatorName = String(tx.created_by_user_name || '').toLowerCase();
+        const isMatched = allowedUserKeys.has(creatorId) || allowedUserKeys.has(creatorName);
+        if (!isMatched) return false;
       }
+
       if (filter.shift_id && tx.shift_id !== filter.shift_id) return false;
       if (filter.payment_method && filter.payment_method !== 'ALL' && tx.payment_method !== filter.payment_method) {
         return false;
@@ -138,10 +156,16 @@ export class ReportService {
         if (!expTime || isNaN(expTime.getTime())) return false;
         if (expTime < startDate || expTime > endDate) return false;
       }
+
       if (filter.user_id) {
-        const expUserId = exp.recorded_by_user_id || (exp as any).user_id || (exp as any).created_by_user_id || (exp as any).recorded_by;
-        if (expUserId !== filter.user_id) return false;
+        const expUserId = String(
+          exp.recorded_by_user_id || (exp as any).user_id || (exp as any).created_by_user_id || (exp as any).recorded_by || ''
+        ).toLowerCase();
+        const expUserName = String((exp as any).recorded_by_user_name || '').toLowerCase();
+        const isMatched = allowedUserKeys.has(expUserId) || allowedUserKeys.has(expUserName);
+        if (!isMatched) return false;
       }
+
       if (filter.shift_id && exp.shift_id !== filter.shift_id) return false;
 
       return true;
