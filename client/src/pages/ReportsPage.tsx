@@ -387,6 +387,34 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
     return candidateName || (rawId && !rawId.startsWith('usr-') ? rawId : '') || currentUser?.full_name || 'Kasir';
   };
 
+  const getDutyUsersList = () => {
+    const set = new Set<string>();
+    const txs = reportData?.transactions || [];
+    txs.forEach((tx: any) => {
+      if (tx.created_by_user_id) {
+        const u = usersList.find((usr) => usr.user_id === tx.created_by_user_id);
+        if (u?.full_name) set.add(u.full_name);
+      }
+      if (tx.created_by_user_name && !tx.created_by_user_name.startsWith('usr-')) {
+        set.add(tx.created_by_user_name);
+      }
+    });
+    return set.size > 0 ? Array.from(set) : [currentUser.full_name];
+  };
+
+  const getExportDateStr = (exportTxs: any[]) => {
+    if (exportTxs.length > 0 && (exportTxs[0].transaction_time || exportTxs[0].created_at)) {
+      try {
+        const rawDate = exportTxs[0].transaction_time || exportTxs[0].created_at;
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+      } catch {}
+    }
+    return new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  };
+
   const handleExportExcel = () => {
     if (activeReportSubTab === 'STOCKS_LOG') {
       exportStockToExcel(stockList, stockAuditLogs, storeName);
@@ -395,17 +423,23 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
       const exportTxs = activeUserFilter
         ? (reportData?.transactions || []).filter((tx: any) => tx.created_by_user_id === activeUserFilter || tx.created_by === activeUserFilter || tx.user_id === activeUserFilter)
         : (reportData?.transactions || []);
+
+      const rawExps = (reportData?.expenses && Array.isArray(reportData.expenses)) ? reportData.expenses : expenseList;
       const exportExps = activeUserFilter
-        ? (expenseList || []).filter((exp: any) => exp.created_by_user_id === activeUserFilter || exp.user_id === activeUserFilter || exp.recorded_by === activeUserFilter)
-        : (expenseList || []);
+        ? (rawExps || []).filter((exp: any) => exp.recorded_by_user_id === activeUserFilter || exp.created_by_user_id === activeUserFilter || exp.user_id === activeUserFilter || exp.recorded_by === activeUserFilter)
+        : (rawExps || []);
 
       const activeUserObj = usersList.find((u) => u.user_id === activeUserFilter);
+      const allDuty = getDutyUsersList();
+      if (activeUserObj && !allDuty.includes(activeUserObj.full_name)) {
+        allDuty.unshift(activeUserObj.full_name);
+      }
 
       exportShiftToExcel({
         storeName: storeName || 'Kedai POS',
-        dateStr: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        dateStr: getExportDateStr(exportTxs),
         shiftId: periodType === 'DAILY' ? 'Hari Ini' : `Periode ${periodType}`,
-        dutyUsers: activeUserObj ? [activeUserObj.full_name] : getDutyUsersList(),
+        dutyUsers: allDuty,
         currentUserFullName: activeUserObj?.full_name || currentUser.full_name,
         transactions: exportTxs,
         expenses: exportExps,
@@ -447,7 +481,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
       setReportData(data);
       setStockList(stocksData || []);
       setStockAuditLogs(logsData || []);
-      setExpenseList(expensesData || []);
+      setExpenseList((data && Array.isArray(data.expenses) && data.expenses.length > 0) ? data.expenses : (expensesData || []));
     } catch (err: any) {
       setError(err.message || 'Gagal memuat laporan penjualan');
     } finally {
@@ -470,18 +504,6 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
     loadReport();
   };
 
-  const getDutyUsersList = () => {
-    if (!reportData?.transactions || !Array.isArray(reportData.transactions)) return [currentUser.full_name];
-    const set = new Set<string>();
-    reportData.transactions.forEach((tx: any) => {
-      if (tx.created_by_user_id) {
-        const u = usersList.find((usr) => usr.user_id === tx.created_by_user_id);
-        set.add(u ? u.full_name : tx.created_by_user_id);
-      }
-    });
-    return set.size > 0 ? Array.from(set) : [currentUser.full_name];
-  };
-
   const handlePrintPDF = () => {
     if (activeReportSubTab === 'STOCKS_LOG') {
       printStockPDF(stockList, stockAuditLogs, storeName);
@@ -490,23 +512,30 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
       const exportTxs = activeUserFilter
         ? (reportData?.transactions || []).filter((tx: any) => tx.created_by_user_id === activeUserFilter || tx.created_by === activeUserFilter || tx.user_id === activeUserFilter)
         : (reportData?.transactions || []);
+
+      const rawExps = (reportData?.expenses && Array.isArray(reportData.expenses)) ? reportData.expenses : expenseList;
       const exportExps = activeUserFilter
-        ? (expenseList || []).filter((exp: any) => exp.created_by_user_id === activeUserFilter || exp.user_id === activeUserFilter || exp.recorded_by === activeUserFilter)
-        : (expenseList || []);
+        ? (rawExps || []).filter((exp: any) => exp.recorded_by_user_id === activeUserFilter || exp.created_by_user_id === activeUserFilter || exp.user_id === activeUserFilter || exp.recorded_by === activeUserFilter)
+        : (rawExps || []);
 
       const activeUserObj = usersList.find((u) => u.user_id === activeUserFilter);
+      const allDuty = getDutyUsersList();
+      if (activeUserObj && !allDuty.includes(activeUserObj.full_name)) {
+        allDuty.unshift(activeUserObj.full_name);
+      }
 
       printShiftPDF({
         storeName: storeName || 'Kedai POS',
-        dateStr: new Date().toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+        dateStr: getExportDateStr(exportTxs),
         shiftId: periodType === 'DAILY' ? 'Hari Ini' : `Periode ${periodType}`,
-        dutyUsers: activeUserObj ? [activeUserObj.full_name] : getDutyUsersList(),
+        dutyUsers: allDuty,
         currentUserFullName: activeUserObj?.full_name || currentUser.full_name,
         transactions: exportTxs,
         expenses: exportExps,
       });
     }
   };
+
 
 
 

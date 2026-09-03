@@ -77,3 +77,30 @@ export function getWIBDateRange(
   const endWIBMs = Date.UTC(parts.year, parts.month, parts.date, 23, 59, 59, 999) - (7 * 3600 * 1000);
   return { startDate: new Date(startWIBMs), endDate: new Date(endWIBMs) };
 }
+
+/**
+ * Safely parse date strings into Date objects, ensuring strings without explicit timezone offsets
+ * are treated as WIB (UTC+7) time so server-side comparisons remain accurate.
+ */
+export function parseAsWIBDate(dateInput?: string | Date | null): Date | null {
+  if (!dateInput) return null;
+  if (dateInput instanceof Date) return isNaN(dateInput.getTime()) ? null : dateInput;
+
+  const str = String(dateInput).trim();
+  if (!str) return null;
+
+  // ISO string with timezone (Z or +XX:XX or -XX:XX offset)
+  if (str.includes('Z') || /[+-]\d{2}:\d{2}$/.test(str)) {
+    const d = new Date(str);
+    return isNaN(d.getTime()) ? null : d;
+  }
+
+  // String without timezone like "2026-09-04 01:18:00" or "2026-09-04T01:18:00"
+  let isoStr = str.replace(' ', 'T');
+  if (!isoStr.includes('+') && !isoStr.includes('Z')) {
+    isoStr += '+07:00';
+  }
+  const d = new Date(isoStr);
+  return isNaN(d.getTime()) ? null : d;
+}
+

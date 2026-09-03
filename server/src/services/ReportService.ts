@@ -3,8 +3,8 @@ import { TransactionItemRepository } from '../repositories/TransactionItemReposi
 import { ProductRepository } from '../repositories/ProductRepository';
 import { UserRepository } from '../repositories/UserRepository';
 import { ExpenseRepository } from '../repositories/ExpenseRepository';
-import { TransactionEntity, PaymentMethod, BusinessUnit } from '../types/domain';
-import { getWIBDateRange } from '../utils/timezoneUtils';
+import { TransactionEntity, PaymentMethod, BusinessUnit, ExpenseEntity } from '../types/domain';
+import { getWIBDateRange, parseAsWIBDate } from '../utils/timezoneUtils';
 
 export interface SalesReportFilterDTO {
   period_type?: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'YEARLY' | 'CUSTOM';
@@ -38,8 +38,10 @@ export interface SalesReportResult {
     cash_sales: number;
     qris_sales: number;
     transfer_sales: number;
+    total_expenses: number;
   };
   transactions: TransactionEntity[];
+  expenses: ExpenseEntity[];
   employee_performance: EmployeePerformanceSummary[];
 }
 
@@ -99,7 +101,7 @@ export class ReportService {
 
     const filteredTransactions = completedTx.filter((tx) => {
       const rawDateStr = tx.transaction_time || (tx as any).created_at || (tx as any).date;
-      const txTime = rawDateStr ? new Date(rawDateStr) : null;
+      const txTime = parseAsWIBDate(rawDateStr);
 
       if (txTime && !isNaN(txTime.getTime())) {
         if (startDate && txTime < startDate) return false;
@@ -120,6 +122,32 @@ export class ReportService {
 
       return true;
     });
+
+    const filteredExpenses = allExpenses.filter((exp) => {
+      const rawDateStr = exp.expense_time || (exp as any).created_at || (exp as any).date;
+      const expTime = parseAsWIBDate(rawDateStr);
+
+      if (expTime && !isNaN(expTime.getTime())) {
+        if (startDate && expTime < startDate) return false;
+        if (endDate && expTime > endDate) return false;
+      }
+      if (
+        filter.user_id &&
+        exp.recorded_by_user_id !== filter.user_id &&
+        (exp as any).user_id !== filter.user_id &&
+        (exp as any).created_by_user_id !== filter.user_id
+      ) {
+        return false;
+      }
+      if (filter.shift_id && exp.shift_id !== filter.shift_id) return false;
+
+      return true;
+    });
+
+    let total_expenses = 0;
+    for (const exp of filteredExpenses) {
+      total_expenses += Number(exp.amount || 0);
+    }
 
     // Summary calculations
     let total_gross_sales = 0;
@@ -167,10 +195,11 @@ export class ReportService {
       }
     }
 
-    for (const exp of allExpenses) {
-      const emp = empMap.get(exp.recorded_by_user_id);
+    for (const exp of filteredExpenses) {
+      const empId = exp.recorded_by_user_id || (exp as any).user_id || (exp as any).created_by_user_id;
+      const emp = empMap.get(empId);
       if (emp) {
-        emp.recorded_expenses_amount += exp.amount;
+        emp.recorded_expenses_amount += Number(exp.amount || 0);
       }
     }
 
@@ -210,9 +239,12 @@ export class ReportService {
         cash_sales,
         qris_sales,
         transfer_sales,
+        total_expenses,
       },
       transactions: enrichedTransactions,
+      expenses: filteredExpenses,
       employee_performance,
     };
   }
 }
+
