@@ -2,7 +2,7 @@
 
 Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pengembangan Sistem POS Usaha Campuran (FC/Printing & FNB).
 
-## [1.7.9] - 4 September 2026
+## [1.8.0] - 5 September 2026
 
 ### Added & Enhanced
 - **Perbaikan Alokasi & Atomic SQL Stok Gudang vs Etalase (`StockRepository.ts`, `StockService.ts` & `StockPage.tsx`)**:
@@ -13,6 +13,12 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
 - **Optimasi Google Sheets Sync Service (`GoogleSheetsSyncService.ts`)**:
   - Mengimplementasikan `batchUpdate` untuk mengelompokkan sinkronisasi 8 tab ke dalam 1 HTTP request (efisiensi kuota 87.5%).
   - Menambahkan *Exponential Backoff Retry Engine* untuk menangani error rate-limit API `HTTP 429`.
+- **Pembaruan Versi Terpusat (v1.8.0)**:
+  - Synchronized seluruh versi aplikasi di `LoginPage`, `OwnerSidebar`, `OwnerHeader`, `CashierLayout`, serta file konfig `client/package.json` & `server/package.json`.
+
+---
+
+## [1.7.9] - 4 September 2026
 - **Akurasi & Integritas Laporan Omzet Periode Bulanan & Kasir (`ReportService.ts` & `timezoneUtils.ts`)**:
   - Mengimplementasikan *Flexible User Resolver* di backend untuk mencocokkan `user_id`, `username`, dan `full_name` kasir secara otomatis saat penyaringan laporan individual.
   - Memperbarui `parseAsWIBDate` agar mampu membaca berbagai format timestamp tanggal tanpa kehilangan data omzet pada filter Bulanan, Mingguan, dan Tahunan.

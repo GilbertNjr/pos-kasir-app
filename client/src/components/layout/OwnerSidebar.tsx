@@ -166,7 +166,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                   border: '1px solid rgba(37,99,235,0.2)',
                 }}
               >
-                v1.7.9
+                v1.8.0
               </span>
             </div>
           </div>
@@ -339,7 +339,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
         </button>
 
         <div style={{ fontSize: '0.675rem', fontWeight: 800, color: 'var(--sidebar-subtext, #94a3b8)', textAlign: 'center', marginTop: '0.6rem', letterSpacing: '0.03em' }}>
-          POS Kasir App • <span style={{ color: '#2563eb' }}>v1.7.9</span>
+          POS Kasir App • <span style={{ color: '#2563eb' }}>v1.8.0</span>
         </div>
       </div>
     </div>
