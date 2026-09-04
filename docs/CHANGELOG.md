@@ -10,6 +10,11 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
   - Menghapus rumus perkalian rasio otomatis (`etalaseRatio`) yang menyebabkan stok berpindah sendiri dari Gudang ke Etalase (atau sebaliknya) saat restock dari stok kosong 0 Pcs.
   - Memastikan pengurangan dan pengembalian stok akibat transaksi kasir dilakukan secara pasti (Etalase dahulu, kemudian Gudang) tanpa merusak nilai riil lokasi penyimpanan.
   - Memperbarui dialog penyesuaian stok di frontend agar membaca nilai asli `stock_gudang` dan `stock_etalase` tanpa fallback tebakan.
+- **Perlindungan Soft-Delete Produk Hapus Aman (`ProductService.ts` & `TransactionItemRepository.ts`)**:
+  - Mengimplementasikan `hasTransactions` untuk mendeteksi apakah produk pernah bertransaksi di masa lalu.
+  - Jika produk pernah bertransaksi, penghapusan otomatis dialihkan menjadi **Soft-Delete (`is_active = false`)** agar riwayat omzet historis tidak rusak.
+- **Audit Log Khusus Pembatalan Nota Kritis (*Void High-Value Alert*) (`TransactionService.ts`)**:
+  - Menambahkan pencatatan `TRANSACTION_VOID_HIGH_VALUE` pada Audit Log jika terjadi pembatalan nota bernilai tinggi (≥ Rp 100.000) untuk deteksi kecurangan kasir.
 - **Optimasi Google Sheets Sync Service (`GoogleSheetsSyncService.ts`)**:
   - Mengimplementasikan `batchUpdate` untuk mengelompokkan sinkronisasi 8 tab ke dalam 1 HTTP request (efisiensi kuota 87.5%).
   - Menambahkan *Exponential Backoff Retry Engine* untuk menangani error rate-limit API `HTTP 429`.

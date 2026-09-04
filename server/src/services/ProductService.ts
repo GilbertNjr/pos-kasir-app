@@ -1,5 +1,5 @@
 import { ProductRepository, ProductEntity } from '../repositories/ProductRepository';
-import { stockRepository } from '../repositories/sharedRepositories';
+import { stockRepository, transactionItemRepository } from '../repositories/sharedRepositories';
 
 export class ProductService {
   private productRepository: ProductRepository;
@@ -60,6 +60,16 @@ export class ProductService {
     if (!existing) {
       throw new Error('Produk tidak ditemukan.');
     }
+
+    // 1. Cek apakah produk memiliki riwayat transaksi di masa lalu
+    const hasHistory = await transactionItemRepository.hasTransactions(product_id);
+    if (hasHistory) {
+      // Soft-delete safeguard: Ubah status menjadi non-aktif agar laporan historis tidak corrupt
+      await this.productRepository.update(product_id, { is_active: false });
+      return true;
+    }
+
+    // 2. Jika belum pernah bertransaksi sama sekali, aman untuk dihapus permanen
     await stockRepository.deleteByProductId(product_id);
     return this.productRepository.delete(product_id);
   }

@@ -279,6 +279,21 @@ export class TransactionService {
       }
     }
 
+    // Record Audit Log for Void/Cancellation
+    try {
+      const isLargeVoid = tx.final_total >= 100000;
+      await auditLogRepository.logAction(
+        tx.created_by_user_id || 'usr-cashier',
+        'Kasir',
+        isLargeVoid ? 'TRANSACTION_VOID_HIGH_VALUE' : 'TRANSACTION_VOID',
+        tx.transaction_number,
+        tx.transaction_id,
+        `⚠️ PEMBATALAN NOTA #${tx.transaction_number} (Nominal: Rp ${tx.final_total.toLocaleString()} via ${tx.payment_method}). Stok dikembalikan ke Etalase.`
+      );
+    } catch (err) {
+      console.warn('[TransactionService] Void audit log notice:', (err as Error).message);
+    }
+
     return updatedTx!;
   }
 

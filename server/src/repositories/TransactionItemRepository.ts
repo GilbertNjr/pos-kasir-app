@@ -105,5 +105,15 @@ export class TransactionItemRepository implements IRepository<TransactionItemEnt
     this.inMemoryItems[index] = { ...this.inMemoryItems[index], ...item };
     return { ...this.inMemoryItems[index] };
   }
+
+  async hasTransactions(product_id: string): Promise<boolean> {
+    try {
+      const res = await pool.query('SELECT 1 FROM transaction_items WHERE product_id = $1 LIMIT 1', [product_id]);
+      if (res.rows.length > 0) return true;
+    } catch (err) {
+      console.warn('[TransactionItemRepository] Database check hasTransactions fallback to memory:', (err as Error).message);
+    }
+    return this.inMemoryItems.some((i) => i.product_id === product_id);
+  }
 }
 
