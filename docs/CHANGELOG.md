@@ -5,6 +5,13 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
 ## [1.7.9] - 4 September 2026
 
 ### Added & Enhanced
+- **Perbaikan Alokasi Stok Gudang & Etalase (`StockService.ts` & `StockPage.tsx`)**:
+  - Menghapus rumus perkalian rasio rasio otomatis (`etalaseRatio`) yang menyebabkan stok berpindah sendiri dari Gudang ke Etalase (atau sebaliknya) saat restock dari stok kosong 0 Pcs.
+  - Memastikan pengurangan dan pengembalian stok akibat transaksi kasir dilakukan secara pasti (Etalase dahulu, kemudian Gudang) tanpa merusak nilai riil lokasi penyimpanan.
+  - Memperbarui dialog penyesuaian stok di frontend agar membaca nilai asli `stock_gudang` dan `stock_etalase` tanpa fallback tebakan.
+- **Optimasi Google Sheets Sync Service (`GoogleSheetsSyncService.ts`)**:
+  - Mengimplementasikan `batchUpdate` untuk mengelompokkan sinkronisasi 8 tab ke dalam 1 HTTP request (efisiensi kuota 87.5%).
+  - Menambahkan *Exponential Backoff Retry Engine* untuk menangani error rate-limit API `HTTP 429`.
 - **Akurasi & Integritas Laporan Omzet Periode Bulanan & Kasir (`ReportService.ts` & `timezoneUtils.ts`)**:
   - Mengimplementasikan *Flexible User Resolver* di backend untuk mencocokkan `user_id`, `username`, dan `full_name` kasir secara otomatis saat penyaringan laporan individual.
   - Memperbarui `parseAsWIBDate` agar mampu membaca berbagai format timestamp tanggal tanpa kehilangan data omzet pada filter Bulanan, Mingguan, dan Tahunan.

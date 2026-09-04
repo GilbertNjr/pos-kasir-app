@@ -271,8 +271,8 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   // Modal 1 Trigger: Koreksi / Penyesuaian Stok
   const handleOpenEditModal = (item: StockItem) => {
     setEditingStock(item);
-    const etalase = item.stock_etalase !== undefined ? item.stock_etalase : Math.min(item.current_stock, 5);
-    const gudang = item.stock_gudang !== undefined ? item.stock_gudang : Math.max(0, item.current_stock - etalase);
+    const etalase = item.stock_etalase !== undefined && item.stock_etalase !== null ? Number(item.stock_etalase) : 0;
+    const gudang = item.stock_gudang !== undefined && item.stock_gudang !== null ? Number(item.stock_gudang) : Math.max(0, Number(item.current_stock) - etalase);
     setEditStockGudang(gudang);
     setEditStockEtalase(etalase);
     setAdjustReason('Koreksi Stok Gudang Utama & Etalase Toko');
@@ -280,8 +280,8 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
   // Quick Add Direct Restock (e.g. +5, +10)
   const handleDirectQuickAdd = async (item: StockItem, addQty: number) => {
-    const currentEtalase = item.stock_etalase !== undefined ? item.stock_etalase : Math.min(item.current_stock, 5);
-    const currentGudang = item.stock_gudang !== undefined ? item.stock_gudang : Math.max(0, item.current_stock - currentEtalase);
+    const currentEtalase = item.stock_etalase !== undefined && item.stock_etalase !== null ? Number(item.stock_etalase) : 0;
+    const currentGudang = item.stock_gudang !== undefined && item.stock_gudang !== null ? Number(item.stock_gudang) : Math.max(0, Number(item.current_stock) - currentEtalase);
     const newGudang = currentGudang + addQty;
     const totalQty = newGudang + currentEtalase;
 
