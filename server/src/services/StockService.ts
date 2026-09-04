@@ -69,6 +69,12 @@ export class StockService {
       return null;
     }
 
+    // Coba pengurangan atomic langsung di PostgreSQL untuk menjamin race-condition protection
+    const atomicUpdated = await this.stockRepository.deductStockAtomic(product_id, qty);
+    if (atomicUpdated) {
+      return atomicUpdated;
+    }
+
     let stock = await this.stockRepository.findByProductId(product_id);
     if (!stock) {
       stock = await this.stockRepository.create({

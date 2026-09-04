@@ -136,5 +136,30 @@ export class StockRepository implements IRepository<StockEntity> {
     this.inMemoryStocks = this.inMemoryStocks.filter((s) => s.product_id !== product_id);
     return true;
   }
+
+  async deductStockAtomic(product_id: string, qty: number): Promise<StockEntity | null> {
+    try {
+      const queryStr = `
+        UPDATE stocks 
+        SET 
+          current_stock = GREATEST(0, current_stock - $1),
+          stock_etalase = GREATEST(0, COALESCE(stock_etalase, 0) - $1),
+          stock_gudang = GREATEST(0, COALESCE(stock_gudang, 0) - GREATEST(0, $1 - COALESCE(stock_etalase, 0))),
+          last_updated = CURRENT_TIMESTAMP
+        WHERE product_id = $2
+        RETURNING stock_id, product_id, current_stock::float, COALESCE(stock_gudang, 0)::float as stock_gudang, COALESCE(stock_etalase, 0)::float as stock_etalase, last_updated::text
+      `;
+      const res = await pool.query(queryStr, [qty, product_id]);
+      if (res.rows.length > 0) {
+        const updated = res.rows[0];
+        const memIdx = this.inMemoryStocks.findIndex((s) => s.product_id === product_id);
+        if (memIdx !== -1) this.inMemoryStocks[memIdx] = updated;
+        return updated;
+      }
+    } catch (err) {
+      console.warn('[StockRepository] Database atomic deduct fallback to memory:', (err as Error).message);
+    }
+    return null;
+  }
 }
 

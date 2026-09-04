@@ -5,8 +5,9 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
 ## [1.7.9] - 4 September 2026
 
 ### Added & Enhanced
-- **Perbaikan Alokasi Stok Gudang & Etalase (`StockService.ts` & `StockPage.tsx`)**:
-  - Menghapus rumus perkalian rasio rasio otomatis (`etalaseRatio`) yang menyebabkan stok berpindah sendiri dari Gudang ke Etalase (atau sebaliknya) saat restock dari stok kosong 0 Pcs.
+- **Perbaikan Alokasi & Atomic SQL Stok Gudang vs Etalase (`StockRepository.ts`, `StockService.ts` & `StockPage.tsx`)**:
+  - Mengimplementasikan `deductStockAtomic` langsung via ekspresi query SQL PostgreSQL (`GREATEST(0, stock_etalase - $qty)`) untuk proteksi *race-condition* penuh saat toko ramai.
+  - Menghapus rumus perkalian rasio otomatis (`etalaseRatio`) yang menyebabkan stok berpindah sendiri dari Gudang ke Etalase (atau sebaliknya) saat restock dari stok kosong 0 Pcs.
   - Memastikan pengurangan dan pengembalian stok akibat transaksi kasir dilakukan secara pasti (Etalase dahulu, kemudian Gudang) tanpa merusak nilai riil lokasi penyimpanan.
   - Memperbarui dialog penyesuaian stok di frontend agar membaca nilai asli `stock_gudang` dan `stock_etalase` tanpa fallback tebakan.
 - **Optimasi Google Sheets Sync Service (`GoogleSheetsSyncService.ts`)**:
