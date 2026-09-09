@@ -692,6 +692,26 @@ export const apiService = {
     return result.data;
   },
 
+  async transferStock(productId: string, quantity: number, notes?: string): Promise<any> {
+    const token = this.getToken();
+    const response = await fetch(`${API_BASE}/stocks/transfer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        product_id: productId,
+        quantity,
+        notes,
+      }),
+    });
+
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Gagal memproses pemindahan stok dari gudang ke etalase');
+    return result.data;
+  },
+
   /* DASHBOARD OWNER API SERVICES */
   async getDashboardMetrics(params?: DashboardFilterParams): Promise<any> {
     const token = this.getToken();

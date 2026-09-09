@@ -18,6 +18,7 @@ import { NotificationPopover } from '../common/NotificationPopover';
 import { OfflineSyncBanner } from '../common/OfflineSyncBanner';
 import { NetworkStatusBadge } from '../common/NetworkStatusBadge';
 import { User } from '../../types';
+import { APP_VERSION } from '../../config/version';
 
 interface CashierLayoutProps {
   currentUser: User;
@@ -153,7 +154,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
                   border: '1px solid rgba(37,99,235,0.2)',
                 }}
               >
-                v1.8.0
+                {APP_VERSION}
               </span>
             </div>
           </div>
@@ -572,7 +573,7 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
         </button>
 
         <div style={{ fontSize: '0.675rem', fontWeight: 800, color: 'var(--sidebar-subtext, #94a3b8)', textAlign: 'center', marginTop: '0.6rem', letterSpacing: '0.03em' }}>
-          POS Kasir App • <span style={{ color: '#2563eb' }}>v1.8.0</span>
+          POS Kasir App • <span style={{ color: '#2563eb' }}>{APP_VERSION}</span>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Menu, User as UserIcon, HelpCircle } from 'lucide-react';
 import { User } from '../../types';
 import { formatWaktuIndo } from '../../utils/formatters';
+import { APP_VERSION } from '../../config/version';
 import { NotificationPopover } from '../common/NotificationPopover';
 import { HelpModal } from '../common/HelpModal';
 import { NetworkStatusBadge } from '../common/NetworkStatusBadge';
@@ -104,7 +105,7 @@ export const OwnerHeader: React.FC<OwnerHeaderProps> = ({
                 fontSize: '0.65rem',
               }}
             >
-              v1.8.0
+              {APP_VERSION}
             </span>
           </p>
         </div>

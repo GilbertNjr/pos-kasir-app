@@ -31,6 +31,14 @@ export class TransactionController {
         timestamp: new Date().toISOString(),
       });
 
+      // Broadcast update stok seketika ke seluruh klien yang memantau inventaris
+      sseManager.broadcast('STOCK_UPDATED', {
+        source: 'TRANSACTION_CREATED',
+        transaction_id: result.transaction.transaction_id,
+        items: items || [],
+        timestamp: new Date().toISOString(),
+      });
+
       return res.status(201).json({
         message: 'Transaksi POS berhasil diproses',
         data: result,
@@ -66,14 +74,14 @@ export class TransactionController {
 
   public getPaymentSummary = async (req: AuthenticatedRequest, res: Response) => {
     try {
-      const { shift_id } = req.query;
-      if (!shift_id) {
-        return res.status(400).json({ error: 'Parameter shift_id wajib disertakan.' });
-      }
-      const summary = await this.transactionService.getPaymentSummaryByShift(shift_id as string);
+      const { start_date, end_date } = req.query;
+      const summary = await this.transactionService.getPaymentSummary(
+        start_date as string | undefined,
+        end_date as string | undefined
+      );
       return res.status(200).json({ data: summary });
     } catch (error: any) {
-      return res.status(500).json({ error: error.message || 'Gagal mengambil rekap pembayaran' });
+      return res.status(500).json({ error: error.message || 'Gagal mengambil ringkasan pembayaran' });
     }
   };
 
@@ -82,6 +90,11 @@ export class TransactionController {
       const { id } = req.params;
       const result = await this.transactionService.cancelTransaction(id);
       sseManager.broadcast('TRANSACTION_CANCELLED', {
+        transaction_id: id,
+        timestamp: new Date().toISOString(),
+      });
+      sseManager.broadcast('STOCK_UPDATED', {
+        source: 'TRANSACTION_CANCELLED',
         transaction_id: id,
         timestamp: new Date().toISOString(),
       });
@@ -110,6 +123,11 @@ export class TransactionController {
       const { id } = req.params;
       const result = await this.transactionService.restoreTransaction(id);
       sseManager.broadcast('TRANSACTION_RESTORED', {
+        transaction_id: id,
+        timestamp: new Date().toISOString(),
+      });
+      sseManager.broadcast('STOCK_UPDATED', {
+        source: 'TRANSACTION_RESTORED',
         transaction_id: id,
         timestamp: new Date().toISOString(),
       });

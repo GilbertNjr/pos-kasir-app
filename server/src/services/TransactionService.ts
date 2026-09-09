@@ -94,13 +94,27 @@ export class TransactionService {
         throw new Error(`Jumlah kuantitas (qty) untuk ${product.product_name} harus minimal 1.`);
       }
 
-      // Validasi ketersediaan stok fisik jika produk mengelola stok
+      // Validasi ketersediaan stok fisik jika produk mengelola stok - KASIR HANYA BOLEH MENJUAL DARI ETALASE!
       if (product.manage_stock && this.stockService) {
         const stocks = await this.stockService.getAllStocksWithProducts();
         const currentStockItem = stocks.find((s) => s.product_id === product.product_id);
-        const availableStock = currentStockItem ? currentStockItem.current_stock : 0;
-        if (availableStock < itemDto.qty) {
-          throw new Error(`Stok tidak mencukupi. Produk "${product.product_name}" hanya tersisa ${availableStock} Pcs, transaksi meminta ${itemDto.qty} Pcs.`);
+        const etalaseStock = currentStockItem?.stock_etalase !== undefined && currentStockItem?.stock_etalase !== null
+          ? Number(currentStockItem.stock_etalase)
+          : (currentStockItem ? Number(currentStockItem.current_stock) : 0);
+        const gudangStock = currentStockItem?.stock_gudang !== undefined && currentStockItem?.stock_gudang !== null
+          ? Number(currentStockItem.stock_gudang)
+          : 0;
+
+        if (etalaseStock < itemDto.qty) {
+          if (gudangStock > 0) {
+            throw new Error(
+              `Stok di etalase toko tidak mencukupi untuk "${product.product_name}". Tersedia di etalase: ${etalaseStock} Pcs (di gudang masih ada cadangan: ${gudangStock} Pcs). Silakan lakukan pemindahan stok dari gudang ke etalase terlebih dahulu.`
+            );
+          } else {
+            throw new Error(
+              `Stok "${product.product_name}" habis atau tidak mencukupi. Tersedia di etalase: ${etalaseStock} Pcs, transaksi meminta: ${itemDto.qty} Pcs.`
+            );
+          }
         }
       }
 
@@ -219,6 +233,40 @@ export class TransactionService {
     const transactions = await this.transactionRepository.findWhere(
       (t) => t.shift_id === shift_id && t.status === 'COMPLETED'
     );
+
+    const summary: PaymentSummary = {
+      total_transactions: transactions.length,
+      total_revenue: 0,
+      cash: { count: 0, amount: 0 },
+      qris: { count: 0, amount: 0 },
+      transfer: { count: 0, amount: 0 },
+    };
+
+    for (const tx of transactions) {
+      summary.total_revenue += tx.final_total;
+      if (tx.payment_method === 'CASH') {
+        summary.cash.count += 1;
+        summary.cash.amount += tx.final_total;
+      } else if (tx.payment_method === 'QRIS') {
+        summary.qris.count += 1;
+        summary.qris.amount += tx.final_total;
+      } else if (tx.payment_method === 'TRANSFER') {
+        summary.transfer.count += 1;
+        summary.transfer.amount += tx.final_total;
+      }
+    }
+
+    return summary;
+  }
+
+  async getPaymentSummary(startDate?: string, endDate?: string): Promise<PaymentSummary> {
+    const transactions = await this.transactionRepository.findWhere((t) => {
+      if (t.status !== 'COMPLETED') return false;
+      const txTime = t.transaction_time || (t as any).created_at;
+      if (startDate && txTime && new Date(txTime) < new Date(startDate)) return false;
+      if (endDate && txTime && new Date(txTime) > new Date(endDate)) return false;
+      return true;
+    });
 
     const summary: PaymentSummary = {
       total_transactions: transactions.length,

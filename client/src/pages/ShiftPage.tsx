@@ -135,8 +135,30 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     setShowStockAuditModal(true);
     setAuditLoading(true);
     try {
-      const products = await apiService.getProducts();
-      const activeProds = products.filter((p) => p.is_active !== false);
+      const [products, stocks] = await Promise.all([
+        apiService.getProducts(),
+        apiService.getStocks().catch(() => []),
+      ]);
+
+      const stockMap = new Map<string, any>();
+      (stocks || []).forEach((s: any) => {
+        stockMap.set(s.product_id, s);
+      });
+
+      const activeProds = products
+        .filter((p) => p.is_active !== false)
+        .map((p) => {
+          const s = stockMap.get(p.product_id);
+          const etalaseStock = s ? (s.stock_etalase !== undefined && s.stock_etalase !== null ? Number(s.stock_etalase) : Number(s.current_stock)) : (p.stock ?? 0);
+          const gudangStock = s ? (s.stock_gudang !== undefined && s.stock_gudang !== null ? Number(s.stock_gudang) : 0) : 0;
+          return {
+            ...p,
+            stock: etalaseStock,
+            stock_etalase: etalaseStock,
+            stock_gudang: gudangStock,
+          };
+        });
+
       setAuditProducts(activeProds);
 
       const initialInputs: Record<string, string> = {};
@@ -1335,7 +1357,12 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                                       {formatRupiah(product.selling_price)}
                                     </td>
                                     <td style={{ padding: '0.65rem 0.85rem', textAlign: 'center', fontWeight: 800, color: '#475569' }}>
-                                      {initialStock} pcs
+                                       <div style={{ color: '#059669' }}>🏪 {initialStock} pcs</div>
+                                       {(product.stock_gudang ?? 0) > 0 && (
+                                         <div style={{ fontSize: '0.68rem', color: '#1d4ed8', marginTop: '0.1rem' }}>
+                                           🏭 Gudang: {product.stock_gudang} pcs
+                                         </div>
+                                       )}
                                     </td>
                                     <td style={{ padding: '0.5rem 0.85rem', textAlign: 'center' }}>
                                       <input

@@ -434,13 +434,26 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         apiService.getCategories().catch(() => []),
       ]);
 
-      const stockMap = new Map<string, number>();
-      (stocksData || []).forEach((s) => stockMap.set(s.product_id, s.current_stock));
+      const stockMap = new Map<string, { current: number; etalase: number; gudang: number }>();
+      (stocksData || []).forEach((s) => {
+        stockMap.set(s.product_id, {
+          current: Number(s.current_stock || 0),
+          etalase: s.stock_etalase !== undefined && s.stock_etalase !== null ? Number(s.stock_etalase) : 0,
+          gudang: s.stock_gudang !== undefined && s.stock_gudang !== null ? Number(s.stock_gudang) : 0,
+        });
+      });
 
-      const mergedProducts = (prodsData || []).map((p) => ({
-        ...p,
-        stock: stockMap.has(p.product_id) ? stockMap.get(p.product_id)! : (p.stock ?? 0),
-      }));
+      const mergedProducts = (prodsData || []).map((p) => {
+        const st = stockMap.get(p.product_id);
+        const etalaseStock = st ? st.etalase : (p.stock_etalase ?? 0);
+        const gudangStock = st ? st.gudang : (p.stock_gudang ?? 0);
+        return {
+          ...p,
+          stock: p.manage_stock ? etalaseStock : 999, // STOK AKTIF JUAL KASIR = ETALASE (Non-stock/jasa = 999)!
+          stock_etalase: etalaseStock,
+          stock_gudang: gudangStock,
+        };
+      });
 
       setProducts(mergedProducts);
       setCategories(catsData || []);
@@ -453,6 +466,24 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
   useEffect(() => {
     loadProducts();
+
+    // SSE Realtime listener untuk update otomatis seketika di kasir
+    let sse: EventSource | null = null;
+    try {
+      sse = new EventSource('/api/events');
+      const handleSync = () => {
+        loadProducts().catch(() => {});
+      };
+      sse.addEventListener('STOCK_UPDATED', handleSync);
+      sse.addEventListener('PRODUCT_UPDATED', handleSync);
+      sse.addEventListener('TRANSACTION_CREATED', handleSync);
+    } catch {
+      // Fallback
+    }
+
+    return () => {
+      if (sse) sse.close();
+    };
   }, [selectedUnit]);
 
   const [stockAlert, setStockAlert] = useState<{
@@ -462,36 +493,84 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     productName?: string;
     currentStock?: number;
     message: string;
+    transferProduct?: Product;
   } | null>(null);
+
+  // Quick Transfer Modal State in PosRegister
+  const [transferModalProduct, setTransferModalProduct] = useState<Product | null>(null);
+  const [transferQtyInput, setTransferQtyInput] = useState<number | string>(1);
+  const [transferLoading, setTransferLoading] = useState(false);
+
+  const handleOpenTransferModal = (product: Product, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    setTransferModalProduct(product);
+    const maxGudang = product.stock_gudang || 0;
+    setTransferQtyInput(maxGudang > 0 ? Math.min(maxGudang, 5) : 1);
+  };
+
+  const handleExecuteTransfer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!transferModalProduct) return;
+    const qty = Number(transferQtyInput);
+    if (isNaN(qty) || qty <= 0) return;
+
+    try {
+      setTransferLoading(true);
+      await apiService.transferStock(
+        transferModalProduct.product_id,
+        qty,
+        `Pemindahan cepat dari kasir POS oleh ${currentUser.username}`
+      );
+      await loadProducts();
+      setTransferModalProduct(null);
+      setStockAlert({
+        isOpen: true,
+        type: 'INFO',
+        title: 'TRANSFER STOK BERHASIL!',
+        productName: transferModalProduct.product_name,
+        message: `Berhasil memindahkan ${qty} Pcs "${transferModalProduct.product_name}" dari Gudang ke Etalase Toko. Sekarang barang sudah tersedia di rak dan siap dijual di kasir!`,
+      });
+    } catch (err: any) {
+      alert(err.message || 'Gagal memindahkan stok dari gudang');
+    } finally {
+      setTransferLoading(false);
+    }
+  };
 
   const addToCart = (product: Product) => {
     const existing = cart.find((item) => item.product.product_id === product.product_id);
     const currentInCart = existing ? existing.qty : 0;
 
-    // Batasi jika produk mengelola stok fisik
+    // Batasi jika produk mengelola stok fisik - HANYA BOLEH MENJUAL STOK ETALASE
     if (product.manage_stock) {
-      const maxStock = product.stock ?? 0;
+      const etalaseStock = product.stock_etalase ?? product.stock ?? 0;
+      const gudangStock = product.stock_gudang ?? 0;
 
-      if (maxStock <= 0) {
+      if (etalaseStock <= 0) {
         setStockAlert({
           isOpen: true,
           type: 'DANGER',
-          title: 'STOK HABIS!',
+          title: 'STOK ETALASE HABIS!',
           productName: product.product_name,
           currentStock: 0,
-          message: `Produk "${product.product_name}" saat ini 0 Pcs dan tidak dapat ditambahkan ke keranjang kasir.`,
+          message:
+            gudangStock > 0
+              ? `Stok di etalase toko saat ini 0 Pcs. Di gudang cadangan masih ada ${gudangStock} Pcs. Silakan lakukan pemindahan stok dari gudang ke etalase.`
+              : `Produk "${product.product_name}" saat ini habis total (0 Pcs di Etalase dan 0 Pcs di Gudang).`,
+          transferProduct: gudangStock > 0 ? product : undefined,
         });
         return;
       }
 
-      if (currentInCart + 1 > maxStock) {
+      if (currentInCart + 1 > etalaseStock) {
         setStockAlert({
           isOpen: true,
           type: 'WARNING',
-          title: 'STOK TERBATAS!',
+          title: 'STOK ETALASE TIDAK CUKUP!',
           productName: product.product_name,
-          currentStock: maxStock,
-          message: `Jumlah di keranjang kasir telah mencapai batas maksimal stok yang tersedia (${maxStock} Pcs).`,
+          currentStock: etalaseStock,
+          message: `Jumlah di keranjang kasir telah mencapai batas maksimal stok etalase yang tersedia (${etalaseStock} Pcs). Gudang memiliki cadangan ${gudangStock} Pcs.`,
+          transferProduct: gudangStock > 0 ? product : undefined,
         });
         return;
       }
@@ -511,15 +590,17 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     if (delta > 0) {
       const item = cart.find((i) => i.product.product_id === productId);
       if (item && item.product.manage_stock) {
-        const maxStock = item.product.stock ?? 0;
+        const maxStock = item.product.stock_etalase ?? item.product.stock ?? 0;
         if (item.qty + delta > maxStock) {
+          const gudangStock = item.product.stock_gudang ?? 0;
           setStockAlert({
             isOpen: true,
             type: 'WARNING',
-            title: 'STOK TERBATAS!',
+            title: 'BATAS MAKSIMAL STOK ETALASE!',
             productName: item.product.product_name,
             currentStock: maxStock,
-            message: `Kuantitas di keranjang tidak dapat melebihi stok fisik yang tersedia (${maxStock} Pcs).`,
+            message: `Stok etalase hanya tersisa ${maxStock} Pcs (Gudang: ${gudangStock} Pcs).`,
+            transferProduct: gudangStock > 0 ? item.product : undefined,
           });
           return;
         }
@@ -610,9 +691,29 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
       const result = await apiService.createTransaction(paymentMethod, itemsDto, Number(cashTendered) || 0);
       setLastReceipt(result);
+
+      // Optimistically decrement local products state for instant real-time feel
+      setProducts((prev) =>
+        prev.map((p) => {
+          const bought = itemsDto.find((it) => it.product_id === p.product_id);
+          if (bought && p.manage_stock) {
+            const newEtalase = Math.max(0, (p.stock_etalase ?? p.stock ?? 0) - bought.qty);
+            return {
+              ...p,
+              stock: newEtalase,
+              stock_etalase: newEtalase,
+            };
+          }
+          return p;
+        })
+      );
+
       clearCart();
       setCustomerName('');
       setDiscountAmount('');
+
+      // Refetch official data from backend in background
+      loadProducts().catch(() => {});
 
       if (onTransactionComplete) onTransactionComplete();
 
@@ -889,7 +990,9 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '0.65rem' }}>
               {filteredProducts.map((p) => {
                 const qtyInCart = cartQtyMap.get(p.product_id) || 0;
-                const effectiveStock = p.manage_stock ? Math.max(0, (p.stock ?? 0) - qtyInCart) : 999999;
+                const etalaseStock = p.stock_etalase ?? p.stock ?? 0;
+                const gudangStock = p.stock_gudang ?? 0;
+                const effectiveStock = p.manage_stock ? Math.max(0, etalaseStock - qtyInCart) : 999999;
                 const isOutOfStock = p.manage_stock && effectiveStock === 0;
 
                 return (
@@ -901,9 +1004,9 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                       padding: '0.85rem',
                       borderRadius: 'var(--radius-md)',
                       background: isOutOfStock ? '#f8fafc' : qtyInCart > 0 ? '#f0fdf4' : '#ffffff',
-                      border: qtyInCart > 0 ? '1.5px solid #a7f3d0' : '1px solid var(--border-color)',
+                      border: qtyInCart > 0 ? '1.5px solid #a7f3d0' : isOutOfStock ? '1px dashed #cbd5e1' : '1px solid var(--border-color)',
                       cursor: isOutOfStock ? 'not-allowed' : 'pointer',
-                      opacity: isOutOfStock ? 0.6 : 1,
+                      opacity: isOutOfStock ? 0.75 : 1,
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'space-between',
@@ -916,27 +1019,47 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                       <div
                         style={{
                           position: 'absolute',
-                          top: '0.45rem',
-                          right: '0.45rem',
+                          top: '0.4rem',
+                          right: '0.4rem',
                           display: 'flex',
                           flexDirection: 'column',
                           alignItems: 'flex-end',
                           gap: '0.15rem',
+                          zIndex: 2,
                         }}
                       >
                         <span
                           style={{
-                            fontSize: '0.68rem',
+                            fontSize: '0.66rem',
                             fontWeight: 800,
-                            padding: '0.15rem 0.4rem',
+                            padding: '0.12rem 0.35rem',
                             borderRadius: '4px',
-                            background: effectiveStock <= 3 ? '#fef2f2' : '#f0fdf4',
-                            color: effectiveStock <= 3 ? '#dc2626' : '#16a34a',
-                            border: `1px solid ${effectiveStock <= 3 ? '#fecaca' : '#bbf7d0'}`,
+                            background: effectiveStock <= 2 ? '#fef2f2' : '#f0fdf4',
+                            color: effectiveStock <= 2 ? '#dc2626' : '#16a34a',
+                            border: `1px solid ${effectiveStock <= 2 ? '#fecaca' : '#bbf7d0'}`,
                           }}
+                          title={`Stok Etalase: ${effectiveStock} pcs`}
                         >
-                          Sisa: {effectiveStock}
+                          🏪 E: {effectiveStock}
                         </span>
+                        {gudangStock > 0 && (
+                          <span
+                            onClick={(e) => handleOpenTransferModal(p, e)}
+                            style={{
+                              fontSize: '0.62rem',
+                              fontWeight: 700,
+                              padding: '0.1rem 0.3rem',
+                              borderRadius: '4px',
+                              background: '#eff6ff',
+                              color: '#1d4ed8',
+                              border: '1px solid #bfdbfe',
+                              cursor: 'pointer',
+                            }}
+                            title={`Stok Gudang: ${gudangStock} pcs. Klik untuk transfer ke etalase.`}
+                          >
+                            🏭 G: {gudangStock}
+                          </span>
+                        )}
                         {qtyInCart > 0 && (
                           <span
                             style={{
@@ -1601,30 +1724,200 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               {stockAlert.message}
             </p>
 
-            {/* Dismiss Action Button */}
-            <button
-              onClick={() => setStockAlert(null)}
-              style={{
-                width: '100%',
-                padding: '0.75rem 1.25rem',
-                borderRadius: '12px',
-                border: 'none',
-                background:
-                  stockAlert.type === 'DANGER'
+            {/* Action Buttons */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+              {stockAlert.transferProduct && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const prod = stockAlert.transferProduct!;
+                    setStockAlert(null);
+                    handleOpenTransferModal(prod);
+                  }}
+                  style={{
+                    width: '100%',
+                    padding: '0.75rem 1.25rem',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.3)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.5rem',
+                  }}
+                >
+                  📦 Pindahkan Stok dari Gudang ke Etalase Sekarang
+                </button>
+              )}
+              <button
+                onClick={() => setStockAlert(null)}
+                style={{
+                  width: '100%',
+                  padding: '0.75rem 1.25rem',
+                  borderRadius: '12px',
+                  border: stockAlert.transferProduct ? '1px solid #cbd5e1' : 'none',
+                  background: stockAlert.transferProduct
+                    ? '#ffffff'
+                    : stockAlert.type === 'DANGER'
                     ? 'linear-gradient(135deg, #dc2626 0%, #b91c1c 100%)'
                     : stockAlert.type === 'WARNING'
                     ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
                     : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '0.9rem',
-                cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(15, 23, 42, 0.2)',
-                transition: 'all 0.15s ease',
-              }}
-            >
-              Saya Mengerti
-            </button>
+                  color: stockAlert.transferProduct ? '#475569' : '#ffffff',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  cursor: 'pointer',
+                  boxShadow: stockAlert.transferProduct ? 'none' : '0 4px 14px rgba(15, 23, 42, 0.2)',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {stockAlert.transferProduct ? 'Tutup / Nanti Saja' : 'Saya Mengerti'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK TRANSFER MODAL (GUDANG -> ETALASE) */}
+      {transferModalProduct && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(6px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 10000,
+            padding: '1.25rem',
+          }}
+          onClick={() => !transferLoading && setTransferModalProduct(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              borderRadius: '24px',
+              padding: '1.75rem',
+              width: '100%',
+              maxWidth: '440px',
+              boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+                📦 Pindah Stok ke Etalase
+              </h3>
+              <button
+                type="button"
+                onClick={() => setTransferModalProduct(null)}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ background: '#f8fafc', padding: '0.85rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
+              <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem' }}>{transferModalProduct.product_name}</div>
+              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem', fontSize: '0.825rem' }}>
+                <span style={{ color: '#059669', fontWeight: 700 }}>🏪 Etalase: {transferModalProduct.stock_etalase ?? 0} pcs</span>
+                <span style={{ color: '#1d4ed8', fontWeight: 700 }}>🏭 Gudang: {transferModalProduct.stock_gudang ?? 0} pcs</span>
+              </div>
+            </div>
+
+            <form onSubmit={handleExecuteTransfer}>
+              <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>
+                Jumlah yang Dipindahkan ke Etalase (Pcs):
+              </label>
+              <input
+                type="number"
+                min="1"
+                max={transferModalProduct.stock_gudang || 1}
+                value={transferQtyInput}
+                onChange={(e) => setTransferQtyInput(e.target.value)}
+                required
+                style={{
+                  width: '100%',
+                  padding: '0.75rem',
+                  borderRadius: '10px',
+                  border: '1.5px solid #cbd5e1',
+                  fontSize: '1.1rem',
+                  fontWeight: 800,
+                  marginBottom: '1rem',
+                }}
+              />
+
+              <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                {[1, 2, 5, 10].map((quick) => (
+                  <button
+                    key={quick}
+                    type="button"
+                    onClick={() => setTransferQtyInput(quick)}
+                    disabled={(transferModalProduct.stock_gudang || 0) < quick}
+                    style={{
+                      flex: 1,
+                      padding: '0.45rem',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      background: Number(transferQtyInput) === quick ? '#0284c7' : '#f1f5f9',
+                      color: Number(transferQtyInput) === quick ? '#ffffff' : '#334155',
+                      fontWeight: 800,
+                      fontSize: '0.8rem',
+                      cursor: (transferModalProduct.stock_gudang || 0) < quick ? 'not-allowed' : 'pointer',
+                      opacity: (transferModalProduct.stock_gudang || 0) < quick ? 0.4 : 1,
+                    }}
+                  >
+                    +{quick}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.65rem' }}>
+                <button
+                  type="button"
+                  onClick={() => setTransferModalProduct(null)}
+                  disabled={transferLoading}
+                  style={{
+                    flex: 1,
+                    padding: '0.75rem',
+                    borderRadius: '12px',
+                    border: '1px solid #cbd5e1',
+                    background: '#ffffff',
+                    color: '#475569',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                  }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={transferLoading || (transferModalProduct.stock_gudang || 0) <= 0}
+                  style={{
+                    flex: 2,
+                    padding: '0.75rem',
+                    borderRadius: '12px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    cursor: transferLoading ? 'wait' : 'pointer',
+                    boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)',
+                  }}
+                >
+                  {transferLoading ? 'Memindahkan...' : 'Pindahkan ke Etalase'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

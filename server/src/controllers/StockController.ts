@@ -110,4 +110,69 @@ export class StockController {
       return res.status(400).json({ error: error.message || 'Gagal merestok/menyesuaikan stok' });
     }
   };
+
+  public transferStock = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+      const { product_id, quantity, notes } = req.body;
+      const transferQty = Number(quantity);
+      if (!product_id || isNaN(transferQty) || transferQty <= 0) {
+        return res.status(400).json({ error: 'Parameter product_id dan kuantitas transfer (angka positif) wajib diisi.' });
+      }
+
+      const userId = req.user?.user_id || 'usr-owner-001';
+      const username = req.user?.username || 'Pegawai';
+
+      const product = await productRepository.findById(product_id);
+      const productName = product ? product.product_name : `Produk #${product_id}`;
+
+      const updated = await this.stockService.transferStock(product_id, transferQty);
+
+      // 1. Catat ke audit log
+      const detailStr = `Pemindahan Stok "${productName}" sebanyak ${transferQty} Pcs dari Gudang Utama ke Etalase Toko (Stok Akhir Etalase: ${updated.stock_etalase}, Gudang: ${updated.stock_gudang}). ${notes || ''}`.trim();
+      await auditLogRepository.logAction(
+        userId,
+        username,
+        'STOCK_TRANSFER',
+        productName,
+        product_id,
+        detailStr
+      );
+
+      // 2. Catat ke stock_movements
+      try {
+        await pool.query(
+          `INSERT INTO stock_movements (movement_id, product_id, actor_user_id, movement_type, quantity, stock_before, stock_after, notes)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            `mov-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+            product_id,
+            userId,
+            'IN',
+            transferQty,
+            (updated.stock_etalase ?? 0) - transferQty,
+            updated.stock_etalase,
+            `Pindah Gudang -> Etalase (+${transferQty} Pcs) oleh ${username}`
+          ]
+        );
+      } catch (err) {
+        console.warn('[StockController] stock_movements transfer DB insert fallback notice:', (err as Error).message);
+      }
+
+      // 3. Broadcast SSE signal untuk sinkronisasi seketika di seluruh kasir & dashboard
+      sseManager.broadcast('STOCK_UPDATED', {
+        product_id,
+        current_stock: updated.current_stock,
+        stock_gudang: updated.stock_gudang,
+        stock_etalase: updated.stock_etalase,
+        updated_at: new Date().toISOString(),
+      });
+
+      return res.status(200).json({
+        message: `Berhasil memindahkan ${transferQty} pcs "${productName}" dari Gudang ke Etalase Toko.`,
+        data: updated,
+      });
+    } catch (error: any) {
+      return res.status(400).json({ error: error.message || 'Gagal memproses pemindahan stok barang' });
+    }
+  };
 }

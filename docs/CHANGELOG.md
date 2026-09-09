@@ -2,6 +2,29 @@
 
 Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pengembangan Sistem POS Usaha Campuran (FC/Printing & FNB).
 
+## [1.8.1] - 9 September 2026
+
+### Added & Enhanced
+- **Pemisahan Ketat Stok Gudang vs Etalase (`StockRepository.ts` & `StockService.ts`)**:
+  - Transaksi kasir (`createTransaction`) dikunci secara atomik di database hanya boleh memotong `stock_etalase` dan `current_stock` (`WHERE product_id = $2 AND COALESCE(stock_etalase, 0) >= $1`).
+  - Menghapus logika pemotongan otomatis ke stok gudang saat etalase habis, sehingga stok gudang tidak akan pernah berkurang tanpa pemindahan fisik oleh pegawai.
+  - Endpoint baru `POST /api/stocks/transfer` untuk memindahkan stok secara resmi dari gudang ke etalase toko disertai pencatatan audit log `STOCK_TRANSFER`.
+- **Sinkronisasi Stok Real-Time via Server-Sent Events (SSE) (`PosRegister.tsx` & `TransactionController.ts`)**:
+  - Memancarkan event SSE `STOCK_UPDATED` setiap kali transaksi kasir berhasil, dibatalkan, atau stok dipindahkan.
+  - `PosRegister.tsx` mendengarkan event SSE dan otomatis memperbarui sisa stok etalase seketika di semua kasir aktif tanpa perlu refresh halaman.
+  - Kartu produk menampilkan badge informatif: `🏪 E: X` (Etalase) dan `🏭 G: Y` (Gudang).
+  - Jika stok etalase habis (0 Pcs) namun di gudang ada barang, sistem menampilkan dialog peringatan informatif beserta tombol cepat pemindahan stok (*Quick Transfer*).
+- **Pembersihan Fallback Hardcoded & Fitur Quick Transfer (`StockPage.tsx`)**:
+  - Menghapus 5 baris kode fallback *hardcoded* `Math.min(..., 5)` dan `Math.max(..., 5)` yang sebelumnya memalsukan visualisasi stok menjadi 5 Pcs.
+  - Menambahkan Modal dan Tombol *Quick Transfer* Gudang ke Etalase pada tampilan Card maupun Tabel Desktop di `StockPage.tsx`.
+- **Perbaikan Audit Sisa Fisik Rak Saat Tutup Shift (`ShiftPage.tsx`)**:
+  - Memperbaiki `handleOpenStockAuditModal` agar menggabungkan data produk dengan stok aktual dari tabel `stocks`, mencegah salah hitung stok sisa rak dan mencegah pembuatan transaksi duplikat otomatis saat shift ditutup.
+- **Sinkronisasi Versi Otomatis & Terpusat (v1.8.1)**:
+  - Mengintegrasikan seluruh tampilan antarmuka (`LoginPage`, `CashierLayout`, `OwnerHeader`, `OwnerSidebar`, `OwnerDashboardPage`) langsung ke modul `APP_VERSION` berbasis `package.json` sehingga setiap kenaikan versi di masa mendatang langsung ter-update secara otomatis tanpa hardcoding manual.
+  - Bump versi proyek menjadi `v1.8.1` pada `client/package.json` dan `server/package.json`.
+
+---
+
 ## [1.8.0] - 5 September 2026
 
 ### Added & Enhanced

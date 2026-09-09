@@ -15,6 +15,7 @@ import {
   Sparkles,
 } from 'lucide-react';
 import { User } from '../../types';
+import { APP_VERSION } from '../../config/version';
 
 interface OwnerSidebarProps {
   activeTab: string;
@@ -166,7 +167,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                   border: '1px solid rgba(37,99,235,0.2)',
                 }}
               >
-                v1.8.0
+                {APP_VERSION}
               </span>
             </div>
           </div>
@@ -339,7 +340,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
         </button>
 
         <div style={{ fontSize: '0.675rem', fontWeight: 800, color: 'var(--sidebar-subtext, #94a3b8)', textAlign: 'center', marginTop: '0.6rem', letterSpacing: '0.03em' }}>
-          POS Kasir App • <span style={{ color: '#2563eb' }}>v1.8.0</span>
+          POS Kasir App • <span style={{ color: '#2563eb' }}>{APP_VERSION}</span>
         </div>
       </div>
     </div>

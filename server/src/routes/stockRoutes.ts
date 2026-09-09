@@ -13,5 +13,6 @@ const stockController = new StockController(stockService);
 router.get('/', authMiddleware, stockController.getStocks);
 router.get('/movements', authMiddleware, stockController.getStockMovements);
 router.post('/update', authMiddleware, stockController.updateStock);
+router.post('/transfer', authMiddleware, stockController.transferStock);
 
 export default router;

@@ -43,9 +43,9 @@ export class StockService {
           });
         }
 
-        const totalStock = stock.current_stock;
-        const etalase = stock.stock_etalase !== undefined && stock.stock_etalase !== null ? stock.stock_etalase : 0;
-        const gudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? stock.stock_gudang : Math.max(0, totalStock - etalase);
+        const totalStock = Number(stock.current_stock) || 0;
+        const gudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? Number(stock.stock_gudang) : 0;
+        const etalase = stock.stock_etalase !== undefined && stock.stock_etalase !== null ? Number(stock.stock_etalase) : Math.max(0, totalStock - gudang);
 
         result.push({
           ...stock,
@@ -69,12 +69,6 @@ export class StockService {
       return null;
     }
 
-    // Coba pengurangan atomic langsung di PostgreSQL untuk menjamin race-condition protection
-    const atomicUpdated = await this.stockRepository.deductStockAtomic(product_id, qty);
-    if (atomicUpdated) {
-      return atomicUpdated;
-    }
-
     let stock = await this.stockRepository.findByProductId(product_id);
     if (!stock) {
       stock = await this.stockRepository.create({
@@ -87,25 +81,29 @@ export class StockService {
       });
     }
 
-    // Pengurangan stok prioritas utama dari etalase, sisanya dari gudang
-    let etalase = stock.stock_etalase !== undefined && stock.stock_etalase !== null ? Number(stock.stock_etalase) : 0;
-    let gudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? Number(stock.stock_gudang) : Math.max(0, Number(stock.current_stock) - etalase);
+    const etalase = stock.stock_etalase !== undefined && stock.stock_etalase !== null ? Number(stock.stock_etalase) : 0;
+    const gudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? Number(stock.stock_gudang) : 0;
 
-    let remainingDeduct = qty;
-    if (etalase >= remainingDeduct) {
-      etalase -= remainingDeduct;
-      remainingDeduct = 0;
-    } else {
-      remainingDeduct -= etalase;
-      etalase = 0;
-      gudang = Math.max(0, gudang - remainingDeduct);
+    // CEGAH TRANSAKSI JIKA STOK ETALASE TIDAK MENCUKUPI (JANGAN SEDOT GUDANG OTOMATIS)
+    if (etalase < qty) {
+      throw new Error(
+        `Stok di etalase toko untuk "${product.product_name}" tidak mencukupi (Tersedia di etalase: ${etalase} pcs, di gudang: ${gudang} pcs). Silakan lakukan pemindahan stok dari gudang ke etalase terlebih dahulu.`
+      );
     }
 
-    const newStockAmount = Math.max(0, gudang + etalase);
+    // Coba pengurangan atomic langsung di PostgreSQL untuk menjamin race-condition protection (Hanya potong etalase)
+    const atomicUpdated = await this.stockRepository.deductStockAtomic(product_id, qty);
+    if (atomicUpdated) {
+      return atomicUpdated;
+    }
+
+    // Fallback in-memory: HANYA kurangi etalase, gudang tetap utuh
+    const newEtalase = Math.max(0, etalase - qty);
+    const newStockAmount = gudang + newEtalase;
     return this.stockRepository.update(stock.stock_id, {
       current_stock: newStockAmount,
       stock_gudang: gudang,
-      stock_etalase: etalase,
+      stock_etalase: newEtalase,
     });
   }
 
@@ -119,9 +117,9 @@ export class StockService {
     if (!stock) return null;
 
     let etalase = stock.stock_etalase !== undefined && stock.stock_etalase !== null ? Number(stock.stock_etalase) : 0;
-    let gudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? Number(stock.stock_gudang) : Math.max(0, Number(stock.current_stock) - etalase);
+    let gudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? Number(stock.stock_gudang) : 0;
     
-    // Kembalikan stok ke etalase toko
+    // Kembalikan stok yang dibatalkan langsung ke etalase toko
     etalase += qty;
 
     const newStockAmount = gudang + etalase;
@@ -130,6 +128,34 @@ export class StockService {
       stock_gudang: gudang,
       stock_etalase: etalase,
     });
+  }
+
+  async transferStock(product_id: string, qty: number): Promise<StockEntity> {
+    if (qty <= 0) {
+      throw new Error('Jumlah stok yang dipindahkan harus lebih dari 0.');
+    }
+
+    const product = await this.productRepository.findById(product_id);
+    if (!product || !product.manage_stock) {
+      throw new Error('Produk ini tidak dikonfigurasi untuk mengelola stok fisik.');
+    }
+
+    const stock = await this.stockRepository.findByProductId(product_id);
+    if (!stock) {
+      throw new Error('Data stok produk tidak ditemukan.');
+    }
+
+    const gudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? Number(stock.stock_gudang) : 0;
+    if (gudang < qty) {
+      throw new Error(`Stok di gudang tidak mencukupi untuk dipindahkan (Tersedia di gudang: ${gudang} pcs).`);
+    }
+
+    const updated = await this.stockRepository.transferStock(product_id, qty);
+    if (!updated) {
+      throw new Error('Gagal memproses pemindahan stok di database.');
+    }
+
+    return updated;
   }
 
   async updateStockQuantity(product_id: string, newQuantity: number, inputGudang?: number, inputEtalase?: number): Promise<StockEntity> {
@@ -165,23 +191,23 @@ export class StockService {
     } else if (stock) {
       // 2. Koreksi total stok tanpa merusak alokasi gudang/etalase yang sudah ada
       const currentEtalase = stock.stock_etalase !== undefined && stock.stock_etalase !== null ? Number(stock.stock_etalase) : 0;
-      const currentGudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? Number(stock.stock_gudang) : Math.max(0, Number(stock.current_stock) - currentEtalase);
+      const currentGudang = stock.stock_gudang !== undefined && stock.stock_gudang !== null ? Number(stock.stock_gudang) : 0;
       
       const diff = newQuantity - (currentGudang + currentEtalase);
       if (diff >= 0) {
-        // Jika ada penambahan total, tambahkan ke Gudang secara aman
-        gudang = currentGudang + diff;
-        etalase = currentEtalase;
+        // Jika ada penambahan total tanpa rincian, alokasikan ke Etalase (stok aktif jual)
+        etalase = currentEtalase + diff;
+        gudang = currentGudang;
       } else {
-        // Jika ada pengurangan total, kurangi dari Gudang dulu lalu Etalase
+        // Jika ada pengurangan total, kurangi dari Etalase dulu lalu Gudang
         let remainingReduce = Math.abs(diff);
-        if (currentGudang >= remainingReduce) {
-          gudang = currentGudang - remainingReduce;
-          etalase = currentEtalase;
+        if (currentEtalase >= remainingReduce) {
+          etalase = currentEtalase - remainingReduce;
+          gudang = currentGudang;
         } else {
-          remainingReduce -= currentGudang;
-          gudang = 0;
-          etalase = Math.max(0, currentEtalase - remainingReduce);
+          remainingReduce -= currentEtalase;
+          etalase = 0;
+          gudang = Math.max(0, currentGudang - remainingReduce);
         }
       }
     } else {

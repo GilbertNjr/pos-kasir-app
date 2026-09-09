@@ -19,6 +19,7 @@ import {
   Printer,
   Plus,
   History,
+  ArrowRightLeft,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { User, Category, Product } from '../types';
@@ -101,6 +102,43 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   // Modal 4: Konfirmasi Peringatan Hapus Stok & Produk
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<StockItem | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+
+  // Modal 5: Quick Transfer Gudang ke Etalase Modal State
+  const [transferModalItem, setTransferModalItem] = useState<StockItem | null>(null);
+  const [transferModalQty, setTransferModalQty] = useState<number | string>(1);
+  const [transferLoading, setTransferLoading] = useState(false);
+
+  const handleExecuteTransfer = async () => {
+    if (!transferModalItem) return;
+    const qty = Math.floor(Number(transferModalQty));
+    const maxGudang = transferModalItem.stock_gudang !== undefined && transferModalItem.stock_gudang !== null ? Number(transferModalItem.stock_gudang) : 0;
+    if (qty <= 0) {
+      if (onTriggerToast) onTriggerToast('warning', 'Jumlah Tidak Valid', 'Jumlah transfer minimal 1 pcs.');
+      return;
+    }
+    if (qty > maxGudang) {
+      if (onTriggerToast) onTriggerToast('warning', 'Stok Gudang Kurang', `Maksimal transfer ${maxGudang} pcs.`);
+      return;
+    }
+
+    try {
+      setTransferLoading(true);
+      await apiService.transferStock(
+        transferModalItem.product_id,
+        qty,
+        `Pindah stok Gudang ke Etalase (${currentUser?.username || 'Kasir'})`
+      );
+      if (onTriggerToast) {
+        onTriggerToast('success', 'Transfer Berhasil', `Berhasil memindahkan ${qty} pcs "${transferModalItem.product_name}" ke etalase toko.`);
+      }
+      setTransferModalItem(null);
+      await loadData();
+    } catch (err: any) {
+      if (onTriggerToast) onTriggerToast('danger', 'Gagal Transfer', err.message || 'Gagal memindahkan stok dari gudang ke etalase');
+    } finally {
+      setTransferLoading(false);
+    }
+  };
 
   const loadData = async () => {
     try {
@@ -807,15 +845,15 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   // Warehouse physical totals (Dynamic Real-time DB: Gudang Utama & Etalase Toko)
   const totalGudangUtama = React.useMemo(() => {
     return stocks.reduce((acc, s) => {
-      const etalase = s.stock_etalase !== undefined ? s.stock_etalase : Math.min(s.current_stock, 5);
-      const gudang = s.stock_gudang !== undefined ? s.stock_gudang : Math.max(0, s.current_stock - etalase);
+      const etalase = s.stock_etalase !== undefined && s.stock_etalase !== null ? Number(s.stock_etalase) : Number(s.current_stock);
+      const gudang = s.stock_gudang !== undefined && s.stock_gudang !== null ? Number(s.stock_gudang) : Math.max(0, Number(s.current_stock) - etalase);
       return acc + gudang;
     }, 0);
   }, [stocks]);
 
   const totalEtalaseToko = React.useMemo(() => {
     return stocks.reduce((acc, s) => {
-      const etalase = s.stock_etalase !== undefined ? s.stock_etalase : Math.min(s.current_stock, 5);
+      const etalase = s.stock_etalase !== undefined && s.stock_etalase !== null ? Number(s.stock_etalase) : Number(s.current_stock);
       return acc + etalase;
     }, 0);
   }, [stocks]);
@@ -1313,8 +1351,8 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                           </div>
 
                           <div style={{ textAlign: 'right', fontSize: '0.725rem', color: '#475569', fontWeight: 700 }}>
-                            <div style={{ color: '#1d4ed8' }}>🏭 Gudang: {item.stock_gudang ?? Math.max(0, item.current_stock - 5)} pcs</div>
-                            <div style={{ color: '#059669', marginTop: '0.1rem' }}>🏪 Etalase: {item.stock_etalase ?? Math.min(item.current_stock, 5)} pcs</div>
+                            <div style={{ color: '#1d4ed8' }}>🏭 Gudang: {item.stock_gudang !== undefined && item.stock_gudang !== null ? item.stock_gudang : 0} pcs</div>
+                            <div style={{ color: '#059669', marginTop: '0.1rem' }}>🏪 Etalase: {item.stock_etalase !== undefined && item.stock_etalase !== null ? item.stock_etalase : item.current_stock} pcs</div>
                           </div>
                         </div>
 
@@ -1329,6 +1367,19 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                             >
                               <Eye size={14} /> Detail
                             </button>
+
+                            {item.stock_gudang !== undefined && Number(item.stock_gudang) > 0 && (
+                              <button
+                                onClick={() => {
+                                  setTransferModalItem(item);
+                                  setTransferModalQty(Math.min(Number(item.stock_gudang), 5));
+                                }}
+                                title="Transfer Stok Gudang ke Etalase"
+                                style={{ padding: '0.4rem 0.6rem', borderRadius: '8px', border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                              >
+                                <ArrowRightLeft size={13} /> Pindah
+                              </button>
+                            )}
 
                             {currentUser.role !== 'OWNER' && (
                               <button
@@ -1421,9 +1472,9 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                                 {item.current_stock} <span style={{ fontSize: '0.7rem', color: isOut ? '#dc2626' : '#64748b', fontWeight: 700 }}>pcs</span>
                               </div>
                               <div style={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 800, display: 'flex', gap: '0.35rem', justifyContent: 'center', marginTop: '0.15rem' }}>
-                                <span style={{ color: '#1d4ed8' }}>🏭 G: {item.stock_gudang ?? Math.max(0, item.current_stock - 5)}</span>
+                                <span style={{ color: '#1d4ed8' }}>🏭 G: {item.stock_gudang !== undefined && item.stock_gudang !== null ? item.stock_gudang : 0}</span>
                                 <span>•</span>
-                                <span style={{ color: '#059669' }}>🏪 E: {item.stock_etalase ?? Math.min(item.current_stock, 5)}</span>
+                                <span style={{ color: '#059669' }}>🏪 E: {item.stock_etalase !== undefined && item.stock_etalase !== null ? item.stock_etalase : item.current_stock}</span>
                               </div>
                             </td>
 
@@ -1466,6 +1517,19 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                                 >
                                   <BarChart2 size={15} />
                                 </button>
+
+                                {item.stock_gudang !== undefined && Number(item.stock_gudang) > 0 && (
+                                  <button
+                                    onClick={() => {
+                                      setTransferModalItem(item);
+                                      setTransferModalQty(Math.min(Number(item.stock_gudang), 5));
+                                    }}
+                                    title="Pindahkan stok dari Gudang ke Etalase"
+                                    style={{ padding: '0.4rem 0.65rem', borderRadius: '8px', border: '1px solid #bfdbfe', background: '#eff6ff', color: '#1d4ed8', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.75rem', fontWeight: 800 }}
+                                  >
+                                    <ArrowRightLeft size={14} /> Pindah
+                                  </button>
+                                )}
 
                                 {currentUser.role !== 'OWNER' && (
                                   <button
@@ -1595,10 +1659,10 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.35rem', fontSize: '0.7rem', fontWeight: 800, borderTop: '1px dashed #cbd5e1', paddingTop: '0.35rem' }}>
                               <span style={{ color: '#1d4ed8', whiteSpace: 'nowrap' }}>
-                                🏭 Gudang: <strong>{item.stock_gudang ?? Math.max(0, item.current_stock - 5)}</strong> pcs
+                                🏭 Gudang: <strong>{item.stock_gudang !== undefined && item.stock_gudang !== null ? item.stock_gudang : 0}</strong> pcs
                               </span>
                               <span style={{ color: '#059669', whiteSpace: 'nowrap' }}>
-                                🏪 Etalase: <strong>{item.stock_etalase ?? Math.min(item.current_stock, 5)}</strong> pcs
+                                🏪 Etalase: <strong>{item.stock_etalase !== undefined && item.stock_etalase !== null ? item.stock_etalase : item.current_stock}</strong> pcs
                               </span>
                             </div>
                           </div>
@@ -2665,8 +2729,107 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         </div>
       )}
 
+      {/* Modal 5: Quick Transfer Gudang ke Etalase */}
+      {transferModalItem && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: '#ffffff', borderRadius: '16px', maxWidth: '480px', width: '100%', padding: '1.5rem', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+                <div style={{ background: '#eff6ff', padding: '0.5rem', borderRadius: '10px', color: '#2563eb' }}>
+                  <ArrowRightLeft size={20} />
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 900, color: '#0f172a' }}>
+                    Pindahkan ke Etalase
+                  </h3>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    Transfer fisik dari Gudang Utama ke Etalase Toko
+                  </span>
+                </div>
+              </div>
+              <button
+                onClick={() => setTransferModalItem(null)}
+                style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#94a3b8' }}
+              >
+                <XCircle size={20} />
+              </button>
+            </div>
+
+            <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
+              <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.95rem', marginBottom: '0.4rem' }}>
+                {transferModalItem.product_name}
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', fontWeight: 700 }}>
+                <span style={{ color: '#1d4ed8' }}>
+                  🏭 Gudang: <strong>{transferModalItem.stock_gudang ?? 0} pcs</strong>
+                </span>
+                <span style={{ color: '#059669' }}>
+                  🏪 Etalase: <strong>{transferModalItem.stock_etalase ?? 0} pcs</strong>
+                </span>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '1.25rem' }}>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.5rem' }}>
+                Jumlah yang Ingin Dipindahkan (Pcs):
+              </label>
+              <input
+                type="number"
+                min="1"
+                max={Number(transferModalItem.stock_gudang) || 1}
+                value={transferModalQty}
+                onChange={(e) => setTransferModalQty(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
+                style={{ width: '100%', padding: '0.75rem', borderRadius: '10px', border: '2px solid #2563eb', fontSize: '1.25rem', fontWeight: 900, textAlign: 'center', color: '#1e293b' }}
+              />
+
+              <div style={{ display: 'flex', gap: '0.5rem', marginTop: '0.65rem' }}>
+                {[1, 5, 10].map((num) => {
+                  const maxG = Number(transferModalItem.stock_gudang) || 0;
+                  if (num > maxG && maxG > 0) return null;
+                  return (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setTransferModalQty(num)}
+                      style={{ flex: 1, padding: '0.45rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#334155', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}
+                    >
+                      +{num} Pcs
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={() => setTransferModalQty(Number(transferModalItem.stock_gudang) || 0)}
+                  style={{ flex: 1, padding: '0.45rem', borderRadius: '8px', border: '1px solid #93c5fd', background: '#eff6ff', color: '#1d4ed8', fontWeight: 800, fontSize: '0.8rem', cursor: 'pointer' }}
+                >
+                  Semua ({transferModalItem.stock_gudang ?? 0})
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+              <button
+                type="button"
+                onClick={() => setTransferModalItem(null)}
+                style={{ padding: '0.65rem 1.25rem', borderRadius: '10px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#475569', fontWeight: 800, fontSize: '0.875rem', cursor: 'pointer' }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={transferLoading || Number(transferModalQty) <= 0}
+                onClick={handleExecuteTransfer}
+                style={{ padding: '0.65rem 1.25rem', borderRadius: '10px', border: 'none', background: 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)', color: '#ffffff', fontWeight: 800, fontSize: '0.875rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem', opacity: (transferLoading || Number(transferModalQty) <= 0) ? 0.6 : 1 }}
+              >
+                {transferLoading ? 'Memindahkan...' : 'Konfirmasi Pindahkan'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <ActionLoadingModal
-        isOpen={submitLoading || createLoading || updateProdLoading || deleteLoading}
+        isOpen={submitLoading || createLoading || updateProdLoading || deleteLoading || transferLoading}
         message="Memproses pembaruan stok & data inventaris backend..."
         submessage="Mencegah duplikasi entri stok & menyelaraskan database..."
       />

@@ -139,14 +139,14 @@ export class StockRepository implements IRepository<StockEntity> {
 
   async deductStockAtomic(product_id: string, qty: number): Promise<StockEntity | null> {
     try {
+      // Hanya potong stok etalase & total stok. STOK GUDANG TIDAK BOLEH BERKURANG SAMA SEKALI!
       const queryStr = `
         UPDATE stocks 
         SET 
           current_stock = GREATEST(0, current_stock - $1),
           stock_etalase = GREATEST(0, COALESCE(stock_etalase, 0) - $1),
-          stock_gudang = GREATEST(0, COALESCE(stock_gudang, 0) - GREATEST(0, $1 - COALESCE(stock_etalase, 0))),
           last_updated = CURRENT_TIMESTAMP
-        WHERE product_id = $2
+        WHERE product_id = $2 AND COALESCE(stock_etalase, 0) >= $1
         RETURNING stock_id, product_id, current_stock::float, COALESCE(stock_gudang, 0)::float as stock_gudang, COALESCE(stock_etalase, 0)::float as stock_etalase, last_updated::text
       `;
       const res = await pool.query(queryStr, [qty, product_id]);
@@ -158,6 +158,42 @@ export class StockRepository implements IRepository<StockEntity> {
       }
     } catch (err) {
       console.warn('[StockRepository] Database atomic deduct fallback to memory:', (err as Error).message);
+    }
+    return null;
+  }
+
+  async transferStock(product_id: string, qty: number): Promise<StockEntity | null> {
+    try {
+      // Pindahkan stok dari Gudang ke Etalase (Gudang berkurang, Etalase bertambah, Total tetap sama)
+      const queryStr = `
+        UPDATE stocks 
+        SET 
+          stock_gudang = GREATEST(0, COALESCE(stock_gudang, 0) - $1),
+          stock_etalase = COALESCE(stock_etalase, 0) + $1,
+          current_stock = (GREATEST(0, COALESCE(stock_gudang, 0) - $1) + (COALESCE(stock_etalase, 0) + $1)),
+          last_updated = CURRENT_TIMESTAMP
+        WHERE product_id = $2 AND COALESCE(stock_gudang, 0) >= $1
+        RETURNING stock_id, product_id, current_stock::float, COALESCE(stock_gudang, 0)::float as stock_gudang, COALESCE(stock_etalase, 0)::float as stock_etalase, last_updated::text
+      `;
+      const res = await pool.query(queryStr, [qty, product_id]);
+      if (res.rows.length > 0) {
+        const updated = res.rows[0];
+        const memIdx = this.inMemoryStocks.findIndex((s) => s.product_id === product_id);
+        if (memIdx !== -1) this.inMemoryStocks[memIdx] = updated;
+        return updated;
+      }
+    } catch (err) {
+      console.warn('[StockRepository] Database transfer fallback to memory:', (err as Error).message);
+    }
+
+    // In-memory fallback
+    const mem = this.inMemoryStocks.find((s) => s.product_id === product_id);
+    if (mem && (mem.stock_gudang ?? 0) >= qty) {
+      mem.stock_gudang = (mem.stock_gudang ?? 0) - qty;
+      mem.stock_etalase = (mem.stock_etalase ?? 0) + qty;
+      mem.current_stock = mem.stock_gudang + mem.stock_etalase;
+      mem.last_updated = new Date().toISOString();
+      return { ...mem };
     }
     return null;
   }
