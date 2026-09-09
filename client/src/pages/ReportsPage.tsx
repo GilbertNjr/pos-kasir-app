@@ -141,18 +141,43 @@ const SVGLineChart: React.FC<SVGLineChartProps> = ({ transactions = [], chartMod
     return `${day}/${month}/${year}`;
   };
 
+  // Standar Kalender Mingguan Normal (Senin s.d. Minggu)
+  const currentDayOfWeek = now.getDay(); // 0=Min, 1=Sen, ..., 6=Sab
+  const dayIndexThisWeek = currentDayOfWeek === 0 ? 6 : currentDayOfWeek - 1; // 0=Senin ... 6=Minggu
+
+  const mondayThisWeek = new Date(now);
+  mondayThisWeek.setDate(now.getDate() - dayIndexThisWeek);
+  mondayThisWeek.setHours(0, 0, 0, 0);
+
+  const sundayThisWeek = new Date(mondayThisWeek);
+  sundayThisWeek.setDate(mondayThisWeek.getDate() + 6);
+  sundayThisWeek.setHours(23, 59, 59, 999);
+
+  const mondayLastWeek = new Date(mondayThisWeek);
+  mondayLastWeek.setDate(mondayThisWeek.getDate() - 7);
+  mondayLastWeek.setHours(0, 0, 0, 0);
+
+  const sundayLastWeek = new Date(mondayLastWeek);
+  sundayLastWeek.setDate(mondayLastWeek.getDate() + 6);
+  sundayLastWeek.setHours(23, 59, 59, 999);
+
   let labels: string[] = [];
   let pointsCurrent: number[] = [];
   let pointsPrev: number[] = [];
+  let activeCurrentSlots = 7;
 
   if (chartMode === 'Per Jam') {
     labels = ['00:00', '03:00', '06:00', '09:00', '12:00', '15:00', '18:00', '21:00'];
     pointsCurrent = new Array(8).fill(0);
     pointsPrev = new Array(8).fill(0);
+    activeCurrentSlots = 8;
 
     transactions.forEach((tx: any) => {
       if (!tx.transaction_time && !tx.created_at) return;
+      if (tx.status === 'CANCELLED') return;
       const txDateObj = new Date(tx.transaction_time || tx.created_at);
+      if (isNaN(txDateObj.getTime())) return;
+
       const dateStr = txDateObj.toISOString().split('T')[0];
       const hour = txDateObj.getHours();
       const amount = Number(tx.final_total || tx.subtotal_amount || 0);
@@ -168,29 +193,29 @@ const SVGLineChart: React.FC<SVGLineChartProps> = ({ transactions = [], chartMod
       }
     });
   } else {
-    const dayNames = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
-    labels = [];
+    // Mode Harian: Standar Baku Kalender Mingguan (Senin s.d. Minggu)
+    labels = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
     pointsCurrent = new Array(7).fill(0);
     pointsPrev = new Array(7).fill(0);
-
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(now.getDate() - i);
-      labels.push(dayNames[d.getDay()]);
-    }
+    activeCurrentSlots = dayIndexThisWeek + 1; // Garis minggu ini digambar proporsional hingga hari ini!
 
     transactions.forEach((tx: any) => {
       if (!tx.transaction_time && !tx.created_at) return;
+      if (tx.status === 'CANCELLED') return;
       const txDateObj = new Date(tx.transaction_time || tx.created_at);
+      if (isNaN(txDateObj.getTime())) return;
+
+      const txTime = txDateObj.getTime();
       const amount = Number(tx.final_total || tx.subtotal_amount || 0);
-      const diffDays = Math.floor((now.getTime() - txDateObj.getTime()) / (1000 * 3600 * 24));
-      
-      if (diffDays >= 0 && diffDays < 7) {
-        const index = 6 - diffDays;
-        pointsCurrent[index] += amount;
-      } else if (diffDays >= 7 && diffDays < 14) {
-        const index = 13 - diffDays;
-        pointsPrev[index] += amount;
+
+      if (txTime >= mondayThisWeek.getTime() && txTime <= sundayThisWeek.getTime()) {
+        const txDay = txDateObj.getDay();
+        const slot = txDay === 0 ? 6 : txDay - 1; // 0=Senin, ..., 6=Minggu
+        pointsCurrent[slot] += amount;
+      } else if (txTime >= mondayLastWeek.getTime() && txTime <= sundayLastWeek.getTime()) {
+        const txDay = txDateObj.getDay();
+        const slot = txDay === 0 ? 6 : txDay - 1;
+        pointsPrev[slot] += amount;
       }
     });
   }
@@ -205,19 +230,29 @@ const SVGLineChart: React.FC<SVGLineChartProps> = ({ transactions = [], chartMod
   const maxScaled = Math.max(...pointsCurrentScaled, ...pointsPrevScaled, 1);
   const roundedMaxY = Math.ceil(maxScaled * 1.15);
 
-  const getCoordinates = (pts: number[]) => {
-    const maxX = pts.length - 1;
-    return pts
-      .map((val, idx) => {
-        const x = (idx / (maxX || 1)) * (width - 45) + 40;
-        const y = height - 25 - (val / (roundedMaxY || 1)) * (height - 35);
-        return `${x},${y}`;
-      })
-      .join(' ');
-  };
+  const totalSlots = (chartMode === 'Per Jam' ? 8 : 7) - 1;
 
-  const pathCurrent = getCoordinates(pointsCurrentScaled);
-  const pathPrev = getCoordinates(pointsPrevScaled);
+  // Garis minggu lalu (digambar penuh seluruh rentang)
+  const pathPrev = pointsPrevScaled
+    .map((val, idx) => {
+      const x = (idx / (totalSlots || 1)) * (width - 45) + 40;
+      const y = height - 25 - (val / (roundedMaxY || 1)) * (height - 35);
+      return `${x},${y}`;
+    })
+    .join(' ');
+
+  // Garis minggu ini (digambar sampai hari ini, tidak menukik ke 0 untuk hari esok)
+  const currentDrawPoints = pointsCurrentScaled.slice(0, activeCurrentSlots);
+  const pathCurrent = currentDrawPoints
+    .map((val, idx) => {
+      const x = (idx / (totalSlots || 1)) * (width - 45) + 40;
+      const y = height - 25 - (val / (roundedMaxY || 1)) * (height - 35);
+      return `${x},${y}`;
+    })
+    .join(' ');
+
+  const lastActiveX = ((activeCurrentSlots - 1) / (totalSlots || 1)) * (width - 45) + 40;
+  const polygonPoints = `40,${height - 25} ${pathCurrent} ${lastActiveX},${height - 25}`;
 
   return (
     <div style={{ width: '100%' }}>
@@ -244,11 +279,11 @@ const SVGLineChart: React.FC<SVGLineChartProps> = ({ transactions = [], chartMod
           })}
 
           <polyline fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="4 4" points={pathPrev} />
-          <polygon fill="url(#chartGrad)" points={`40,${height - 25} ${pathCurrent} ${width},${height - 25}`} />
-          <polyline fill="none" stroke="#2563eb" strokeWidth="2.5" points={pathCurrent} />
+          {pathCurrent && <polygon fill="url(#chartGrad)" points={polygonPoints} />}
+          {pathCurrent && <polyline fill="none" stroke="#2563eb" strokeWidth="2.5" points={pathCurrent} />}
 
-          {pointsCurrentScaled.map((val, idx) => {
-            const x = (idx / (pointsCurrentScaled.length - 1 || 1)) * (width - 45) + 40;
+          {currentDrawPoints.map((val, idx) => {
+            const x = (idx / (totalSlots || 1)) * (width - 45) + 40;
             const y = height - 25 - (val / (roundedMaxY || 1)) * (height - 35);
             return <circle key={idx} cx={x} cy={y} r="3.5" fill="#2563eb" stroke="#ffffff" strokeWidth="1.5" />;
           })}
@@ -264,14 +299,18 @@ const SVGLineChart: React.FC<SVGLineChartProps> = ({ transactions = [], chartMod
         </svg>
       </div>
 
-      <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', fontSize: '0.725rem', marginTop: '0.2rem' }}>
+      <div style={{ display: 'flex', gap: '1.25rem', justifyContent: 'center', fontSize: '0.725rem', marginTop: '0.35rem', flexWrap: 'wrap' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 700, color: '#2563eb' }}>
           <span style={{ width: '12px', height: '3px', background: '#2563eb', borderRadius: '2px' }} />
-          {formatShortDate(now)} ({chartMode === 'Per Jam' ? 'Hari Ini' : 'Minggu Ini'})
+          {chartMode === 'Per Jam'
+            ? `${formatShortDate(now)} (Hari Ini)`
+            : `${formatShortDate(mondayThisWeek)} - ${formatShortDate(sundayThisWeek)} (Minggu Ini)`}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 600, color: '#94a3b8' }}>
           <span style={{ width: '12px', height: '2px', borderTop: '2px dashed #cbd5e1' }} />
-          {formatShortDate(yesterday)} ({chartMode === 'Per Jam' ? 'Kemarin' : 'Minggu Lalu'})
+          {chartMode === 'Per Jam'
+            ? `${formatShortDate(yesterday)} (Kemarin)`
+            : `${formatShortDate(mondayLastWeek)} - ${formatShortDate(sundayLastWeek)} (Minggu Lalu)`}
         </div>
       </div>
     </div>
@@ -704,7 +743,7 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
   transactions.forEach((tx: any) => {
     if (tx.items && Array.isArray(tx.items)) {
       tx.items.forEach((it: any) => {
-        const name = it.product_name || it.name || 'Produk';
+        const name = it.product_name || it.product_name_snapshot || it.name || 'Produk';
         if (!productMapUI[name]) productMapUI[name] = { name, qty: 0, omzet: 0 };
         const q = Number(it.quantity || it.qty || 1);
         const sub = Number(it.subtotal || it.total_price || (Number(it.unit_price || 0) * q));
@@ -1349,22 +1388,9 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                   const st = Number(item.current_stock || 0);
                   const isFc = item.business_unit === 'FC_PRINT' || item.business_unit === 'ATK';
                   return (
-                    <div key={item.stock_id || idx} style={{ background: '#ffffff', padding: '0.75rem 0.8rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 6px rgba(0,0,0,0.02)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', gap: '0.45rem', minWidth: 0, boxSizing: 'border-box' }}>
-                      <div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.35rem', marginBottom: '0.25rem' }}>
-                          <span style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.825rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }} title={item.product_name}>
-                            {item.product_name}
-                          </span>
-                          {st >= 10 ? (
-                            <span style={{ padding: '0.15rem 0.45rem', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, flexShrink: 0 }}>Aman</span>
-                          ) : st > 0 ? (
-                            <span style={{ padding: '0.15rem 0.45rem', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, flexShrink: 0 }}>Menipis</span>
-                          ) : (
-                            <span style={{ padding: '0.15rem 0.45rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, flexShrink: 0 }}>Habis</span>
-                          )}
-                        </div>
-
-                        <div style={{ marginBottom: '0.35rem' }}>
+                    <div key={item.stock_id || idx} style={{ background: '#ffffff', padding: '0.9rem 1.1rem', borderRadius: '14px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.85rem', minWidth: 0, boxSizing: 'border-box' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', minWidth: 0, flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', flexWrap: 'wrap' }}>
                           {isFc ? (
                             <span style={{ padding: '0.15rem 0.45rem', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800, background: '#f3e8ff', color: '#7e22ce', border: '1px solid #d8b4fe', display: 'inline-flex', alignItems: 'center', gap: '0.2rem' }}>
                               🖨️ FC
@@ -1374,15 +1400,28 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                               🍔 FNB
                             </span>
                           )}
+                          {st >= 10 ? (
+                            <span style={{ padding: '0.15rem 0.45rem', background: '#ecfdf5', color: '#047857', border: '1px solid #a7f3d0', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800 }}>Aman</span>
+                          ) : st > 0 ? (
+                            <span style={{ padding: '0.15rem 0.45rem', background: '#fffbeb', color: '#b45309', border: '1px solid #fde68a', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800 }}>Menipis</span>
+                          ) : (
+                            <span style={{ padding: '0.15rem 0.45rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '999px', fontSize: '0.65rem', fontWeight: 800 }}>Habis</span>
+                          )}
+                        </div>
+
+                        <div style={{ fontWeight: 900, color: '#0f172a', fontSize: '0.925rem', lineHeight: 1.35, wordBreak: 'break-word' }} title={item.product_name}>
+                          {item.product_name}
+                        </div>
+
+                        <div style={{ color: '#94a3b8', fontSize: '0.68rem' }}>
+                          Update: {item.last_updated ? formatWaktuIndo(item.last_updated) : '-'}
                         </div>
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.35rem', borderTop: '1px dashed #e2e8f0', fontSize: '0.725rem' }}>
-                        <div style={{ color: '#475569', fontWeight: 700 }}>
-                          Stok: <strong style={{ fontSize: '0.9rem', color: st === 0 ? '#dc2626' : st < 5 ? '#d97706' : '#059669' }}>{st}</strong> <span style={{ fontSize: '0.68rem', color: '#64748b' }}>pcs</span>
-                        </div>
-                        <div style={{ color: '#94a3b8', fontSize: '0.65rem' }}>
-                          {item.last_updated ? formatWaktuIndo(item.last_updated) : '-'}
+                      <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                        <div style={{ color: '#475569', fontSize: '0.7rem', fontWeight: 700, marginBottom: '0.1rem' }}>Sisa Stok</div>
+                        <div style={{ fontSize: '1.05rem', fontWeight: 900, color: st === 0 ? '#dc2626' : st < 5 ? '#d97706' : '#059669', padding: '0.3rem 0.65rem', borderRadius: '8px', background: st === 0 ? '#fef2f2' : st < 5 ? '#fffbeb' : '#f0fdf4', border: `1px solid ${st === 0 ? '#fee2e2' : st < 5 ? '#fde68a' : '#dcfce7'}` }}>
+                          {st} <span style={{ fontSize: '0.7rem', fontWeight: 700 }}>pcs</span>
                         </div>
                       </div>
                     </div>

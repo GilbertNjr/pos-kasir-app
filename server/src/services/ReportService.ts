@@ -74,7 +74,7 @@ export class ReportService {
     const allUsers = await this.userRepository.findAll();
     const allExpenses = await this.expenseRepository.findAll();
     const allItems = await this.itemRepository.findAll();
-    const allProducts = await this.productRepository.findAll();
+    const allProducts = await this.productRepository.findAllIncludingInactive();
 
     const productUnitMap = new Map<string, BusinessUnit>();
     for (const p of allProducts) {
@@ -256,9 +256,11 @@ export class ReportService {
     const itemsByTxMap = new Map<string, any[]>();
     for (const item of allItems) {
       const prod = productMap.get(item.product_id);
+      const resolvedName = prod?.product_name || item.product_name || (item as any).product_name_snapshot || 'Produk';
       const enrichedItem = {
         ...item,
-        product_name: prod ? prod.product_name : 'Produk',
+        product_name: resolvedName,
+        product_name_snapshot: resolvedName,
       };
       if (!itemsByTxMap.has(item.transaction_id)) {
         itemsByTxMap.set(item.transaction_id, []);

@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
+import { useRealtimeSubscription } from '../services/realtimeService';
 import { User, Transaction } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 
@@ -36,8 +37,8 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
   const [capitalInput, setCapitalInput] = useState('');
   const [submittingCapital, setSubmittingCapital] = useState(false);
 
-  const fetchCashierDashboardData = async () => {
-    setLoading(true);
+  const fetchCashierDashboardData = async (isBackground = false) => {
+    if (!isBackground) setLoading(true);
     try {
       const activeData = await apiService.getActiveShift();
       setShiftData(activeData);
@@ -47,17 +48,42 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
         // Filter transactions created by this current cashier user
         const mine = (txList || []).filter((t: Transaction) => t.created_by_user_id === currentUser.user_id);
         setMyTransactions(mine);
+      } else {
+        setMyTransactions([]);
       }
     } catch (err: any) {
       console.error('Gagal memuat dashboard kasir karyawan:', err);
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchCashierDashboardData();
-  }, []);
+  }, [activeShiftId]);
+
+  // Realtime multi-device synchronization
+  useRealtimeSubscription('SHIFT_OPENED', () => {
+    fetchCashierDashboardData(true);
+    onShiftStatusChange?.();
+  });
+
+  useRealtimeSubscription('SHIFT_CLOSED', () => {
+    fetchCashierDashboardData(true);
+    onShiftStatusChange?.();
+  });
+
+  useRealtimeSubscription('TRANSACTION_CREATED', () => {
+    fetchCashierDashboardData(true);
+  });
+
+  useRealtimeSubscription('TRANSACTION_CANCELLED', () => {
+    fetchCashierDashboardData(true);
+  });
+
+  useRealtimeSubscription('SYSTEM_WAKEUP', () => {
+    fetchCashierDashboardData(true);
+  });
 
   const handleActivateOrOpenShift = () => {
     onNavigateTab('SHIFT');

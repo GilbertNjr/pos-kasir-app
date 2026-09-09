@@ -138,7 +138,7 @@ export class DashboardService {
     ] = await Promise.all([
       this.transactionRepository.findAll(),
       this.itemRepository.findAll(),
-      this.productRepository.findAll(),
+      this.productRepository.findAllIncludingInactive(),
       this.expenseRepository.findAll(),
       this.userRepository.findAll(),
       this.shiftRepository.findActiveShift(),

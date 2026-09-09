@@ -80,7 +80,7 @@ export class TransactionItemRepository implements IRepository<TransactionItemEnt
           item.transaction_item_id,
           item.transaction_id,
           item.product_id,
-          'Produk POS',
+          item.product_name || 'Produk POS',
           'PCS',
           item.unit_price,
           item.qty,

@@ -2,6 +2,93 @@
 
 Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pengembangan Sistem POS Usaha Campuran (FC/Printing & FNB).
 
+## [1.8.6] - 9 September 2026
+
+### Fixed & Enhanced
+- **Pembersihan Pemotongan Teks Nama Produk Lintas Perangkat (Omni-Device Typography & Layout Optimization)**:
+  - **Widget Pergerakan Stok Terbaru (`StockPage.tsx` & `index.css`)**:
+    - Mengubah tata letak mobile `.responsive-movement-2x2-grid` dari 2 kolom sempit (~140px) menjadi **1 kolom kartu horizontal (Timeline List Tile)** yang lapang (~320px–380px) di ponsel, dan 2 kolom adaptif di tablet.
+    - Menghapus tabrakan horizontal antara nama produk dan badge jenis transaksi (`[Penjualan POS]` / `[Restock / Masuk]`).
+    - Menghapus aturan kaku `whiteSpace: 'nowrap'` dan menambahkan `wordBreak: 'break-word'`, sehingga nama produk (`MIKAKO`, `SPIDOL SNOWMAN`, `Nota #TRX-...`, dll.) tampil **100% utuh tanpa pernah terpotong** menjadi `Not...`, `M...`, `SP...`, atau `W...`.
+    - Merancang kartu informasi bertingkat yang rapi: Badge & Timestamp di baris atas, Judul Produk Utuh di tengah, Lokasi & Kasir di baris bawah, serta Pill Nominal Qty tebal di sisi kanan.
+  - **Laporan Stok Mobile (`ReportsPage.tsx`)**:
+    - Memperbarui kartu pergerakan stok di halaman Laporan agar nama produk dan badge stok tertata dalam format list tile responsif yang tidak terpotong.
+  - **Area Kasir POS Register (`PosRegister.tsx`)**:
+    - **Keranjang Belanja**: Menghapus `whiteSpace: 'nowrap'` pada item keranjang order kasir dan menggantinya dengan pembungkusan kata multi-baris (`wordBreak: 'break-word'`), sehingga nama produk panjang beserta detail varian/ukurannya tetap terbaca utuh oleh kasir di smartphone, tablet, maupun PC.
+    - **Katalog Produk Kasir**: Menyesuaikan batas teks judul produk menjadi 3 baris dengan `wordBreak: 'break-word'` dan tooltip `title` agar tidak tertimpa oleh chip stok.
+    - **Alert Stok Menipis Kasir**: Memungkinkan nama produk membungkus secara natural di dalam modal peringatan stok kasir.
+- **Bump Versi Aplikasi ke v1.8.6**:
+  - Memperbarui versi proyek di `client/package.json` dan `server/package.json` ke `1.8.6`.
+
+---
+
+## [1.8.5] - 9 September 2026
+
+### Fixed & Enhanced
+- **Sistem Paginasi Responsif & Adaptif Lintas Perangkat (`ResponsivePagination.tsx` & `index.css`)**:
+  - **Mengatasi Masalah Tombol Paginasi Terpotong di Ponsel (Mobile Overflow)**:
+    - Memperbaiki bug di halaman Stok (`StockPage.tsx`), Pengguna (`UsersPage.tsx`), dan Pencadangan Data (`BackupRestorePage.tsx`) di mana nomor halaman berjumlah besar (seperti 20 halaman dari 194 produk) dirender secara horizontal tanpa batas sehingga terpotong di layar smartphone.
+  - **Komponen Paginasi Adaptif Bersih & Profesional (`ResponsivePagination.tsx`)**:
+    - **Tampilan Desktop (≥ 641px)**: Menggunakan algoritma *Smart Windowing* (maksimal 7 tombol dengan elipsis `•••`), misalnya `[1] [2] [3] [4] [5] ••• [20]`, dengan sorotan warna dinamis, bayangan lembut, dan transisi mulus.
+    - **Tampilan Mobile (≤ 640px)**: Mengadopsi navigasi sentuh ramah jari dengan tombol `[ < Sebelumnya ]`, selector dropdown cepat `Hal. [ X ] dari Y ▼`, dan `[ Selanjutnya > ]` dengan ukuran target sentuh 42px yang rapi, pas 100% di layar smartphone (320px–480px) tanpa ada elemen yang terpotong.
+    - **Dukungan Dark Mode & Variabel CSS Penuh**: Tampilan terintegrasi harmonis dengan palet tema toko dan mode gelap POS.
+- **Bump Versi Aplikasi ke v1.8.5**:
+  - Memperbarui versi proyek di `client/package.json` dan `server/package.json` ke `1.8.5`.
+
+---
+
+## [1.8.4] - 9 September 2026
+
+### Fixed & Enhanced
+- **Pemulihan Integritas Nama Produk Historis pada Laporan Penjualan (`ReportService.ts` & `ReportsPage.tsx`)**:
+  - **Mengurai Anomali Rank #4 "Produk" (63 pcs, Rp 125.000)**:
+    - Menghapus fallback teks palsu `"Produk"` yang sebelumnya menimpa item transaksi milik produk yang telah dinonaktifkan (*soft-deleted*).
+    - Menjalankan migrasi data aman untuk memperbarui `product_name_snapshot` pada 772 baris `transaction_items` dengan nama asli produk dari tabel `products`.
+    - Menguraikan kembali 63 pcs penjualan di peringkat #4 menjadi nama aslinya secara akurat: **SOSTEL (34 pcs, Rp 68.000)**, **MIKAKO (22 pcs, Rp 22.000)**, **THAI TEA (4 pcs, Rp 32.000)**, **Diapet (2 pcs, Rp 2.000)**, dan **AMPLOP (1 pcs, Rp 1.000)**.
+    - Menjamin **Total Omzet Toko 100% aman dan tidak berkurang satu rupiah pun**.
+  - **Kueri Reporting Tanpa Bias Status Produk (`ProductRepository.ts` & `DashboardService.ts`)**:
+    - Menambahkan method `findAllIncludingInactive()` agar modul analitik dan laporan penjualan dapat melacak seluruh katalog produk historis tanpa terpengaruh penghapusan produk baru.
+  - **Penyimpanan Snapshot Transaksi Masa Depan (`TransactionService.ts` & `TransactionItemRepository.ts`)**:
+    - Menghapus *hardcoded* string `'Produk POS'` pada saat penyimpanan transaksi baru, sehingga setiap nota penjualan selamanya menyimpan nama produk asli pada kolom `product_name_snapshot`.
+- **Bump Versi Aplikasi ke v1.8.4**:
+  - Memperbarui versi proyek di `client/package.json` dan `server/package.json` ke `1.8.4`.
+
+---
+
+## [1.8.3] - 9 September 2026
+
+### Added & Enhanced
+- **Arsitektur Real-Time Terpusat & Sinkronisasi Shift Multi-Perangkat Tanpa Refresh**:
+  - **Penyelesaian Masalah Shift HP vs Laptop (`App.tsx` & `ShiftPage.tsx`)**:
+    - Menghubungkan seluruh sistem dengan *listener* event `SHIFT_OPENED` dan `SHIFT_CLOSED`.
+    - Ketika shift dibuka dari HP, tampilan Laptop seketika beralih status dari `• NONAKTIF` menjadi `• AKTIF` secara instan (< 100ms) tanpa perlu menekan tombol refresh.
+    - Ketika shift ditutup dari HP, tampilan Laptop seketika menutup sesi kasir dan menampilkan status `• NONAKTIF`.
+    - `ShiftPage.tsx` otomatis bertransisi antara formulir pendaftaran shift dan *Dashboard Laci Kas Bersama* tanpa reload.
+    - `CashierDashboardPage.tsx` otomatis memperbarui ringkasan penjualan dan sesi shift kasir saat ada transaksi atau perubahan status shift.
+  - **Centralized Real-Time Event Hub (`realtimeService.ts`)**:
+    - Menggantikan koneksi SSE ganda/terpisah di berbagai komponen dengan satu koneksi *singleton* yang efisien, hemat daya baterai smartphone, dan patuh terhadap batas koneksi HTTP browser.
+    - Dilengkapi penanganan *Auto-Reconnect & Visibility-Awareness* (`visibilitychange` dan `focus`) sehingga saat layar ponsel menyala dari *sleep mode*, status shift dan kas langsung terverifikasi secara otomatis.
+  - **Keep-Alive Heartbeat Ping di Backend (`sseManager.ts`)**:
+    - Menambahkan pengiriman *heartbeat ping* berkala setiap 20 detik (`: ping\n\n`) dan penyematan header `X-Accel-Buffering: no` pada server untuk mencegah pemutusan koneksi sepihak oleh operator jaringan seluler maupun proxy Nginx/Cloudflare.
+- **Bump Versi Aplikasi ke v1.8.3**:
+  - Memperbarui versi pada `client/package.json` dan `server/package.json` ke `1.8.3`.
+
+---
+
+## [1.8.2] - 9 September 2026
+
+### Enhanced & Fixed
+- **Standarisasi Kalender Mingguan Normal pada Grafik Laporan (`ReportsPage.tsx`)**:
+  - Mengubah sumbu X grafik tren omzet harian dari rolling 7-hari acak menjadi urutan kalender bisnis standar: **Sen, Sel, Rab, Kam, Jum, Sab, Min** (Senin s.d. Minggu).
+  - Garis tren omzet "Minggu Ini" (biru solid) digambar secara proporsional hanya sampai hari berjalan saat ini (tidak menukik artifisial ke Rp 0 untuk hari yang belum dilalui).
+  - Garis perbandingan "Minggu Lalu" (abu-abu putus-putus) menampilkan performa penuh 7 hari kalender minggu sebelumnya (Senin s.d. Minggu lalu) sebagai acuan pembanding performa week-over-week yang akurat.
+  - Memperbaiki label keterangan tanggal pada legenda grafik: menampilkan rentang tanggal asli minggu berjalan vs minggu lalu (misal: `07/09/2026 - 13/09/2026` vs `31/08/2026 - 06/09/2026`), menghilangkan kebingungan di mana tanggal kemarin sempat tertulis sebagai "Minggu Lalu".
+  - Memfilter transaksi berstatus `CANCELLED` agar tidak mengotori kalkulasi grafik omzet.
+- **Bump Versi Aplikasi ke v1.8.2**:
+  - Mengikuti aturan kepatuhan pelacakan versi proyek: memperbarui versi di `client/package.json` dan `server/package.json` ke `1.8.2`.
+
+---
+
 ## [1.8.1] - 9 September 2026
 
 ### Added & Enhanced

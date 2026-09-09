@@ -129,6 +129,7 @@ export class TransactionService {
         transaction_item_id: `txi-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         transaction_id,
         product_id: product.product_id,
+        product_name: product.product_name,
         unit_price: unitPrice,
         qty: itemDto.qty,
         subtotal: itemSubtotal,

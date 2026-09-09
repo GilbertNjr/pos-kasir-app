@@ -17,14 +17,13 @@ import {
   Zap,
   X,
   UserCheck,
-  ChevronLeft,
-  ChevronRight,
   Info,
 } from 'lucide-react';
 import { apiService } from '../services/api';
 import { User } from '../types';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
 import { CustomConfirmModal } from '../components/common/CustomConfirmModal';
+import { ResponsivePagination } from '../components/common/ResponsivePagination';
 
 interface BackupRestorePageProps {
   currentUser: User;
@@ -1253,93 +1252,19 @@ export const BackupRestorePage: React.FC<BackupRestorePageProps> = ({ currentUse
           </div>
         )}
 
-        {/* BOTTOM PAGINATION BAR (GAMBAR #2 MATCHING) */}
+        {/* BOTTOM PAGINATION BAR (RESPONSIVE) */}
         {filteredHistory.length > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid #f1f5f9', fontSize: '0.8rem', color: '#64748b' }}>
-            {/* Left: Row Count Status */}
-            <div>
-              Menampilkan {Math.min(startIndex + 1, filteredHistory.length)} - {Math.min(startIndex + itemsPerPage, filteredHistory.length)} dari {filteredHistory.length} data
-            </div>
-
-            {/* Center: Pagination Numbered Controls */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
-              <button
-                type="button"
-                disabled={validCurrentPage === 1}
-                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
-                style={{
-                  padding: '0.35rem 0.6rem',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                  background: '#ffffff',
-                  color: validCurrentPage === 1 ? '#cbd5e1' : '#334155',
-                  cursor: validCurrentPage === 1 ? 'not-allowed' : 'pointer',
-                }}
-              >
-                <ChevronLeft size={16} />
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
-                <button
-                  key={pg}
-                  type="button"
-                  onClick={() => setCurrentPage(pg)}
-                  style={{
-                    padding: '0.35rem 0.75rem',
-                    borderRadius: '8px',
-                    border: pg === validCurrentPage ? 'none' : '1px solid #e2e8f0',
-                    background: pg === validCurrentPage ? '#2563eb' : '#ffffff',
-                    color: pg === validCurrentPage ? '#ffffff' : '#334155',
-                    fontWeight: pg === validCurrentPage ? 800 : 600,
-                    cursor: 'pointer',
-                  }}
-                >
-                  {pg}
-                </button>
-              ))}
-
-              <button
-                type="button"
-                disabled={validCurrentPage === totalPages}
-                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
-                style={{
-                  padding: '0.35rem 0.6rem',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                  background: '#ffffff',
-                  color: validCurrentPage === totalPages ? '#cbd5e1' : '#334155',
-                  cursor: validCurrentPage === validCurrentPage ? 'not-allowed' : 'pointer',
-                }}
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-
-            {/* Right: Items Per Page Dropdown */}
-            <div>
-              <select
-                value={itemsPerPage}
-                onChange={(e) => {
-                  setItemsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: '0.35rem 0.6rem',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '0.8rem',
-                  fontWeight: 600,
-                  color: '#0f172a',
-                  outline: 'none',
-                }}
-              >
-                <option value={5}>5 / halaman</option>
-                <option value={10}>10 / halaman</option>
-                <option value={20}>20 / halaman</option>
-                <option value={50}>50 / halaman</option>
-              </select>
-            </div>
-          </div>
+          <ResponsivePagination
+            currentPage={validCurrentPage}
+            totalPages={totalPages}
+            totalItems={filteredHistory.length}
+            itemsPerPage={itemsPerPage}
+            pageSizeOptions={[5, 10, 20, 50]}
+            onPageChange={(page) => setCurrentPage(page)}
+            onPageSizeChange={(size) => setItemsPerPage(size)}
+            itemName="data riwayat"
+            themeColor="#2563eb"
+          />
         )}
       </div>
 

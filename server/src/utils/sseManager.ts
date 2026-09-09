@@ -8,6 +8,34 @@ interface SSEClient {
 
 class SSEManager {
   private clients: Map<string, SSEClient> = new Map();
+  private heartbeatInterval: NodeJS.Timeout | null = null;
+
+  /**
+   * Start 20-second keep-alive heartbeat ping to prevent proxies/mobile carrier NAT timeouts.
+   */
+  private startHeartbeat(): void {
+    if (this.heartbeatInterval) return;
+    this.heartbeatInterval = setInterval(() => {
+      if (this.clients.size === 0) {
+        this.stopHeartbeat();
+        return;
+      }
+      this.clients.forEach((client) => {
+        try {
+          client.res.write(': ping\n\n');
+        } catch {
+          this.removeClient(client.id);
+        }
+      });
+    }, 20000);
+  }
+
+  private stopHeartbeat(): void {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+  }
 
   /**
    * Register a new client for Server-Sent Events.
@@ -17,12 +45,14 @@ class SSEManager {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('X-Accel-Buffering', 'no');
     res.flushHeaders();
 
     // Send initial ping connection event
     res.write(`event: connected\ndata: ${JSON.stringify({ status: 'connected', clientId: id, timestamp: new Date().toISOString() })}\n\n`);
 
     this.clients.set(id, { id, res, userId });
+    this.startHeartbeat();
 
     res.on('close', () => {
       this.removeClient(id);
@@ -35,6 +65,9 @@ class SSEManager {
   public removeClient(id: string): void {
     if (this.clients.has(id)) {
       this.clients.delete(id);
+    }
+    if (this.clients.size === 0) {
+      this.stopHeartbeat();
     }
   }
 

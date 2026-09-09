@@ -1103,7 +1103,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                       >
                         {p.business_unit === 'FC_PRINT' ? 'FC/Print' : 'F&B'}
                       </span>
-                      <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                      <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word' }} title={p.product_name}>
                         {p.product_name}
                       </h4>
                     </div>
@@ -1329,7 +1329,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                     }}
                   >
                     <div style={{ flex: 1, paddingRight: '0.5rem', minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.product.product_name}</div>
+                      <div style={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.35, wordBreak: 'break-word' }}>{item.product.product_name}</div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                         {formatRupiah(item.product.selling_price)} x {item.qty}
                       </div>
@@ -1686,11 +1686,12 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                   marginBottom: '0.85rem',
                   display: 'inline-flex',
                   alignItems: 'center',
+                  flexWrap: 'wrap',
                   gap: '0.4rem',
                   maxWidth: '100%',
                 }}
               >
-                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <span style={{ wordBreak: 'break-word', lineHeight: 1.35 }}>
                   📦 Produk "{stockAlert.productName}"
                 </span>
                 {stockAlert.currentStock !== undefined && (

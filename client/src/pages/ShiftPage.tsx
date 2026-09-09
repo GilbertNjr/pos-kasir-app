@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, DollarSign, CheckCircle2, RotateCcw, PlayCircle, Printer, FileSpreadsheet, Power, X, Edit3, Trash2, Plus, AlertTriangle, Boxes, Search, PackageCheck, Sparkles, FileText, Loader2 } from 'lucide-react';
 import { apiService, ActiveShiftDetailsData } from '../services/api';
+import { useRealtimeSubscription } from '../services/realtimeService';
 import { User, Product } from '../types';
 import { formatRupiah, formatDateIndoFull } from '../utils/formatters';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
@@ -315,22 +316,47 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     return userId;
   };
 
-  const loadShift = async () => {
+  const loadShift = async (isBackground = false) => {
     try {
-      setLoading(true);
+      if (!isBackground) setLoading(true);
       setError(null);
       const data = await apiService.getActiveShift();
       setActiveShiftData(data);
     } catch (err: any) {
-      setError(err.message || 'Gagal memuat status shift');
+      if (!isBackground) setError(err.message || 'Gagal memuat status shift');
     } finally {
-      setLoading(false);
+      if (!isBackground) setLoading(false);
     }
   };
 
   useEffect(() => {
     loadShift();
   }, []);
+
+  // Realtime multi-device shift & drawer synchronization (HP vs Laptop)
+  useRealtimeSubscription('SHIFT_OPENED', () => {
+    loadShift();
+    onShiftStatusChange?.();
+  });
+
+  useRealtimeSubscription('SHIFT_CLOSED', () => {
+    loadShift();
+    setShowCloseModal(false);
+    setShowEditShiftModal(false);
+    onShiftStatusChange?.();
+  });
+
+  useRealtimeSubscription('TRANSACTION_CREATED', () => {
+    loadShift(true);
+  });
+
+  useRealtimeSubscription('TRANSACTION_CANCELLED', () => {
+    loadShift(true);
+  });
+
+  useRealtimeSubscription('SYSTEM_WAKEUP', () => {
+    loadShift(true);
+  });
 
   const handlePrintShiftPDF = async () => {
     if (!activeShiftData?.shift?.shift_id) return;

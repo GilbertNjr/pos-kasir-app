@@ -15,8 +15,6 @@ import {
   Shield,
   Phone,
   Clock,
-  ChevronLeft,
-  ChevronRight,
   UserPlus,
   Trash2,
   AlertTriangle,
@@ -31,6 +29,7 @@ import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { ToastType } from '../components/ToastNotification';
 import { HelpModal } from '../components/common/HelpModal';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+import { ResponsivePagination } from '../components/common/ResponsivePagination';
 
 
 interface UsersPageProps {
@@ -1347,112 +1346,17 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
         </div>
 
         {/* 4. FOOTER PAGINATION BAR */}
-        <div
-          style={{
-            padding: '1rem 1.25rem',
-            borderTop: '1px solid #e2e8f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            flexWrap: 'wrap',
-            gap: '1rem',
-            fontSize: '0.85rem',
-            color: '#64748b',
-          }}
-        >
-          <div>
-            Menampilkan {filteredUsers.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} -{' '}
-            {Math.min(currentPage * rowsPerPage, filteredUsers.length)} dari {filteredUsers.length} data
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-              <button
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                  background: '#ffffff',
-                  color: '#475569',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                  opacity: currentPage === 1 ? 0.5 : 1,
-                }}
-              >
-                <ChevronLeft size={16} />
-              </button>
-
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
-                <button
-                  key={pg}
-                  onClick={() => setCurrentPage(pg)}
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: currentPage === pg ? '#047857' : '#ffffff',
-                    color: currentPage === pg ? '#ffffff' : '#475569',
-                    fontWeight: currentPage === pg ? 800 : 600,
-                    cursor: 'pointer',
-                    boxShadow: currentPage === pg ? '0 2px 8px rgba(4, 120, 87, 0.25)' : 'none',
-                  }}
-                >
-                  {pg}
-                </button>
-              ))}
-
-              <button
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                style={{
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  border: '1px solid #e2e8f0',
-                  background: '#ffffff',
-                  color: '#475569',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                  opacity: currentPage === totalPages ? 0.5 : 1,
-                }}
-              >
-                <ChevronRight size={16} />
-              </button>
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <select
-                value={rowsPerPage}
-                onChange={(e) => {
-                  setRowsPerPage(Number(e.target.value));
-                  setCurrentPage(1);
-                }}
-                style={{
-                  padding: '0.4rem 0.6rem',
-                  borderRadius: '8px',
-                  border: '1px solid #cbd5e1',
-                  fontSize: '0.8rem',
-                  fontWeight: 700,
-                  color: '#334155',
-                  outline: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                <option value={10}>10 / halaman</option>
-                <option value={20}>20 / halaman</option>
-                <option value={50}>50 / halaman</option>
-              </select>
-            </div>
-          </div>
-        </div>
+        <ResponsivePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredUsers.length}
+          itemsPerPage={rowsPerPage}
+          pageSizeOptions={[10, 20, 50]}
+          onPageChange={(p) => setCurrentPage(p)}
+          onPageSizeChange={(size) => setRowsPerPage(size)}
+          itemName="data pegawai"
+          themeColor="#047857"
+        />
       </div>
 
       {/* MODAL 1: TAMBAH PEGAWAI BARU */}

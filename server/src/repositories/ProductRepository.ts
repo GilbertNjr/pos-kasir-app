@@ -37,6 +37,24 @@ export class ProductRepository implements IRepository<ProductEntity> {
     }
   }
 
+  /**
+   * Fetch all products including soft-deleted/inactive ones for historical report integrity.
+   */
+  async findAllIncludingInactive(): Promise<ProductEntity[]> {
+    try {
+      const res = await pool.query(
+        `SELECT product_id, category_id, unit_id, product_name, sku, type, business_unit, 
+                selling_price::float, cost_price::float, manage_stock, image_url, is_active 
+         FROM products 
+         ORDER BY product_name ASC`
+      );
+      return res.rows;
+    } catch (err) {
+      console.warn('[ProductRepository] Database fetch fallback to memory (all):', (err as Error).message);
+      return [...this.inMemoryProducts];
+    }
+  }
+
   async findById(product_id: string): Promise<ProductEntity | null> {
     try {
       const res = await pool.query(

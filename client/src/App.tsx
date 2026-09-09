@@ -18,12 +18,14 @@ import { ToastNotification, ToastMessage, ToastType } from './components/ToastNo
 import { OwnerLayout } from './components/layout/OwnerLayout';
 import { CashierLayout } from './components/layout/CashierLayout';
 import { apiService, ActiveShiftDetailsData } from './services/api';
+import { realtimeService, useRealtimeStatus } from './services/realtimeService';
 import { User } from './types';
 import { applyGlobalTheme } from './utils/themeHelper';
 import { subscribeToast } from './utils/toastHelper';
 import { ActivateAccountPage } from './pages/ActivateAccountPage';
 
 export const App: React.FC = () => {
+  const isSseConnected = useRealtimeStatus();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [hash, setHash] = useState<string>(window.location.hash);
@@ -182,15 +184,14 @@ export const App: React.FC = () => {
       });
   };
 
-  // Initial Settings Load & SSE Settings Synchronizer
+  // Initial Settings Load & Centralized Realtime Event Hub Synchronizer
   useEffect(() => {
     refreshSettingsAndTheme();
+    realtimeService.connect();
 
-    // Realtime EventSource SSE listener for settings & theme changes
-    const sse = new EventSource('/api/events');
-    sse.addEventListener('SETTINGS_UPDATED', (event: any) => {
+    // 1. Sinkronisasi Profil & Tema Toko
+    const unsubSettings = realtimeService.subscribe('SETTINGS_UPDATED', (payload: any) => {
       try {
-        const payload = JSON.parse(event.data);
         if (payload?.settings?.store_profile) {
           const sp = payload.settings.store_profile;
           const rawName = sp.name || '';
@@ -233,8 +234,35 @@ export const App: React.FC = () => {
       }
     });
 
+    // 2. Sinkronisasi Shift Silang Perangkat (HP vs Laptop) Secara Instan
+    const unsubShiftOpened = realtimeService.subscribe('SHIFT_OPENED', (payload: any) => {
+      loadActiveShift();
+      addToast(
+        'success',
+        '🟢 Sesi Shift Aktif',
+        `Sesi shift baru telah dibuka${payload?.user_name ? ` oleh ${payload.user_name}` : ''}.`
+      );
+    });
+
+    const unsubShiftClosed = realtimeService.subscribe('SHIFT_CLOSED', () => {
+      loadActiveShift();
+      addToast(
+        'warning',
+        '🔴 Sesi Shift Ditutup',
+        'Sesi shift operasional telah ditutup dan direkonsiliasi.'
+      );
+    });
+
+    // 3. Sinkronisasi Saat HP Bangun dari Sleep atau Tab Laptop Aktif Kembali
+    const unsubWakeup = realtimeService.subscribe('SYSTEM_WAKEUP', () => {
+      loadActiveShift();
+    });
+
     return () => {
-      sse.close();
+      unsubSettings();
+      unsubShiftOpened();
+      unsubShiftClosed();
+      unsubWakeup();
     };
   }, []);
 
@@ -341,7 +369,7 @@ export const App: React.FC = () => {
         onLogout={handleLogout}
         activeTab={ownerTab}
         onTabChange={setOwnerTab}
-        isSseConnected={true}
+        isSseConnected={isSseConnected}
         storeName={storeProfile.name}
         logoUrl={storeProfile.logoUrl}
       >

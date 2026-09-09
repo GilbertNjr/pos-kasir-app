@@ -11,8 +11,6 @@ import {
   DollarSign,
   Eye,
   BarChart2,
-  ChevronLeft,
-  ChevronRight,
   Trash2,
   RotateCcw,
   FileSpreadsheet,
@@ -26,6 +24,7 @@ import { User, Category, Product } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { getProductCategoryBucket } from '../utils/categoryUtils';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+import { ResponsivePagination } from '../components/common/ResponsivePagination';
 import { exportStockToExcel, printStockPDF } from '../utils/stockReportExporter';
 
 
@@ -1771,99 +1770,19 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
             {/* Footer Pagination Bar */}
             {filteredStocks.length > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', padding: '1rem 1.5rem', background: '#ffffff', borderTop: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 600 }}>
-                  Menampilkan {totalItems === 0 ? 0 : startIndex + 1} - {endIndex} dari {totalItems} produk
-                </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  <button
-                    onClick={() => setCurrentPage(Math.max(1, activePage - 1))}
-                    disabled={activePage === 1}
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      background: '#ffffff',
-                      color: activePage === 1 ? '#cbd5e1' : '#334155',
-                      cursor: activePage === 1 ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
-                    <button
-                      key={pageNum}
-                      onClick={() => setCurrentPage(pageNum)}
-                      style={{
-                        width: '36px',
-                        height: '36px',
-                        borderRadius: '10px',
-                        border: pageNum === activePage ? 'none' : '1px solid #cbd5e1',
-                        background: pageNum === activePage ? '#2563eb' : '#ffffff',
-                        color: pageNum === activePage ? '#ffffff' : '#334155',
-                        fontWeight: 800,
-                        fontSize: '0.85rem',
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {pageNum}
-                    </button>
-                  ))}
-
-                  <button
-                    onClick={() => setCurrentPage(Math.min(totalPages, activePage + 1))}
-                    disabled={activePage === totalPages}
-                    style={{
-                      width: '36px',
-                      height: '36px',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      background: '#ffffff',
-                      color: activePage === totalPages ? '#cbd5e1' : '#334155',
-                      cursor: activePage === totalPages ? 'not-allowed' : 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-                </div>
-
-                <div>
-                  <select
-                    value={itemsPerPage}
-                    onChange={(e) => {
-                      setItemsPerPage(Number(e.target.value));
-                      setCurrentPage(1);
-                    }}
-                    style={{
-                      padding: '0.45rem 0.85rem',
-                      borderRadius: '10px',
-                      border: '1px solid #cbd5e1',
-                      background: '#ffffff',
-                      fontSize: '0.825rem',
-                      fontWeight: 700,
-                      color: '#334155',
-                      cursor: 'pointer',
-                      outline: 'none',
-                    }}
-                  >
-                    <option value={5}>5 / halaman</option>
-                    <option value={10}>10 / halaman</option>
-                    <option value={25}>25 / halaman</option>
-                    <option value={50}>50 / halaman</option>
-                    <option value={1000}>Semua ({totalItems})</option>
-                  </select>
-                </div>
-              </div>
+              <ResponsivePagination
+                currentPage={activePage}
+                totalPages={totalPages}
+                totalItems={totalItems}
+                itemsPerPage={itemsPerPage}
+                pageSizeOptions={[5, 10, 25, 50, 100]}
+                onPageChange={(page) => setCurrentPage(page)}
+                onPageSizeChange={(size) => setItemsPerPage(size)}
+                itemName="produk"
+                themeColor="#2563eb"
+              />
             )}
+
           </div>
 
           {/* B. BOTTOM ROW: PERGERAKAN STOK TERBARU */}
@@ -1887,42 +1806,27 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                         key={idx}
                         style={{
                           background: '#ffffff',
-                          padding: '0.75rem 0.8rem',
+                          padding: '0.9rem 1.1rem',
                           borderRadius: '14px',
                           border: '1px solid #e2e8f0',
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                           display: 'flex',
-                          flexDirection: 'column',
                           justifyContent: 'space-between',
-                          gap: '0.45rem',
+                          alignItems: 'center',
+                          gap: '0.85rem',
                           minWidth: 0,
                           boxSizing: 'border-box',
                         }}
                       >
-                        {/* Header Row: Product / TRX Title & Movement Badge */}
-                        <div>
-                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.35rem', marginBottom: '0.3rem' }}>
+                        {/* Left Column: Badge, Time, Full Product Name, Location & User */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', minWidth: 0, flex: 1 }}>
+                          {/* Top Meta: Badge & Timestamp */}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                             <span
                               style={{
-                                fontWeight: 900,
-                                color: '#0f172a',
-                                fontSize: '0.825rem',
-                                lineHeight: 1.25,
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                flex: 1,
-                                minWidth: 0,
-                              }}
-                              title={mv.product}
-                            >
-                              {mv.product}
-                            </span>
-                            <span
-                              style={{
-                                padding: '0.15rem 0.4rem',
+                                padding: '0.2rem 0.5rem',
                                 borderRadius: '6px',
-                                fontSize: '0.65rem',
+                                fontSize: '0.68rem',
                                 fontWeight: 800,
                                 background: mv.isNegative ? '#fef2f2' : '#f0fdf4',
                                 color: mv.isNegative ? '#dc2626' : '#16a34a',
@@ -1933,20 +1837,48 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                             >
                               {mv.type}
                             </span>
+                            <span style={{ fontSize: '0.725rem', color: '#64748b', fontWeight: 600 }}>
+                              {mv.time}
+                            </span>
                           </div>
 
-                          {/* Timestamp & Warehouse/User */}
-                          <div style={{ fontSize: '0.68rem', color: '#94a3b8', lineHeight: 1.3 }}>
-                            <div>{mv.time}</div>
-                            <div style={{ color: '#475569', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', marginTop: '0.1rem' }}>
-                              {mv.warehouse} • <span style={{ color: '#64748b' }}>{mv.user}</span>
-                            </div>
+                          {/* Product / Transaction Title: FULL, BOLD, MULTI-LINE IF NEEDED */}
+                          <div
+                            style={{
+                              fontWeight: 900,
+                              color: '#0f172a',
+                              fontSize: '0.925rem',
+                              lineHeight: 1.35,
+                              wordBreak: 'break-word',
+                            }}
+                            title={mv.product}
+                          >
+                            {mv.product}
+                          </div>
+
+                          {/* Location & Operator User */}
+                          <div style={{ fontSize: '0.75rem', color: '#475569', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem', flexWrap: 'wrap' }}>
+                            <span>{mv.warehouse}</span>
+                            <span style={{ color: '#cbd5e1' }}>•</span>
+                            <span style={{ color: '#2563eb', fontWeight: 700 }}>Oleh: {mv.user}</span>
                           </div>
                         </div>
 
-                        {/* Quantity Footer */}
-                        <div style={{ paddingTop: '0.35rem', borderTop: '1px dashed #f1f5f9', display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                          <div style={{ fontWeight: 900, fontSize: '0.925rem', color: mv.isNegative ? '#dc2626' : '#16a34a', letterSpacing: '-0.02em' }}>
+                        {/* Right Column: Prominent Quantity Badge */}
+                        <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                          <div
+                            style={{
+                              fontWeight: 900,
+                              fontSize: '1rem',
+                              color: mv.isNegative ? '#dc2626' : '#16a34a',
+                              letterSpacing: '-0.02em',
+                              padding: '0.35rem 0.65rem',
+                              borderRadius: '8px',
+                              background: mv.isNegative ? '#fef2f2' : '#f0fdf4',
+                              border: `1px solid ${mv.isNegative ? '#fee2e2' : '#dcfce7'}`,
+                              display: 'inline-block',
+                            }}
+                          >
                             {mv.qty}
                           </div>
                         </div>
