@@ -100,6 +100,14 @@ export class ShiftController {
       const { shift_id, amount } = req.body;
       const contribution = await this.shiftService.addCapitalContribution(shift_id, req.user.user_id, Number(amount));
 
+      // Broadcast real-time modal kas update
+      sseManager.broadcast('CAPITAL_ADDED', {
+        shift_id,
+        user_id: req.user.user_id,
+        amount: Number(amount),
+        timestamp: new Date().toISOString(),
+      });
+
       return res.status(201).json({
         message: 'Setoran modal berhasil dicatat ke laci kas bersama',
         data: contribution,

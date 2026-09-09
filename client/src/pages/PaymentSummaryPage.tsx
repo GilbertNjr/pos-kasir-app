@@ -21,6 +21,7 @@ import { Shift, User } from '../types';
 import { renderFullPageReportHeaderHtml } from '../utils/storeBrandingHelper';
 import { formatRupiah, formatDateIndoFull } from '../utils/formatters';
 import { PaymentMethodBadge } from '../components/common/PaymentMethodBadge';
+import { useRealtimeSubscription } from '../services/realtimeService';
 
 interface PaymentSummaryPageProps {
   currentUser?: User;
@@ -106,6 +107,29 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
   useEffect(() => {
     loadSummary();
   }, [activeShift?.shift_id]);
+
+  // Real-time synchronization for payment summary and transactions
+  useRealtimeSubscription('TRANSACTION_CREATED', () => {
+    loadSummary();
+  });
+  useRealtimeSubscription('TRANSACTION_CANCELLED', () => {
+    loadSummary();
+  });
+  useRealtimeSubscription('TRANSACTION_DELETED', () => {
+    loadSummary();
+  });
+  useRealtimeSubscription('TRANSACTION_RESTORED', () => {
+    loadSummary();
+  });
+  useRealtimeSubscription('SHIFT_OPENED', () => {
+    loadSummary();
+  });
+  useRealtimeSubscription('SHIFT_CLOSED', () => {
+    loadSummary();
+  });
+  useRealtimeSubscription('SYSTEM_WAKEUP', () => {
+    loadSummary();
+  });
 
   // Format timestamp with Day Name, Date, Month, Year & Time (Senin, 24 Agustus 2026, 03:28 WIB)
   const formatTimestampFull = (txOrDate?: any) => {

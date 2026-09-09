@@ -2,6 +2,25 @@
 
 Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pengembangan Sistem POS Usaha Campuran (FC/Printing & FNB).
 
+## [1.8.7] - 10 September 2026
+
+### Added & Enhanced
+- **Sinkronisasi Real-Time Penuh Lintas Perangkat (Full Real-Time Synchronization & Bug Fixes)**:
+  - **Backend SSE Event Emitters (`ExpenseController.ts` & `ShiftController.ts`)**:
+    - Menambahkan penyiaran sinyal SSE `EXPENSE_CREATED` dan `EXPENSE_DELETED` pada `ExpenseController.ts`. Setiap pencatatan pengeluaran kas operasional (beli es, gas, ATK, dll.) langsung tersiar ke seluruh layar Owner dan Kasir lain tanpa jeda.
+    - Menambahkan penyiaran sinyal SSE `CAPITAL_ADDED` pada `ShiftController.ts` saat kasir/owner melakukan setoran modal tambahan ke laci kas bersama.
+  - **Perbaikan Bug Event Listener Frontend (`UsersPage.tsx` & `ShiftLeaderDashboardPage.tsx`)**:
+    - Memperbaiki ketidaksesuaian nama event pada `UsersPage.tsx` dari `'SHIFT_STARTED'` menjadi `'SHIFT_OPENED'` serta mengintegrasikannya dengan `useRealtimeSubscription`. Kini status kehadiran kasir di halaman Kelola Pegawai Owner tersinkronisasi otomatis seketika saat shift dibuka.
+    - Menghapus kode mati `sse.onmessage` dan koneksi terisolasi pada `ShiftLeaderDashboardPage.tsx`, menggantinya dengan hook langganan terpusat `useRealtimeSubscription` untuk `SHIFT_OPENED`, `SHIFT_CLOSED`, `TRANSACTION_CREATED`, `TRANSACTION_CANCELLED`, `USER_CREATED`, `USER_UPDATED`, `EXPENSE_CREATED`, `CAPITAL_ADDED`, dan `SYSTEM_WAKEUP`.
+  - **Konversi Halaman Statis Menjadi Real-Time (`ExpensesPage.tsx`, `PaymentSummaryPage.tsx`, `ReportsPage.tsx`)**:
+    - **Pengeluaran Kas (`ExpensesPage.tsx`)**: Terhubung ke `EXPENSE_CREATED`, `EXPENSE_DELETED`, `SHIFT_OPENED`, `SHIFT_CLOSED`, dan `SYSTEM_WAKEUP`. Tabel dan total pengeluaran kas auto-update langsung antar-perangkat tanpa perlu klik tombol Refresh atau F5.
+    - **Rekap Pembayaran (`PaymentSummaryPage.tsx`)**: Terhubung ke `TRANSACTION_CREATED`, `TRANSACTION_CANCELLED`, `TRANSACTION_DELETED`, `TRANSACTION_RESTORED`, `SHIFT_OPENED`, `SHIFT_CLOSED`, dan `SYSTEM_WAKEUP`. Total setoran kas/QRIS dan riwayat transaksi kasir langsung bertambah/berkurang secara live.
+    - **Laporan & Analitik (`ReportsPage.tsx`)**: Menerapkan pembaruan latar belakang cerdas saat periode yang aktif adalah "Hari Ini" (`DAILY`), menyinkronkan grafik omzet, performa kasir, tabel mutasi stok (`STOCKS_LOG`), dan riwayat sesi shift (`SHIFT_HISTORY`) seketika saat terjadi transaksi atau pengeluaran baru.
+- **Bump Versi Aplikasi ke v1.8.7**:
+  - Memperbarui versi proyek di `client/package.json` dan `server/package.json` ke `1.8.7`.
+
+---
+
 ## [1.8.6] - 9 September 2026
 
 ### Fixed & Enhanced

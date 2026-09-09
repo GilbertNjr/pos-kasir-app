@@ -15,6 +15,7 @@ import {
 import { apiService, ActiveShiftDetailsData } from '../services/api';
 import { User, Transaction } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
+import { useRealtimeSubscription } from '../services/realtimeService';
 
 interface ShiftLeaderDashboardPageProps {
   currentUser: User;
@@ -58,34 +59,44 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
   useEffect(() => {
     fetchLeaderDashboardData();
 
-    // SSE Real-time Updates Listener
-    let sse: EventSource | null = null;
-    try {
-      sse = new EventSource('/api/events');
-      sse.onmessage = (e) => {
-        try {
-          const parsed = JSON.parse(e.data);
-          if (
-            ['SHIFT_OPENED', 'SHIFT_CLOSED', 'TRANSACTION_CREATED', 'USER_CREATED', 'USER_UPDATED'].includes(parsed.type)
-          ) {
-            fetchLeaderDashboardData();
-          }
-        } catch {}
-      };
-    } catch (err) {
-      console.warn('SSE connection unavailable, using 5s polling fallback:', err);
-    }
-
-    // Polling fallback every 5s for real-time cashier login detection
+    // Polling fallback every 15s for extra guarantee
     const pollInterval = setInterval(() => {
       fetchLeaderDashboardData();
-    }, 5000);
+    }, 15000);
 
     return () => {
-      if (sse) sse.close();
       clearInterval(pollInterval);
     };
   }, []);
+
+  // Centralized Real-time event listeners for Shift Leader
+  useRealtimeSubscription('SHIFT_OPENED', () => {
+    fetchLeaderDashboardData();
+  });
+  useRealtimeSubscription('SHIFT_CLOSED', () => {
+    fetchLeaderDashboardData();
+  });
+  useRealtimeSubscription('TRANSACTION_CREATED', () => {
+    fetchLeaderDashboardData();
+  });
+  useRealtimeSubscription('TRANSACTION_CANCELLED', () => {
+    fetchLeaderDashboardData();
+  });
+  useRealtimeSubscription('USER_CREATED', () => {
+    fetchLeaderDashboardData();
+  });
+  useRealtimeSubscription('USER_UPDATED', () => {
+    fetchLeaderDashboardData();
+  });
+  useRealtimeSubscription('EXPENSE_CREATED', () => {
+    fetchLeaderDashboardData();
+  });
+  useRealtimeSubscription('CAPITAL_ADDED', () => {
+    fetchLeaderDashboardData();
+  });
+  useRealtimeSubscription('SYSTEM_WAKEUP', () => {
+    fetchLeaderDashboardData();
+  });
 
   if (loading) {
     return (

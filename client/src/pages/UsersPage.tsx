@@ -30,6 +30,7 @@ import { ToastType } from '../components/ToastNotification';
 import { HelpModal } from '../components/common/HelpModal';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
 import { ResponsivePagination } from '../components/common/ResponsivePagination';
+import { useRealtimeSubscription } from '../services/realtimeService';
 
 
 interface UsersPageProps {
@@ -165,26 +166,24 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
 
   useEffect(() => {
     loadUsers();
-
-    // Real-time SSE listener for user updates, shifts & transactions
-    let sse: EventSource | null = null;
-    try {
-      sse = new EventSource('/api/events');
-      const handleSync = () => {
-        loadUsers();
-      };
-      sse.addEventListener('USER_UPDATED', handleSync);
-      sse.addEventListener('SHIFT_STARTED', handleSync);
-      sse.addEventListener('SHIFT_CLOSED', handleSync);
-      sse.addEventListener('TRANSACTION_CREATED', handleSync);
-    } catch {
-      // Fallback
-    }
-
-    return () => {
-      if (sse) sse.close();
-    };
   }, []);
+
+  // Centralized Real-time synchronization for users, shifts & transactions
+  useRealtimeSubscription('USER_UPDATED', () => {
+    loadUsers();
+  });
+  useRealtimeSubscription('SHIFT_OPENED', () => {
+    loadUsers();
+  });
+  useRealtimeSubscription('SHIFT_CLOSED', () => {
+    loadUsers();
+  });
+  useRealtimeSubscription('TRANSACTION_CREATED', () => {
+    loadUsers();
+  });
+  useRealtimeSubscription('SYSTEM_WAKEUP', () => {
+    loadUsers();
+  });
 
   // Action Loading Modal State (for full form submission)
   const [actionLoading, setActionLoading] = useState(false);

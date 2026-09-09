@@ -22,6 +22,7 @@ import { apiService } from '../services/api';
 import { Expense, User } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
+import { useRealtimeSubscription } from '../services/realtimeService';
 
 
 interface ExpensesPageProps {
@@ -80,6 +81,23 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
       if (Array.isArray(res)) setAllUsers(res);
     }).catch(() => {});
   }, [activeShiftId]);
+
+  // Real-time synchronization for expenses across all devices
+  useRealtimeSubscription('EXPENSE_CREATED', () => {
+    loadExpenses();
+  });
+  useRealtimeSubscription('EXPENSE_DELETED', () => {
+    loadExpenses();
+  });
+  useRealtimeSubscription('SHIFT_OPENED', () => {
+    loadExpenses();
+  });
+  useRealtimeSubscription('SHIFT_CLOSED', () => {
+    loadExpenses();
+  });
+  useRealtimeSubscription('SYSTEM_WAKEUP', () => {
+    loadExpenses();
+  });
 
   const getUserDisplayName = (userId?: string) => {
     if (!userId) return '-';

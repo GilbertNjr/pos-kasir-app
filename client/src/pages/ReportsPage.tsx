@@ -26,6 +26,7 @@ import { TransactionDetailModal } from '../components/common/TransactionDetailMo
 import { exportShiftToExcel, printShiftPDF, formatShiftDurationText } from '../utils/shiftReportExporter';
 import { exportStockToExcel, printStockPDF } from '../utils/stockReportExporter';
 import { getStoredBrandingProfile } from '../utils/storeBrandingHelper';
+import { useRealtimeSubscription } from '../services/realtimeService';
 
 interface DonutSegment {
   name: string;
@@ -665,6 +666,53 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
     setSelectedUser('');
     loadReport('');
   }, []);
+
+  // Smart Real-time synchronization for Reports (Daily live sales, expenses & shift sessions)
+  useRealtimeSubscription('TRANSACTION_CREATED', () => {
+    if (periodType === 'DAILY') {
+      loadReport();
+    }
+  }, [periodType, selectedUser, selectedBusinessUnit, selectedPaymentMethod]);
+
+  useRealtimeSubscription('TRANSACTION_CANCELLED', () => {
+    if (periodType === 'DAILY') {
+      loadReport();
+    }
+  }, [periodType, selectedUser, selectedBusinessUnit, selectedPaymentMethod]);
+
+  useRealtimeSubscription('EXPENSE_CREATED', () => {
+    if (periodType === 'DAILY') {
+      loadReport();
+    }
+  }, [periodType, selectedUser, selectedBusinessUnit, selectedPaymentMethod]);
+
+  useRealtimeSubscription('EXPENSE_DELETED', () => {
+    if (periodType === 'DAILY') {
+      loadReport();
+    }
+  }, [periodType, selectedUser, selectedBusinessUnit, selectedPaymentMethod]);
+
+  useRealtimeSubscription('STOCK_UPDATED', () => {
+    if (activeReportSubTab === 'STOCKS_LOG') {
+      loadReport();
+    }
+  }, [activeReportSubTab, periodType]);
+
+  useRealtimeSubscription('SHIFT_OPENED', () => {
+    loadShiftHistory();
+    if (periodType === 'DAILY') loadReport();
+  }, [periodType]);
+
+  useRealtimeSubscription('SHIFT_CLOSED', () => {
+    loadShiftHistory();
+    if (periodType === 'DAILY') loadReport();
+  }, [periodType]);
+
+  useRealtimeSubscription('SYSTEM_WAKEUP', () => {
+    if (periodType === 'DAILY') {
+      loadReport();
+    }
+  }, [periodType]);
 
   const handleApplyFilter = (e: React.FormEvent) => {
     e.preventDefault();

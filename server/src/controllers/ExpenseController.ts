@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { ExpenseService } from '../services/ExpenseService';
 import { AuthenticatedRequest } from '../middlewares/AuthMiddleware';
+import { sseManager } from '../utils/sseManager';
 
 export class ExpenseController {
   private expenseService: ExpenseService;
@@ -19,6 +20,15 @@ export class ExpenseController {
         category,
         description,
         amount: Number(amount),
+      });
+
+      // Broadcast real-time event to all connected devices (Owner & Kasir)
+      sseManager.broadcast('EXPENSE_CREATED', {
+        expense_id: (expense as any)?.expense_id,
+        user_id: req.user.user_id,
+        amount: Number(amount),
+        category,
+        timestamp: new Date().toISOString(),
       });
 
       return res.status(201).json({
@@ -49,6 +59,14 @@ export class ExpenseController {
       if (!req.user) return res.status(401).json({ error: 'Tidak terautentikasi' });
       const { expenseId } = req.params;
       await this.expenseService.deleteExpense(expenseId);
+
+      // Broadcast real-time deletion event
+      sseManager.broadcast('EXPENSE_DELETED', {
+        expense_id: expenseId,
+        user_id: req.user.user_id,
+        timestamp: new Date().toISOString(),
+      });
+
       return res.status(200).json({ message: 'Catatan pengeluaran kas berhasil dihapus' });
     } catch (error: any) {
       return res.status(400).json({ error: error.message || 'Gagal menghapus catatan pengeluaran kas' });
