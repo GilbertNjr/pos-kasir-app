@@ -589,8 +589,8 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
             </span>
           </div>
 
-          <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.825rem' }}>
+          <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <table style={{ width: '100%', minWidth: '850px', borderCollapse: 'collapse', fontSize: '0.825rem' }}>
               <thead>
                 <tr
                   style={{
@@ -602,16 +602,17 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
                     textTransform: 'uppercase',
                     letterSpacing: '0.05em',
                     borderBottom: '2px solid #1e293b',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  <th style={{ padding: '0.95rem 1rem', color: '#ffffff' }}>No. Transaksi</th>
-                  <th style={{ padding: '0.95rem 1rem', color: '#ffffff' }}>Waktu</th>
-                  <th style={{ padding: '0.95rem 1rem', color: '#ffffff' }}>Kasir</th>
-                  <th style={{ padding: '0.95rem 1rem', color: '#ffffff' }}>Pelanggan</th>
-                  <th style={{ padding: '0.95rem 1rem', textAlign: 'right', color: '#ffffff' }}>Total</th>
-                  <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff' }}>Metode</th>
-                  <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff' }}>Status</th>
-                  <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff' }}>Aksi</th>
+                  <th style={{ padding: '0.95rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>No. Transaksi</th>
+                  <th style={{ padding: '0.95rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Waktu</th>
+                  <th style={{ padding: '0.95rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Kasir</th>
+                  <th style={{ padding: '0.95rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Pelanggan</th>
+                  <th style={{ padding: '0.95rem 1rem', textAlign: 'right', color: '#ffffff', whiteSpace: 'nowrap' }}>Total</th>
+                  <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>Metode</th>
+                  <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>Status</th>
+                  <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>Aksi</th>
                 </tr>
               </thead>
               <tbody>
@@ -638,16 +639,16 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
                           transition: 'background 0.15s ease',
                         }}
                       >
-                        <td style={{ padding: '0.85rem 1rem', fontWeight: 800, color: '#0f172a' }}>
+                        <td style={{ padding: '0.85rem 1rem', fontWeight: 800, color: '#0f172a', whiteSpace: 'nowrap' }}>
                           {tx.transaction_number || `TRX-${tx.transaction_id}`}
                         </td>
-                        <td style={{ padding: '0.85rem 1rem', color: '#64748b', fontSize: '0.78rem' }}>
+                        <td style={{ padding: '0.85rem 1rem', color: '#64748b', fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
                           {tx.transaction_time ? formatWaktuIndo(tx.transaction_time) : '-'}
                         </td>
-                        <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#334155' }}>
+                        <td style={{ padding: '0.85rem 1rem', fontWeight: 700, color: '#334155', whiteSpace: 'nowrap' }}>
                           {getCashierName(tx.created_by_user_id)}
                         </td>
-                        <td style={{ padding: '0.85rem 1rem', color: '#64748b' }}>
+                        <td style={{ padding: '0.85rem 1rem', color: '#64748b', whiteSpace: 'nowrap' }}>
                           {tx.customer_name || 'Pelanggan Umum'}
                         </td>
                         <td
@@ -657,11 +658,12 @@ export const OwnerTransactionsPage: React.FC<OwnerTransactionsPageProps> = ({
                             fontWeight: 900,
                             color: isCancelled ? '#94a3b8' : '#0f172a',
                             textDecoration: isCancelled ? 'line-through' : 'none',
+                            whiteSpace: 'nowrap',
                           }}
                         >
                           {formatRupiah(Number(tx.final_total || tx.subtotal_amount || 0))}
                         </td>
-                        <td style={{ padding: '0.85rem 1rem', textAlign: 'center' }}>
+                        <td style={{ padding: '0.85rem 1rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
                           <span
                             style={{
                               padding: '0.25rem 0.55rem',

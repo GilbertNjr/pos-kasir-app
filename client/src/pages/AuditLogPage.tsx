@@ -207,15 +207,15 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ currentUser }) => {
             Tidak ada catatan log yang cocok dengan pencarian filter Anda.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
+          <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <table style={{ width: '100%', minWidth: '850px', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
               <thead>
-                <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.05em' }}>
-                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff' }}>Waktu Audit</th>
-                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff' }}>Pengguna / Kasir</th>
-                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff' }}>Tindakan (Action)</th>
-                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff' }}>Entitas & ID</th>
-                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff' }}>Detail Rincian Deskripsi Log</th>
+                <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Waktu Audit</th>
+                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Pengguna / Kasir</th>
+                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Tindakan (Action)</th>
+                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Entitas & ID</th>
+                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Detail Rincian Deskripsi Log</th>
                 </tr>
               </thead>
               <tbody>

@@ -387,16 +387,16 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
           </span>
         </div>
 
-        <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+        <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+          <table style={{ width: '100%', minWidth: '750px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
             <thead>
-              <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                <th style={{ padding: '0.85rem 1rem', color: '#ffffff' }}>Nama & ID</th>
-                <th style={{ padding: '0.85rem 1rem', color: '#ffffff' }}>Peran</th>
-                <th style={{ padding: '0.85rem 1rem', color: '#ffffff' }}>Status Shift</th>
-                <th style={{ padding: '0.85rem 1rem', color: '#ffffff' }}>Mulai Shift</th>
-                <th style={{ padding: '0.85rem 1rem', color: '#ffffff' }}>Durasi</th>
-                <th style={{ padding: '0.85rem 1rem', textAlign: 'right', color: '#ffffff' }}>Performa (Sales)</th>
+              <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                <th style={{ padding: '0.85rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Nama & ID</th>
+                <th style={{ padding: '0.85rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Peran</th>
+                <th style={{ padding: '0.85rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Status Shift</th>
+                <th style={{ padding: '0.85rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Mulai Shift</th>
+                <th style={{ padding: '0.85rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Durasi</th>
+                <th style={{ padding: '0.85rem 1rem', textAlign: 'right', color: '#ffffff', whiteSpace: 'nowrap' }}>Performa (Sales)</th>
               </tr>
             </thead>
             <tbody>

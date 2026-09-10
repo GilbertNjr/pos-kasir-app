@@ -737,18 +737,18 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
               </div>
             ) : viewMode === 'table' ? (
               /* TABLE VIEW MODE */
-              <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+              <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+                <table style={{ width: '100%', minWidth: '950px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
                   <thead>
-                    <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', fontSize: '0.775rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>ID Produk</th>
-                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Nama Item Master</th>
-                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Unit Usaha</th>
-                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Kategori</th>
-                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Harga Jual</th>
-                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Pengaturan Stok</th>
-                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Status</th>
-                      <th style={{ padding: '0.95rem 1.25rem', textAlign: 'right', color: '#ffffff' }}>Aksi</th>
+                    <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', fontSize: '0.775rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff', whiteSpace: 'nowrap' }}>ID Produk</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Nama Item Master</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Unit Usaha</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Kategori</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Harga Jual</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Pengaturan Stok</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Status</th>
+                      <th style={{ padding: '0.95rem 1.25rem', textAlign: 'right', color: '#ffffff', whiteSpace: 'nowrap' }}>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>

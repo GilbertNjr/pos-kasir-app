@@ -890,21 +890,21 @@ export const UsersPage: React.FC<UsersPageProps> = ({ onTriggerToast }) => {
           overflow: 'hidden',
         }}
       >
-        <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
+        <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+          <table style={{ width: '100%', minWidth: '1050px', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.85rem' }}>
             <thead>
-              <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                <th style={{ padding: '0.95rem 1rem', width: '50px', textAlign: 'center', color: '#ffffff' }}>No.</th>
-                <th style={{ padding: '0.95rem 1rem', width: '70px', textAlign: 'center', color: '#ffffff' }}>Foto</th>
-                <th style={{ padding: '0.95rem 1rem', color: '#ffffff' }}>Nama</th>
-                <th style={{ padding: '0.95rem 1rem', color: '#ffffff' }}>Username</th>
-                <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff' }}>Role</th>
-                <th style={{ padding: '0.95rem 1rem', color: '#ffffff' }}>No. HP</th>
-                <th style={{ padding: '0.95rem 1rem', color: '#ffffff' }}>Shift</th>
-                <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff' }}>Kode Aktivasi</th>
-                <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff' }}>Status</th>
-                <th style={{ padding: '0.95rem 1rem', color: '#ffffff' }}>Terakhir Login</th>
-                <th style={{ padding: '0.95rem 1rem', textAlign: 'center', width: '140px', color: '#ffffff' }}>Aksi</th>
+              <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', fontWeight: 800, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                <th style={{ padding: '0.95rem 1rem', width: '50px', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>No.</th>
+                <th style={{ padding: '0.95rem 1rem', width: '70px', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>Foto</th>
+                <th style={{ padding: '0.95rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Nama</th>
+                <th style={{ padding: '0.95rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Username</th>
+                <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>Role</th>
+                <th style={{ padding: '0.95rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>No. HP</th>
+                <th style={{ padding: '0.95rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Shift</th>
+                <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>Kode Aktivasi</th>
+                <th style={{ padding: '0.95rem 1rem', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>Status</th>
+                <th style={{ padding: '0.95rem 1rem', color: '#ffffff', whiteSpace: 'nowrap' }}>Terakhir Login</th>
+                <th style={{ padding: '0.95rem 1rem', textAlign: 'center', width: '140px', color: '#ffffff', whiteSpace: 'nowrap' }}>Aksi</th>
               </tr>
             </thead>
             <tbody>

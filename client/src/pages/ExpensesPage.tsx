@@ -512,23 +512,23 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                 </p>
               </div>
             ) : (
-              <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+              <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+                <table style={{ width: '100%', minWidth: '800px', borderCollapse: 'collapse', textAlign: 'left' }}>
                   <thead>
-                    <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b' }}>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', whiteSpace: 'nowrap' }}>
+                      <th style={{ padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                         Waktu & Pencatat
                       </th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <th style={{ padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                         Kategori
                       </th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <th style={{ padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
                         Rincian Keterangan
                       </th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>
+                      <th style={{ padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right', whiteSpace: 'nowrap' }}>
                         Nominal Kas
                       </th>
-                      <th style={{ padding: '1rem 1.5rem', fontSize: '0.75rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>
+                      <th style={{ padding: '1rem 1.25rem', fontSize: '0.75rem', fontWeight: 800, color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center', whiteSpace: 'nowrap' }}>
                         Aksi
                       </th>
                     </tr>
@@ -546,7 +546,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                           onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
                           onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                         >
-                          <td style={{ padding: '1.1rem 1.5rem', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '1.1rem 1.25rem', whiteSpace: 'nowrap' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', fontWeight: 700, color: '#334155' }}>
                               <Clock size={14} color="#94a3b8" />
                               {formatWaktuIndo(exp.expense_time)}
@@ -556,7 +556,7 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                             </div>
                           </td>
 
-                          <td style={{ padding: '1.1rem 1.5rem' }}>
+                          <td style={{ padding: '1.1rem 1.25rem', whiteSpace: 'nowrap' }}>
                             <span
                               style={{
                                 padding: '0.3rem 0.7rem',
@@ -572,15 +572,15 @@ export const ExpensesPage: React.FC<ExpensesPageProps> = ({ currentUser, activeS
                             </span>
                           </td>
 
-                          <td style={{ padding: '1.1rem 1.5rem', color: '#1e293b', fontSize: '0.875rem', fontWeight: 600 }}>
+                          <td style={{ padding: '1.1rem 1.25rem', color: '#1e293b', fontSize: '0.875rem', fontWeight: 600, minWidth: '220px' }}>
                             {exp.description}
                           </td>
 
-                          <td style={{ padding: '1.1rem 1.5rem', textAlign: 'right', fontWeight: 900, fontSize: '0.95rem', color: '#dc2626' }}>
+                          <td style={{ padding: '1.1rem 1.25rem', textAlign: 'right', fontWeight: 900, fontSize: '0.95rem', color: '#dc2626', whiteSpace: 'nowrap' }}>
                             -{formatRupiah(exp.amount)}
                           </td>
 
-                          <td style={{ padding: '1.1rem 1.5rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          <td style={{ padding: '1.1rem 1.25rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
                             <button
                               onClick={() => setDeleteConfirmExpense(exp)}
                               title="Hapus Catatan Pengeluaran Ini"

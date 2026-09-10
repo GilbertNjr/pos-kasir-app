@@ -671,38 +671,38 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
             Belum ada transaksi ditemukan untuk filter periode ini.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
+          <div style={{ width: '100%', overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '16px', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
+            <table style={{ width: '100%', minWidth: '850px', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
-                <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.05em' }}>
-                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'left', color: '#ffffff' }}>No. Transaksi</th>
-                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'left', color: '#ffffff' }}>Hari & Waktu (Tgl/Bln/Thn)</th>
-                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'left', color: '#ffffff' }}>Kasir</th>
-                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'center', color: '#ffffff' }}>Metode Bayar</th>
-                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'right', color: '#ffffff' }}>Total (Rp)</th>
-                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'center', color: '#ffffff' }}>Status</th>
-                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'center', color: '#ffffff' }}>Aksi Hapus</th>
+                <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.05em', whiteSpace: 'nowrap' }}>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'left', color: '#ffffff', whiteSpace: 'nowrap' }}>No. Transaksi</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'left', color: '#ffffff', whiteSpace: 'nowrap' }}>Hari & Waktu (Tgl/Bln/Thn)</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'left', color: '#ffffff', whiteSpace: 'nowrap' }}>Kasir</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>Metode Bayar</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'right', color: '#ffffff', whiteSpace: 'nowrap' }}>Total (Rp)</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>Status</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'center', color: '#ffffff', whiteSpace: 'nowrap' }}>Aksi Hapus</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTransactions.map((tx: any) => (
                   <tr key={tx.transaction_id} style={{ borderBottom: '1px solid #e2e8f0', transition: 'background 0.15s ease' }}>
-                    <td style={{ padding: '0.65rem', fontWeight: 700, fontFamily: 'monospace', color: '#0f172a' }}>
+                    <td style={{ padding: '0.75rem 0.85rem', fontWeight: 700, fontFamily: 'monospace', color: '#0f172a', whiteSpace: 'nowrap' }}>
                       {tx.transaction_number}
                     </td>
-                    <td style={{ padding: '0.65rem', color: '#334155', fontSize: '0.8rem', fontWeight: 600 }}>
+                    <td style={{ padding: '0.75rem 0.85rem', color: '#334155', fontSize: '0.8rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
                       {formatTimestampFull(tx)}
                     </td>
-                    <td style={{ padding: '0.65rem', color: '#475569', fontWeight: 600 }}>
+                    <td style={{ padding: '0.75rem 0.85rem', color: '#475569', fontWeight: 600, whiteSpace: 'nowrap' }}>
                       {getCashierName(tx.created_by_user_id || tx.user_id, tx)}
                     </td>
-                    <td style={{ padding: '0.65rem', textAlign: 'center' }}>
+                    <td style={{ padding: '0.75rem 0.85rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
                       <PaymentMethodBadge method={tx.payment_method} size="sm" />
                     </td>
-                    <td style={{ padding: '0.65rem', textAlign: 'right', fontWeight: 800, color: tx.status === 'CANCELLED' ? '#94a3b8' : '#0f172a' }}>
+                    <td style={{ padding: '0.75rem 0.85rem', textAlign: 'right', fontWeight: 800, color: tx.status === 'CANCELLED' ? '#94a3b8' : '#0f172a', whiteSpace: 'nowrap' }}>
                       {formatRupiah(tx.final_total || tx.total_amount || 0)}
                     </td>
-                    <td style={{ padding: '0.65rem', textAlign: 'center' }}>
+                    <td style={{ padding: '0.75rem 0.85rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
                       {tx.status === 'CANCELLED' ? (
                         <span style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '0.2rem 0.55rem', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
                           <XCircle size={12} />
@@ -715,7 +715,7 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
                         </span>
                       )}
                     </td>
-                    <td style={{ padding: '0.65rem', textAlign: 'center' }}>
+                    <td style={{ padding: '0.75rem 0.85rem', textAlign: 'center', whiteSpace: 'nowrap' }}>
                       {tx.status === 'CANCELLED' ? (
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
                           <button
