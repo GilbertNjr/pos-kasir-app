@@ -13,6 +13,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import { apiService } from '../../services/api';
+import { realtimeService } from '../../services/realtimeService';
 
 export interface NotificationItem {
   id: string;
@@ -120,7 +121,7 @@ export const NotificationPopover: React.FC = () => {
           message: 'Seluruh data transaksi, pengeluaran, dan pengaturan tersinkronisasi secara real-time.',
           type: 'system',
           timestamp: new Date(),
-          read: false,
+          read: true,
         });
       }
 
@@ -143,29 +144,34 @@ export const NotificationPopover: React.FC = () => {
     }
   };
 
-  // Real-time Event Listener (SSE stream & Custom Local Events)
+  // Real-time Event Listener (Centralized SSE via realtimeService & Custom Local Events)
   useEffect(() => {
     fetchNotifications();
 
-    // 1. Setup SSE stream for realtime backend notifications across devices
-    let es: EventSource | null = null;
-    try {
-      es = new EventSource('/api/events');
-      const handleRealtimeSignal = () => {
-        fetchNotifications();
-      };
+    // 1. Subscribe to centralized real-time events across all devices
+    const realtimeEvents = [
+      'AUDIT_LOG_CREATED',
+      'TRANSACTION_CREATED',
+      'TRANSACTION_CANCELLED',
+      'EXPENSE_CREATED',
+      'EXPENSE_DELETED',
+      'SHIFT_OPENED',
+      'SHIFT_CLOSED',
+      'SHIFT_METADATA_UPDATED',
+      'CAPITAL_ADDED',
+      'STOCK_UPDATED',
+      'PRODUCT_UPDATED',
+      'SETTINGS_UPDATED',
+      'USER_CREATED',
+      'USER_UPDATED',
+      'SYSTEM_WAKEUP',
+    ];
 
-      es.addEventListener('TRANSACTION_CREATED', handleRealtimeSignal);
-      es.addEventListener('EXPENSE_CREATED', handleRealtimeSignal);
-      es.addEventListener('SHIFT_OPENED', handleRealtimeSignal);
-      es.addEventListener('SHIFT_CLOSED', handleRealtimeSignal);
-      es.addEventListener('PRODUCT_UPDATED', handleRealtimeSignal);
-      es.addEventListener('SETTINGS_UPDATED', handleRealtimeSignal);
-      es.addEventListener('SECURITY_UPDATED', handleRealtimeSignal);
-      es.addEventListener('AUDIT_LOG_CREATED', handleRealtimeSignal);
-    } catch {
-      // SSE fallback to polling
-    }
+    const unsubs = realtimeEvents.map((evt) =>
+      realtimeService.subscribe(evt, () => {
+        fetchNotifications();
+      })
+    );
 
     // 2. Setup Local App Activity Listener (Instant feedback when filling forms / saving settings)
     const handleLocalActivity = (e: any) => {
@@ -192,12 +198,12 @@ export const NotificationPopover: React.FC = () => {
     window.addEventListener('pos-app-activity', handleLocalActivity as EventListener);
     window.addEventListener('pos-global-refresh', fetchNotifications as EventListener);
 
-    // Polling fallback every 15s
+    // Polling fallback every 15s for extra guarantee
     const pollInterval = setInterval(fetchNotifications, 15000);
 
     return () => {
       clearInterval(pollInterval);
-      if (es) es.close();
+      unsubs.forEach((unsub) => unsub());
       window.removeEventListener('pos-app-activity', handleLocalActivity as EventListener);
       window.removeEventListener('pos-global-refresh', fetchNotifications as EventListener);
     };

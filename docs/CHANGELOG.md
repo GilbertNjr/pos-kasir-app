@@ -15,6 +15,12 @@ Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pe
     - Menghubungkan listener real-time pada `ShiftPage.tsx` dan `PosRegister.tsx` untuk event `SHIFT_METADATA_UPDATED`, `SHIFT_OPENED`, `SHIFT_CLOSED`, dan `CAPITAL_ADDED`, sehingga perubahan nama shift atau penambahan kasir di smartphone langsung tampil seketika di layar laptop kasir tanpa perlu refresh manual.
   - **Perbaikan Alur Buka Shift Cepat (`PosRegister.tsx`)**:
     - Memastikan fungsi `handleQuickOpenShift` menghitung `categoryName`, `staffList`, dan objek `meta` sebelum memanggil `apiService.openShift(initialCashNum, staffList.join(', '), categoryName, meta)`, sehingga shift yang baru dibuka langsung tersimpan lengkap dengan metadata ke cloud database.
+- **Sinkronisasi Real-Time Lonceng Notifikasi Lintas Perangkat (`NotificationPopover.tsx`, `AuditLogRepository.ts`, `ShiftController.ts`, `ExpenseController.ts`)**:
+  - **Pencatatan Audit Log Lengkap di Backend**: Menambahkan pencatatan riwayat aktivitas otomatis untuk seluruh aksi shift (`OPEN_SHIFT`, `UPDATE_SHIFT_TEAM`, `ADD_CAPITAL`, `CLOSE_SHIFT`) dan pengeluaran kas (`CREATE_EXPENSE`, `DELETE_EXPENSE`) ke tabel `audit_logs`.
+  - **Penyiaran Sinyal `AUDIT_LOG_CREATED`**: Setiap kali aktivitas baru tercatat di backend, server menyiarkan sinyal SSE `AUDIT_LOG_CREATED` ke seluruh perangkat kasir dan laptop owner.
+  - **Akses Notifikasi Multi-Role**: Membuka akses endpoint `/api/audit-logs` untuk seluruh pengguna terotentikasi (Kasir & PJ) dengan penyaringan keamanan otomatis (catatan kredensial/PIN sensitif hanya ditampilkan kepada Owner).
+  - **Integrasi Penuh ke `realtimeService`**: Menghapus koneksi raw `EventSource` terisolasi di `NotificationPopover.tsx` dan menggantinya dengan langganan terpusat ke `realtimeService`, sehingga angka badge merah dan daftar aktivitas di lonceng bertambah secara live antar-perangkat tanpa perlu refresh.
+  - **Perbaikan Status Default `sys-init`**: Menandai status awal `sys-init` sebagai terbaca (`read: true`) agar badge merah tidak macet di angka `1` saat belum ada notifikasi baru.
 - **Bump Versi Aplikasi ke v1.8.9**:
   - Memperbarui versi proyek di `client/package.json` dan `server/package.json` ke `1.8.9`.
 

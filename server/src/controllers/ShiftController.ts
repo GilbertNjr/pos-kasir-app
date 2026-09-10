@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { ShiftService } from '../services/ShiftService';
 import { AuthenticatedRequest } from '../middlewares/AuthMiddleware';
 import { sseManager } from '../utils/sseManager';
+import { auditLogRepository } from '../repositories/sharedRepositories';
 
 export class ShiftController {
   private shiftService: ShiftService;
@@ -63,6 +64,17 @@ export class ShiftController {
         timestamp: new Date().toISOString(),
       });
 
+      try {
+        await auditLogRepository.logAction(
+          req.user.user_id,
+          req.user.username,
+          'OPEN_SHIFT',
+          'SHIFT',
+          result.shift.shift_id,
+          `Sesi shift baru dibuka (${result.shift.shift_category || 'Shift Operasional'}) dengan modal kas Rp ${initialCashNum.toLocaleString('id-ID')}`
+        );
+      } catch {}
+
       return res.status(201).json({
         message: 'Shift berhasil dibuka. Anda adalah Penanggung Jawab Shift ini.',
         data: result,
@@ -95,6 +107,17 @@ export class ShiftController {
         timestamp: new Date().toISOString(),
       });
 
+      try {
+        await auditLogRepository.logAction(
+          req.user.user_id,
+          req.user.username,
+          'UPDATE_SHIFT_TEAM',
+          'SHIFT',
+          shift_id,
+          `Tim shift & jam masuk diperbarui: ${duty_staff_names || shift_category || 'Data Pegawai'}`
+        );
+      } catch {}
+
       return res.status(200).json({
         message: 'Metadata shift berhasil diperbarui',
         data: updated,
@@ -118,6 +141,17 @@ export class ShiftController {
         amount: Number(amount),
         timestamp: new Date().toISOString(),
       });
+
+      try {
+        await auditLogRepository.logAction(
+          req.user.user_id,
+          req.user.username,
+          'ADD_CAPITAL',
+          'SHIFT',
+          shift_id,
+          `Modal kas disetor Rp ${Number(amount).toLocaleString('id-ID')} oleh ${req.user.username}`
+        );
+      } catch {}
 
       return res.status(201).json({
         message: 'Setoran modal berhasil dicatat ke laci kas bersama',
@@ -145,6 +179,17 @@ export class ShiftController {
         shift_id: closedShift.shift_id,
         timestamp: new Date().toISOString(),
       });
+
+      try {
+        await auditLogRepository.logAction(
+          req.user.user_id,
+          req.user.username,
+          'CLOSE_SHIFT',
+          'SHIFT',
+          shift_id,
+          `Sesi shift ditutup oleh ${req.user.username}. Kas fisik: Rp ${Number(actual_physical_cash).toLocaleString('id-ID')}`
+        );
+      } catch {}
 
       return res.status(200).json({
         message: 'Shift berhasil ditutup dan rekonsiliasi kas telah dilakukan',

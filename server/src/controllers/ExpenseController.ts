@@ -2,6 +2,7 @@ import { Response } from 'express';
 import { ExpenseService } from '../services/ExpenseService';
 import { AuthenticatedRequest } from '../middlewares/AuthMiddleware';
 import { sseManager } from '../utils/sseManager';
+import { auditLogRepository } from '../repositories/sharedRepositories';
 
 export class ExpenseController {
   private expenseService: ExpenseService;
@@ -30,6 +31,17 @@ export class ExpenseController {
         category,
         timestamp: new Date().toISOString(),
       });
+
+      try {
+        await auditLogRepository.logAction(
+          req.user.user_id,
+          req.user.username,
+          'CREATE_EXPENSE',
+          'EXPENSE',
+          (expense as any)?.expense_id || 'exp-new',
+          `Pengeluaran dicatat: ${description} (Rp ${Number(amount).toLocaleString('id-ID')})`
+        );
+      } catch {}
 
       return res.status(201).json({
         message: 'Pengeluaran kas berhasil dicatat dan dipotong dari saldo teoritis kas',
@@ -66,6 +78,17 @@ export class ExpenseController {
         user_id: req.user.user_id,
         timestamp: new Date().toISOString(),
       });
+
+      try {
+        await auditLogRepository.logAction(
+          req.user.user_id,
+          req.user.username,
+          'DELETE_EXPENSE',
+          'EXPENSE',
+          expenseId,
+          `Pengeluaran kas #${expenseId} dihapus oleh ${req.user.username}`
+        );
+      } catch {}
 
       return res.status(200).json({ message: 'Catatan pengeluaran kas berhasil dihapus' });
     } catch (error: any) {

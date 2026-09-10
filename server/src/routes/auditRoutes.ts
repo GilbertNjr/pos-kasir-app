@@ -11,7 +11,7 @@ const auditLogRepository = new AuditLogRepository();
 const auditLogService = new AuditLogService(auditLogRepository);
 const auditLogController = new AuditLogController(auditLogService);
 
-// Protected Audit Log Routes (Owner Only)
-router.get('/', authMiddleware, requireOwner, auditLogController.getAuditLogs);
+// Protected Audit Log & Notifications Route (Authenticated Users)
+router.get('/', authMiddleware, auditLogController.getAuditLogs);
 
 export default router;

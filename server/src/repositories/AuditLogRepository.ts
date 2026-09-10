@@ -1,5 +1,6 @@
 import { AuditLogEntity } from '../types/domain';
 import { pool } from '../database/db';
+import { sseManager } from '../utils/sseManager';
 
 export class AuditLogRepository {
   private inMemoryAuditLogs: AuditLogEntity[] = [];
@@ -76,6 +77,11 @@ export class AuditLogRepository {
     } catch (err) {
       console.warn('[AuditLogRepository] Database logAction fallback to memory:', (err as Error).message);
     }
+
+    // Broadcast real-time event to all connected devices (Owner & Kasir)
+    try {
+      sseManager.broadcast('AUDIT_LOG_CREATED', newLog);
+    } catch {}
 
     return newLog;
   }
