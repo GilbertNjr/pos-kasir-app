@@ -313,23 +313,26 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     e.preventDefault();
     try {
       setBukaShiftLoading(true);
-      const data = await apiService.openShift(Number(bukaShiftInitialCash) || 0);
+
+      const categoryName =
+        bukaShiftCategoryOption === 'KUSTOM'
+          ? (bukaShiftCustomCategory.trim() || 'Shift Kustom')
+          : bukaShiftCategoryOption;
+      const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+      const staffList = [`${currentUser.full_name} (${nowStr} WIB)`];
+      const initialCashNum = Number(bukaShiftInitialCash) || 0;
+      const meta = {
+        shiftCategory: categoryName,
+        shiftName: `${categoryName} - ${staffList.join(', ')}`,
+        date: new Date().toISOString().split('T')[0],
+        time: nowStr,
+        dutyStaffNames: staffList,
+        initialCash: initialCashNum,
+      };
+
+      const data = await apiService.openShift(initialCashNum, staffList.join(', '), categoryName, meta);
 
       if (data?.shift?.shift_id) {
-        const categoryName =
-          bukaShiftCategoryOption === 'KUSTOM'
-            ? (bukaShiftCustomCategory.trim() || 'Shift Kustom')
-            : bukaShiftCategoryOption;
-        const nowStr = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-        const staffList = [`${currentUser.full_name} (${nowStr} WIB)`];
-        const meta = {
-          shiftCategory: categoryName,
-          shiftName: `${categoryName} - ${staffList.join(', ')}`,
-          date: new Date().toISOString().split('T')[0],
-          time: nowStr,
-          dutyStaffNames: staffList,
-          initialCash: Number(bukaShiftInitialCash) || 0,
-        };
         localStorage.setItem(`pos_shift_meta_${data.shift.shift_id}`, JSON.stringify(meta));
       }
 
@@ -341,6 +344,19 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       setBukaShiftLoading(false);
     }
   };
+
+  // Real-time synchronization for active shift across devices
+  useRealtimeSubscription('SHIFT_METADATA_UPDATED', () => {
+    if (onShiftOpened) onShiftOpened();
+  });
+
+  useRealtimeSubscription('SHIFT_OPENED', () => {
+    if (onShiftOpened) onShiftOpened();
+  });
+
+  useRealtimeSubscription('SHIFT_CLOSED', () => {
+    if (onShiftOpened) onShiftOpened();
+  });
 
   // Struk Digital Modal State
   const [lastReceipt, setLastReceipt] = useState<CreateTransactionResultData | null>(null);

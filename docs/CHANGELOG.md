@@ -2,6 +2,24 @@
 
 Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pengembangan Sistem POS Usaha Campuran (FC/Printing & FNB).
 
+## [1.8.9] - 11 September 2026
+
+### Fixed & Enhanced
+- **Sinkronisasi Metadata Shift Real-Time Multi-Device & Identitas Kasir Dinamis (`ShiftPage.tsx`, `PosRegister.tsx`, `ShiftController.ts`)**:
+  - **Single Source of Truth di Database Cloud**: Menghilangkan ketergantungan pada `localStorage` lokal browser untuk menampilkan nama shift dan petugas bertugas (*duty staff*). Frontend kini memprioritaskan data shift dari database PostgreSQL (`shift.shift_metadata`, `shift.shift_category`, `shift.duty_staff_names`) sehingga laptop/komputer lain tidak lagi menampilkan teks default `Shift Operasional (#xxxxxx)`.
+  - **Dukungan Multi-Kasir Fleksibel & Badge Akun Login**:
+    - Menampilkan informasi sesi shift gabungan (contoh: `Shift Pagi - Gilbert (23:44 WIB)` atau bila multi-karyawan: `Shift Pagi - Gilbert, Siti`).
+    - Menambahkan badge identitas kasir yang sedang aktif di perangkat tersebut: `👤 Kasir Anda: [Nama Kasir]` dengan pill peran (*Role Badge*), membedakan antara sesi shift bersama dan kasir yang sedang memegang register saat ini sesuai prinsip AGENTS.md Pasal 8 & 11.
+  - **Sinkronisasi Real-Time Lintas Perangkat (SSE)**:
+    - Menambahkan broadcast SSE event `SHIFT_METADATA_UPDATED` pada `ShiftController.ts` saat metadata shift diperbarui via API.
+    - Menghubungkan listener real-time pada `ShiftPage.tsx` dan `PosRegister.tsx` untuk event `SHIFT_METADATA_UPDATED`, `SHIFT_OPENED`, `SHIFT_CLOSED`, dan `CAPITAL_ADDED`, sehingga perubahan nama shift atau penambahan kasir di smartphone langsung tampil seketika di layar laptop kasir tanpa perlu refresh manual.
+  - **Perbaikan Alur Buka Shift Cepat (`PosRegister.tsx`)**:
+    - Memastikan fungsi `handleQuickOpenShift` menghitung `categoryName`, `staffList`, dan objek `meta` sebelum memanggil `apiService.openShift(initialCashNum, staffList.join(', '), categoryName, meta)`, sehingga shift yang baru dibuka langsung tersimpan lengkap dengan metadata ke cloud database.
+- **Bump Versi Aplikasi ke v1.8.9**:
+  - Memperbarui versi proyek di `client/package.json` dan `server/package.json` ke `1.8.9`.
+
+---
+
 ## [1.8.8] - 11 September 2026
 
 ### Fixed & Enhanced

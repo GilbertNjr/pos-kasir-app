@@ -84,6 +84,17 @@ export class ShiftController {
         shift_metadata
       );
 
+      // Broadcast Realtime SSE Event to all connected clients (Laptop, Mobile, POS Register)
+      sseManager.broadcast('SHIFT_METADATA_UPDATED', {
+        shift_id,
+        duty_staff_names: typeof duty_staff_names === 'string' ? duty_staff_names : (Array.isArray(duty_staff_names) ? duty_staff_names.join(', ') : undefined),
+        shift_category,
+        shift_metadata,
+        updated_by_user_id: req.user.user_id,
+        user_name: req.user.username,
+        timestamp: new Date().toISOString(),
+      });
+
       return res.status(200).json({
         message: 'Metadata shift berhasil diperbarui',
         data: updated,

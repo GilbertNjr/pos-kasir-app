@@ -339,6 +339,16 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     onShiftStatusChange?.();
   });
 
+  useRealtimeSubscription('SHIFT_METADATA_UPDATED', () => {
+    loadShift(true);
+    onShiftStatusChange?.();
+  });
+
+  useRealtimeSubscription('CAPITAL_ADDED', () => {
+    loadShift(true);
+    onShiftStatusChange?.();
+  });
+
   useRealtimeSubscription('SHIFT_CLOSED', () => {
     loadShift();
     setShowCloseModal(false);
@@ -368,9 +378,12 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       ]);
 
       let storedMeta: any = activeShiftData.shift.shift_metadata || null;
+      if (typeof storedMeta === 'string') {
+        try { storedMeta = JSON.parse(storedMeta); } catch {}
+      }
       try {
         const raw = localStorage.getItem(`pos_shift_meta_${activeShiftData.shift.shift_id}`);
-        if (raw) storedMeta = JSON.parse(raw);
+        if (raw && !storedMeta) storedMeta = JSON.parse(raw);
       } catch {}
 
       const rawDutyStr = activeShiftData.shift.duty_staff_names;
@@ -408,9 +421,12 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       ]);
 
       let storedMeta: any = activeShiftData.shift.shift_metadata || null;
+      if (typeof storedMeta === 'string') {
+        try { storedMeta = JSON.parse(storedMeta); } catch {}
+      }
       try {
         const raw = localStorage.getItem(`pos_shift_meta_${activeShiftData.shift.shift_id}`);
-        if (raw) storedMeta = JSON.parse(raw);
+        if (raw && !storedMeta) storedMeta = JSON.parse(raw);
       } catch {}
 
       const rawDutyStr = activeShiftData.shift.duty_staff_names;
@@ -559,14 +575,23 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
     setShowEditShiftModal(true);
   };
 
-  const handleUpdateShiftMetaSubmit = (e: React.FormEvent) => {
+  const handleUpdateShiftMetaSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!activeShiftData?.shift?.shift_id) return;
     const shiftId = activeShiftData.shift.shift_id;
     let storedMeta: any = {};
+    if (activeShiftData.shift.shift_metadata) {
+      if (typeof activeShiftData.shift.shift_metadata === 'object') {
+        storedMeta = { ...activeShiftData.shift.shift_metadata };
+      } else if (typeof activeShiftData.shift.shift_metadata === 'string') {
+        try {
+          storedMeta = JSON.parse(activeShiftData.shift.shift_metadata);
+        } catch {}
+      }
+    }
     try {
       const raw = localStorage.getItem(`pos_shift_meta_${shiftId}`);
-      if (raw) storedMeta = JSON.parse(raw);
+      if (raw && Object.keys(storedMeta).length === 0) storedMeta = JSON.parse(raw);
     } catch {}
 
     const newStaffList = editStaffEntries
@@ -577,17 +602,34 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
       newStaffList.push(`${currentUser.full_name} (${getCurrentTimeHHMM()} WIB)`);
     }
 
-    const newShiftName = newStaffList.join(', ');
+    const shiftCategory = storedMeta?.shiftCategory || activeShiftData.shift.shift_category || 'Shift Pagi';
+    const newShiftName = `${shiftCategory} - ${newStaffList.join(', ')}`;
 
     const updatedMeta = {
       ...storedMeta,
+      shiftCategory,
       shiftName: newShiftName,
       dutyStaffNames: newStaffList,
     };
-    localStorage.setItem(`pos_shift_meta_${shiftId}`, JSON.stringify(updatedMeta));
-    setShowEditShiftModal(false);
-    loadShift();
-    if (onShiftStatusChange) onShiftStatusChange();
+
+    try {
+      // 1. Send update to Central Database via API
+      await apiService.updateShiftMetadata(
+        shiftId,
+        newStaffList.join(', '),
+        shiftCategory,
+        updatedMeta
+      );
+
+      // 2. Cache locally as offline fallback
+      localStorage.setItem(`pos_shift_meta_${shiftId}`, JSON.stringify(updatedMeta));
+
+      setShowEditShiftModal(false);
+      await loadShift();
+      if (onShiftStatusChange) onShiftStatusChange();
+    } catch (err: any) {
+      alert('Gagal menyimpan perubahan tim shift ke server: ' + (err.message || err));
+    }
   };
 
   if (loading) {
@@ -601,24 +643,58 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
   if (activeShiftData && isShiftActive) {
     const { shift, contributions } = activeShiftData;
 
-    // Load custom metadata if available
-    let storedMeta: any = null;
+    // 1. Parse metadata directly from Database (Single Source of Truth)
+    let dbMeta: any = null;
+    if (shift.shift_metadata) {
+      if (typeof shift.shift_metadata === 'object') {
+        dbMeta = shift.shift_metadata;
+      } else if (typeof shift.shift_metadata === 'string') {
+        try {
+          dbMeta = JSON.parse(shift.shift_metadata);
+        } catch {}
+      }
+    }
+
+    // 2. Fallback to localStorage if dbMeta is absent
+    let localMeta: any = null;
     try {
       const raw = localStorage.getItem(`pos_shift_meta_${shift.shift_id}`);
-      if (raw) storedMeta = JSON.parse(raw);
+      if (raw) localMeta = JSON.parse(raw);
     } catch {}
 
-    const shiftTitle = storedMeta?.shiftName || `Shift Operasional (#${shift.shift_id.slice(-6)})`;
-    const dutyStaffList: string[] = storedMeta?.dutyStaffNames || contributions.map((c) => getUserDisplayName(c.user_id));
+    const storedMeta = dbMeta || localMeta;
+
+    // 3. Reconstruct category, staff list & shift title cleanly
+    const shiftCat = storedMeta?.shiftCategory || shift.shift_category || 'Shift Pagi';
+    const rawDutyStr = shift.duty_staff_names;
+    const dbDutyList = rawDutyStr ? rawDutyStr.split(',').map((s) => s.trim()).filter(Boolean) : [];
+
+    const dutyStaffList: string[] =
+      storedMeta?.dutyStaffNames && storedMeta.dutyStaffNames.length > 0
+        ? storedMeta.dutyStaffNames
+        : (dbDutyList.length > 0
+            ? dbDutyList
+            : (contributions.length > 0
+                ? contributions.map((c) => getUserDisplayName(c.user_id))
+                : [getUserDisplayName(shift.opened_by_user_id)]));
+
+    const shiftTitle =
+      storedMeta?.shiftName ||
+      (dutyStaffList.length > 0
+        ? `${shiftCat} - ${dutyStaffList.join(', ')}`
+        : `${shiftCat} (#${shift.shift_id.slice(-6)})`);
 
     return (
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem', flexWrap: 'wrap' }}>
               <span className="badge badge-fc">SHIFT SESI ACTIVE</span>
               <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#047857', background: '#ecfdf5', border: '1px solid #a7f3d0', padding: '0.15rem 0.6rem', borderRadius: '12px' }}>
                 🏷️ {shiftTitle}
+              </span>
+              <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#4f46e5', background: '#e0e7ff', border: '1px solid #c7d2fe', padding: '0.15rem 0.6rem', borderRadius: '12px' }}>
+                👤 Kasir Anda: {currentUser.full_name}
               </span>
             </div>
             <h2 style={{ fontSize: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#0f172a', fontWeight: 800 }}>
