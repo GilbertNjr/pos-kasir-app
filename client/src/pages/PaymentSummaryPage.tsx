@@ -671,17 +671,17 @@ export const PaymentSummaryPage: React.FC<PaymentSummaryPageProps> = ({ currentU
             Belum ada transaksi ditemukan untuk filter periode ini.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
               <thead>
-                <tr style={{ borderBottom: '2px solid #cbd5e1', color: '#475569', background: '#f8fafc' }}>
-                  <th style={{ padding: '0.65rem', textAlign: 'left', borderRadius: '8px 0 0 8px' }}>No. Transaksi</th>
-                  <th style={{ padding: '0.65rem', textAlign: 'left' }}>Hari & Waktu (Tgl/Bln/Thn)</th>
-                  <th style={{ padding: '0.65rem', textAlign: 'left' }}>Kasir</th>
-                  <th style={{ padding: '0.65rem', textAlign: 'center' }}>Metode Bayar</th>
-                  <th style={{ padding: '0.65rem', textAlign: 'right' }}>Total (Rp)</th>
-                  <th style={{ padding: '0.65rem', textAlign: 'center' }}>Status</th>
-                  <th style={{ padding: '0.65rem', textAlign: 'center', borderRadius: '0 8px 8px 0' }}>Aksi Hapus</th>
+                <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.05em' }}>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'left', color: '#ffffff' }}>No. Transaksi</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'left', color: '#ffffff' }}>Hari & Waktu (Tgl/Bln/Thn)</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'left', color: '#ffffff' }}>Kasir</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'center', color: '#ffffff' }}>Metode Bayar</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'right', color: '#ffffff' }}>Total (Rp)</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'center', color: '#ffffff' }}>Status</th>
+                  <th style={{ padding: '0.95rem 0.85rem', textAlign: 'center', color: '#ffffff' }}>Aksi Hapus</th>
                 </tr>
               </thead>
               <tbody>

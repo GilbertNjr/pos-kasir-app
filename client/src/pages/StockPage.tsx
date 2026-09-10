@@ -1419,17 +1419,17 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                 </div>
 
                 {/* 2. DESKTOP TABLE VIEW (>= 768px: Full Multi-Column Table) */}
-                <div style={{ width: '100%', overflowX: 'auto' }}>
+                <div style={{ width: '100%', overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
                   <table className="desktop-only-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                     <thead>
-                      <tr style={{ background: 'var(--accent-bg, #f8fafc)', borderBottom: '2px solid #e2e8f0', color: 'var(--color-primary, #0f172a)', textAlign: 'left', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                        <th style={{ padding: '0.85rem 1rem' }}>Produk</th>
-                        <th style={{ padding: '0.85rem 0.75rem' }}>Kategori</th>
-                        <th style={{ padding: '0.85rem 0.75rem', textAlign: 'center' }}>Stok Saat Ini</th>
-                        <th style={{ padding: '0.85rem 0.75rem', textAlign: 'center' }}>Stok Minimum</th>
-                        <th style={{ padding: '0.85rem 0.75rem', textAlign: 'center' }}>Status</th>
-                        <th style={{ padding: '0.85rem 0.75rem' }}>Lokasi</th>
-                        <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Aksi</th>
+                      <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textAlign: 'left', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        <th style={{ padding: '0.95rem 1rem', color: '#ffffff' }}>Produk</th>
+                        <th style={{ padding: '0.95rem 0.75rem', color: '#ffffff' }}>Kategori</th>
+                        <th style={{ padding: '0.95rem 0.75rem', textAlign: 'center', color: '#ffffff' }}>Stok Saat Ini</th>
+                        <th style={{ padding: '0.95rem 0.75rem', textAlign: 'center', color: '#ffffff' }}>Stok Minimum</th>
+                        <th style={{ padding: '0.95rem 0.75rem', textAlign: 'center', color: '#ffffff' }}>Status</th>
+                        <th style={{ padding: '0.95rem 0.75rem', color: '#ffffff' }}>Lokasi</th>
+                        <th style={{ padding: '0.95rem 1rem', textAlign: 'right', color: '#ffffff' }}>Aksi</th>
                       </tr>
                     </thead>
                     <tbody>
