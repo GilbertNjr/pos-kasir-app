@@ -1548,14 +1548,71 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               </div>
             )}
 
+            {!activeShiftId && (
+              <div
+                onClick={() => setIsBukaShiftModalOpen(true)}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.6rem',
+                  padding: '0.65rem 0.85rem',
+                  borderRadius: '10px',
+                  background: '#fef2f2',
+                  border: '1.5px solid #fecaca',
+                  color: '#dc2626',
+                  marginBottom: '0.75rem',
+                  cursor: 'pointer',
+                  fontSize: '0.8rem',
+                  boxShadow: '0 2px 6px rgba(220, 38, 38, 0.08)',
+                }}
+              >
+                <AlertCircle size={20} style={{ flexShrink: 0, color: '#dc2626' }} />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontWeight: 800, fontSize: '0.825rem', color: '#991b1b' }}>Sesi Shift Belum Dibuka!</div>
+                  <div style={{ fontSize: '0.72rem', color: '#7f1d1d', fontWeight: 500, lineHeight: 1.3 }}>
+                    Laci kas masih tertutup. Klik di sini untuk buka shift & isi modal kas awal.
+                  </div>
+                </div>
+                <span style={{ fontSize: '0.72rem', background: '#dc2626', color: '#ffffff', padding: '0.25rem 0.55rem', borderRadius: '6px', fontWeight: 800, flexShrink: 0 }}>
+                  Buka Shift
+                </span>
+              </div>
+            )}
+
             <button
               onClick={handleCheckout}
-              disabled={cart.length === 0 || submitLoading || !activeShiftId}
-              className="btn-action-primary"
-              style={{ width: '100%', padding: '0.75rem', fontSize: '0.95rem', borderRadius: '10px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', cursor: cart.length === 0 ? 'not-allowed' : 'pointer', opacity: cart.length === 0 ? 0.6 : 1 }}
+              disabled={cart.length === 0 || submitLoading}
+              className={!activeShiftId ? 'btn-action-warning' : 'btn-action-primary'}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                fontSize: '0.95rem',
+                borderRadius: '10px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '0.5rem',
+                cursor: cart.length === 0 ? 'not-allowed' : 'pointer',
+                opacity: cart.length === 0 ? 0.6 : 1,
+                background: !activeShiftId
+                  ? 'linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%)'
+                  : undefined,
+                color: !activeShiftId ? '#ffffff' : undefined,
+                border: !activeShiftId ? 'none' : undefined,
+                boxShadow: !activeShiftId ? '0 4px 12px rgba(124, 58, 237, 0.3)' : undefined,
+              }}
             >
-              <CheckCircle size={18} />
-              {submitLoading ? 'Memproses Transaksi...' : 'Bayar & Selesaikan Order'}
+              {!activeShiftId ? (
+                <>
+                  <Clock size={18} />
+                  <span>⏱️ Buka Shift untuk Selesaikan Order</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle size={18} />
+                  <span>{submitLoading ? 'Memproses Transaksi...' : 'Bayar & Selesaikan Order'}</span>
+                </>
+              )}
             </button>
           </div>
         </div>
