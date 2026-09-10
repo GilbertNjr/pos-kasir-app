@@ -737,18 +737,18 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
               </div>
             ) : viewMode === 'table' ? (
               /* TABLE VIEW MODE */
-              <div style={{ overflowX: 'auto' }}>
+              <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
                   <thead>
-                    <tr style={{ background: 'var(--accent-bg, #f8fafc)', borderBottom: '2px solid #e2e8f0', color: 'var(--color-primary, #0f172a)', fontSize: '0.775rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                      <th style={{ padding: '0.9rem 1.25rem' }}>ID Produk</th>
-                      <th style={{ padding: '0.9rem 1.25rem' }}>Nama Item Master</th>
-                      <th style={{ padding: '0.9rem 1.25rem' }}>Unit Usaha</th>
-                      <th style={{ padding: '0.9rem 1.25rem' }}>Kategori</th>
-                      <th style={{ padding: '0.9rem 1.25rem' }}>Harga Jual</th>
-                      <th style={{ padding: '0.9rem 1.25rem' }}>Pengaturan Stok</th>
-                      <th style={{ padding: '0.9rem 1.25rem' }}>Status</th>
-                      <th style={{ padding: '0.9rem 1.25rem', textAlign: 'right' }}>Aksi</th>
+                    <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', fontSize: '0.775rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>ID Produk</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Nama Item Master</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Unit Usaha</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Kategori</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Harga Jual</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Pengaturan Stok</th>
+                      <th style={{ padding: '0.95rem 1.25rem', color: '#ffffff' }}>Status</th>
+                      <th style={{ padding: '0.95rem 1.25rem', textAlign: 'right', color: '#ffffff' }}>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>

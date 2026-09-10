@@ -207,15 +207,15 @@ export const AuditLogPage: React.FC<AuditLogPageProps> = ({ currentUser }) => {
             Tidak ada catatan log yang cocok dengan pencarian filter Anda.
           </div>
         ) : (
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem', textAlign: 'left' }}>
               <thead>
-                <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
-                  <th style={{ padding: '0.65rem 0.5rem', fontWeight: 700 }}>Waktu Audit</th>
-                  <th style={{ padding: '0.65rem 0.5rem', fontWeight: 700 }}>Pengguna / Kasir</th>
-                  <th style={{ padding: '0.65rem 0.5rem', fontWeight: 700 }}>Tindakan (Action)</th>
-                  <th style={{ padding: '0.65rem 0.5rem', fontWeight: 700 }}>Entitas & ID</th>
-                  <th style={{ padding: '0.65rem 0.5rem', fontWeight: 700 }}>Detail Rincian Deskripsi Log</th>
+                <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.05em' }}>
+                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff' }}>Waktu Audit</th>
+                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff' }}>Pengguna / Kasir</th>
+                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff' }}>Tindakan (Action)</th>
+                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff' }}>Entitas & ID</th>
+                  <th style={{ padding: '0.95rem 0.85rem', color: '#ffffff' }}>Detail Rincian Deskripsi Log</th>
                 </tr>
               </thead>
               <tbody>
