@@ -486,14 +486,14 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                 const top5Preview = activeTopProducts.slice(0, 5);
                 return (
                   <>
-                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
                       <table style={{ width: '100%', minWidth: '340px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                         <thead>
-                          <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                            <th style={{ padding: '0.75rem 0.25rem' }}>#</th>
-                            <th style={{ padding: '0.75rem 0.5rem' }}>Produk / Jasa</th>
-                            <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Qty</th>
-                            <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Omzet</th>
+                          <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textAlign: 'left', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            <th style={{ padding: '0.85rem 0.6rem', color: '#ffffff' }}>#</th>
+                            <th style={{ padding: '0.85rem 0.6rem', color: '#ffffff' }}>Produk / Jasa</th>
+                            <th style={{ padding: '0.85rem 0.6rem', textAlign: 'center', color: '#ffffff' }}>Qty</th>
+                            <th style={{ padding: '0.85rem 0.6rem', textAlign: 'right', color: '#ffffff' }}>Omzet</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -608,13 +608,13 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                 const slow5Preview = slowMovingList.slice(0, 5);
                 return (
                   <>
-                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
                       <table style={{ width: '100%', minWidth: '340px', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                         <thead>
-                          <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textAlign: 'left', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                            <th style={{ padding: '0.75rem 0.5rem' }}>Produk / Jasa</th>
-                            <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Qty Terjual</th>
-                            <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Status Perputaran</th>
+                          <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textAlign: 'left', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                            <th style={{ padding: '0.85rem 0.6rem', color: '#ffffff' }}>Produk / Jasa</th>
+                            <th style={{ padding: '0.85rem 0.6rem', textAlign: 'center', color: '#ffffff' }}>Qty Terjual</th>
+                            <th style={{ padding: '0.85rem 0.6rem', textAlign: 'right', color: '#ffffff' }}>Status Perputaran</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -1241,14 +1241,14 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                     Tidak ada produk terlaris yang sesuai pencarian/filter.
                   </div>
                 ) : (
-                  <div style={{ borderRadius: '16px', border: '1px solid #e2e8f0', overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: '#ffffff' }}>
+                  <div style={{ borderRadius: '16px', border: '1px solid #cbd5e1', overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: '#ffffff', overflow: 'hidden', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
                     <table style={{ width: '100%', minWidth: '440px', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                       <thead>
-                        <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          <th style={{ padding: '0.75rem 0.6rem 0.75rem 1rem', width: '60px' }}>Rank</th>
-                          <th style={{ padding: '0.75rem 0.75rem' }}>Nama Produk / Jasa</th>
-                          <th style={{ padding: '0.75rem 0.75rem', textAlign: 'center', width: '110px' }}>Terjual</th>
-                          <th style={{ padding: '0.75rem 1rem 0.75rem 0.75rem', textAlign: 'right', width: '140px' }}>Total Omzet</th>
+                        <tr style={{ background: '#090D16', color: '#ffffff', textAlign: 'left', borderBottom: '2px solid #1e293b', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          <th style={{ padding: '0.85rem 0.6rem 0.85rem 1rem', width: '60px', color: '#ffffff' }}>Rank</th>
+                          <th style={{ padding: '0.85rem 0.75rem', color: '#ffffff' }}>Nama Produk / Jasa</th>
+                          <th style={{ padding: '0.85rem 0.75rem', textAlign: 'center', width: '110px', color: '#ffffff' }}>Terjual</th>
+                          <th style={{ padding: '0.85rem 1rem 0.85rem 0.75rem', textAlign: 'right', width: '140px', color: '#ffffff' }}>Total Omzet</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -1519,14 +1519,14 @@ export const OwnerDashboardPage: React.FC<OwnerDashboardPageProps> = ({ onTrigge
                     Tidak ada produk slow moving yang sesuai pencarian/filter.
                   </div>
                 ) : (
-                  <div style={{ borderRadius: '16px', border: '1px solid #e2e8f0', overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: '#ffffff' }}>
+                  <div style={{ borderRadius: '16px', border: '1px solid #cbd5e1', overflowX: 'auto', WebkitOverflowScrolling: 'touch', background: '#ffffff', overflow: 'hidden', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
                     <table style={{ width: '100%', minWidth: '450px', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                       <thead>
-                        <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                          <th style={{ padding: '0.75rem 0.6rem 0.75rem 1rem', width: '60px' }}>Rank</th>
-                          <th style={{ padding: '0.75rem 0.75rem' }}>Nama Produk / Jasa</th>
-                          <th style={{ padding: '0.75rem 0.75rem', textAlign: 'center', width: '110px' }}>Terjual</th>
-                          <th style={{ padding: '0.75rem 1rem 0.75rem 0.75rem', textAlign: 'right', width: '160px' }}>Status Perputaran</th>
+                        <tr style={{ background: '#090D16', color: '#ffffff', textAlign: 'left', borderBottom: '2px solid #1e293b', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          <th style={{ padding: '0.85rem 0.6rem 0.85rem 1rem', width: '60px', color: '#ffffff' }}>Rank</th>
+                          <th style={{ padding: '0.85rem 0.75rem', color: '#ffffff' }}>Nama Produk / Jasa</th>
+                          <th style={{ padding: '0.85rem 0.75rem', textAlign: 'center', width: '110px', color: '#ffffff' }}>Terjual</th>
+                          <th style={{ padding: '0.85rem 1rem 0.85rem 0.75rem', textAlign: 'right', width: '160px', color: '#ffffff' }}>Status Perputaran</th>
                         </tr>
                       </thead>
                       <tbody>

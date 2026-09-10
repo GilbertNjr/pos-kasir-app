@@ -1819,16 +1819,16 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
             <div style={{ background: '#ffffff', padding: '1.35rem', borderRadius: '20px', border: '1px solid #e2e8f0', boxShadow: '0 4px 20px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
               <div>
                 <h4 style={{ fontSize: '0.95rem', fontWeight: 900, color: '#0f172a', margin: '0 0 1rem 0' }}>Transaksi Terbesar</h4>
-                <div style={{ overflowX: 'auto' }}>
+                <div style={{ overflowX: 'auto', borderRadius: '12px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
                   <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.78rem' }}>
                     <thead>
-                      <tr style={{ color: '#64748b', borderBottom: '1px solid #f1f5f9', textAlign: 'left' }}>
-                        <th style={{ padding: '0.4rem 0.2rem' }}>No. Transaksi</th>
-                        <th style={{ padding: '0.4rem 0.2rem' }}>Waktu</th>
-                        <th style={{ padding: '0.4rem 0.2rem' }}>Kasir</th>
-                        <th style={{ padding: '0.4rem 0.2rem' }}>Pelanggan</th>
-                        <th style={{ padding: '0.4rem 0.2rem', textAlign: 'right' }}>Total</th>
-                        <th style={{ padding: '0.4rem 0.2rem', textAlign: 'center' }}>Metode</th>
+                      <tr style={{ background: '#090D16', color: '#ffffff', borderBottom: '2px solid #1e293b', textAlign: 'left', fontWeight: 800, textTransform: 'uppercase', fontSize: '0.7rem', letterSpacing: '0.04em' }}>
+                        <th style={{ padding: '0.6rem 0.4rem', color: '#ffffff' }}>No. Transaksi</th>
+                        <th style={{ padding: '0.6rem 0.4rem', color: '#ffffff' }}>Waktu</th>
+                        <th style={{ padding: '0.6rem 0.4rem', color: '#ffffff' }}>Kasir</th>
+                        <th style={{ padding: '0.6rem 0.4rem', color: '#ffffff' }}>Pelanggan</th>
+                        <th style={{ padding: '0.6rem 0.4rem', textAlign: 'right', color: '#ffffff' }}>Total</th>
+                        <th style={{ padding: '0.6rem 0.4rem', textAlign: 'center', color: '#ffffff' }}>Metode</th>
                       </tr>
                     </thead>
                     <tbody>

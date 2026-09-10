@@ -387,16 +387,16 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
           </span>
         </div>
 
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                <th style={{ padding: '0.75rem 1rem' }}>Nama & ID</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Peran</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Status Shift</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Mulai Shift</th>
-                <th style={{ padding: '0.75rem 1rem' }}>Durasi</th>
-                <th style={{ padding: '0.75rem 1rem', textAlign: 'right' }}>Performa (Sales)</th>
+              <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <th style={{ padding: '0.85rem 1rem', color: '#ffffff' }}>Nama & ID</th>
+                <th style={{ padding: '0.85rem 1rem', color: '#ffffff' }}>Peran</th>
+                <th style={{ padding: '0.85rem 1rem', color: '#ffffff' }}>Status Shift</th>
+                <th style={{ padding: '0.85rem 1rem', color: '#ffffff' }}>Mulai Shift</th>
+                <th style={{ padding: '0.85rem 1rem', color: '#ffffff' }}>Durasi</th>
+                <th style={{ padding: '0.85rem 1rem', textAlign: 'right', color: '#ffffff' }}>Performa (Sales)</th>
               </tr>
             </thead>
             <tbody>
