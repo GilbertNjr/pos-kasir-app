@@ -56,9 +56,25 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [viewMode, setViewMode] = useState<'GRID' | 'TABLE'>('TABLE');
+  const [viewMode, setViewMode] = useState<'GRID' | 'TABLE'>(() => {
+    try {
+      const saved = localStorage.getItem('pos_stock_view_mode');
+      if (saved === 'TABLE' || saved === 'GRID') return saved;
+    } catch {
+      // ignore
+    }
+    return 'GRID';
+  });
 
-  // Filter States
+  const handleSetViewMode = (mode: 'GRID' | 'TABLE') => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('pos_stock_view_mode', mode);
+    } catch {
+      // ignore
+    }
+  };
+
   const [selectedUnit, setSelectedUnit] = useState<'ALL' | 'FC_PRINT' | 'FNB'>('ALL');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'SAFE' | 'LOW' | 'OUT'>('ALL');
@@ -1250,7 +1266,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
               {/* View Mode Switcher (Table vs Grid) */}
               <div style={{ display: 'flex', gap: '0.25rem', background: '#f1f5f9', padding: '0.25rem', borderRadius: '10px' }}>
                 <button
-                  onClick={() => setViewMode('TABLE')}
+                  onClick={() => handleSetViewMode('TABLE')}
                   style={{
                     padding: '0.45rem 0.85rem',
                     borderRadius: '8px',
@@ -1269,7 +1285,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                   <List size={15} /> Tabel
                 </button>
                 <button
-                  onClick={() => setViewMode('GRID')}
+                  onClick={() => handleSetViewMode('GRID')}
                   style={{
                     padding: '0.45rem 0.85rem',
                     borderRadius: '8px',

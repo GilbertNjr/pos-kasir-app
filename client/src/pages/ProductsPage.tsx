@@ -44,7 +44,24 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   const [error, setError] = useState<string | null>(null);
 
   // View & Pagination
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>(() => typeof window !== 'undefined' && window.innerWidth < 768 ? 'grid' : 'table');
+  const [viewMode, setViewMode] = useState<'table' | 'grid'>(() => {
+    try {
+      const saved = localStorage.getItem('pos_products_view_mode');
+      if (saved === 'table' || saved === 'grid') return saved;
+    } catch {
+      // ignore
+    }
+    return 'grid'; // Default to grid globally
+  });
+
+  const handleSetViewMode = (mode: 'table' | 'grid') => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem('pos_products_view_mode', mode);
+    } catch {
+      // ignore
+    }
+  };
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
@@ -506,7 +523,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
               <div className="products-view-controls">
                 <div style={{ display: 'flex', background: '#f1f5f9', padding: '0.25rem', borderRadius: '12px' }}>
                   <button
-                    onClick={() => setViewMode('table')}
+                    onClick={() => handleSetViewMode('table')}
                     title="Tampilan Tabel"
                     style={{
                       padding: '0.45rem 0.75rem',
@@ -527,7 +544,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                     <List size={16} /> Table
                   </button>
                   <button
-                    onClick={() => setViewMode('grid')}
+                    onClick={() => handleSetViewMode('grid')}
                     title="Tampilan Grid"
                     style={{
                       padding: '0.45rem 0.75rem',
