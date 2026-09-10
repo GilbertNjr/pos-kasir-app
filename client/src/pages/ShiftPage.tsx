@@ -1736,67 +1736,26 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                   </p>
                 </div>
 
-                {/* SCROLL CONTAINER ONLY FOR CARDS */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: 'min(380px, 45vh)', overflowY: 'auto', paddingRight: '0.25rem' }}>
+                {/* SCROLL CONTAINER ONLY FOR CARDS (1 BARIS CARD GRID) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 'min(380px, 45vh)', overflowY: 'auto', paddingRight: '0.25rem' }}>
                   {editStaffEntries.map((staff, idx) => (
                     <div
                       key={staff.id}
                       style={{
                         background: '#f8fafc',
-                        padding: '0.75rem 0.85rem',
+                        padding: '0.6rem 0.75rem',
                         borderRadius: '12px',
                         border: '1px solid #cbd5e1',
                         display: 'flex',
-                        flexDirection: 'column',
-                        gap: '0.55rem',
+                        gap: '0.5rem',
+                        alignItems: 'flex-end',
                         boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
                       }}
                     >
-                      {/* Card Header: Pegawai Badge & Delete Action */}
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span
-                          style={{
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            color: '#334155',
-                            background: '#e2e8f0',
-                            padding: '0.15rem 0.5rem',
-                            borderRadius: '6px',
-                          }}
-                        >
-                          👤 Pegawai #{idx + 1}
-                        </span>
-                        {editStaffEntries.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => setEditStaffEntries((prev) => prev.filter((_, i) => i !== idx))}
-                            style={{
-                              padding: '0.2rem 0.5rem',
-                              background: '#fef2f2',
-                              color: '#dc2626',
-                              border: '1px solid #fecaca',
-                              borderRadius: '6px',
-                              cursor: 'pointer',
-                              fontSize: '0.7rem',
-                              fontWeight: 700,
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.25rem',
-                            }}
-                            title="Hapus Pegawai Ini dari Shift"
-                          >
-                            <Trash2 size={13} />
-                            <span>Hapus</span>
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Row 1: Nama Pegawai (Full Width) */}
-                      <div>
+                      {/* Kolom 1: Nama Pegawai */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#475569', marginBottom: '0.2rem' }}>
-                          Nama Pegawai:
+                          👤 Pegawai #{idx + 1}:
                         </label>
                         <input
                           type="text"
@@ -1809,72 +1768,102 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                           style={{
                             width: '100%',
                             boxSizing: 'border-box',
-                            padding: '0.5rem 0.7rem',
+                            padding: '0.5rem 0.65rem',
                             borderRadius: '8px',
                             border: '1px solid #cbd5e1',
                             fontSize: '0.875rem',
                             fontWeight: 700,
                             outline: 'none',
                             background: '#ffffff',
+                            height: '38px',
                           }}
                           required={idx === 0}
                         />
                       </div>
 
-                      {/* Row 2: Jam Datang + Now Button */}
-                      <div>
+                      {/* Kolom 2: Jam Datang / Masuk */}
+                      <div style={{ width: '115px', flexShrink: 0 }}>
                         <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#475569', marginBottom: '0.2rem' }}>
-                          ⏰ Jam Datang / Masuk:
+                          ⏰ Jam Masuk:
                         </label>
-                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                          <input
-                            type="time"
-                            value={staff.time}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              setEditStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, time: val } : s)));
-                            }}
-                            style={{
-                              flex: 1,
-                              boxSizing: 'border-box',
-                              padding: '0.5rem 0.5rem',
-                              borderRadius: '8px',
-                              border: '1px solid #cbd5e1',
-                              fontSize: '0.85rem',
-                              fontWeight: 700,
-                              outline: 'none',
-                              background: '#ffffff',
-                            }}
-                            required
-                          />
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setEditStaffEntries((prev) =>
-                                prev.map((s, i) => (i === idx ? { ...s, time: getCurrentTimeHHMM() } : s))
-                              )
-                            }
-                            style={{
-                              padding: '0.5rem 0.75rem',
-                              background: '#e0e7ff',
-                              color: '#4f46e5',
-                              border: '1px solid #c7d2fe',
-                              borderRadius: '8px',
-                              cursor: 'pointer',
-                              fontSize: '0.75rem',
-                              fontWeight: 800,
-                              whiteSpace: 'nowrap',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: '0.25rem',
-                              flexShrink: 0,
-                            }}
-                            title="Set ke Jam Sekarang"
-                          >
-                            🕒 Sekarang
-                          </button>
-                        </div>
+                        <input
+                          type="time"
+                          value={staff.time}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setEditStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, time: val } : s)));
+                          }}
+                          style={{
+                            width: '100%',
+                            boxSizing: 'border-box',
+                            padding: '0.5rem 0.4rem',
+                            borderRadius: '8px',
+                            border: '1px solid #cbd5e1',
+                            fontSize: '0.85rem',
+                            fontWeight: 700,
+                            outline: 'none',
+                            background: '#ffffff',
+                            height: '38px',
+                          }}
+                          required
+                        />
                       </div>
+
+                      {/* Kolom 3: Tombol Sekarang */}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setEditStaffEntries((prev) =>
+                            prev.map((s, i) => (i === idx ? { ...s, time: getCurrentTimeHHMM() } : s))
+                          )
+                        }
+                        style={{
+                          height: '38px',
+                          padding: '0.5rem 0.65rem',
+                          background: '#e0e7ff',
+                          color: '#4f46e5',
+                          border: '1px solid #c7d2fe',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.75rem',
+                          fontWeight: 800,
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          flexShrink: 0,
+                          boxSizing: 'border-box',
+                        }}
+                        title="Set ke Jam Sekarang"
+                      >
+                        ⏱️ Sekarang
+                      </button>
+
+                      {/* Kolom 4: Tombol Hapus */}
+                      {editStaffEntries.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => setEditStaffEntries((prev) => prev.filter((_, i) => i !== idx))}
+                          style={{
+                            height: '38px',
+                            width: '38px',
+                            padding: '0.5rem',
+                            background: '#fef2f2',
+                            color: '#dc2626',
+                            border: '1px solid #fecaca',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexShrink: 0,
+                            boxSizing: 'border-box',
+                          }}
+                          title="Hapus Pegawai Ini dari Shift"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
                     </div>
                   ))}
 
@@ -2092,64 +2081,25 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               Masukkan nama setiap kasir/pegawai yang berdinas beserta jam masuknya.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxHeight: 'min(380px, 45vh)', overflowY: 'auto', paddingRight: '0.25rem', marginBottom: '0.75rem' }}>
               {openStaffEntries.map((staff, idx) => (
                 <div
                   key={staff.id}
                   style={{
                     background: '#f8fafc',
-                    padding: '0.75rem 0.85rem',
+                    padding: '0.6rem 0.75rem',
                     borderRadius: '12px',
                     border: '1px solid #cbd5e1',
                     display: 'flex',
-                    flexDirection: 'column',
-                    gap: '0.55rem',
+                    gap: '0.5rem',
+                    alignItems: 'flex-end',
                     boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
                   }}
                 >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        fontSize: '0.75rem',
-                        fontWeight: 800,
-                        color: '#334155',
-                        background: '#e2e8f0',
-                        padding: '0.15rem 0.5rem',
-                        borderRadius: '6px',
-                      }}
-                    >
-                      👤 Pegawai #{idx + 1}
-                    </span>
-                    {openStaffEntries.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => setOpenStaffEntries((prev) => prev.filter((_, i) => i !== idx))}
-                        style={{
-                          padding: '0.2rem 0.5rem',
-                          background: '#fef2f2',
-                          color: '#dc2626',
-                          border: '1px solid #fecaca',
-                          borderRadius: '6px',
-                          cursor: 'pointer',
-                          fontSize: '0.7rem',
-                          fontWeight: 700,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                        }}
-                        title="Hapus Pegawai Ini"
-                      >
-                        <Trash2 size={13} />
-                        <span>Hapus</span>
-                      </button>
-                    )}
-                  </div>
-
-                  <div>
+                  {/* Kolom 1: Nama Pegawai */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#475569', marginBottom: '0.2rem' }}>
-                      Nama Pegawai:
+                      👤 Pegawai #{idx + 1}:
                     </label>
                     <input
                       type="text"
@@ -2162,71 +2112,102 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                       style={{
                         width: '100%',
                         boxSizing: 'border-box',
-                        padding: '0.5rem 0.7rem',
+                        padding: '0.5rem 0.65rem',
                         borderRadius: '8px',
                         border: '1px solid #cbd5e1',
                         fontSize: '0.875rem',
                         fontWeight: 700,
                         outline: 'none',
                         background: '#ffffff',
+                        height: '38px',
                       }}
                       required={idx === 0}
                     />
                   </div>
 
-                  <div>
+                  {/* Kolom 2: Jam Datang / Masuk */}
+                  <div style={{ width: '115px', flexShrink: 0 }}>
                     <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#475569', marginBottom: '0.2rem' }}>
-                      ⏰ Jam Datang / Masuk:
+                      ⏰ Jam Masuk:
                     </label>
-                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                      <input
-                        type="time"
-                        value={staff.time}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setOpenStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, time: val } : s)));
-                        }}
-                        style={{
-                          flex: 1,
-                          boxSizing: 'border-box',
-                          padding: '0.5rem 0.5rem',
-                          borderRadius: '8px',
-                          border: '1px solid #cbd5e1',
-                          fontSize: '0.85rem',
-                          fontWeight: 700,
-                          outline: 'none',
-                          background: '#ffffff',
-                        }}
-                        required
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setOpenStaffEntries((prev) =>
-                            prev.map((s, i) => (i === idx ? { ...s, time: getCurrentTimeHHMM() } : s))
-                          )
-                        }
-                        style={{
-                          padding: '0.5rem 0.75rem',
-                          background: '#e0e7ff',
-                          color: '#4f46e5',
-                          border: '1px solid #c7d2fe',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontSize: '0.75rem',
-                          fontWeight: 800,
-                          whiteSpace: 'nowrap',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.25rem',
-                          flexShrink: 0,
-                        }}
-                        title="Set ke Jam Sekarang"
-                      >
-                        🕒 Sekarang
-                      </button>
-                    </div>
+                    <input
+                      type="time"
+                      value={staff.time}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setOpenStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, time: val } : s)));
+                      }}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '0.5rem 0.4rem',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '0.85rem',
+                        fontWeight: 700,
+                        outline: 'none',
+                        background: '#ffffff',
+                        height: '38px',
+                      }}
+                      required
+                    />
                   </div>
+
+                  {/* Kolom 3: Tombol Sekarang */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setOpenStaffEntries((prev) =>
+                        prev.map((s, i) => (i === idx ? { ...s, time: getCurrentTimeHHMM() } : s))
+                      )
+                    }
+                    style={{
+                      height: '38px',
+                      padding: '0.5rem 0.65rem',
+                      background: '#e0e7ff',
+                      color: '#4f46e5',
+                      border: '1px solid #c7d2fe',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      fontSize: '0.75rem',
+                      fontWeight: 800,
+                      whiteSpace: 'nowrap',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.25rem',
+                      flexShrink: 0,
+                      boxSizing: 'border-box',
+                    }}
+                    title="Set ke Jam Sekarang"
+                  >
+                    ⏱️ Sekarang
+                  </button>
+
+                  {/* Kolom 4: Tombol Hapus */}
+                  {openStaffEntries.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setOpenStaffEntries((prev) => prev.filter((_, i) => i !== idx))}
+                      style={{
+                        height: '38px',
+                        width: '38px',
+                        padding: '0.5rem',
+                        background: '#fef2f2',
+                        color: '#dc2626',
+                        border: '1px solid #fecaca',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        boxSizing: 'border-box',
+                      }}
+                      title="Hapus Pegawai Ini"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
