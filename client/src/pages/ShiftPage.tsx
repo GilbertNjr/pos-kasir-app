@@ -939,9 +939,12 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 borderRadius: '20px',
                 maxWidth: '480px',
                 width: '100%',
-                padding: '1.75rem',
+                maxHeight: '92vh',
+                overflowY: 'auto',
+                padding: 'clamp(1.1rem, 3.5vw, 1.75rem)',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
                 position: 'relative',
+                boxSizing: 'border-box',
               }}
             >
               <button
@@ -966,22 +969,22 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 <X size={18} />
               </button>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', paddingRight: '2.5rem' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#fee2e2', color: '#dc2626', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Power size={24} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
                     🛑 Prosedur Penutupan Shift
                   </h3>
-                  <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
                     Hitung total uang fisik di laci kasir dan masukkan hasilnya.
                   </p>
                 </div>
               </div>
 
               {/* BANNER QUICK SWITCH KE MODE HITUNG STOK SISA */}
-              <div style={{ marginBottom: '1rem', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '12px', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem' }}>
+              <div style={{ marginBottom: '1rem', background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '12px', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
                 <div>
                   <strong style={{ fontSize: '0.8rem', color: '#0369a1', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     📦 Mau Pakai Mode Rekap Stok Sisa?
@@ -1338,7 +1341,7 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                         </div>
                       </div>
 
-                      <div style={{ border: '1px solid #cbd5e1', borderRadius: '14px', overflow: 'hidden' }}>
+                      <div style={{ border: '1px solid #cbd5e1', borderRadius: '14px', overflowX: 'auto' }}>
                         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                           <thead>
                             <tr style={{ background: '#f1f5f9', color: '#334155', textAlign: 'left' }}>
@@ -1592,7 +1595,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '1rem',
+              padding: '0.75rem',
+              boxSizing: 'border-box',
             }}
           >
             <div
@@ -1601,9 +1605,12 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 borderRadius: '20px',
                 maxWidth: '520px',
                 width: '100%',
-                padding: '1.75rem',
+                maxHeight: '92vh',
+                overflowY: 'auto',
+                padding: 'clamp(1.1rem, 3.5vw, 1.75rem)',
                 boxShadow: '0 20px 40px rgba(0,0,0,0.25)',
                 position: 'relative',
+                boxSizing: 'border-box',
               }}
             >
               <button
@@ -1628,34 +1635,92 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                 <X size={18} />
               </button>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.25rem', paddingRight: '2.5rem' }}>
                 <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: '#e0e7ff', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Edit3 size={24} />
                 </div>
                 <div>
-                  <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', margin: 0 }}>
                     ✏️ Edit Tim Shift & Jam Datang Pegawai
                   </h3>
-                  <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.15rem 0 0 0' }}>
+                  <p style={{ fontSize: '0.8rem', color: '#64748b', margin: '0.2rem 0 0 0', lineHeight: 1.4 }}>
                     Tambah pegawai susulan/telat dan atur jam masuk masing-masing pegawai.
                   </p>
                 </div>
               </div>
 
               <form onSubmit={handleUpdateShiftMetaSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: '320px', overflowY: 'auto', paddingRight: '0.25rem' }}>
-                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>
+                {/* Title & Description OUTSIDE scroll container so it never gets clipped or overlaps */}
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.25rem' }}>
                     👥 Daftar Pegawai Bertugas & Jam Masuk Individu:
                   </label>
-                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '-0.35rem 0 0.25rem 0' }}>
+                  <p style={{ fontSize: '0.78rem', color: '#64748b', margin: 0, lineHeight: 1.4 }}>
                     Atur jam kedatangan untuk setiap pegawai (pegawai yang menyusul/terlambat dapat disesuaikan jam masuknya).
                   </p>
+                </div>
 
+                {/* SCROLL CONTAINER ONLY FOR CARDS */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', maxHeight: 'min(380px, 45vh)', overflowY: 'auto', paddingRight: '0.25rem' }}>
                   {editStaffEntries.map((staff, idx) => (
-                    <div key={staff.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', background: '#f8fafc', padding: '0.6rem 0.75rem', borderRadius: '12px', border: '1px solid #cbd5e1' }}>
-                      <div style={{ flex: 1 }}>
+                    <div
+                      key={staff.id}
+                      style={{
+                        background: '#f8fafc',
+                        padding: '0.75rem 0.85rem',
+                        borderRadius: '12px',
+                        border: '1px solid #cbd5e1',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.55rem',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                      }}
+                    >
+                      {/* Card Header: Pegawai Badge & Delete Action */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            fontSize: '0.75rem',
+                            fontWeight: 800,
+                            color: '#334155',
+                            background: '#e2e8f0',
+                            padding: '0.15rem 0.5rem',
+                            borderRadius: '6px',
+                          }}
+                        >
+                          👤 Pegawai #{idx + 1}
+                        </span>
+                        {editStaffEntries.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => setEditStaffEntries((prev) => prev.filter((_, i) => i !== idx))}
+                            style={{
+                              padding: '0.2rem 0.5rem',
+                              background: '#fef2f2',
+                              color: '#dc2626',
+                              border: '1px solid #fecaca',
+                              borderRadius: '6px',
+                              cursor: 'pointer',
+                              fontSize: '0.7rem',
+                              fontWeight: 700,
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                            }}
+                            title="Hapus Pegawai Ini dari Shift"
+                          >
+                            <Trash2 size={13} />
+                            <span>Hapus</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Row 1: Nama Pegawai (Full Width) */}
+                      <div>
                         <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#475569', marginBottom: '0.2rem' }}>
-                          Nama Pegawai #{idx + 1}:
+                          Nama Pegawai:
                         </label>
                         <input
                           type="text"
@@ -1664,59 +1729,76 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                             const val = e.target.value;
                             setEditStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, name: val } : s)));
                           }}
-                          placeholder="Contoh: Budi / Dika"
-                          style={{ width: '100%', padding: '0.5rem 0.7rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontWeight: 700, outline: 'none' }}
+                          placeholder="Contoh: Gilbert / Cornelius"
+                          style={{
+                            width: '100%',
+                            boxSizing: 'border-box',
+                            padding: '0.5rem 0.7rem',
+                            borderRadius: '8px',
+                            border: '1px solid #cbd5e1',
+                            fontSize: '0.875rem',
+                            fontWeight: 700,
+                            outline: 'none',
+                            background: '#ffffff',
+                          }}
                           required={idx === 0}
                         />
                       </div>
-                      <div style={{ width: '125px', flexShrink: 0 }}>
+
+                      {/* Row 2: Jam Datang + Now Button */}
+                      <div>
                         <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#475569', marginBottom: '0.2rem' }}>
-                          ⏰ Jam Datang:
+                          ⏰ Jam Datang / Masuk:
                         </label>
-                        <input
-                          type="time"
-                          value={staff.time}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            setEditStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, time: val } : s)));
-                          }}
-                          style={{ width: '100%', padding: '0.5rem 0.4rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700, outline: 'none' }}
-                          required
-                        />
+                        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                          <input
+                            type="time"
+                            value={staff.time}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              setEditStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, time: val } : s)));
+                            }}
+                            style={{
+                              flex: 1,
+                              boxSizing: 'border-box',
+                              padding: '0.5rem 0.5rem',
+                              borderRadius: '8px',
+                              border: '1px solid #cbd5e1',
+                              fontSize: '0.85rem',
+                              fontWeight: 700,
+                              outline: 'none',
+                              background: '#ffffff',
+                            }}
+                            required
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setEditStaffEntries((prev) =>
+                                prev.map((s, i) => (i === idx ? { ...s, time: getCurrentTimeHHMM() } : s))
+                              )
+                            }
+                            style={{
+                              padding: '0.5rem 0.75rem',
+                              background: '#e0e7ff',
+                              color: '#4f46e5',
+                              border: '1px solid #c7d2fe',
+                              borderRadius: '8px',
+                              cursor: 'pointer',
+                              fontSize: '0.75rem',
+                              fontWeight: 800,
+                              whiteSpace: 'nowrap',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.25rem',
+                              flexShrink: 0,
+                            }}
+                            title="Set ke Jam Sekarang"
+                          >
+                            🕒 Sekarang
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setEditStaffEntries((prev) =>
-                            prev.map((s, i) => (i === idx ? { ...s, time: getCurrentTimeHHMM() } : s))
-                          )
-                        }
-                        style={{
-                          marginTop: '1.1rem',
-                          padding: '0.5rem 0.6rem',
-                          background: '#e0e7ff',
-                          color: '#4f46e5',
-                          border: '1px solid #c7d2fe',
-                          borderRadius: '8px',
-                          cursor: 'pointer',
-                          fontSize: '0.725rem',
-                          fontWeight: 800,
-                          whiteSpace: 'nowrap',
-                        }}
-                        title="Set ke Jam Sekarang"
-                      >
-                        🕒 Now
-                      </button>
-                      {editStaffEntries.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => setEditStaffEntries((prev) => prev.filter((_, i) => i !== idx))}
-                          style={{ marginTop: '1.1rem', padding: '0.5rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '8px', cursor: 'pointer' }}
-                          title="Hapus Pegawai Ini dari Shift"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
                     </div>
                   ))}
 
@@ -1729,8 +1811,8 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                       ])
                     }
                     style={{
-                      alignSelf: 'flex-start',
-                      padding: '0.55rem 0.95rem',
+                      width: '100%',
+                      padding: '0.6rem 0.95rem',
                       borderRadius: '10px',
                       border: '1px dashed #4f46e5',
                       background: '#e0e7ff',
@@ -1740,20 +1822,22 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
+                      justifyContent: 'center',
                       gap: '0.4rem',
-                      marginTop: '0.35rem',
+                      marginTop: '0.25rem',
+                      boxSizing: 'border-box',
                     }}
                   >
                     <Plus size={16} />
-                    + Tambah Pegawai Susulan / Telat
+                    Tambah Pegawai Susulan / Telat
                   </button>
                 </div>
 
-                <div style={{ fontSize: '0.75rem', color: '#475569', background: '#f1f5f9', padding: '0.6rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1' }}>
+                <div style={{ fontSize: '0.75rem', color: '#475569', background: '#f1f5f9', padding: '0.6rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', lineHeight: 1.45 }}>
                   💡 <strong>Catatan:</strong> Pegawai yang menyusul atau terlambat akan dicatat jam masuknya masing-masing dan tersimpan secara otomatis di Laporan Shift (Cetak PDF & Export Excel).
                 </div>
 
-                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.25rem' }}>
                   <button
                     type="button"
                     onClick={() => setShowEditShiftModal(false)}
@@ -1925,14 +2009,72 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
 
           {/* 1. DAFTAR TIM PEGAWAI BERTUGAS & JAM MASUK INDIVIDU */}
           <div>
-            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, marginBottom: '0.5rem', color: '#0f172a' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 800, marginBottom: '0.25rem', color: '#0f172a' }}>
               👥 Tim Pegawai Bertugas & Jam Masuk Individu:
             </label>
+            <p style={{ fontSize: '0.78rem', color: '#64748b', margin: '0 0 0.65rem 0', lineHeight: 1.4 }}>
+              Masukkan nama setiap kasir/pegawai yang berdinas beserta jam masuknya.
+            </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', marginBottom: '0.75rem' }}>
               {openStaffEntries.map((staff, idx) => (
-                <div key={staff.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <div style={{ flex: 1 }}>
+                <div
+                  key={staff.id}
+                  style={{
+                    background: '#f8fafc',
+                    padding: '0.75rem 0.85rem',
+                    borderRadius: '12px',
+                    border: '1px solid #cbd5e1',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.55rem',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        fontSize: '0.75rem',
+                        fontWeight: 800,
+                        color: '#334155',
+                        background: '#e2e8f0',
+                        padding: '0.15rem 0.5rem',
+                        borderRadius: '6px',
+                      }}
+                    >
+                      👤 Pegawai #{idx + 1}
+                    </span>
+                    {openStaffEntries.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => setOpenStaffEntries((prev) => prev.filter((_, i) => i !== idx))}
+                        style={{
+                          padding: '0.2rem 0.5rem',
+                          background: '#fef2f2',
+                          color: '#dc2626',
+                          border: '1px solid #fecaca',
+                          borderRadius: '6px',
+                          cursor: 'pointer',
+                          fontSize: '0.7rem',
+                          fontWeight: 700,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                        }}
+                        title="Hapus Pegawai Ini"
+                      >
+                        <Trash2 size={13} />
+                        <span>Hapus</span>
+                      </button>
+                    )}
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#475569', marginBottom: '0.2rem' }}>
+                      Nama Pegawai:
+                    </label>
                     <input
                       type="text"
                       value={staff.name}
@@ -1940,33 +2082,75 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
                         const val = e.target.value;
                         setOpenStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, name: val } : s)));
                       }}
-                      placeholder={`Nama Pegawai ${idx + 1} (cth: Dela, Amanda)`}
-                      style={{ width: '100%', padding: '0.65rem 0.85rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.9rem', fontWeight: 700, outline: 'none' }}
+                      placeholder={`Contoh: Dela / Amanda`}
+                      style={{
+                        width: '100%',
+                        boxSizing: 'border-box',
+                        padding: '0.5rem 0.7rem',
+                        borderRadius: '8px',
+                        border: '1px solid #cbd5e1',
+                        fontSize: '0.875rem',
+                        fontWeight: 700,
+                        outline: 'none',
+                        background: '#ffffff',
+                      }}
                       required={idx === 0}
                     />
                   </div>
-                  <div style={{ width: '130px', flexShrink: 0 }}>
-                    <input
-                      type="time"
-                      value={staff.time}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setOpenStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, time: val } : s)));
-                      }}
-                      style={{ width: '100%', padding: '0.65rem 0.6rem', borderRadius: '10px', border: '1px solid #cbd5e1', fontSize: '0.85rem', fontWeight: 700 }}
-                      required
-                    />
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: 800, color: '#475569', marginBottom: '0.2rem' }}>
+                      ⏰ Jam Datang / Masuk:
+                    </label>
+                    <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                      <input
+                        type="time"
+                        value={staff.time}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setOpenStaffEntries((prev) => prev.map((s, i) => (i === idx ? { ...s, time: val } : s)));
+                        }}
+                        style={{
+                          flex: 1,
+                          boxSizing: 'border-box',
+                          padding: '0.5rem 0.5rem',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          fontSize: '0.85rem',
+                          fontWeight: 700,
+                          outline: 'none',
+                          background: '#ffffff',
+                        }}
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setOpenStaffEntries((prev) =>
+                            prev.map((s, i) => (i === idx ? { ...s, time: getCurrentTimeHHMM() } : s))
+                          )
+                        }
+                        style={{
+                          padding: '0.5rem 0.75rem',
+                          background: '#e0e7ff',
+                          color: '#4f46e5',
+                          border: '1px solid #c7d2fe',
+                          borderRadius: '8px',
+                          cursor: 'pointer',
+                          fontSize: '0.75rem',
+                          fontWeight: 800,
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.25rem',
+                          flexShrink: 0,
+                        }}
+                        title="Set ke Jam Sekarang"
+                      >
+                        🕒 Sekarang
+                      </button>
+                    </div>
                   </div>
-                  {openStaffEntries.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => setOpenStaffEntries((prev) => prev.filter((_, i) => i !== idx))}
-                      style={{ padding: '0.65rem', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '10px', cursor: 'pointer' }}
-                      title="Hapus Pegawai Ini"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  )}
                 </div>
               ))}
             </div>
@@ -1975,21 +2159,24 @@ export const ShiftPage: React.FC<ShiftPageProps> = ({ currentUser, onShiftStatus
               type="button"
               onClick={() => setOpenStaffEntries((prev) => [...prev, { id: `staff-${Date.now()}`, name: '', time: getCurrentTimeHHMM() }])}
               style={{
-                padding: '0.45rem 0.85rem',
+                width: '100%',
+                padding: '0.6rem 0.95rem',
                 borderRadius: '10px',
                 border: '1px dashed #4f46e5',
                 background: '#e0e7ff',
                 color: '#4f46e5',
                 fontWeight: 800,
-                fontSize: '0.8rem',
+                fontSize: '0.825rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: '0.4rem',
+                boxSizing: 'border-box',
               }}
             >
-              <Plus size={15} />
-              + Tambah Pegawai Bertugas
+              <Plus size={16} />
+              Tambah Pegawai Bertugas
             </button>
           </div>
 
