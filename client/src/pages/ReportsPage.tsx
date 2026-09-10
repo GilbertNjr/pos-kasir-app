@@ -1262,19 +1262,19 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                 Belum ada riwayat sesi shift yang dicatat di database.
               </div>
             ) : (
-              <div style={{ overflowX: 'auto' }}>
+              <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
-                    <tr style={{ borderBottom: '2px solid #e2e8f0', color: '#475569', textTransform: 'uppercase', fontSize: '0.72rem', textAlign: 'left' }}>
-                      <th style={{ padding: '0.75rem 0.5rem' }}>Sesi & Tanggal Shift</th>
-                      <th style={{ padding: '0.75rem 0.5rem' }}>Kasir Lead / PJ</th>
-                      <th style={{ padding: '0.75rem 0.5rem' }}>Tim Bertugas</th>
-                      <th style={{ padding: '0.75rem 0.5rem' }}>Jam Operasional</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Status</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Total Omzet</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Pengeluaran Kas</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Setoran Murni</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Aksi Struk Snapshot</th>
+                    <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 800, textAlign: 'left', letterSpacing: '0.05em' }}>
+                      <th style={{ padding: '0.9rem 0.75rem', color: '#ffffff' }}>Sesi & Tanggal Shift</th>
+                      <th style={{ padding: '0.9rem 0.75rem', color: '#ffffff' }}>Kasir Lead / PJ</th>
+                      <th style={{ padding: '0.9rem 0.75rem', color: '#ffffff' }}>Tim Bertugas</th>
+                      <th style={{ padding: '0.9rem 0.75rem', color: '#ffffff' }}>Jam Operasional</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'center', color: '#ffffff' }}>Status</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'right', color: '#ffffff' }}>Total Omzet</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'right', color: '#ffffff' }}>Pengeluaran Kas</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'right', color: '#ffffff' }}>Setoran Murni</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'center', color: '#ffffff' }}>Aksi Struk Snapshot</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1483,15 +1483,15 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
             </div>
 
             {/* 2. DESKTOP TABLE VIEW (>= 768px: Full Multi-Column Modern Table) */}
-            <div className="desktop-only-table" style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+            <div className="desktop-only-table" style={{ borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                 <thead>
-                  <tr style={{ background: 'linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%)', borderBottom: '2px solid #e2e8f0', textTransform: 'uppercase', fontSize: '0.75rem', color: '#475569', letterSpacing: '0.05em', fontWeight: 800 }}>
-                    <th style={{ padding: '0.9rem 1.25rem', textAlign: 'left' }}>Nama Produk</th>
-                    <th style={{ padding: '0.9rem 1.25rem', textAlign: 'center' }}>Unit Usaha</th>
-                    <th style={{ padding: '0.9rem 1.25rem', textAlign: 'center' }}>Stok Fisik</th>
-                    <th style={{ padding: '0.9rem 1.25rem', textAlign: 'center' }}>Status</th>
-                    <th style={{ padding: '0.9rem 1.25rem', textAlign: 'right' }}>Terakhir Diperbarui</th>
+                  <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', textTransform: 'uppercase', fontSize: '0.75rem', color: '#ffffff', letterSpacing: '0.06em', fontWeight: 800 }}>
+                    <th style={{ padding: '0.95rem 1.25rem', textAlign: 'left', color: '#ffffff' }}>Nama Produk</th>
+                    <th style={{ padding: '0.95rem 1.25rem', textAlign: 'center', color: '#ffffff' }}>Unit Usaha</th>
+                    <th style={{ padding: '0.95rem 1.25rem', textAlign: 'center', color: '#ffffff' }}>Stok Fisik</th>
+                    <th style={{ padding: '0.95rem 1.25rem', textAlign: 'center', color: '#ffffff' }}>Status</th>
+                    <th style={{ padding: '0.95rem 1.25rem', textAlign: 'right', color: '#ffffff' }}>Terakhir Diperbarui</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1650,18 +1650,18 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
                 )}
               </div>
 
-              <div style={{ overflowX: 'auto' }}>
+              <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #e2e8f0', color: '#64748b', textTransform: 'uppercase', fontSize: '0.75rem', textAlign: 'left' }}>
-                      <th style={{ padding: '0.75rem 0.5rem' }}>Kasir / Karyawan</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Jumlah Transaksi</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Total Omzet Kasir</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Cash / Tunai</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>QRIS Non-Tunai</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Transfer Bank</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'right' }}>Pengeluaran Dicatat</th>
-                      <th style={{ padding: '0.75rem 0.5rem', textAlign: 'center' }}>Aksi Hapus</th>
+                    <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 800, textAlign: 'left', letterSpacing: '0.05em' }}>
+                      <th style={{ padding: '0.9rem 0.75rem', color: '#ffffff' }}>Kasir / Karyawan</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'center', color: '#ffffff' }}>Jumlah Transaksi</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'right', color: '#ffffff' }}>Total Omzet Kasir</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'right', color: '#ffffff' }}>Cash / Tunai</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'right', color: '#ffffff' }}>QRIS Non-Tunai</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'right', color: '#ffffff' }}>Transfer Bank</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'right', color: '#ffffff' }}>Pengeluaran Dicatat</th>
+                      <th style={{ padding: '0.9rem 0.75rem', textAlign: 'center', color: '#ffffff' }}>Aksi Hapus</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1979,17 +1979,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
               </button>
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.825rem' }}>
                 <thead>
-                  <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ padding: '0.6rem 0.5rem' }}>No. Transaksi</th>
-                    <th style={{ padding: '0.6rem 0.5rem' }}>Waktu</th>
-                    <th style={{ padding: '0.6rem 0.5rem' }}>Kasir</th>
-                    <th style={{ padding: '0.6rem 0.5rem' }}>Pelanggan</th>
-                    <th style={{ padding: '0.6rem 0.5rem', textAlign: 'right' }}>Total</th>
-                    <th style={{ padding: '0.6rem 0.5rem', textAlign: 'center' }}>Metode</th>
-                    <th style={{ padding: '0.6rem 0.5rem', textAlign: 'center' }}>Aksi</th>
+                  <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 800, textAlign: 'left', letterSpacing: '0.05em' }}>
+                    <th style={{ padding: '0.85rem 0.65rem', color: '#ffffff' }}>No. Transaksi</th>
+                    <th style={{ padding: '0.85rem 0.65rem', color: '#ffffff' }}>Waktu</th>
+                    <th style={{ padding: '0.85rem 0.65rem', color: '#ffffff' }}>Kasir</th>
+                    <th style={{ padding: '0.85rem 0.65rem', color: '#ffffff' }}>Pelanggan</th>
+                    <th style={{ padding: '0.85rem 0.65rem', textAlign: 'right', color: '#ffffff' }}>Total</th>
+                    <th style={{ padding: '0.85rem 0.65rem', textAlign: 'center', color: '#ffffff' }}>Metode</th>
+                    <th style={{ padding: '0.85rem 0.65rem', textAlign: 'center', color: '#ffffff' }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2048,14 +2048,14 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ currentUser, storeName
               </button>
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
+            <div style={{ overflowX: 'auto', borderRadius: '16px', overflow: 'hidden', border: '1px solid #cbd5e1', boxShadow: '0 4px 16px rgba(15, 23, 42, 0.04)' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' }}>
                 <thead>
-                  <tr style={{ background: '#f8fafc', color: '#64748b', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ padding: '0.6rem', textAlign: 'center', width: '50px' }}>Rank</th>
-                    <th style={{ padding: '0.6rem' }}>Nama Produk / Jasa</th>
-                    <th style={{ padding: '0.6rem', textAlign: 'center' }}>Terjual (pcs)</th>
-                    <th style={{ padding: '0.6rem', textAlign: 'right' }}>Total Omzet Penjualan</th>
+                  <tr style={{ background: '#090D16', borderBottom: '2px solid #1e293b', color: '#ffffff', textTransform: 'uppercase', fontSize: '0.75rem', fontWeight: 800, textAlign: 'left', letterSpacing: '0.05em' }}>
+                    <th style={{ padding: '0.85rem 0.65rem', textAlign: 'center', width: '50px', color: '#ffffff' }}>Rank</th>
+                    <th style={{ padding: '0.85rem 0.65rem', color: '#ffffff' }}>Nama Produk / Jasa</th>
+                    <th style={{ padding: '0.85rem 0.65rem', textAlign: 'center', color: '#ffffff' }}>Terjual (pcs)</th>
+                    <th style={{ padding: '0.85rem 0.65rem', textAlign: 'right', color: '#ffffff' }}>Total Omzet Penjualan</th>
                   </tr>
                 </thead>
                 <tbody>
