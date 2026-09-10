@@ -7,6 +7,7 @@ class RealtimeService {
   private eventSource: EventSource | null = null;
   private listeners: Map<string, Set<RealtimeEventHandler>> = new Map();
   private connectionListeners: Set<ConnectionStatusHandler> = new Set();
+  private registeredNativeEvents: Set<string> = new Set();
   private connected: boolean = false;
   private reconnectTimer: any = null;
   private reconnectAttempts: number = 0;
@@ -44,6 +45,21 @@ class RealtimeService {
   }
 
   /**
+   * Dynamically register an event listener on the native browser EventSource instance.
+   */
+  private registerNativeEventListener(eventType: string): void {
+    if (!this.eventSource || this.registeredNativeEvents.has(eventType)) return;
+    try {
+      this.eventSource.addEventListener(eventType, (e: any) => {
+        this.handleIncomingEvent(eventType, e.data);
+      });
+      this.registeredNativeEvents.add(eventType);
+    } catch (err) {
+      console.error(`[RealtimeService] Failed to attach native listener for '${eventType}':`, err);
+    }
+  }
+
+  /**
    * Connect to Server-Sent Events stream (singleton connection).
    */
   public connect(): void {
@@ -60,6 +76,8 @@ class RealtimeService {
         this.eventSource.close();
         this.eventSource = null;
       }
+
+      this.registeredNativeEvents.clear();
 
       const sse = new EventSource('/api/events');
       this.eventSource = sse;
@@ -79,14 +97,24 @@ class RealtimeService {
         }
         sse.close();
         this.eventSource = null;
+        this.registeredNativeEvents.clear();
         this.scheduleReconnect();
       };
 
-      // Register standard known system events
-      const knownEvents = [
+      // Catch-all message handler for untyped events or standard data payloads
+      sse.onmessage = (e: MessageEvent) => {
+        this.handleIncomingEvent('message', e.data);
+      };
+
+      // Base known system events across all domains (Shift, POS, Stock, Products, Settings, Backup)
+      const baseKnownEvents = [
         'connected',
         'SHIFT_OPENED',
         'SHIFT_CLOSED',
+        'SHIFT_METADATA_UPDATED',
+        'CAPITAL_ADDED',
+        'EXPENSE_CREATED',
+        'EXPENSE_DELETED',
         'TRANSACTION_CREATED',
         'TRANSACTION_CANCELLED',
         'TRANSACTION_DELETED',
@@ -94,16 +122,22 @@ class RealtimeService {
         'STOCK_UPDATED',
         'PRODUCT_UPDATED',
         'SETTINGS_UPDATED',
+        'USER_CREATED',
         'USER_UPDATED',
         'BACKUP_CREATED',
         'BACKUP_DELETED',
         'BACKUP_RESTORED',
       ];
 
-      knownEvents.forEach((eventType) => {
-        sse.addEventListener(eventType, (e: any) => {
-          this.handleIncomingEvent(eventType, e.data);
-        });
+      baseKnownEvents.forEach((eventType) => {
+        this.registerNativeEventListener(eventType);
+      });
+
+      // Dynamically attach listeners for any active subscriptions already registered
+      this.listeners.forEach((_, eventType) => {
+        if (eventType !== '*' && eventType !== 'message') {
+          this.registerNativeEventListener(eventType);
+        }
       });
     } catch (err) {
       this.isConnecting = false;
@@ -131,6 +165,7 @@ class RealtimeService {
       this.eventSource.close();
       this.eventSource = null;
     }
+    this.registeredNativeEvents.clear();
     this.isConnecting = false;
     this.connect();
     this.dispatchEvent('SYSTEM_WAKEUP', { timestamp: new Date().toISOString() });
@@ -145,6 +180,7 @@ class RealtimeService {
       this.eventSource.close();
       this.eventSource = null;
     }
+    this.registeredNativeEvents.clear();
     this.connected = false;
     this.isConnecting = false;
     this.notifyConnectionListeners(false);
@@ -197,6 +233,11 @@ class RealtimeService {
 
     // Ensure connection is established
     this.connect();
+
+    // Dynamically attach native listener if SSE connection is already active
+    if (eventType !== '*' && eventType !== 'message') {
+      this.registerNativeEventListener(eventType);
+    }
 
     return () => {
       const set = this.listeners.get(eventType);

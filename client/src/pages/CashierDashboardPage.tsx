@@ -73,6 +73,11 @@ export const CashierDashboardPage: React.FC<CashierDashboardPageProps> = ({
     onShiftStatusChange?.();
   });
 
+  useRealtimeSubscription('SHIFT_METADATA_UPDATED', () => {
+    fetchCashierDashboardData(true);
+    onShiftStatusChange?.();
+  });
+
   useRealtimeSubscription('TRANSACTION_CREATED', () => {
     fetchCashierDashboardData(true);
   });

@@ -76,6 +76,9 @@ export const ShiftLeaderDashboardPage: React.FC<ShiftLeaderDashboardPageProps> =
   useRealtimeSubscription('SHIFT_CLOSED', () => {
     fetchLeaderDashboardData();
   });
+  useRealtimeSubscription('SHIFT_METADATA_UPDATED', () => {
+    fetchLeaderDashboardData();
+  });
   useRealtimeSubscription('TRANSACTION_CREATED', () => {
     fetchLeaderDashboardData();
   });

@@ -244,6 +244,19 @@ export const App: React.FC = () => {
       );
     });
 
+    const unsubShiftMeta = realtimeService.subscribe('SHIFT_METADATA_UPDATED', () => {
+      loadActiveShift();
+      addToast(
+        'info',
+        '👥 Tim Shift Diperbarui',
+        `Data tim shift & jam masuk diperbarui secara real-time.`
+      );
+    });
+
+    const unsubCapitalAdded = realtimeService.subscribe('CAPITAL_ADDED', () => {
+      loadActiveShift();
+    });
+
     const unsubShiftClosed = realtimeService.subscribe('SHIFT_CLOSED', () => {
       loadActiveShift();
       addToast(
@@ -261,6 +274,8 @@ export const App: React.FC = () => {
     return () => {
       unsubSettings();
       unsubShiftOpened();
+      unsubShiftMeta();
+      unsubCapitalAdded();
       unsubShiftClosed();
       unsubWakeup();
     };
