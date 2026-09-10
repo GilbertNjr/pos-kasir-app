@@ -26,6 +26,7 @@ import { formatRupiah } from '../utils/formatters';
 import { getProductCategoryBucket } from '../utils/categoryUtils';
 import { ActionLoadingModal } from './common/ActionLoadingModal';
 import { TransactionDetailModal } from './common/TransactionDetailModal';
+import { useRealtimeSubscription } from '../services/realtimeService';
 
 export interface HeldOrder {
   id: string;
@@ -149,24 +150,11 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     setShowHoldPromptModal(true);
   };
 
-  const confirmHoldCart = async () => {
+  const confirmHoldCart = () => {
     if (cart.length === 0 || holdProcessing) return;
 
     setHoldProcessing(true);
     try {
-      // Potong stok di database untuk produk yang mengelola stok saat ditahan
-      for (const item of cart) {
-        if (item.product.manage_stock) {
-          const currentStock = item.product.stock ?? 0;
-          const newStock = Math.max(0, currentStock - item.qty);
-          try {
-            await apiService.updateStock(item.product.product_id, newStock);
-          } catch (err) {
-            console.warn('Gagal memotong stok saat tahan order:', err);
-          }
-        }
-      }
-
       const newHold: HeldOrder = {
         id: `HOLD-${Date.now()}`,
         customerName: holdCustomerName.trim() || `Pelanggan ${heldOrders.length + 1}`,
@@ -179,7 +167,6 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       setCart([]);
       setHoldCustomerName('');
       setShowHoldPromptModal(false);
-      await loadProducts();
     } catch (err) {
       console.warn('Gagal menahan order:', err);
     } finally {
@@ -187,26 +174,13 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     }
   };
 
-  const handleRestoreHeldOrder = async (heldId: string) => {
+  const handleRestoreHeldOrder = (heldId: string) => {
     if (restoringHoldId) return;
     const target = heldOrders.find((h) => h.id === heldId);
     if (!target) return;
 
     setRestoringHoldId(heldId);
     try {
-      // Kembalikan stok sementara ke database agar saat transaksi diproses/checkout tidak terpotong double
-      for (const item of target.items) {
-        if (item.product.manage_stock) {
-          const currentStock = item.product.stock ?? 0;
-          const newStock = currentStock + item.qty;
-          try {
-            await apiService.updateStock(item.product.product_id, newStock);
-          } catch (err) {
-            console.warn('Gagal mengembalikan stok saat memuat ulang tahan order:', err);
-          }
-        }
-      }
-
       setCart(target.items);
       setPaymentMethod(target.paymentMethod);
       if (target.customerName && !target.customerName.startsWith('Pelanggan ')) {
@@ -214,7 +188,6 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       }
       setHeldOrders((prev) => prev.filter((h) => h.id !== heldId));
       setShowHoldModal(false);
-      await loadProducts();
     } catch (err) {
       console.warn('Gagal memuat ulang order tertahan:', err);
     } finally {
@@ -278,26 +251,11 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     }
   };
 
-  const handleDeleteHeldOrder = async (heldId: string) => {
+  const handleDeleteHeldOrder = (heldId: string) => {
     if (deletingHoldId) return;
-    const target = heldOrders.find((h) => h.id === heldId);
     setDeletingHoldId(heldId);
     try {
-      if (target) {
-        for (const item of target.items) {
-          if (item.product.manage_stock) {
-            const currentStock = item.product.stock ?? 0;
-            const newStock = currentStock + item.qty;
-            try {
-              await apiService.updateStock(item.product.product_id, newStock);
-            } catch (err) {
-              console.warn('Gagal mengembalikan stok saat menghapus tahan order:', err);
-            }
-          }
-        }
-      }
       setHeldOrders((prev) => prev.filter((h) => h.id !== heldId));
-      await loadProducts();
     } catch (err) {
       console.warn('Gagal menghapus order tertahan:', err);
     } finally {
@@ -466,25 +424,21 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
   useEffect(() => {
     loadProducts();
-
-    // SSE Realtime listener untuk update otomatis seketika di kasir
-    let sse: EventSource | null = null;
-    try {
-      sse = new EventSource('/api/events');
-      const handleSync = () => {
-        loadProducts().catch(() => {});
-      };
-      sse.addEventListener('STOCK_UPDATED', handleSync);
-      sse.addEventListener('PRODUCT_UPDATED', handleSync);
-      sse.addEventListener('TRANSACTION_CREATED', handleSync);
-    } catch {
-      // Fallback
-    }
-
-    return () => {
-      if (sse) sse.close();
-    };
   }, [selectedUnit]);
+
+  // Centralized Real-time synchronization for POS Register
+  useRealtimeSubscription('STOCK_UPDATED', () => {
+    loadProducts().catch(() => {});
+  });
+  useRealtimeSubscription('PRODUCT_UPDATED', () => {
+    loadProducts().catch(() => {});
+  });
+  useRealtimeSubscription('TRANSACTION_CREATED', () => {
+    loadProducts().catch(() => {});
+  });
+  useRealtimeSubscription('SYSTEM_WAKEUP', () => {
+    loadProducts().catch(() => {});
+  });
 
   const [stockAlert, setStockAlert] = useState<{
     isOpen: boolean;
@@ -541,20 +495,28 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     const existing = cart.find((item) => item.product.product_id === product.product_id);
     const currentInCart = existing ? existing.qty : 0;
 
-    // Batasi jika produk mengelola stok fisik - HANYA BOLEH MENJUAL STOK ETALASE
+    // Batasi jika produk mengelola stok fisik - HANYA BOLEH MENJUAL STOK ETALASE YANG TERSEDIA
     if (product.manage_stock) {
       const etalaseStock = product.stock_etalase ?? product.stock ?? 0;
       const gudangStock = product.stock_gudang ?? 0;
+      const inHeldQty = heldQtyMap.get(product.product_id) || 0;
+      const availableEtalase = Math.max(0, etalaseStock - inHeldQty);
 
-      if (etalaseStock <= 0) {
+      if (availableEtalase <= 0) {
         setStockAlert({
           isOpen: true,
           type: 'DANGER',
-          title: 'STOK ETALASE HABIS!',
+          title: inHeldQty > 0 ? 'SEMUA STOK ETALASE SEDANG TERTARIK DRAFT!' : 'STOK ETALASE HABIS!',
           productName: product.product_name,
           currentStock: 0,
           message:
-            gudangStock > 0
+            inHeldQty > 0
+              ? `Stok etalase (${etalaseStock} Pcs) saat ini semuanya sedang tertahan di antrean pesanan draft pelanggan lain (${inHeldQty} Pcs). ${
+                  gudangStock > 0
+                    ? `Di gudang cadangan masih ada ${gudangStock} Pcs. Silakan lakukan pemindahan stok dari gudang ke etalase.`
+                    : ''
+                }`
+              : gudangStock > 0
               ? `Stok di etalase toko saat ini 0 Pcs. Di gudang cadangan masih ada ${gudangStock} Pcs. Silakan lakukan pemindahan stok dari gudang ke etalase.`
               : `Produk "${product.product_name}" saat ini habis total (0 Pcs di Etalase dan 0 Pcs di Gudang).`,
           transferProduct: gudangStock > 0 ? product : undefined,
@@ -562,14 +524,16 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         return;
       }
 
-      if (currentInCart + 1 > etalaseStock) {
+      if (currentInCart + 1 > availableEtalase) {
         setStockAlert({
           isOpen: true,
           type: 'WARNING',
           title: 'STOK ETALASE TIDAK CUKUP!',
           productName: product.product_name,
-          currentStock: etalaseStock,
-          message: `Jumlah di keranjang kasir telah mencapai batas maksimal stok etalase yang tersedia (${etalaseStock} Pcs). Gudang memiliki cadangan ${gudangStock} Pcs.`,
+          currentStock: availableEtalase,
+          message: `Jumlah di keranjang kasir telah mencapai batas maksimal stok etalase yang tersedia (${availableEtalase} Pcs tersedia${
+            inHeldQty > 0 ? `, ${inHeldQty} Pcs tertahan di antrean draft` : ''
+          }). Gudang memiliki cadangan ${gudangStock} Pcs.`,
           transferProduct: gudangStock > 0 ? product : undefined,
         });
         return;
@@ -590,16 +554,21 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     if (delta > 0) {
       const item = cart.find((i) => i.product.product_id === productId);
       if (item && item.product.manage_stock) {
-        const maxStock = item.product.stock_etalase ?? item.product.stock ?? 0;
-        if (item.qty + delta > maxStock) {
+        const etalaseStock = item.product.stock_etalase ?? item.product.stock ?? 0;
+        const inHeldQty = heldQtyMap.get(productId) || 0;
+        const availableEtalase = Math.max(0, etalaseStock - inHeldQty);
+
+        if (item.qty + delta > availableEtalase) {
           const gudangStock = item.product.stock_gudang ?? 0;
           setStockAlert({
             isOpen: true,
             type: 'WARNING',
             title: 'BATAS MAKSIMAL STOK ETALASE!',
             productName: item.product.product_name,
-            currentStock: maxStock,
-            message: `Stok etalase hanya tersisa ${maxStock} Pcs (Gudang: ${gudangStock} Pcs).`,
+            currentStock: availableEtalase,
+            message: `Stok etalase yang tersedia hanya tersisa ${availableEtalase} Pcs${
+              inHeldQty > 0 ? ` (${inHeldQty} Pcs tertahan di antrean draft)` : ''
+            }. Gudang memiliki cadangan ${gudangStock} Pcs.`,
             transferProduct: gudangStock > 0 ? item.product : undefined,
           });
           return;
@@ -747,10 +716,21 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   const cartQtyMap = React.useMemo(() => {
     const map = new Map<string, number>();
     cart.forEach((item) => {
-      map.set(item.product.product_id, item.qty);
+      map.set(item.product.product_id, (map.get(item.product.product_id) || 0) + item.qty);
     });
     return map;
   }, [cart]);
+
+  // Map kuantitas produk di antrean draft tertahan (product_id -> qty)
+  const heldQtyMap = React.useMemo(() => {
+    const map = new Map<string, number>();
+    heldOrders.forEach((hold) => {
+      hold.items.forEach((item) => {
+        map.set(item.product.product_id, (map.get(item.product.product_id) || 0) + item.qty);
+      });
+    });
+    return map;
+  }, [heldOrders]);
 
   // Daftar Sub-Kategori Cepat (Es Krim, Gorengan, Snack, Minuman, DLL / Makanan Utama, dll.)
   const subCategoryFilters = React.useMemo(() => {
@@ -797,7 +777,9 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     const matchesSearch = p.product_name.toLowerCase().includes(searchQuery.toLowerCase());
     if (!matchesSearch) return false;
 
-    if (storePreferences.show_zero_stock === false && p.manage_stock && p.stock === 0) {
+    // Jika kasir sedang melakukan pencarian eksplisit di search bar, JANGAN sembunyikan produk meskipun stoknya 0!
+    const isSearching = searchQuery.trim().length > 0;
+    if (!isSearching && storePreferences.show_zero_stock === false && p.manage_stock && p.stock === 0) {
       return false;
     }
 
@@ -992,7 +974,8 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 const qtyInCart = cartQtyMap.get(p.product_id) || 0;
                 const etalaseStock = p.stock_etalase ?? p.stock ?? 0;
                 const gudangStock = p.stock_gudang ?? 0;
-                const effectiveStock = p.manage_stock ? Math.max(0, etalaseStock - qtyInCart) : 999999;
+                const qtyInHeld = heldQtyMap.get(p.product_id) || 0;
+                const effectiveStock = p.manage_stock ? Math.max(0, etalaseStock - qtyInCart - qtyInHeld) : 999999;
                 const isOutOfStock = p.manage_stock && effectiveStock === 0;
 
                 return (
@@ -1038,7 +1021,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                             color: effectiveStock <= 2 ? '#dc2626' : '#16a34a',
                             border: `1px solid ${effectiveStock <= 2 ? '#fecaca' : '#bbf7d0'}`,
                           }}
-                          title={`Stok Etalase: ${effectiveStock} pcs`}
+                          title={`Stok Etalase: ${etalaseStock} pcs (${effectiveStock} pcs siap jual)`}
                         >
                           🏪 E: {effectiveStock}
                         </span>
@@ -1075,6 +1058,22 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                             🛒 {qtyInCart} di keranjang
                           </span>
                         )}
+                        {qtyInHeld > 0 && (
+                          <span
+                            style={{
+                              fontSize: '0.6rem',
+                              fontWeight: 800,
+                              padding: '0.1rem 0.35rem',
+                              borderRadius: '4px',
+                              background: '#d97706',
+                              color: '#ffffff',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                            }}
+                            title={`${qtyInHeld} pcs sedang tertahan di antrean pesanan draft`}
+                          >
+                            ⏳ {qtyInHeld} di draft
+                          </span>
+                        )}
                       </div>
                     )}
                     {!p.manage_stock && qtyInCart > 0 && (
@@ -1093,6 +1092,25 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                         }}
                       >
                         🛒 {qtyInCart} di keranjang
+                      </span>
+                    )}
+                    {!p.manage_stock && qtyInHeld > 0 && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: qtyInCart > 0 ? '1.5rem' : '0.45rem',
+                          right: '0.45rem',
+                          fontSize: '0.6rem',
+                          fontWeight: 800,
+                          padding: '0.1rem 0.35rem',
+                          borderRadius: '4px',
+                          background: '#d97706',
+                          color: '#ffffff',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                        }}
+                        title={`${qtyInHeld} pcs sedang tertahan di antrean pesanan draft`}
+                      >
+                        ⏳ {qtyInHeld} di draft
                       </span>
                     )}
 

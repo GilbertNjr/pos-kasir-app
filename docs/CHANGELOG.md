@@ -2,6 +2,24 @@
 
 Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pengembangan Sistem POS Usaha Campuran (FC/Printing & FNB).
 
+## [1.8.8] - 11 September 2026
+
+### Fixed & Enhanced
+- **Penyempurnaan Alur Tahan Order (Held Orders), Proteksi Stok Gudang, & Indikator Draft Kasir (`PosRegister.tsx`)**:
+  - **Pencegahan Musnahnya Stok Gudang**: Menghapus seluruh mutasi stok database langsung pada fungsi `confirmHoldCart`, `handleRestoreHeldOrder`, dan `handleDeleteHeldOrder`. Tahan Order kini 100% murni bekerja sebagai antrean draft belanja lokal (*In-Memory & LocalStorage*) tanpa menyentuh stok fisik database. Stok fisik hanya berkurang saat transaksi selesai dibayar (*checkout*).
+  - **Indikator Visual Ganda (*Dual Badge* Keranjang vs Draft)**:
+    - Menambahkan `heldQtyMap` untuk melacak jumlah item yang sedang tertahan di pesanan draft.
+    - Menampilkan badge oranye **`⏳ X di draft`** pada kartu produk jika barang sedang diparkir di antrean tahan order, berdampingan dengan badge hijau **`🛒 Y di keranjang`** untuk keranjang aktif.
+    - Menghitung stok etalase siap jual (*effectiveStock*) dengan memperhitungkan reservasi draft, sehingga kasir tidak dapat menjual barang yang secara fisik sudah dipegang oleh pelanggan di draft lain.
+  - **Perbaikan Visibilitas Pencarian Produk Kosong**:
+    - Memperbarui filter katalog agar ketika kasir mengetik kata kunci pencarian (*search bar*), produk dengan stok etalase 0 **tetap ditampilkan** (tidak hilang gaib), sehingga kasir dapat melihat statusnya dan memanfaatkan tombol transfer dari gudang jika gudang masih memiliki cadangan.
+  - **Migrasi Real-Time Kasir Penuh**:
+    - Mengganti inisialisasi raw `EventSource` mandiri dengan hook resmi `useRealtimeSubscription` untuk `STOCK_UPDATED`, `PRODUCT_UPDATED`, `TRANSACTION_CREATED`, dan `SYSTEM_WAKEUP`. Perubahan stok dari admin/gudang kini langsung tersinkronisasi seketika di kasir tanpa perlu refresh manual.
+- **Bump Versi Aplikasi ke v1.8.8**:
+  - Memperbarui versi proyek di `client/package.json` dan `server/package.json` ke `1.8.8`.
+
+---
+
 ## [1.8.7] - 10 September 2026
 
 ### Added & Enhanced
