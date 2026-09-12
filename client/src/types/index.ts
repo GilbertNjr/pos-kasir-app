@@ -52,7 +52,12 @@ export interface Product {
   product_name: string;
   business_unit: BusinessUnit;
   selling_price: number;
+  cost_price?: number;
   manage_stock: boolean;
+  linked_product_id?: string | null;
+  linked_qty_multiplier?: number;
+  is_linked?: boolean;
+  linked_product_name?: string;
   stock?: number;
   stock_gudang?: number;
   stock_etalase?: number;
@@ -62,6 +67,13 @@ export interface Product {
 export interface Stock {
   stock_id: string;
   product_id: string;
+  product_name?: string;
+  business_unit?: string;
+  manage_stock?: boolean;
+  is_linked?: boolean;
+  linked_product_id?: string | null;
+  linked_product_name?: string;
+  linked_qty_multiplier?: number;
   current_stock: number;
   stock_gudang?: number;
   stock_etalase?: number;

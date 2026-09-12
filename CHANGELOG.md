@@ -2,6 +2,22 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v1.9.0] - 2026-09-12 - Fitur Dynamic Linked Stock (Stok Bersama / Shared Inventory Pool)
+
+### 🔗 Dynamic Linked Stock / Shared Inventory Pool (`ProductService.ts`, `StockService.ts`, `TransactionService.ts`)
+- **Stok Fisik Bersama Lintas Varian Menu:**
+  - Memungkinkan produk dengan nama dan harga jual berbeda (misal: *Indomie Goreng Biasa* Rp 3.500 vs. *Indomie Goreng Masak* Rp 7.000, atau *Kertas HVS* vs. *Print Lembaran*) untuk berbagi pool stok fisik yang sama tanpa duplikasi pencatatan stok.
+  - Penambahan kolom database `linked_product_id` dan `linked_qty_multiplier` pada tabel `products` (`008_add_linked_stock_to_products.sql`).
+  - Pencegahan referensi melingkar (*circular reference*), penautan berantai (*chaining*), dan proteksi penghapusan produk induk.
+  - Validasi kumulatif stok fisik pada keranjang belanja kasir (`TransactionService.ts` dan `PosRegister.tsx`) untuk mencegah *overselling*.
+
+### ⚡ Sinkronisasi Real-Time Multi-Device & Pure Text UI
+- **Server-Sent Events (SSE) Real-Time Sync:**
+  - Pemotongan stok pada produk terhubung otomatis menyiarkan event `STOCK_UPDATED` ke semua perangkat kasir dan dashboard owner yang sedang terbuka.
+- **Antarmuka Teks Murni (Pure Text UI):**
+  - Desain antarmuka tetap 100% teks murni yang ringan dan cepat tanpa gambar/thumbnail.
+  - Dilengkapi lencana informatif `[🔗 Bersama]` dan nama produk fisik induk pada daftar produk, halaman stok, dan POS register.
+
 ## [v1.7.2] - 2026-09-02 - Sinkronisasi Rekonsiliasi Kas Shift saat Pembatalan Transaksi
 
 ### 💵 Penyesuaian Omzet & Kas Teoritis Shift saat Pembatalan Transaksi (`TransactionService.ts`)

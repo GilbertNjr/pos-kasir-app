@@ -6,6 +6,10 @@ export interface StockWithProductDetails extends StockEntity {
   product_name: string;
   business_unit: string;
   manage_stock: boolean;
+  is_linked?: boolean;
+  linked_product_id?: string | null;
+  linked_product_name?: string;
+  linked_qty_multiplier?: number;
 }
 
 export class StockService {
@@ -21,6 +25,11 @@ export class StockService {
     const products = await this.productRepository.findAll();
     const stocks = await this.stockRepository.findAll();
 
+    const productMap = new Map<string, ProductEntity>();
+    for (const prod of products) {
+      productMap.set(prod.product_id, prod);
+    }
+
     const stockMap = new Map<string, StockEntity>();
     for (const stock of stocks) {
       stockMap.set(stock.product_id, stock);
@@ -30,6 +39,49 @@ export class StockService {
 
     for (const prod of products) {
       if (prod.manage_stock) {
+        if (prod.linked_product_id) {
+          // Produk terhubung: mencerminkan stok fisik produk induk
+          const parentProd = productMap.get(prod.linked_product_id);
+          let parentStock = stockMap.get(prod.linked_product_id);
+
+          if (!parentStock && parentProd) {
+            parentStock = await this.stockRepository.create({
+              stock_id: `stk-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              product_id: parentProd.product_id,
+              current_stock: 0,
+              stock_gudang: 0,
+              stock_etalase: 0,
+              last_updated: new Date().toISOString(),
+            });
+            stockMap.set(parentProd.product_id, parentStock);
+          }
+
+          const totalStock = parentStock ? Number(parentStock.current_stock) || 0 : 0;
+          const gudang = parentStock && parentStock.stock_gudang !== undefined && parentStock.stock_gudang !== null
+            ? Number(parentStock.stock_gudang)
+            : 0;
+          const etalase = parentStock && parentStock.stock_etalase !== undefined && parentStock.stock_etalase !== null
+            ? Number(parentStock.stock_etalase)
+            : Math.max(0, totalStock - gudang);
+
+          result.push({
+            stock_id: `stk-linked-${prod.product_id}`,
+            product_id: prod.product_id,
+            current_stock: totalStock,
+            stock_gudang: gudang,
+            stock_etalase: etalase,
+            last_updated: parentStock ? parentStock.last_updated : new Date().toISOString(),
+            product_name: prod.product_name,
+            business_unit: prod.business_unit,
+            manage_stock: true,
+            is_linked: true,
+            linked_product_id: prod.linked_product_id,
+            linked_product_name: parentProd?.product_name || 'Produk Induk',
+            linked_qty_multiplier: prod.linked_qty_multiplier || 1.0,
+          });
+          continue;
+        }
+
         let stock = stockMap.get(prod.product_id);
         if (!stock) {
           // Buat entri stok default 0 jika belum ada
@@ -41,6 +93,7 @@ export class StockService {
             stock_etalase: 0,
             last_updated: new Date().toISOString(),
           });
+          stockMap.set(prod.product_id, stock);
         }
 
         const totalStock = Number(stock.current_stock) || 0;
@@ -55,6 +108,7 @@ export class StockService {
           product_name: prod.product_name,
           business_unit: prod.business_unit,
           manage_stock: prod.manage_stock,
+          is_linked: false,
         });
       }
     }
@@ -67,6 +121,14 @@ export class StockService {
     if (!product || !product.manage_stock) {
       // Jasa atau item tanpa kelola stok tidak mengurangi stok
       return null;
+    }
+
+    // Jika produk terhubung ke produk induk, alihkan pemotongan ke produk induk
+    if (product.linked_product_id) {
+      const multiplier = product.linked_qty_multiplier && Number(product.linked_qty_multiplier) > 0
+        ? Number(product.linked_qty_multiplier)
+        : 1.0;
+      return this.deductStock(product.linked_product_id, qty * multiplier);
     }
 
     let stock = await this.stockRepository.findByProductId(product_id);
@@ -113,6 +175,14 @@ export class StockService {
       return null;
     }
 
+    // Jika produk terhubung ke produk induk, alihkan pengembalian stok ke produk induk
+    if (product.linked_product_id) {
+      const multiplier = product.linked_qty_multiplier && Number(product.linked_qty_multiplier) > 0
+        ? Number(product.linked_qty_multiplier)
+        : 1.0;
+      return this.restoreStock(product.linked_product_id, qty * multiplier);
+    }
+
     let stock = await this.stockRepository.findByProductId(product_id);
     if (!stock) return null;
 
@@ -138,6 +208,11 @@ export class StockService {
     const product = await this.productRepository.findById(product_id);
     if (!product || !product.manage_stock) {
       throw new Error('Produk ini tidak dikonfigurasi untuk mengelola stok fisik.');
+    }
+
+    // Jika produk terhubung, pemindahan stok berlaku untuk produk induk
+    if (product.linked_product_id) {
+      return this.transferStock(product.linked_product_id, qty);
     }
 
     const stock = await this.stockRepository.findByProductId(product_id);

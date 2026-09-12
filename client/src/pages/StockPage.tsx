@@ -38,6 +38,10 @@ interface StockItem {
   stock_etalase?: number;
   last_updated: string;
   manage_stock: boolean;
+  is_linked?: boolean;
+  linked_product_id?: string | null;
+  linked_product_name?: string;
+  linked_qty_multiplier?: number;
   category_name?: string;
   category_id?: string;
   selling_price?: number;
@@ -179,6 +183,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         .map((s) => {
           const prod = pMap.get(s.product_id)!;
           const catName = prod.category_id ? cMap.get(prod.category_id) : s.category_name;
+          const parentName = prod.linked_product_id ? pMap.get(prod.linked_product_id)?.product_name : undefined;
           return {
             ...s,
             product_name: prod.product_name || s.product_name,
@@ -186,6 +191,10 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             selling_price: prod.selling_price ?? s.selling_price ?? 0,
             category_id: prod.category_id,
             category_name: catName || s.category_name,
+            is_linked: s.is_linked ?? !!prod.linked_product_id,
+            linked_product_id: s.linked_product_id || prod.linked_product_id,
+            linked_product_name: s.linked_product_name || parentName,
+            linked_qty_multiplier: s.linked_qty_multiplier || prod.linked_qty_multiplier || 1.0,
           };
         });
 
@@ -285,6 +294,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                 .map((s) => {
                   const prod = pMap.get(s.product_id)!;
                   const catName = prod.category_id ? cMap.get(prod.category_id) : s.category_name;
+                  const parentName = prod.linked_product_id ? pMap.get(prod.linked_product_id)?.product_name : undefined;
                   return {
                     ...s,
                     product_name: prod.product_name || s.product_name,
@@ -292,6 +302,10 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                     selling_price: prod.selling_price ?? s.selling_price ?? 0,
                     category_id: prod.category_id,
                     category_name: catName || s.category_name,
+                    is_linked: s.is_linked ?? !!prod.linked_product_id,
+                    linked_product_id: s.linked_product_id || prod.linked_product_id,
+                    linked_product_name: s.linked_product_name || parentName,
+                    linked_qty_multiplier: s.linked_qty_multiplier || prod.linked_qty_multiplier || 1.0,
                   };
                 });
               setStocks(mergedStocks);
@@ -1345,7 +1359,19 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                         {/* Header: Product Name & Status Badge */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.5rem' }}>
                           <div>
-                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.925rem' }}>{item.product_name}</div>
+                            <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.925rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                              {item.product_name}
+                              {item.is_linked && (
+                                <span style={{ fontSize: '0.62rem', fontWeight: 800, padding: '0.1rem 0.3rem', borderRadius: '4px', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                                  🔗 Bersama
+                                </span>
+                              )}
+                            </div>
+                            {item.is_linked && (
+                              <div style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 600 }}>
+                                Mengikuti stok: {item.linked_product_name || 'Produk Induk'}
+                              </div>
+                            )}
                             <div style={{ fontSize: '0.725rem', color: '#64748b', marginTop: '0.1rem', fontWeight: 600 }}>
                               Kategori: <strong>{catName}</strong> • {item.business_unit === 'FC_PRINT' ? '📄 FC/Print' : '🍧 FNB'}
                             </div>
@@ -1450,7 +1476,19 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                                   <Package size={20} color="#64748b" />
                                 </div>
                                 <div>
-                                  <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem' }}>{item.product_name}</div>
+                                  <div style={{ fontWeight: 800, color: '#0f172a', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                                    {item.product_name}
+                                    {item.is_linked && (
+                                      <span style={{ fontSize: '0.62rem', fontWeight: 800, padding: '0.1rem 0.35rem', borderRadius: '4px', background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a' }}>
+                                        🔗 Bersama
+                                      </span>
+                                    )}
+                                  </div>
+                                  {item.is_linked && (
+                                    <div style={{ fontSize: '0.7rem', color: '#b45309', fontWeight: 600 }}>
+                                      Mengikuti stok: {item.linked_product_name || 'Produk Induk'}
+                                    </div>
+                                  )}
                                   <div style={{ fontSize: '0.725rem', color: '#64748b' }}>
                                     SKU: {item.product_id.toUpperCase()}
                                   </div>
@@ -2054,6 +2092,11 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             </div>
 
             <form onSubmit={handleSaveStockUpdate} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+              {editingStock.is_linked && (
+                <div style={{ padding: '0.75rem 0.9rem', borderRadius: '12px', background: '#fef3c7', border: '1px solid #fde68a', color: '#92400e', fontSize: '0.8rem', fontWeight: 700, lineHeight: 1.4 }}>
+                  ℹ️ <strong>Produk Terhubung (Stok Bersama):</strong> Barang ini menggunakan stok fisik produk induk <em>"{editingStock.linked_product_name || 'Produk Induk'}"</em>. Penyesuaian stok akan diterapkan langsung ke stok fisik produk induk tersebut.
+                </div>
+              )}
               {/* Card Ringkasan Total */}
               <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '14px', border: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>

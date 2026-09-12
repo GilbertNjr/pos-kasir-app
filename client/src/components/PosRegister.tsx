@@ -509,13 +509,13 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
   const addToCart = (product: Product) => {
     const existing = cart.find((item) => item.product.product_id === product.product_id);
-    const currentInCart = existing ? existing.qty : 0;
 
     // Batasi jika produk mengelola stok fisik - HANYA BOLEH MENJUAL STOK ETALASE YANG TERSEDIA
     if (product.manage_stock) {
+      const masterId = product.linked_product_id || product.product_id;
       const etalaseStock = product.stock_etalase ?? product.stock ?? 0;
       const gudangStock = product.stock_gudang ?? 0;
-      const inHeldQty = heldQtyMap.get(product.product_id) || 0;
+      const inHeldQty = (heldQtyMap.get(masterId) || 0) + (product.linked_product_id ? (heldQtyMap.get(product.product_id) || 0) : 0);
       const availableEtalase = Math.max(0, etalaseStock - inHeldQty);
 
       if (availableEtalase <= 0) {
@@ -527,27 +527,43 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
           currentStock: 0,
           message:
             inHeldQty > 0
-              ? `Stok etalase (${etalaseStock} Pcs) saat ini semuanya sedang tertahan di antrean pesanan draft pelanggan lain (${inHeldQty} Pcs). ${
+              ? `Stok fisik etalase (${etalaseStock} Pcs) saat ini semuanya sedang tertahan di antrean pesanan draft pelanggan lain (${inHeldQty} Pcs). ${
                   gudangStock > 0
                     ? `Di gudang cadangan masih ada ${gudangStock} Pcs. Silakan lakukan pemindahan stok dari gudang ke etalase.`
                     : ''
                 }`
               : gudangStock > 0
-              ? `Stok di etalase toko saat ini 0 Pcs. Di gudang cadangan masih ada ${gudangStock} Pcs. Silakan lakukan pemindahan stok dari gudang ke etalase.`
+              ? `Stok fisik di etalase toko saat ini 0 Pcs. Di gudang cadangan masih ada ${gudangStock} Pcs. Silakan lakukan pemindahan stok dari gudang ke etalase.`
               : `Produk "${product.product_name}" saat ini habis total (0 Pcs di Etalase dan 0 Pcs di Gudang).`,
           transferProduct: gudangStock > 0 ? product : undefined,
         });
         return;
       }
 
-      if (currentInCart + 1 > availableEtalase) {
+      // Hitung akumulasi permintaan fisik yang sudah ada di keranjang untuk master stock ini
+      const currentPhysicalInCart = cart.reduce((sum, item) => {
+        const itemMasterId = item.product.linked_product_id || item.product.product_id;
+        if (itemMasterId === masterId) {
+          const mult = item.product.linked_qty_multiplier && item.product.linked_qty_multiplier > 0
+            ? item.product.linked_qty_multiplier
+            : 1;
+          return sum + item.qty * mult;
+        }
+        return sum;
+      }, 0);
+
+      const itemMultiplier = product.linked_qty_multiplier && product.linked_qty_multiplier > 0
+        ? product.linked_qty_multiplier
+        : 1;
+
+      if (currentPhysicalInCart + itemMultiplier > availableEtalase) {
         setStockAlert({
           isOpen: true,
           type: 'WARNING',
           title: 'STOK ETALASE TIDAK CUKUP!',
           productName: product.product_name,
           currentStock: availableEtalase,
-          message: `Jumlah di keranjang kasir telah mencapai batas maksimal stok etalase yang tersedia (${availableEtalase} Pcs tersedia${
+          message: `Jumlah permintaan fisik di keranjang kasir (${currentPhysicalInCart + itemMultiplier} Pcs) melebihi stok etalase yang tersedia (${availableEtalase} Pcs tersedia${
             inHeldQty > 0 ? `, ${inHeldQty} Pcs tertahan di antrean draft` : ''
           }). Gudang memiliki cadangan ${gudangStock} Pcs.`,
           transferProduct: gudangStock > 0 ? product : undefined,
@@ -570,11 +586,27 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     if (delta > 0) {
       const item = cart.find((i) => i.product.product_id === productId);
       if (item && item.product.manage_stock) {
+        const masterId = item.product.linked_product_id || item.product.product_id;
         const etalaseStock = item.product.stock_etalase ?? item.product.stock ?? 0;
-        const inHeldQty = heldQtyMap.get(productId) || 0;
+        const inHeldQty = (heldQtyMap.get(masterId) || 0) + (item.product.linked_product_id ? (heldQtyMap.get(item.product.product_id) || 0) : 0);
         const availableEtalase = Math.max(0, etalaseStock - inHeldQty);
 
-        if (item.qty + delta > availableEtalase) {
+        const currentPhysicalInCart = cart.reduce((sum, cItem) => {
+          const cMasterId = cItem.product.linked_product_id || cItem.product.product_id;
+          if (cMasterId === masterId) {
+            const mult = cItem.product.linked_qty_multiplier && cItem.product.linked_qty_multiplier > 0
+              ? cItem.product.linked_qty_multiplier
+              : 1;
+            return sum + cItem.qty * mult;
+          }
+          return sum;
+        }, 0);
+
+        const itemMultiplier = item.product.linked_qty_multiplier && item.product.linked_qty_multiplier > 0
+          ? item.product.linked_qty_multiplier
+          : 1;
+
+        if (currentPhysicalInCart + (delta * itemMultiplier) > availableEtalase) {
           const gudangStock = item.product.stock_gudang ?? 0;
           setStockAlert({
             isOpen: true,
@@ -582,7 +614,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
             title: 'BATAS MAKSIMAL STOK ETALASE!',
             productName: item.product.product_name,
             currentStock: availableEtalase,
-            message: `Stok etalase yang tersedia hanya tersisa ${availableEtalase} Pcs${
+            message: `Stok fisik etalase yang tersedia hanya tersisa ${availableEtalase} Pcs${
               inHeldQty > 0 ? ` (${inHeldQty} Pcs tertahan di antrean draft)` : ''
             }. Gudang memiliki cadangan ${gudangStock} Pcs.`,
             transferProduct: gudangStock > 0 ? item.product : undefined,
@@ -990,8 +1022,22 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 const qtyInCart = cartQtyMap.get(p.product_id) || 0;
                 const etalaseStock = p.stock_etalase ?? p.stock ?? 0;
                 const gudangStock = p.stock_gudang ?? 0;
-                const qtyInHeld = heldQtyMap.get(p.product_id) || 0;
-                const effectiveStock = p.manage_stock ? Math.max(0, etalaseStock - qtyInCart - qtyInHeld) : 999999;
+                const masterId = p.linked_product_id || p.product_id;
+                const sharedCartPhysicalDemand = cart.reduce((sum, cItem) => {
+                  const cMaster = cItem.product.linked_product_id || cItem.product.product_id;
+                  if (cMaster === masterId) {
+                    const mult = cItem.product.linked_qty_multiplier && cItem.product.linked_qty_multiplier > 0
+                      ? cItem.product.linked_qty_multiplier
+                      : 1;
+                    return sum + cItem.qty * mult;
+                  }
+                  return sum;
+                }, 0);
+                const sharedQtyInHeld = (heldQtyMap.get(masterId) || 0) + (p.linked_product_id ? (heldQtyMap.get(p.product_id) || 0) : 0);
+                const multiplier = p.linked_qty_multiplier && p.linked_qty_multiplier > 0 ? p.linked_qty_multiplier : 1;
+                const effectiveStock = p.manage_stock
+                  ? Math.max(0, Math.floor((etalaseStock - sharedCartPhysicalDemand - sharedQtyInHeld) / multiplier))
+                  : 999999;
                 const isOutOfStock = p.manage_stock && effectiveStock === 0;
 
                 return (
@@ -1074,7 +1120,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                             🛒 {qtyInCart} di keranjang
                           </span>
                         )}
-                        {qtyInHeld > 0 && (
+                        {sharedQtyInHeld > 0 && (
                           <span
                             style={{
                               fontSize: '0.6rem',
@@ -1085,9 +1131,9 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                               color: '#ffffff',
                               boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
                             }}
-                            title={`${qtyInHeld} pcs sedang tertahan di antrean pesanan draft`}
+                            title={`${sharedQtyInHeld} pcs sedang tertahan di antrean pesanan draft`}
                           >
-                            ⏳ {qtyInHeld} di draft
+                            ⏳ {sharedQtyInHeld} di draft
                           </span>
                         )}
                       </div>
@@ -1110,7 +1156,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                         🛒 {qtyInCart} di keranjang
                       </span>
                     )}
-                    {!p.manage_stock && qtyInHeld > 0 && (
+                    {!p.manage_stock && sharedQtyInHeld > 0 && (
                       <span
                         style={{
                           position: 'absolute',
@@ -1124,19 +1170,38 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                           color: '#ffffff',
                           boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
                         }}
-                        title={`${qtyInHeld} pcs sedang tertahan di antrean pesanan draft`}
+                        title={`${sharedQtyInHeld} pcs sedang tertahan di antrean pesanan draft`}
                       >
-                        ⏳ {qtyInHeld} di draft
+                        ⏳ {sharedQtyInHeld} di draft
                       </span>
                     )}
 
                     <div style={{ marginBottom: '0.5rem', paddingTop: '0.2rem' }}>
-                      <span
-                        className={p.business_unit === 'FC_PRINT' ? 'badge badge-fc' : 'badge badge-fnb'}
-                        style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px', display: 'inline-block', marginBottom: '0.35rem' }}
-                      >
-                        {p.business_unit === 'FC_PRINT' ? 'FC/Print' : 'F&B'}
-                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+                        <span
+                          className={p.business_unit === 'FC_PRINT' ? 'badge badge-fc' : 'badge badge-fnb'}
+                          style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem', borderRadius: '4px' }}
+                        >
+                          {p.business_unit === 'FC_PRINT' ? 'FC/Print' : 'F&B'}
+                        </span>
+                        {p.linked_product_id && (
+                          <span
+                            style={{
+                              fontSize: '0.62rem',
+                              fontWeight: 700,
+                              padding: '0.1rem 0.35rem',
+                              borderRadius: '4px',
+                              background: '#fef3c7',
+                              color: '#92400e',
+                              border: '1px solid #fde68a',
+                              display: 'inline-block',
+                            }}
+                            title="Stok fisik bersama (menautkan ke produk induk)"
+                          >
+                            🔗 Bersama
+                          </span>
+                        )}
+                      </div>
                       <h4 style={{ fontSize: '0.875rem', fontWeight: 700, color: '#0f172a', margin: 0, lineHeight: 1.3, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', wordBreak: 'break-word' }} title={p.product_name}>
                         {p.product_name}
                       </h4>

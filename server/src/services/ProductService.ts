@@ -28,13 +28,30 @@ export class ProductService {
       throw new Error('Harga jual produk harus lebih besar dari Rp 0.');
     }
 
+    let linkedProductId: string | null = null;
+    let linkedMultiplier = 1.0;
+
+    if (data.linked_product_id) {
+      const parent = await this.productRepository.findById(data.linked_product_id);
+      if (!parent) {
+        throw new Error('Produk induk sumber stok tidak ditemukan.');
+      }
+      if (parent.linked_product_id) {
+        throw new Error('Produk sumber stok tidak boleh berupa produk yang sudah menautkan stoknya ke produk lain.');
+      }
+      linkedProductId = data.linked_product_id;
+      linkedMultiplier = Number(data.linked_qty_multiplier) > 0 ? Number(data.linked_qty_multiplier) : 1.0;
+    }
+
     const newProduct: ProductEntity = {
       product_id: `prd-${Date.now()}`,
       category_id: data.category_id,
       product_name: data.product_name,
       business_unit: data.business_unit,
       selling_price: data.selling_price,
-      manage_stock: data.manage_stock ?? true,
+      manage_stock: linkedProductId ? true : (data.manage_stock ?? true),
+      linked_product_id: linkedProductId,
+      linked_qty_multiplier: linkedMultiplier,
       is_active: data.is_active ?? true,
     };
 
@@ -51,6 +68,21 @@ export class ProductService {
       throw new Error('Harga jual produk harus lebih besar dari Rp 0.');
     }
 
+    if (data.linked_product_id !== undefined) {
+      if (data.linked_product_id === product_id) {
+        throw new Error('Produk tidak boleh menautkan stok ke dirinya sendiri.');
+      }
+      if (data.linked_product_id) {
+        const parent = await this.productRepository.findById(data.linked_product_id);
+        if (!parent) {
+          throw new Error('Produk induk sumber stok tidak ditemukan.');
+        }
+        if (parent.linked_product_id) {
+          throw new Error('Produk sumber stok tidak boleh berupa produk yang sudah menautkan stoknya ke produk lain.');
+        }
+      }
+    }
+
     const updated = await this.productRepository.update(product_id, data);
     return updated!;
   }
@@ -59,6 +91,16 @@ export class ProductService {
     const existing = await this.productRepository.findById(product_id);
     if (!existing) {
       throw new Error('Produk tidak ditemukan.');
+    }
+
+    // Cek apakah ada produk lain yang menautkan stoknya ke produk ini
+    const allProducts = await this.productRepository.findAll();
+    const dependents = allProducts.filter((p) => p.linked_product_id === product_id && p.is_active);
+    if (dependents.length > 0) {
+      const depNames = dependents.map((p) => `"${p.product_name}"`).join(', ');
+      throw new Error(
+        `Produk "${existing.product_name}" tidak dapat dihapus karena menjadi sumber stok bagi: ${depNames}. Silakan ubah atau hapus produk turunan tersebut terlebih dahulu.`
+      );
     }
 
     // 1. Cek apakah produk memiliki riwayat transaksi di masa lalu

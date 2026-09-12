@@ -84,6 +84,8 @@ export class TransactionService {
     const itemEntities: TransactionItemEntity[] = [];
 
     // 2. Iterasi & Validasi Setiap Item Keranjang Belanja dengan Presisi Currency Math.round
+    const accumulatedPhysicalDemand = new Map<string, number>();
+
     for (const itemDto of dto.items) {
       const product = await this.productRepository.findById(itemDto.product_id);
       if (!product || !product.is_active) {
@@ -96,23 +98,32 @@ export class TransactionService {
 
       // Validasi ketersediaan stok fisik jika produk mengelola stok - KASIR HANYA BOLEH MENJUAL DARI ETALASE!
       if (product.manage_stock && this.stockService) {
+        const effectiveMasterId = product.linked_product_id || product.product_id;
+        const multiplier = product.linked_qty_multiplier && Number(product.linked_qty_multiplier) > 0
+          ? Number(product.linked_qty_multiplier)
+          : 1.0;
+        const physicalNeeded = itemDto.qty * multiplier;
+        const totalNeededSoFar = (accumulatedPhysicalDemand.get(effectiveMasterId) || 0) + physicalNeeded;
+        accumulatedPhysicalDemand.set(effectiveMasterId, totalNeededSoFar);
+
         const stocks = await this.stockService.getAllStocksWithProducts();
-        const currentStockItem = stocks.find((s) => s.product_id === product.product_id);
-        const etalaseStock = currentStockItem?.stock_etalase !== undefined && currentStockItem?.stock_etalase !== null
-          ? Number(currentStockItem.stock_etalase)
-          : (currentStockItem ? Number(currentStockItem.current_stock) : 0);
-        const gudangStock = currentStockItem?.stock_gudang !== undefined && currentStockItem?.stock_gudang !== null
-          ? Number(currentStockItem.stock_gudang)
+        const masterStockItem = stocks.find((s) => s.product_id === effectiveMasterId);
+        const etalaseStock = masterStockItem?.stock_etalase !== undefined && masterStockItem?.stock_etalase !== null
+          ? Number(masterStockItem.stock_etalase)
+          : (masterStockItem ? Number(masterStockItem.current_stock) : 0);
+        const gudangStock = masterStockItem?.stock_gudang !== undefined && masterStockItem?.stock_gudang !== null
+          ? Number(masterStockItem.stock_gudang)
           : 0;
 
-        if (etalaseStock < itemDto.qty) {
+        if (etalaseStock < totalNeededSoFar) {
+          const masterName = masterStockItem?.product_name || product.product_name;
           if (gudangStock > 0) {
             throw new Error(
-              `Stok di etalase toko tidak mencukupi untuk "${product.product_name}". Tersedia di etalase: ${etalaseStock} Pcs (di gudang masih ada cadangan: ${gudangStock} Pcs). Silakan lakukan pemindahan stok dari gudang ke etalase terlebih dahulu.`
+              `Stok di etalase toko tidak mencukupi untuk "${product.product_name}" (sumber stok: "${masterName}"). Tersedia di etalase: ${etalaseStock} Pcs (di gudang ada cadangan: ${gudangStock} Pcs), total diminta di transaksi: ${totalNeededSoFar} Pcs. Silakan lakukan pemindahan stok dari gudang ke etalase.`
             );
           } else {
             throw new Error(
-              `Stok "${product.product_name}" habis atau tidak mencukupi. Tersedia di etalase: ${etalaseStock} Pcs, transaksi meminta: ${itemDto.qty} Pcs.`
+              `Stok fisik "${masterName}" habis atau tidak mencukupi. Tersedia di etalase: ${etalaseStock} Pcs, total transaksi meminta: ${totalNeededSoFar} Pcs.`
             );
           }
         }

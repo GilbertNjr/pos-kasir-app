@@ -13,6 +13,8 @@ export interface ProductEntity {
   selling_price: number;
   cost_price?: number;
   manage_stock: boolean;
+  linked_product_id?: string | null;
+  linked_qty_multiplier?: number;
   image_url?: string;
   is_active: boolean;
 }
@@ -24,7 +26,9 @@ export class ProductRepository implements IRepository<ProductEntity> {
     try {
       const res = await pool.query(
         `SELECT product_id, category_id, unit_id, product_name, sku, type, business_unit, 
-                selling_price::float, cost_price::float, manage_stock, image_url, is_active 
+                selling_price::float, cost_price::float, manage_stock, linked_product_id, 
+                COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, 
+                image_url, is_active 
          FROM products 
          WHERE is_active = true
          ORDER BY product_name ASC`
@@ -44,7 +48,9 @@ export class ProductRepository implements IRepository<ProductEntity> {
     try {
       const res = await pool.query(
         `SELECT product_id, category_id, unit_id, product_name, sku, type, business_unit, 
-                selling_price::float, cost_price::float, manage_stock, image_url, is_active 
+                selling_price::float, cost_price::float, manage_stock, linked_product_id, 
+                COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, 
+                image_url, is_active 
          FROM products 
          ORDER BY product_name ASC`
       );
@@ -59,7 +65,9 @@ export class ProductRepository implements IRepository<ProductEntity> {
     try {
       const res = await pool.query(
         `SELECT product_id, category_id, unit_id, product_name, sku, type, business_unit, 
-                selling_price::float, cost_price::float, manage_stock, image_url, is_active 
+                selling_price::float, cost_price::float, manage_stock, linked_product_id, 
+                COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, 
+                image_url, is_active 
          FROM products 
          WHERE product_id = $1`,
         [product_id]
@@ -83,10 +91,11 @@ export class ProductRepository implements IRepository<ProductEntity> {
       const unitId = product.unit_id || 'unit-pcs';
       const res = await pool.query(
         `INSERT INTO products 
-         (product_id, category_id, unit_id, product_name, sku, type, business_unit, selling_price, cost_price, manage_stock, image_url, is_active)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+         (product_id, category_id, unit_id, product_name, sku, type, business_unit, selling_price, cost_price, manage_stock, linked_product_id, linked_qty_multiplier, image_url, is_active)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
          RETURNING product_id, category_id, unit_id, product_name, sku, type, business_unit, 
-                   selling_price::float, cost_price::float, manage_stock, image_url, is_active`,
+                   selling_price::float, cost_price::float, manage_stock, linked_product_id, 
+                   COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, image_url, is_active`,
         [
           product.product_id,
           product.category_id,
@@ -98,6 +107,8 @@ export class ProductRepository implements IRepository<ProductEntity> {
           product.selling_price,
           product.cost_price || 0,
           product.manage_stock ?? false,
+          product.linked_product_id || null,
+          product.linked_qty_multiplier || 1.0,
           product.image_url || null,
           product.is_active ?? true,
         ]
@@ -127,6 +138,8 @@ export class ProductRepository implements IRepository<ProductEntity> {
       if (item.selling_price !== undefined) { fields.push(`selling_price = $${idx++}`); values.push(item.selling_price); }
       if (item.cost_price !== undefined) { fields.push(`cost_price = $${idx++}`); values.push(item.cost_price); }
       if (item.manage_stock !== undefined) { fields.push(`manage_stock = $${idx++}`); values.push(item.manage_stock); }
+      if (item.linked_product_id !== undefined) { fields.push(`linked_product_id = $${idx++}`); values.push(item.linked_product_id); }
+      if (item.linked_qty_multiplier !== undefined) { fields.push(`linked_qty_multiplier = $${idx++}`); values.push(item.linked_qty_multiplier); }
       if (item.image_url !== undefined) { fields.push(`image_url = $${idx++}`); values.push(item.image_url); }
       if (item.is_active !== undefined) { fields.push(`is_active = $${idx++}`); values.push(item.is_active); }
 
@@ -137,7 +150,8 @@ export class ProductRepository implements IRepository<ProductEntity> {
       values.push(product_id);
       const queryStr = `UPDATE products SET ${fields.join(', ')} WHERE product_id = $${idx} 
                         RETURNING product_id, category_id, unit_id, product_name, sku, type, business_unit, 
-                                  selling_price::float, cost_price::float, manage_stock, image_url, is_active`;
+                                  selling_price::float, cost_price::float, manage_stock, linked_product_id, 
+                                  COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, image_url, is_active`;
       const res = await pool.query(queryStr, values);
 
       if (res.rows.length > 0) {

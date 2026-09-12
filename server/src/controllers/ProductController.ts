@@ -29,12 +29,17 @@ export class ProductController {
 
       const product = await this.productService.createProduct(req.body);
 
+      const isLinked = !!product.linked_product_id;
       const initialGudang = Number(req.body.initial_stock_gudang) || 0;
       const initialEtalase = Number(req.body.initial_stock_etalase) || 0;
       const totalInit = initialGudang + initialEtalase;
-      const stockMsg = product.manage_stock ? ` dengan Stok Awal: +${totalInit} Pcs (Gudang: ${initialGudang}, Etalase: ${initialEtalase})` : '';
+      const stockMsg = isLinked
+        ? ` (Menautkan Stok ke Produk #${product.linked_product_id})`
+        : product.manage_stock
+        ? ` dengan Stok Awal: +${totalInit} Pcs (Gudang: ${initialGudang}, Etalase: ${initialEtalase})`
+        : '';
 
-      if (product.manage_stock) {
+      if (product.manage_stock && !isLinked) {
         try {
           await stockRepository.create({
             stock_id: `stk-${product.product_id}`,
@@ -76,7 +81,10 @@ export class ProductController {
       );
 
       sseManager.broadcast('PRODUCT_UPDATED', { action: 'CREATED', data: product });
-      sseManager.broadcast('STOCK_UPDATED', { action: 'CREATED', product_id: product.product_id });
+      sseManager.broadcast('STOCK_UPDATED', {
+        action: 'CREATED',
+        product_id: product.linked_product_id || product.product_id,
+      });
 
       return res.status(201).json({ message: 'Produk berhasil ditambahkan', data: product });
     } catch (error: any) {

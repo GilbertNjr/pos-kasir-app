@@ -71,7 +71,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   const [newCategoryId, setNewCategoryId] = useState('');
   const [newBusinessUnit, setNewBusinessUnit] = useState<BusinessUnit>('FC_PRINT');
   const [newPrice, setNewPrice] = useState<number | string>(5000);
-  const [newManageStock, setNewManageStock] = useState(true);
+  const [newStockMode, setNewStockMode] = useState<'MANUAL' | 'LINKED' | 'NONE'>('MANUAL');
+  const [newLinkedProductId, setNewLinkedProductId] = useState('');
+  const [newLinkedQtyMultiplier, setNewLinkedQtyMultiplier] = useState<number>(1.0);
   const [formLoading, setFormLoading] = useState(false);
 
   // Form State Modal Edit Produk (Owner Only)
@@ -81,7 +83,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   const [editCategoryId, setEditCategoryId] = useState('');
   const [editBusinessUnit, setEditBusinessUnit] = useState<BusinessUnit>('FC_PRINT');
   const [editPrice, setEditPrice] = useState<number | string>(0);
-  const [editManageStock, setEditManageStock] = useState(true);
+  const [editStockMode, setEditStockMode] = useState<'MANUAL' | 'LINKED' | 'NONE'>('MANUAL');
+  const [editLinkedProductId, setEditLinkedProductId] = useState('');
+  const [editLinkedQtyMultiplier, setEditLinkedQtyMultiplier] = useState<number>(1.0);
 
   // State Modal Hapus Produk (Owner Only)
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<Product | null>(null);
@@ -130,7 +134,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
       sse.addEventListener('PRODUCT_UPDATED', handleSync);
       sse.addEventListener('TRANSACTION_CREATED', handleSync);
     } catch {
-      // Ignore SSE error, fallback to polling
+      // Fallback polling
     }
 
     return () => {
@@ -147,6 +151,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
       return;
     }
 
+    if (newStockMode === 'LINKED' && !newLinkedProductId) {
+      if (onTriggerToast) onTriggerToast('warning', 'Validasi Gagal', 'Silakan pilih produk induk sumber stok fisik.');
+      return;
+    }
+
     try {
       setFormLoading(true);
       await apiService.createProduct({
@@ -154,7 +163,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
         category_id: newCategoryId,
         business_unit: newBusinessUnit,
         selling_price: Number(newPrice),
-        manage_stock: newManageStock,
+        manage_stock: newStockMode !== 'NONE',
+        linked_product_id: newStockMode === 'LINKED' ? newLinkedProductId : null,
+        linked_qty_multiplier: newStockMode === 'LINKED' ? Number(newLinkedQtyMultiplier) || 1.0 : 1.0,
         is_active: true,
       });
 
@@ -165,6 +176,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
       setShowAddModal(false);
       setNewProductName('');
       setNewPrice(5000);
+      setNewStockMode('MANUAL');
+      setNewLinkedProductId('');
+      setNewLinkedQtyMultiplier(1.0);
       loadData();
     } catch (err: any) {
       if (onTriggerToast) {
@@ -182,7 +196,19 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
     setEditCategoryId(product.category_id);
     setEditBusinessUnit(product.business_unit);
     setEditPrice(product.selling_price);
-    setEditManageStock(product.manage_stock);
+    if (product.linked_product_id) {
+      setEditStockMode('LINKED');
+      setEditLinkedProductId(product.linked_product_id);
+      setEditLinkedQtyMultiplier(product.linked_qty_multiplier || 1.0);
+    } else if (product.manage_stock) {
+      setEditStockMode('MANUAL');
+      setEditLinkedProductId('');
+      setEditLinkedQtyMultiplier(1.0);
+    } else {
+      setEditStockMode('NONE');
+      setEditLinkedProductId('');
+      setEditLinkedQtyMultiplier(1.0);
+    }
     setShowEditModal(true);
   };
 
@@ -194,6 +220,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
       return;
     }
 
+    if (editStockMode === 'LINKED' && !editLinkedProductId) {
+      if (onTriggerToast) onTriggerToast('warning', 'Validasi Gagal', 'Silakan pilih produk induk sumber stok fisik.');
+      return;
+    }
+
     try {
       setFormLoading(true);
       const res = await apiService.updateProduct(editProductId, {
@@ -201,7 +232,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
         category_id: editCategoryId,
         business_unit: editBusinessUnit,
         selling_price: Number(editPrice),
-        manage_stock: editManageStock,
+        manage_stock: editStockMode !== 'NONE',
+        linked_product_id: editStockMode === 'LINKED' ? editLinkedProductId : null,
+        linked_qty_multiplier: editStockMode === 'LINKED' ? Number(editLinkedQtyMultiplier) || 1.0 : 1.0,
       });
 
       const beMessage = res?.message || `Perubahan untuk "${editProductName}" berhasil disimpan.`;
@@ -805,7 +838,16 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                             {formatRupiah(p.selling_price)}
                           </td>
                           <td style={{ padding: '1rem 1.25rem' }}>
-                            {p.manage_stock ? (
+                            {p.linked_product_id ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.2rem' }}>
+                                <span style={{ color: '#b45309', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.775rem', fontWeight: 800, background: '#fef3c7', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid #fde68a', width: 'fit-content' }}>
+                                  🔗 Stok Bersama
+                                </span>
+                                <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                                  Mengikuti: {products.find((prod) => prod.product_id === p.linked_product_id)?.product_name || 'Produk Induk'}
+                                </span>
+                              </div>
+                            ) : p.manage_stock ? (
                               <span style={{ color: '#059669', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.775rem', fontWeight: 800, background: '#ecfdf5', padding: '0.25rem 0.6rem', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
                                 <CheckCircle2 size={14} /> Fisik (Kelola Stok)
                               </span>
@@ -933,7 +975,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                       </div>
 
                       <div className="product-card-footer" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '0.65rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        {p.manage_stock ? (
+                        {p.linked_product_id ? (
+                          <span style={{ color: '#b45309', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.2rem' }} title={`Mengikuti stok: ${products.find((prod) => prod.product_id === p.linked_product_id)?.product_name || 'Produk Induk'}`}>
+                            🔗 Stok Bersama
+                          </span>
+                        ) : p.manage_stock ? (
                           <span style={{ color: '#059669', fontSize: '0.7rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                             <CheckCircle2 size={13} /> Kelola Stok
                           </span>
@@ -1325,17 +1371,89 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                 />
               </div>
 
-              <div style={{ padding: '0.85rem 1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <input
-                  type="checkbox"
-                  id="manageStockCheck"
-                  checked={newManageStock}
-                  onChange={(e) => setNewManageStock(e.target.checked)}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-                <label htmlFor="manageStockCheck" style={{ fontSize: '0.825rem', fontWeight: 800, color: '#0f172a', cursor: 'pointer' }}>
-                  Kelola Stok Fisik (Uncheck jika berupa Jasa / Non-Fisik)
+              <div style={{ padding: '0.85rem 1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>
+                  Metode Pengelolaan Stok:
                 </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.825rem', fontWeight: 700, color: '#334155', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="addStockMode"
+                      value="MANUAL"
+                      checked={newStockMode === 'MANUAL'}
+                      onChange={() => {
+                        setNewStockMode('MANUAL');
+                        setNewLinkedProductId('');
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    📦 Kelola Stok Fisik Sendiri (Produk Utama / Mandiri)
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.825rem', fontWeight: 700, color: '#334155', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="addStockMode"
+                      value="LINKED"
+                      checked={newStockMode === 'LINKED'}
+                      onChange={() => setNewStockMode('LINKED')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    🔗 Tautkan ke Stok Produk Lain (Stok Bersama / Shared Pool)
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.825rem', fontWeight: 700, color: '#334155', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="addStockMode"
+                      value="NONE"
+                      checked={newStockMode === 'NONE'}
+                      onChange={() => {
+                        setNewStockMode('NONE');
+                        setNewLinkedProductId('');
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    📄 Tidak Kelola Stok (Jasa Murni / Non-Fisik)
+                  </label>
+                </div>
+
+                {newStockMode === 'LINKED' && (
+                  <div style={{ marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px dashed #cbd5e1' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>
+                      Pilih Produk Induk (Sumber Stok Fisik):
+                    </label>
+                    <select
+                      value={newLinkedProductId}
+                      onChange={(e) => setNewLinkedProductId(e.target.value)}
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '10px', border: '1px solid #94a3b8', fontSize: '0.825rem', fontWeight: 700, outline: 'none' }}
+                      required
+                    >
+                      <option value="">-- Pilih Produk Sumber Stok Fisik --</option>
+                      {products
+                        .filter((p) => p.manage_stock && !p.linked_product_id)
+                        .map((p) => (
+                          <option key={p.product_id} value={p.product_id}>
+                            {p.product_name} ({p.business_unit === 'FC_PRINT' ? 'FC' : 'F&B'})
+                          </option>
+                        ))}
+                    </select>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>
+                        Jumlah fisik terpotong per penjualan:
+                      </label>
+                      <input
+                        type="number"
+                        min={0.1}
+                        step={0.1}
+                        value={newLinkedQtyMultiplier}
+                        onChange={(e) => setNewLinkedQtyMultiplier(Number(e.target.value) || 1)}
+                        style={{ width: '70px', padding: '0.3rem 0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.8rem', textAlign: 'center' }}
+                      />
+                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Pcs</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.75rem' }}>
@@ -1442,17 +1560,89 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                 />
               </div>
 
-              <div style={{ padding: '0.85rem 1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <input
-                  type="checkbox"
-                  id="editManageStockCheck"
-                  checked={editManageStock}
-                  onChange={(e) => setEditManageStock(e.target.checked)}
-                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                />
-                <label htmlFor="editManageStockCheck" style={{ fontSize: '0.825rem', fontWeight: 800, color: '#0f172a', cursor: 'pointer' }}>
-                  Kelola Stok Fisik (Uncheck jika berupa Jasa / Non-Fisik)
+              <div style={{ padding: '0.85rem 1rem', borderRadius: '12px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                <label style={{ display: 'block', fontSize: '0.825rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.5rem' }}>
+                  Metode Pengelolaan Stok:
                 </label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.825rem', fontWeight: 700, color: '#334155', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="editStockMode"
+                      value="MANUAL"
+                      checked={editStockMode === 'MANUAL'}
+                      onChange={() => {
+                        setEditStockMode('MANUAL');
+                        setEditLinkedProductId('');
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    📦 Kelola Stok Fisik Sendiri (Produk Utama / Mandiri)
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.825rem', fontWeight: 700, color: '#334155', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="editStockMode"
+                      value="LINKED"
+                      checked={editStockMode === 'LINKED'}
+                      onChange={() => setEditStockMode('LINKED')}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    🔗 Tautkan ke Stok Produk Lain (Stok Bersama / Shared Pool)
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.825rem', fontWeight: 700, color: '#334155', cursor: 'pointer' }}>
+                    <input
+                      type="radio"
+                      name="editStockMode"
+                      value="NONE"
+                      checked={editStockMode === 'NONE'}
+                      onChange={() => {
+                        setEditStockMode('NONE');
+                        setEditLinkedProductId('');
+                      }}
+                      style={{ cursor: 'pointer' }}
+                    />
+                    📄 Tidak Kelola Stok (Jasa Murni / Non-Fisik)
+                  </label>
+                </div>
+
+                {editStockMode === 'LINKED' && (
+                  <div style={{ marginTop: '0.85rem', paddingTop: '0.85rem', borderTop: '1px dashed #cbd5e1' }}>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 800, color: '#0f172a', marginBottom: '0.35rem' }}>
+                      Pilih Produk Induk (Sumber Stok Fisik):
+                    </label>
+                    <select
+                      value={editLinkedProductId}
+                      onChange={(e) => setEditLinkedProductId(e.target.value)}
+                      style={{ width: '100%', padding: '0.55rem 0.75rem', borderRadius: '10px', border: '1px solid #94a3b8', fontSize: '0.825rem', fontWeight: 700, outline: 'none' }}
+                      required
+                    >
+                      <option value="">-- Pilih Produk Sumber Stok Fisik --</option>
+                      {products
+                        .filter((p) => p.manage_stock && !p.linked_product_id && p.product_id !== editProductId)
+                        .map((p) => (
+                          <option key={p.product_id} value={p.product_id}>
+                            {p.product_name} ({p.business_unit === 'FC_PRINT' ? 'FC' : 'F&B'})
+                          </option>
+                        ))}
+                    </select>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+                      <label style={{ fontSize: '0.75rem', fontWeight: 700, color: '#475569' }}>
+                        Jumlah fisik terpotong per penjualan:
+                      </label>
+                      <input
+                        type="number"
+                        min={0.1}
+                        step={0.1}
+                        value={editLinkedQtyMultiplier}
+                        onChange={(e) => setEditLinkedQtyMultiplier(Number(e.target.value) || 1)}
+                        style={{ width: '70px', padding: '0.3rem 0.5rem', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '0.8rem', textAlign: 'center' }}
+                      />
+                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>Pcs</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.75rem' }}>

@@ -140,6 +140,8 @@ export interface ProductEntity {
   business_unit: BusinessUnit;
   selling_price: number;
   manage_stock: boolean;
+  linked_product_id?: string | null;
+  linked_qty_multiplier?: number;
   is_active: boolean;
 }
 
