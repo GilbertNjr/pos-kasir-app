@@ -95,9 +95,17 @@ export const formatDutyUsersText = (dutyUsers: string[] = [], currentUserFullNam
     .join(', ');
 };
 
+export interface AggregatedShiftItem {
+  qty: number;
+  name: string;
+  price: number;
+  subtotal: number;
+  selected_modifiers?: any[];
+}
+
 // Helper: Aggregates items from transactions list
 export const aggregateShiftData = (transactions: any[], expenses: any[]) => {
-  const itemMap: Record<string, { qty: number; name: string; price: number; subtotal: number }> = {};
+  const itemMap: Record<string, AggregatedShiftItem> = {};
 
   transactions.forEach((tx) => {
     if (tx.items && Array.isArray(tx.items)) {
@@ -107,9 +115,30 @@ export const aggregateShiftData = (transactions: any[], expenses: any[]) => {
         const qty = Number(it.quantity || it.qty || 1);
         const subtotal = Number(it.subtotal || it.total_price || (price * qty));
 
-        const key = `${name.toLowerCase().trim()}_${price}`;
+        let selectedMods: any[] = [];
+        if (Array.isArray(it.selected_modifiers)) {
+          selectedMods = it.selected_modifiers;
+        } else if (typeof it.selected_modifiers === 'string' && it.selected_modifiers.trim().startsWith('[')) {
+          try {
+            selectedMods = JSON.parse(it.selected_modifiers);
+          } catch {}
+        }
+
+        // Signature unik modifier/racikan agar varian berbeda tidak digabungkan
+        const modSignature = selectedMods
+          .map((m: any) => `${String(m.name || '').trim().toLowerCase()}:${Number(m.price || 0)}`)
+          .sort()
+          .join('|');
+
+        const key = `${name.toLowerCase().trim()}_${price}_${modSignature}`;
         if (!itemMap[key]) {
-          itemMap[key] = { qty: 0, name, price, subtotal: 0 };
+          itemMap[key] = {
+            qty: 0,
+            name,
+            price,
+            subtotal: 0,
+            selected_modifiers: selectedMods,
+          };
         }
         itemMap[key].qty += qty;
         itemMap[key].subtotal += subtotal;
@@ -161,16 +190,31 @@ export const exportShiftToExcel = (options: ShiftReportExportOptions) => {
   const dutyUsersStr = formatDutyUsersText(dutyUsers, currentUserFullName);
 
   const itemRowsHtml = itemList
-    .map(
-      (item) => `
+    .map((item) => {
+      const mods = Array.isArray(item.selected_modifiers) ? item.selected_modifiers : [];
+      const modifierHtml = mods.length > 0
+        ? `<div style="font-size: 8.5pt; color: #475569; padding-left: 8px; margin-top: 2px;">
+            ${mods
+              .map(
+                (m: any) =>
+                  `• ${m.name}${Number(m.price || 0) > 0 ? ` (+${formatRupiah(m.price)})` : ''}`
+              )
+              .join('<br/>')}
+          </div>`
+        : '';
+
+      return `
       <tr>
-        <td style="text-align: center;">${item.qty}</td>
-        <td>${item.name}</td>
-        <td style="text-align: right;">${formatRupiah(item.price)}</td>
-        <td style="text-align: right; font-weight: bold;">${formatRupiah(item.subtotal)}</td>
+        <td style="text-align: center; vertical-align: top;">${item.qty}</td>
+        <td style="vertical-align: top;">
+          <strong>${item.name}</strong>
+          ${modifierHtml}
+        </td>
+        <td style="text-align: right; vertical-align: top;">${formatRupiah(item.price)}</td>
+        <td style="text-align: right; font-weight: bold; vertical-align: top;">${formatRupiah(item.subtotal)}</td>
       </tr>
-    `
-    )
+    `;
+    })
     .join('');
 
   const expenseRowsHtml =
@@ -324,18 +368,31 @@ export const printShiftPDF = (options: ShiftReportExportOptions) => {
   const itemRowsThermal =
     itemList.length > 0
       ? itemList
-          .map(
-            (item) => `
+          .map((item) => {
+            const mods = Array.isArray(item.selected_modifiers) ? item.selected_modifiers : [];
+            const modifierHtml = mods.length > 0
+              ? `<div style="font-size: 8.5px; color: #1e293b; padding-left: 4px; margin: 1px 0; line-height: 1.25;">
+                  ${mods
+                    .map(
+                      (m: any) =>
+                        `+ ${m.name}${Number(m.price || 0) > 0 ? ` (+${formatRupiah(m.price)})` : ''}`
+                    )
+                    .join('<br/>')}
+                </div>`
+              : '';
+
+            return `
         <tr>
           <td style="text-align: left; padding: 2px 0;">
             <div style="font-weight: bold; font-size: 10px;">${item.name}</div>
-            <div style="font-size: 9px; color: #475569;">${formatRupiah(item.price)}</div>
+            ${modifierHtml}
+            <div style="font-size: 9px; color: #475569; margin-top: 1px;">${formatRupiah(item.price)}</div>
           </td>
           <td style="text-align: center; vertical-align: top; font-weight: bold; padding-top: 2px; font-size: 10px;">${item.qty}x</td>
           <td style="text-align: right; vertical-align: top; font-weight: bold; padding-top: 2px; font-size: 10px;">${formatRupiah(item.subtotal)}</td>
         </tr>
-      `
-          )
+      `;
+          })
           .join('')
       : `
         <tr>

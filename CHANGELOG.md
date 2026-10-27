@@ -20,10 +20,11 @@ Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kron
   - Produk tanpa modifier tetap 1-klik instan masuk ke keranjang kasir (zero friction untuk produk ritel biasa seperti ATK, bolpoin, snack, air mineral).
   - Produk dengan modifier menampilkan popup elegan untuk memilih opsi & topping dengan live subtotal preview.
   - Keranjang kasir menampilkan rincian racikan di bawah nama item.
-- **Tampilan Struk Cetak Presisi (`TransactionDetailModal.tsx`):**
+- **Tampilan Struk Cetak Presisi (`TransactionDetailModal.tsx` & `shiftReportExporter.ts`):**
   - Format cetak thermal 58mm/80mm maupun invoice A4 menampilkan rincian nama racikan dan topping yang dipesan secara rapi, transparan, dan profesional.
-- **Editor Racikan Dinamis di Kelola Produk (`ProductModifierEditor.tsx`, `ProductsPage.tsx`):**
-  - Owner dapat menambah, mengedit, mengurutkan grup opsi, jenis pilihan (Single/Multiple), status wajib/opsional, selisih harga, serta menautkan pemotongan stok bahan baku langsung dari layar Tambah/Ubah Produk tanpa perlu koding.
+  - Struk Rekapitulasi Shift Kasir ("1. RINCIAN BARANG/JASA TERJUAL") dan Ekspor Excel Shift kini menampilkan rincian cara saji, topping, dan racikan per varian item dengan signature pengelompokan yang akurat.
+- **Editor Racikan Dinamis di Kelola Produk & Stok (`ProductModifierEditor.tsx`, `ProductsPage.tsx`, `StockPage.tsx`):**
+  - Owner dan Karyawan dapat menambah, mengedit, mengurutkan grup opsi, jenis pilihan (Single/Multiple), status wajib/opsional, selisih harga, serta menautkan pemotongan stok bahan baku langsung dari layar Produk maupun Kelola Stok Barang.
 
 ## [v1.9.0] - 2026-09-12 - Fitur Dynamic Linked Stock (Stok Bersama / Shared Inventory Pool)
 
