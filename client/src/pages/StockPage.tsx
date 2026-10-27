@@ -20,12 +20,13 @@ import {
   ArrowRightLeft,
 } from 'lucide-react';
 import { apiService } from '../services/api';
-import { User, Category, Product } from '../types';
+import { User, Category, Product, ProductModifierGroup } from '../types';
 import { formatRupiah, formatWaktuIndo } from '../utils/formatters';
 import { getProductCategoryBucket } from '../utils/categoryUtils';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
 import { ResponsivePagination } from '../components/common/ResponsivePagination';
 import { exportStockToExcel, printStockPDF } from '../utils/stockReportExporter';
+import { ProductModifierEditor } from '../components/products/ProductModifierEditor';
 
 
 interface StockItem {
@@ -103,14 +104,16 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
   const [newSellingPrice, setNewSellingPrice] = useState<number | string>(5000);
   const [newInitialStockGudang, setNewInitialStockGudang] = useState<number | string>(10);
   const [newInitialStockEtalase, setNewInitialStockEtalase] = useState<number | string>(2);
+  const [newModifiers, setNewModifiers] = useState<ProductModifierGroup[]>([]);
   const [createLoading, setCreateLoading] = useState(false);
 
-  // Modal 3: Edit Product Details Modal State (Koreksi Detail Produk)
+  // Modal 3: Edit Product Details Modal State (Koreksi Detail Produk & Opsi Racikan)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [editProdName, setEditProdName] = useState('');
   const [editProdPrice, setEditProdPrice] = useState<number | string>(0);
   const [editProdUnit, setEditProdUnit] = useState<'FC_PRINT' | 'FNB'>('FNB');
   const [editProdCatId, setEditProdCatId] = useState('');
+  const [editModifiers, setEditModifiers] = useState<ProductModifierGroup[]>([]);
   const [updateProdLoading, setUpdateProdLoading] = useState(false);
   const [recentMovements, setRecentMovements] = useState<any[]>([]);
   const [allMovements, setAllMovements] = useState<any[]>([]);
@@ -444,7 +447,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
     });
   };
 
-  // Modal 3 Trigger: Koreksi Detail Barang (Nama, Harga, Kategori)
+  // Modal 3 Trigger: Koreksi Detail Barang & Opsi Racikan (Nama, Harga, Kategori, Modifiers)
   const handleOpenEditProductModal = (item: StockItem) => {
     const prod = productsMap.get(item.product_id);
     if (prod) {
@@ -453,6 +456,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       setEditProdPrice(prod.selling_price);
       setEditProdUnit(prod.business_unit);
       setEditProdCatId(prod.category_id);
+      setEditModifiers(prod.modifiers || []);
     } else {
       setEditingProduct({
         product_id: item.product_id,
@@ -462,15 +466,17 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         selling_price: item.selling_price || 0,
         manage_stock: true,
         is_active: true,
+        modifiers: [],
       });
       setEditProdName(item.product_name);
       setEditProdPrice(item.selling_price || 0);
       setEditProdUnit(item.business_unit as any);
       setEditProdCatId(item.category_id || '');
+      setEditModifiers([]);
     }
   };
 
-  // Submit Handler Modal 3: Simpan Koreksi Detail Barang
+  // Submit Handler Modal 3: Simpan Koreksi Detail Barang & Racikan
   const handleSaveProductDetails = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingProduct) return;
@@ -492,6 +498,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         selling_price: updatedPrice,
         business_unit: editProdUnit,
         category_id: targetCatId || undefined,
+        modifiers: editModifiers,
       });
 
       // Backend message or fallback
@@ -508,6 +515,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
             selling_price: updatedPrice,
             business_unit: editProdUnit,
             category_id: targetCatId,
+            modifiers: editModifiers,
           });
         }
         return next;
@@ -600,7 +608,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       const unitCats = categories.filter((c) => c.business_unit === newBusinessUnit);
       const categoryToUse = newCategoryId || (unitCats.length > 0 ? unitCats[0].category_id : (newBusinessUnit === 'FC_PRINT' ? 'cat-fc-001' : 'cat-fnb-001'));
 
-      // 1. Create Product
+      // 1. Create Product with modifiers
       const newProduct = await apiService.createProduct({
         product_name: newProductName.trim(),
         business_unit: newBusinessUnit,
@@ -608,6 +616,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
         selling_price: priceNum,
         manage_stock: true,
         is_active: true,
+        modifiers: newModifiers,
       });
 
       // 2. Set Initial Stock with Gudang & Etalase breakdown
@@ -638,6 +647,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       setNewSellingPrice(5000);
       setNewInitialStockGudang(10);
       setNewInitialStockEtalase(2);
+      setNewModifiers([]);
       setShowCreateModal(false);
 
       await loadData();
@@ -1199,15 +1209,17 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
 
         {/* Buttons Group */}
         <div className="responsive-toolbar-actions">
-          {currentUser.role !== 'OWNER' && (
-            <button
-              onClick={() => setShowCreateModal(true)}
-              className="btn-toolbar-primary"
-            >
-              <Plus size={15} />
-              <span>+ Tambah Stok</span>
-            </button>
-          )}
+          <button
+            onClick={() => {
+              setNewModifiers([]);
+              setShowCreateModal(true);
+            }}
+            className="btn-toolbar-primary"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', fontWeight: 800 }}
+          >
+            <Plus size={15} />
+            <span>+ Tambah Produk & Stok</span>
+          </button>
 
           <button
             onClick={async () => {
@@ -1403,10 +1415,10 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                           <div style={{ display: 'flex', gap: '0.35rem' }}>
                             <button
                               onClick={() => handleOpenEditProductModal(item)}
-                              title="Lihat Detail Produk"
+                              title="Edit Master Produk & Racikan / Topping"
                               style={{ padding: '0.4rem 0.6rem', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#ffffff', color: '#334155', cursor: 'pointer', fontSize: '0.75rem', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.25rem' }}
                             >
-                              <Eye size={14} /> Detail
+                              <Eye size={14} /> Detail / Racikan
                             </button>
 
                             {item.stock_gudang !== undefined && Number(item.stock_gudang) > 0 && (
@@ -1744,7 +1756,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                       <div style={{ display: 'flex', gap: '0.35rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.5rem', alignItems: 'center', minWidth: 0 }}>
                         <button
                           onClick={() => handleOpenEditProductModal(item)}
-                          title="Lihat Detail Produk"
+                          title="Edit Master Produk & Racikan / Topping"
                           style={{
                             flex: 1,
                             minWidth: 0,
@@ -1764,7 +1776,7 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                           }}
                         >
                           <Eye size={13} style={{ flexShrink: 0 }} />
-                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>Detail</span>
+                          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>Detail / Racikan</span>
                         </button>
 
                         {currentUser.role !== 'OWNER' && (
@@ -2212,16 +2224,16 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       {/* ======================================================== */}
       {showCreateModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '540px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
-            <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ padding: '1.25rem 1.5rem', background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div>
                 <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>Tambah Produk & Stok Baru</h3>
-                <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>Registrasi barang fisik ke sistem kasir & inventaris</p>
+                <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>Registrasi barang fisik ke sistem kasir, inventaris, & opsi racikan</p>
               </div>
               <button onClick={() => setShowCreateModal(false)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
             </div>
 
-            <form onSubmit={handleCreateProductAndStock} style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+            <form onSubmit={handleCreateProductAndStock} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.1rem', overflowY: 'auto' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Nama Produk / Barang:</label>
                 <input
@@ -2375,6 +2387,13 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                 </div>
               </div>
 
+              {/* 4. RACIKAN & TOPPING DINAMIS (MODIFIERS) */}
+              <ProductModifierEditor
+                modifiers={newModifiers}
+                onChange={setNewModifiers}
+                availableProducts={Array.from(productsMap.values())}
+              />
+
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                 <button
                   type="button"
@@ -2397,20 +2416,20 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
       )}
 
       {/* ======================================================== */}
-      {/* MODAL 3: KOREKSI DETAIL PRODUK (NAMA, HARGA, KATEGORI) */}
+      {/* MODAL 3: KOREKSI DETAIL PRODUK (NAMA, HARGA, KATEGORI, MODIFIERS) */}
       {/* ======================================================== */}
       {editingProduct && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100, padding: '1rem' }}>
-          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '520px', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
-            <div style={{ padding: '1.5rem', background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: '#ffffff', borderRadius: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}>
+            <div style={{ padding: '1.25rem 1.5rem', background: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%)', color: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
               <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>Koreksi Detail Barang</h3>
-                <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>Koreksi typo nama, harga jual, atau kategori produk</p>
+                <h3 style={{ fontSize: '1.25rem', fontWeight: 900, margin: 0 }}>Koreksi Detail Barang & Racikan</h3>
+                <p style={{ fontSize: '0.8rem', color: '#94a3b8', margin: '0.2rem 0 0 0' }}>Koreksi nama, harga jual, kategori, atau opsi racikan / topping</p>
               </div>
               <button onClick={() => setEditingProduct(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', fontSize: '1.25rem' }}>✕</button>
             </div>
 
-            <form onSubmit={handleSaveProductDetails} style={{ padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.1rem' }}>
+            <form onSubmit={handleSaveProductDetails} style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1.1rem', overflowY: 'auto' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 800, color: '#334155', marginBottom: '0.35rem' }}>Nama Barang / Produk:</label>
                 <input
@@ -2512,6 +2531,14 @@ export const StockPage: React.FC<StockPageProps> = ({ currentUser, onTriggerToas
                   </select>
                 </div>
               </div>
+
+              {/* RACIKAN & TOPPING DINAMIS (MODIFIERS) */}
+              <ProductModifierEditor
+                modifiers={editModifiers}
+                onChange={setEditModifiers}
+                availableProducts={Array.from(productsMap.values())}
+                currentProductId={editingProduct.product_id}
+              />
 
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.75rem' }}>
                 <button
