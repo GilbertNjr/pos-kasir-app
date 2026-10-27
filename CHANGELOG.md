@@ -26,6 +26,11 @@ Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kron
   - Peningkatan Pengalaman Scroll Super Mulus & Scrollbar Modern Minimalis (`index.css`, `CashierLayout.tsx`, `OwnerSidebar.tsx`):
     - Menerapkan `scroll-behavior: smooth`, `-webkit-overflow-scrolling: touch`, dan `overscroll-behavior: contain` secara global di seluruh aplikasi dan kontainer navigasi sidebar.
     - Mengganti scrollbar default Windows yang kaku dan tebal dengan modern slim rounded scrollbar (lebar 6px dengan rounded thumb halus dan transisi hover lembut), sehingga proses navigasi menu dan perputaran daftar item terasa sangat responsif, enteng, dan nyaman dipandang.
+  - **Panel Keranjang & Pembayaran Tetap / Sticky (`PosRegister.tsx`, `App.tsx`, `index.css`):**
+    - Menerapkan `position: sticky; top: 0.85rem` pada panel **Keranjang Order & Checkout** (kolom kanan), sehingga ketika kasir menggulir daftar produk yang banyak ke bawah, panel keranjang tagihan dan tombol pembayaran tetap tersemat (*fixed in view*) tanpa ikut tergulung hilang ke atas.
+    - Kasir tidak perlu lagi bolak-balik scroll ke atas dan ke bawah saat memilih banyak produk dan ingin menyelesaikan pembayaran.
+    - Menyematkan toolbar kategori & kotak pencarian (*Sticky Category Toolbar*) di bagian atas daftar produk agar kasir dapat memfilter atau mencari barang kapan saja tanpa perlu menggulir ke paling atas.
+    - Menyembunyikan tombol FAB (*Floating Action Button*) yang menumpuk di desktop karena panel keranjang sudah selalu terpampang rapi, sementara di perangkat ponsel tetap aktif untuk navigasi cepat.
 - **Tampilan Struk Cetak Presisi (`TransactionDetailModal.tsx` & `shiftReportExporter.ts`):**
   - Format cetak thermal 58mm/80mm maupun invoice A4 menampilkan rincian nama racikan dan topping yang dipesan secara rapi, transparan, dan profesional.
   - Struk Rekapitulasi Shift Kasir ("1. RINCIAN BARANG/JASA TERJUAL") dan Ekspor Excel Shift kini menampilkan rincian cara saji, topping, dan racikan per varian item dengan signature pengelompokan yang akurat.

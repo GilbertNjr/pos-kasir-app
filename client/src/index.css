@@ -429,6 +429,37 @@ html, body {
   align-items: start;
 }
 
+/* ========================================================
+   STICKY POS CART PANEL & CATEGORY TOOLBAR (DESKTOP / TABLET)
+   ======================================================== */
+@media (min-width: 961px) {
+  .pos-cart-panel {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0.85rem !important;
+    max-height: calc(100vh - 5.5rem) !important;
+    max-height: calc(100dvh - 5.5rem) !important;
+    overflow-y: auto !important;
+    align-self: start !important;
+    z-index: 30 !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05) !important;
+  }
+
+  .pos-category-toolbar {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 20 !important;
+    background: #ffffff !important;
+    padding-top: 0.25rem !important;
+    padding-bottom: 0.75rem !important;
+  }
+
+  .pos-fab-container {
+    display: none !important;
+  }
+}
+
 .responsive-action-bar {
   background: #ffffff;
   padding: 0.85rem 1.25rem;

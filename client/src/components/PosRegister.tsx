@@ -954,7 +954,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       <div className="responsive-main-grid">
         {/* Left Column: Product Selection Grid */}
         <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.65rem' }}>
+          <div className="pos-category-toolbar" style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.65rem' }}>
             <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0, flexWrap: 'wrap' }}>
               <button
                 onClick={() => handleUnitChange('ALL')}
@@ -1340,7 +1340,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         </div>
 
         {/* Right Column: Cart & Checkout Panel */}
-        <div ref={cartPanelRef} className="card-glass" style={{ padding: '1.25rem', background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+        <div ref={cartPanelRef} className="card-glass pos-cart-panel smooth-scroll subtle-scroll" style={{ padding: '1.25rem', background: '#ffffff', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
             {/* Top Toolbar: Offline Sync & Direct Thermal Toggle Bar */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem', flexWrap: 'wrap', gap: '0.4rem', background: '#f8fafc', padding: '0.4rem 0.65rem', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
@@ -1515,7 +1515,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 Klik produk di sebelah kiri untuk menambah ke keranjang.
               </div>
             ) : (
-              <div style={{ maxHeight: '280px', overflowY: 'auto', marginBottom: '1rem' }}>
+              <div className="smooth-scroll subtle-scroll" style={{ maxHeight: '280px', overflowY: 'auto', marginBottom: '1rem' }}>
                 {cart.map((item) => {
                   const unitPrice = getCartItemUnitPrice(item);
                   return (
@@ -2223,6 +2223,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
 
       {/* Tombol Kasir Cepat (FAB - Floating Action Button) */}
       <div
+        className="pos-fab-container"
         style={{
           position: 'fixed',
           bottom: '1.75rem',
