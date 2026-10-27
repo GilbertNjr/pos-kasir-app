@@ -239,7 +239,20 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
       </div>
 
       {/* Middle Scrollable Section (CTA Button + Nav Links) */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '1rem 0.85rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+      <div
+        className="smooth-scroll subtle-scroll"
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '1rem 0.85rem',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.35rem',
+          scrollBehavior: 'smooth',
+          overscrollBehavior: 'contain',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
         {/* Primary Call-to-Action Button */}
         <div style={{ marginBottom: '0.75rem' }}>
           <button

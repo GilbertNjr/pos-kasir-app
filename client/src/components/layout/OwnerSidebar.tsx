@@ -184,7 +184,20 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
       </div>
 
       {/* Sidebar Menu Items */}
-      <nav style={{ flex: 1, padding: '1rem 0.85rem', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+      <nav
+        className="smooth-scroll subtle-scroll"
+        style={{
+          flex: 1,
+          padding: '1rem 0.85rem',
+          overflowY: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '0.35rem',
+          scrollBehavior: 'smooth',
+          overscrollBehavior: 'contain',
+          WebkitOverflowScrolling: 'touch',
+        }}
+      >
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
