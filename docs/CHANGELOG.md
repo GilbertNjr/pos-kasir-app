@@ -2,6 +2,34 @@
 
 Dokumen ini mencatat seluruh riwayat perubahan, revisi dokumen, dan milestone pengembangan Sistem POS Usaha Campuran (FC/Printing & FNB).
 
+## [2.0.0] - 27 Oktober 2026
+
+### Added & Enhanced
+- **Sistem Racikan Dinamis & Pemotongan Multi-Bahan (Product Modifiers & Linked Inventory)**:
+  - Mengelola topping makanan/minuman, tingkat kepedasan, dan pilihan cara saji secara fleksibel tanpa membuat banyak master produk ganda.
+  - Pemotongan otomatis stok bahan tambahan (seperti Telur Ayam) dari etalase saat transaksi selesai, serta pengembalian stok saat nota dibatalkan.
+- **Pewarnaan Kontekstual Badge Racikan / Cara Saji (`modifierBadge.ts`)**:
+  - Hijau untuk opsi olahan matang/hangat (*Dimasak*), Biru untuk mentah/bungkus, Kuning/Amber untuk topping ekstra, Merah untuk pedas, Cyan untuk es/dingin.
+- **Penyempurnaan Antarmuka Kasir Cepat & Minimalis (`PosRegister.tsx`)**:
+  - Kotak pencarian diperpanjang dinamis tepat di sebelah tombol kategori **F&B** dengan tombol reset instan (X).
+  - Filter sub-kategori disederhanakan dengan dropdown select rounded elegan (*Semua Kategori ⌵*).
+  - Panel Keranjang & Pembayaran dibuat tetap (*Sticky Panel*) di layar sehingga tidak hilang tergulung ke atas saat kasir men-scroll daftar produk yang banyak.
+  - Toolbar kategori & pencarian juga disematkan (*Sticky Toolbar*) di atas katalog produk.
+  - Tombol FAB disembunyikan di desktop agar tidak menutupi tombol bayar.
+- **Pengalaman Scroll Super Mulus & Ramping**:
+  - Global `scroll-behavior: smooth` dan scrollbar modern minimalis setebal 6px menggantikan scrollbar Windows default yang kaku.
+- **Ikon Navigasi HD Retina-Ready (`CashierLayout.tsx`, `OwnerSidebar.tsx`)**:
+  - Ikon menu 34x34px berdefinisi tinggi dengan stroke tebal 2.3px dan warna tematik cerah.
+- **Bump Versi Aplikasi ke v2.0.0**:
+  - Memperbarui versi proyek di `client/package.json` dan `server/package.json` ke `2.0.0`.
+
+## [1.9.0] - 12 September 2026
+
+### Added
+- **Fitur Dynamic Linked Stock (Stok Bersama / Shared Inventory Pool)**:
+  - Memungkinkan produk varian berbeda berbagi pool stok fisik yang sama tanpa duplikasi pencatatan stok fisik.
+  - Pencegahan referensi melingkar dan validasi akumulasi keranjang belanja kasir.
+
 ## [1.8.9] - 11 September 2026
 
 ### Fixed & Enhanced
