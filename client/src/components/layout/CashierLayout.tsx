@@ -262,29 +262,29 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
             }}
             style={{
               width: '100%',
-              padding: '0.8rem 1rem',
-              borderRadius: '10px',
+              padding: '0.62rem 0.85rem',
+              borderRadius: '9px',
               border: 'none',
               background: '#0f172a',
               color: '#ffffff',
               fontWeight: 800,
-              fontSize: '0.875rem',
+              fontSize: '0.815rem',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '0.5rem',
-              boxShadow: '0 4px 14px rgba(15, 23, 42, 0.25)',
+              gap: '0.45rem',
+              boxShadow: '0 3px 10px rgba(15, 23, 42, 0.2)',
               transition: 'all 0.15s ease',
             }}
           >
-            <PlusCircle size={18} />
+            <PlusCircle size={16} />
             + Entri Transaksi Baru
           </button>
         </div>
 
         {/* Navigation Links (HD Thematic Icons) */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
           {cashierNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
@@ -298,29 +298,29 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
                 }}
                 style={{
                   width: '100%',
-                  padding: '0.52rem 0.65rem',
-                  borderRadius: '12px',
+                  padding: '0.38rem 0.55rem',
+                  borderRadius: '9px',
                   border: isActive ? '1px solid #c4b5fd' : '1px solid transparent',
                   background: isActive
                     ? 'linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%)'
                     : 'transparent',
                   color: isActive ? '#4c1d95' : 'var(--sidebar-text, #334155)',
                   fontWeight: isActive ? 800 : 600,
-                  fontSize: '0.875rem',
+                  fontSize: '0.815rem',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.75rem',
+                  gap: '0.6rem',
                   textAlign: 'left',
                   transition: 'all 0.18s ease',
-                  boxShadow: isActive ? '0 3px 10px rgba(124, 58, 237, 0.14)' : 'none',
+                  boxShadow: isActive ? '0 2px 8px rgba(124, 58, 237, 0.12)' : 'none',
                 }}
               >
                 <div
                   style={{
-                    width: '34px',
-                    height: '34px',
-                    borderRadius: '10px',
+                    width: '28px',
+                    height: '28px',
+                    borderRadius: '7px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -328,11 +328,11 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
                     background: isActive ? item.color : item.bg,
                     color: isActive ? '#ffffff' : item.color,
                     border: `1px solid ${isActive ? item.color : item.border}`,
-                    boxShadow: isActive ? `0 3px 10px ${item.color}55` : '0 1px 3px rgba(0,0,0,0.06)',
+                    boxShadow: isActive ? `0 2px 6px ${item.color}44` : '0 1px 2px rgba(0,0,0,0.05)',
                     transition: 'all 0.18s ease',
                   }}
                 >
-                  <Icon size={19} strokeWidth={2.3} />
+                  <Icon size={16} strokeWidth={2.2} />
                 </div>
                 <span style={{ letterSpacing: '-0.01em', color: isActive ? '#4c1d95' : 'inherit' }}>
                   {item.label}

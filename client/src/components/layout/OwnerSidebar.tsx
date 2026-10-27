@@ -192,7 +192,7 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: '0.35rem',
+          gap: '0.25rem',
           scrollBehavior: 'smooth',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
@@ -213,25 +213,25 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 width: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.75rem',
-                padding: '0.52rem 0.65rem',
-                borderRadius: '12px',
+                gap: '0.6rem',
+                padding: '0.38rem 0.55rem',
+                borderRadius: '9px',
                 border: isActive ? '1px solid #c4b5fd' : '1px solid transparent',
                 background: isActive ? 'linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%)' : 'transparent',
                 color: isActive ? '#4c1d95' : 'var(--sidebar-text, #334155)',
                 fontWeight: isActive ? 800 : 600,
-                fontSize: '0.875rem',
+                fontSize: '0.815rem',
                 cursor: 'pointer',
                 textAlign: 'left',
                 transition: 'all 0.18s ease',
-                boxShadow: isActive ? '0 3px 10px rgba(124, 58, 237, 0.14)' : 'none',
+                boxShadow: isActive ? '0 2px 8px rgba(124, 58, 237, 0.12)' : 'none',
               }}
             >
               <div
                 style={{
-                  width: '34px',
-                  height: '34px',
-                  borderRadius: '10px',
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '7px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -239,11 +239,11 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                   background: isActive ? item.color : item.bg,
                   color: isActive ? '#ffffff' : item.color,
                   border: `1px solid ${isActive ? item.color : item.border}`,
-                  boxShadow: isActive ? `0 3px 10px ${item.color}55` : '0 1px 3px rgba(0,0,0,0.06)',
+                  boxShadow: isActive ? `0 2px 6px ${item.color}44` : '0 1px 2px rgba(0,0,0,0.05)',
                   transition: 'all 0.18s ease',
                 }}
               >
-                <Icon size={19} strokeWidth={2.3} />
+                <Icon size={16} strokeWidth={2.2} />
               </div>
               <span style={{ letterSpacing: '-0.01em', color: isActive ? '#4c1d95' : 'inherit' }}>{item.label}</span>
             </button>
