@@ -22,6 +22,7 @@ Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kron
   - Keranjang kasir menampilkan rincian racikan di bawah nama item.
   - Kotak pencarian (*Search Bar*) produk diperpanjang dinamis (`flex: 1`) tepat di sebelah tombol kategori **F&B** dengan tombol reset instan (X) agar kasir dapat mencari produk dengan cepat dan nyaman tanpa harus mengarahkan kursor jauh ke pojok kanan.
   - Simplifikasi filter sub-kategori: Menggantikan baris pill chips horizontal dan scrollbar panjang dengan dropdown select rounded elegan (*Semua Kategori ⌵*), menghemat ruang vertikal dan membuat antarmuka kasir jauh lebih ringkas, bersih, dan cepat digunakan.
+  - Peningkatan Ikon Navigasi HD Retina-Ready (`CashierLayout.tsx`, `OwnerSidebar.tsx`): Menghadirkan icon badge berdefinisi tinggi (34x34px) dengan stroke tajam (2.3px) dan palet warna tematik vibran pada setiap menu (Overview, Kasir, Shift, Stok, Pengeluaran, Pembayaran, Laporan, Backup) sehingga tampak sangat jelas, jernih, dan tidak pudar di semua mode tema.
 - **Tampilan Struk Cetak Presisi (`TransactionDetailModal.tsx` & `shiftReportExporter.ts`):**
   - Format cetak thermal 58mm/80mm maupun invoice A4 menampilkan rincian nama racikan dan topping yang dipesan secara rapi, transparan, dan profesional.
   - Struk Rekapitulasi Shift Kasir ("1. RINCIAN BARANG/JASA TERJUAL") dan Ekspor Excel Shift kini menampilkan rincian cara saji, topping, dan racikan per varian item dengan signature pengelompokan yang akurat.

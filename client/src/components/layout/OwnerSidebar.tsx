@@ -52,15 +52,15 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
     };
   }, [isOpenMobile]);
   const menuItems = [
-    { id: 'DASHBOARD', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'PENJUALAN', label: 'Penjualan', icon: TrendingUp },
-    { id: 'PRODUCTS', label: 'Produk', icon: Package },
-    { id: 'STOCKS', label: 'Stok', icon: Store },
-    { id: 'PEGAWAI', label: 'Pegawai', icon: Users },
-    { id: 'EXPENSES', label: 'Pengeluaran', icon: DollarSign },
-    { id: 'REPORTS', label: 'Laporan', icon: FileText },
-    { id: 'SETTINGS', label: 'Pengaturan', icon: Settings },
-    { id: 'BACKUP', label: 'Backup Data', icon: Database },
+    { id: 'DASHBOARD', label: 'Dashboard', icon: LayoutDashboard, color: '#6366f1', bg: '#eef2ff', border: '#c7d2fe' },
+    { id: 'PENJUALAN', label: 'Penjualan', icon: TrendingUp, color: '#7c3aed', bg: '#f3e8ff', border: '#ddd6fe' },
+    { id: 'PRODUCTS', label: 'Produk', icon: Package, color: '#059669', bg: '#ecfdf5', border: '#a7f3d0' },
+    { id: 'STOCKS', label: 'Stok', icon: Store, color: '#0284c7', bg: '#f0f9ff', border: '#bae6fd' },
+    { id: 'PEGAWAI', label: 'Pegawai', icon: Users, color: '#d97706', bg: '#fffbeb', border: '#fde68a' },
+    { id: 'EXPENSES', label: 'Pengeluaran', icon: DollarSign, color: '#e11d48', bg: '#fff1f2', border: '#fecdd3' },
+    { id: 'REPORTS', label: 'Laporan', icon: FileText, color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe' },
+    { id: 'SETTINGS', label: 'Pengaturan', icon: Settings, color: '#4f46e5', bg: '#eef2ff', border: '#c7d2fe' },
+    { id: 'BACKUP', label: 'Backup Data', icon: Database, color: '#0d9488', bg: '#f0fdfa', border: '#99f6e4' },
   ];
 
   const sidebarContent = (
@@ -200,21 +200,39 @@ export const OwnerSidebar: React.FC<OwnerSidebarProps> = ({
                 width: '100%',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.85rem',
-                padding: '0.75rem 1rem',
-                borderRadius: '10px',
-                border: 'none',
-                background: isActive ? 'var(--sidebar-active-bg, #ddd6fe)' : 'transparent',
-                color: isActive ? 'var(--sidebar-active-text, #5b21b6)' : 'var(--sidebar-muted-text, #4b5563)',
+                gap: '0.75rem',
+                padding: '0.52rem 0.65rem',
+                borderRadius: '12px',
+                border: isActive ? '1px solid #c4b5fd' : '1px solid transparent',
+                background: isActive ? 'linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%)' : 'transparent',
+                color: isActive ? '#4c1d95' : 'var(--sidebar-text, #334155)',
                 fontWeight: isActive ? 800 : 600,
                 fontSize: '0.875rem',
                 cursor: 'pointer',
                 textAlign: 'left',
-                transition: 'all 0.15s ease',
+                transition: 'all 0.18s ease',
+                boxShadow: isActive ? '0 3px 10px rgba(124, 58, 237, 0.14)' : 'none',
               }}
             >
-              <Icon size={18} color={isActive ? 'var(--sidebar-active-text, #5b21b6)' : 'var(--sidebar-subtext, #6b7280)'} />
-              <span>{item.label}</span>
+              <div
+                style={{
+                  width: '34px',
+                  height: '34px',
+                  borderRadius: '10px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  background: isActive ? item.color : item.bg,
+                  color: isActive ? '#ffffff' : item.color,
+                  border: `1px solid ${isActive ? item.color : item.border}`,
+                  boxShadow: isActive ? `0 3px 10px ${item.color}55` : '0 1px 3px rgba(0,0,0,0.06)',
+                  transition: 'all 0.18s ease',
+                }}
+              >
+                <Icon size={19} strokeWidth={2.3} />
+              </div>
+              <span style={{ letterSpacing: '-0.01em', color: isActive ? '#4c1d95' : 'inherit' }}>{item.label}</span>
             </button>
           );
         })}

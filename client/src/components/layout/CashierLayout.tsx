@@ -13,6 +13,7 @@ import {
   X,
   Crown,
   Database,
+  BarChart3,
 } from 'lucide-react';
 import { NotificationPopover } from '../common/NotificationPopover';
 import { OfflineSyncBanner } from '../common/OfflineSyncBanner';
@@ -58,6 +59,73 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
       document.body.style.touchAction = '';
     };
   }, [isMobileOpen]);
+
+  const cashierNavItems = [
+    {
+      id: 'DASHBOARD',
+      label: 'Overview Shift',
+      icon: LayoutDashboard,
+      color: '#6366f1',
+      bg: '#eef2ff',
+      border: '#c7d2fe',
+    },
+    {
+      id: 'POS',
+      label: 'Live Kasir Register',
+      icon: ShoppingCart,
+      color: '#7c3aed',
+      bg: '#f3e8ff',
+      border: '#ddd6fe',
+    },
+    {
+      id: 'SHIFT',
+      label: 'Shift Logs & Modal',
+      icon: Clock,
+      color: '#0284c7',
+      bg: '#f0f9ff',
+      border: '#bae6fd',
+    },
+    {
+      id: 'STOCKS',
+      label: 'Kelola Stok Barang',
+      icon: Package,
+      color: '#059669',
+      bg: '#ecfdf5',
+      border: '#a7f3d0',
+    },
+    {
+      id: 'EXPENSES',
+      label: 'Catat Pengeluaran',
+      icon: Receipt,
+      color: '#e11d48',
+      bg: '#fff1f2',
+      border: '#fecdd3',
+    },
+    {
+      id: 'PAYMENT',
+      label: 'Rekap Pembayaran',
+      icon: CreditCard,
+      color: '#d97706',
+      bg: '#fffbeb',
+      border: '#fde68a',
+    },
+    {
+      id: 'REPORTS',
+      label: 'Pusat Laporan & Shift',
+      icon: BarChart3,
+      color: '#2563eb',
+      bg: '#eff6ff',
+      border: '#bfdbfe',
+    },
+    {
+      id: 'BACKUP',
+      label: 'Backup & Restore Data',
+      icon: Database,
+      color: '#0d9488',
+      bg: '#f0fdfa',
+      border: '#99f6e4',
+    },
+  ];
 
   const sidebarContent = (
     <div
@@ -202,223 +270,63 @@ export const CashierLayout: React.FC<CashierLayoutProps> = ({
           </button>
         </div>
 
-        {/* Navigation Links */}
-        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
-          {/* Overview / Dashboard */}
-          <button
-            onClick={() => {
-              onTabChange('DASHBOARD');
-              setIsMobileOpen(false);
-            }}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'DASHBOARD' ? '#ddd6fe' : 'transparent',
-              color: activeTab === 'DASHBOARD' ? '#5b21b6' : '#4b5563',
-              fontWeight: activeTab === 'DASHBOARD' ? 800 : 600,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              textAlign: 'left',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <LayoutDashboard size={18} color={activeTab === 'DASHBOARD' ? '#5b21b6' : '#6b7280'} />
-            Overview Shift
-          </button>
+        {/* Navigation Links (HD Thematic Icons) */}
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+          {cashierNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
 
-          {/* Live Terminals / POS Register */}
-          <button
-            onClick={() => {
-              onTabChange('POS');
-              setIsMobileOpen(false);
-            }}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'POS' ? '#ddd6fe' : 'transparent',
-              color: activeTab === 'POS' ? '#5b21b6' : '#4b5563',
-              fontWeight: activeTab === 'POS' ? 800 : 600,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              textAlign: 'left',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <ShoppingCart size={18} color={activeTab === 'POS' ? '#5b21b6' : '#6b7280'} />
-            Live Kasir Register
-          </button>
-
-          {/* Sesi Shift Logs */}
-          <button
-            onClick={() => {
-              onTabChange('SHIFT');
-              setIsMobileOpen(false);
-            }}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'SHIFT' ? '#ddd6fe' : 'transparent',
-              color: activeTab === 'SHIFT' ? '#5b21b6' : '#4b5563',
-              fontWeight: activeTab === 'SHIFT' ? 800 : 600,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              textAlign: 'left',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Clock size={18} color={activeTab === 'SHIFT' ? '#5b21b6' : '#6b7280'} />
-            Shift Logs & Modal
-          </button>
-
-          {/* Kelola Stok Barang */}
-          <button
-            onClick={() => {
-              onTabChange('STOCKS');
-              setIsMobileOpen(false);
-            }}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'STOCKS' ? '#ddd6fe' : 'transparent',
-              color: activeTab === 'STOCKS' ? '#5b21b6' : '#4b5563',
-              fontWeight: activeTab === 'STOCKS' ? 800 : 600,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              textAlign: 'left',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Package size={18} color={activeTab === 'STOCKS' ? '#5b21b6' : '#6b7280'} />
-            Kelola Stok Barang
-          </button>
-
-          {/* Catat Pengeluaran */}
-          <button
-            onClick={() => {
-              onTabChange('EXPENSES');
-              setIsMobileOpen(false);
-            }}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'EXPENSES' ? '#ddd6fe' : 'transparent',
-              color: activeTab === 'EXPENSES' ? '#5b21b6' : '#4b5563',
-              fontWeight: activeTab === 'EXPENSES' ? 800 : 600,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              textAlign: 'left',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Receipt size={18} color={activeTab === 'EXPENSES' ? '#5b21b6' : '#6b7280'} />
-            Catat Pengeluaran
-          </button>
-
-          {/* Rekap Pembayaran */}
-          <button
-            onClick={() => {
-              onTabChange('PAYMENT');
-              setIsMobileOpen(false);
-            }}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'PAYMENT' ? '#ddd6fe' : 'transparent',
-              color: activeTab === 'PAYMENT' ? '#5b21b6' : '#4b5563',
-              fontWeight: activeTab === 'PAYMENT' ? 800 : 600,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              textAlign: 'left',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <CreditCard size={18} color={activeTab === 'PAYMENT' ? '#5b21b6' : '#6b7280'} />
-            Rekap Pembayaran
-          </button>
-
-          {/* Pusat Laporan Penjualan & Stok */}
-          <button
-            onClick={() => {
-              onTabChange('REPORTS');
-              setIsMobileOpen(false);
-            }}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'REPORTS' ? '#ddd6fe' : 'transparent',
-              color: activeTab === 'REPORTS' ? '#5b21b6' : '#4b5563',
-              fontWeight: activeTab === 'REPORTS' ? 800 : 600,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              textAlign: 'left',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Receipt size={18} color={activeTab === 'REPORTS' ? '#5b21b6' : '#6b7280'} />
-            Pusat Laporan & Shift
-          </button>
-
-          {/* Backup & Restore Data (Akses Kasir & PJ) */}
-          <button
-            onClick={() => {
-              onTabChange('BACKUP');
-              setIsMobileOpen(false);
-            }}
-            style={{
-              width: '100%',
-              padding: '0.75rem 1rem',
-              borderRadius: '10px',
-              border: 'none',
-              background: activeTab === 'BACKUP' ? '#ddd6fe' : 'transparent',
-              color: activeTab === 'BACKUP' ? '#5b21b6' : '#4b5563',
-              fontWeight: activeTab === 'BACKUP' ? 800 : 600,
-              fontSize: '0.875rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.75rem',
-              textAlign: 'left',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <Database size={18} color={activeTab === 'BACKUP' ? '#5b21b6' : '#6b7280'} />
-            Backup & Restore Data
-          </button>
+            return (
+              <button
+                key={item.id}
+                onClick={() => {
+                  onTabChange(item.id);
+                  setIsMobileOpen(false);
+                }}
+                style={{
+                  width: '100%',
+                  padding: '0.52rem 0.65rem',
+                  borderRadius: '12px',
+                  border: isActive ? '1px solid #c4b5fd' : '1px solid transparent',
+                  background: isActive
+                    ? 'linear-gradient(135deg, #ede9fe 0%, #e0e7ff 100%)'
+                    : 'transparent',
+                  color: isActive ? '#4c1d95' : 'var(--sidebar-text, #334155)',
+                  fontWeight: isActive ? 800 : 600,
+                  fontSize: '0.875rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  textAlign: 'left',
+                  transition: 'all 0.18s ease',
+                  boxShadow: isActive ? '0 3px 10px rgba(124, 58, 237, 0.14)' : 'none',
+                }}
+              >
+                <div
+                  style={{
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '10px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexShrink: 0,
+                    background: isActive ? item.color : item.bg,
+                    color: isActive ? '#ffffff' : item.color,
+                    border: `1px solid ${isActive ? item.color : item.border}`,
+                    boxShadow: isActive ? `0 3px 10px ${item.color}55` : '0 1px 3px rgba(0,0,0,0.06)',
+                    transition: 'all 0.18s ease',
+                  }}
+                >
+                  <Icon size={19} strokeWidth={2.3} />
+                </div>
+                <span style={{ letterSpacing: '-0.01em', color: isActive ? '#4c1d95' : 'inherit' }}>
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
         </nav>
       </div>
 
