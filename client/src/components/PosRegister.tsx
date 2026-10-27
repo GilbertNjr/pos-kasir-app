@@ -19,6 +19,7 @@ import {
   Clock,
   X,
   Loader2,
+  ChevronDown,
 } from 'lucide-react';
 import { apiService, CreateTransactionResultData } from '../services/api';
 import { Product, User, PaymentMethod, Category, SelectedModifierItem } from '../types';
@@ -1005,8 +1006,50 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               </button>
             </div>
 
-            {/* Search Input - Memanjang dekat dengan tombol F&B */}
-            <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
+            {/* Filter Dropdown Kategori (Simple Elegan seperti Gambar #2) */}
+            <div style={{ position: 'relative', flexShrink: 0 }}>
+              <select
+                value={selectedSubCategory}
+                onChange={(e) => setSelectedSubCategory(e.target.value)}
+                style={{
+                  padding: '0.42rem 2.2rem 0.42rem 0.85rem',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-color)',
+                  fontSize: '0.85rem',
+                  fontWeight: 700,
+                  color: selectedSubCategory === 'ALL' ? '#1e293b' : '#2563eb',
+                  background: '#ffffff',
+                  appearance: 'none',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                  outline: 'none',
+                  minWidth: '155px',
+                  lineHeight: 1.4,
+                }}
+              >
+                {subCategoryFilters.map((sc) => (
+                  <option key={sc.id} value={sc.id}>
+                    {sc.id === 'ALL' ? 'Semua Kategori' : `${sc.emoji} ${sc.name}`}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={15}
+                style={{
+                  position: 'absolute',
+                  right: '0.65rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                  color: '#1e293b',
+                }}
+              />
+            </div>
+
+            {/* Search Input - Memanjang dekat dengan filter kategori */}
+            <div style={{ position: 'relative', flex: 1, minWidth: '180px' }}>
               <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
                 type="text"
@@ -1050,54 +1093,6 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 </button>
               )}
             </div>
-          </div>
-
-          {/* Sub-Category Quick Filter Pills Bar */}
-          <div
-            className="mobile-scroll-row"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem',
-              marginBottom: '1rem',
-              overflowX: 'auto',
-              paddingBottom: '0.35rem',
-            }}
-          >
-            <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#64748b', flexShrink: 0, marginRight: '0.1rem' }}>
-              Filter Kategori:
-            </span>
-            {subCategoryFilters.map((sc) => {
-              const isSelected = selectedSubCategory === sc.id;
-              return (
-                <button
-                  key={sc.id}
-                  onClick={() => setSelectedSubCategory(sc.id)}
-                  style={{
-                    padding: '0.32rem 0.75rem',
-                    borderRadius: '20px',
-                    fontSize: '0.78rem',
-                    fontWeight: isSelected ? 800 : 700,
-                    border: isSelected ? 'none' : '1px solid #cbd5e1',
-                    background: isSelected
-                      ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'
-                      : '#ffffff',
-                    color: isSelected ? '#ffffff' : '#475569',
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.3rem',
-                    boxShadow: isSelected ? '0 3px 10px rgba(15, 23, 42, 0.25)' : 'none',
-                    transition: 'all 0.15s ease',
-                    flexShrink: 0,
-                  }}
-                >
-                  <span>{sc.emoji}</span>
-                  <span>{sc.name}</span>
-                </button>
-              );
-            })}
           </div>
 
           {/* Product Grid Cards */}
