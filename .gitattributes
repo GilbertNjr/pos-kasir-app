@@ -1,0 +1,10 @@
+# GitHub Linguist Language Detection
+*.ts linguist-language=TypeScript
+*.tsx linguist-language=TypeScript
+*.css linguist-language=CSS
+*.sql linguist-language=PLpgSQL
+
+# Ignore compiled artifacts and documentation from language stats
+dist/* linguist-vendored
+build/* linguist-vendored
+node_modules/* linguist-vendored

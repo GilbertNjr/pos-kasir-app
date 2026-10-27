@@ -2,10 +2,13 @@
 > **Platform Kasir & Operasional Bisnis Hybrid (FC/Printing & F&B) dengan Sinkronisasi Real-Time Multi-Device**
 
 [![Version](https://img.shields.io/badge/version-v2.0.0-blue.svg?style=flat-square)](./CHANGELOG.md)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![React](https://img.shields.io/badge/React-18-61DAFB.svg?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![React](https://img.shields.io/badge/React-18.2-61DAFB.svg?style=flat-square&logo=react&logoColor=black)](https://react.dev/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-95.6%25-3178C6.svg?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-339933.svg?style=flat-square&logo=node.js&logoColor=white)](https://nodejs.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Supabase-4169E1.svg?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-Backend-000000.svg?style=flat-square&logo=express&logoColor=white)](https://expressjs.com/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-PLpgSQL-4169E1.svg?style=flat-square&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
+[![CSS3](https://img.shields.io/badge/CSS3-Modern_3.3%25-1572B6.svg?style=flat-square&logo=css3&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/CSS)
+[![Vite](https://img.shields.io/badge/Vite-5.x-646CFF.svg?style=flat-square&logo=vite&logoColor=white)](https://vitejs.dev/)
 [![Status](https://img.shields.io/badge/Deployment-Production--Ready-2ea44f.svg?style=flat-square)]()
 
 ---
@@ -93,6 +96,18 @@ graph TD
 | **Otentikasi & Keamanan** | JSON Web Token (JWT), Bcrypt | Enkripsi kata sandi dan proteksi endpoint API |
 | **Database** | PostgreSQL / Supabase Cloud DB | Relasional ACID, dukungan query JSONB & GIN Index |
 | **Real-Time Sync** | Server-Sent Events (SSE) | Sinkronisasi multi-device otomatis tanpa polling |
+
+### 💻 Komposisi Bahasa Pemrograman & Ekosistem Codebase
+Berdasarkan analisis statistik repositori GitHub Linguist dan arsitektur proyek:
+
+| Bahasa / Framework | Porsi / Peran | Kegunaan dalam Sistem |
+| :--- | :--- | :--- |
+| **React 18** | UI Framework (Frontend) | Komponen UI reaktif, modal racikan dinamis, sticky register kasir |
+| **TypeScript** | **95.6%** (Bahasa Utama) | Type safety 100% pada logika bisnis frontend (`.tsx`) dan backend REST API (`.ts`) |
+| **Modern CSS3** | **3.3%** (Styling Engine) | Desain Vanilla CSS murni, smooth scrolling, scrollbar ramping 6px, tema adaptif |
+| **PLpgSQL / SQL** | **1.1%** (Database Schema) | Migrasi relasional PostgreSQL, constraint integritas kasir, JSONB modifiers |
+| **Node.js & Express** | Runtime & API Gateway | Penanganan REST API, validasi data, SSE broadcaster, kalkulasi stok |
+| **Vite** | Build Tooling | Bundler frontend ultra-cepat dengan Hot Module Replacement (HMR) |
 
 ---
 
