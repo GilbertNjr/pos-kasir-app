@@ -953,8 +953,8 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       <div className="responsive-main-grid">
         {/* Left Column: Product Selection Grid */}
         <div style={{ minWidth: 0 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' }}>
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.65rem' }}>
+            <div style={{ display: 'flex', gap: '0.4rem', flexShrink: 0, flexWrap: 'wrap' }}>
               <button
                 onClick={() => handleUnitChange('ALL')}
                 style={{
@@ -1005,8 +1005,8 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               </button>
             </div>
 
-            {/* Search Input */}
-            <div style={{ position: 'relative', width: '220px' }}>
+            {/* Search Input - Memanjang dekat dengan tombol F&B */}
+            <div style={{ position: 'relative', flex: 1, minWidth: '220px' }}>
               <Search size={16} style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
                 type="text"
@@ -1015,13 +1015,40 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 onChange={(e) => setSearchQuery(e.target.value)}
                 style={{
                   width: '100%',
-                  padding: '0.4rem 0.75rem 0.4rem 2.25rem',
+                  padding: '0.42rem 2rem 0.42rem 2.25rem',
                   borderRadius: 'var(--radius-md)',
                   border: '1px solid var(--border-color)',
                   fontSize: '0.85rem',
                   background: '#ffffff',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                  outline: 'none',
                 }}
               />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  style={{
+                    position: 'absolute',
+                    right: '0.5rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: '#f1f5f9',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '20px',
+                    height: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    color: '#64748b',
+                  }}
+                  title="Hapus pencarian"
+                >
+                  <X size={12} />
+                </button>
+              )}
             </div>
           </div>
 
