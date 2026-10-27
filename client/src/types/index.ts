@@ -46,6 +46,32 @@ export interface Category {
   is_active: boolean;
 }
 
+export interface ProductModifierOption {
+  id: string;
+  name: string;
+  price: number;
+  linked_product_id?: string | null;
+  qty_deduct?: number;
+}
+
+export interface ProductModifierGroup {
+  id: string;
+  name: string;
+  selection_type: 'SINGLE' | 'MULTIPLE';
+  required: boolean;
+  options: ProductModifierOption[];
+}
+
+export interface SelectedModifierItem {
+  group_id: string;
+  group_name: string;
+  option_id: string;
+  name: string;
+  price: number;
+  linked_product_id?: string | null;
+  qty_deduct?: number;
+}
+
 export interface Product {
   product_id: string;
   category_id: string;
@@ -58,6 +84,7 @@ export interface Product {
   linked_qty_multiplier?: number;
   is_linked?: boolean;
   linked_product_name?: string;
+  modifiers?: ProductModifierGroup[];
   stock?: number;
   stock_gudang?: number;
   stock_etalase?: number;
@@ -134,10 +161,12 @@ export interface TransactionItem {
   transaction_item_id: string;
   transaction_id: string;
   product_id: string;
+  product_name?: string;
   unit_price: number;
   qty: number;
   subtotal: number;
   discount_amount: number;
+  selected_modifiers?: SelectedModifierItem[];
 }
 
 export interface Transaction {

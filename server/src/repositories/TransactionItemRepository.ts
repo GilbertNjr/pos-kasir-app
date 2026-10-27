@@ -10,7 +10,8 @@ export class TransactionItemRepository implements IRepository<TransactionItemEnt
       const res = await pool.query(
         `SELECT ti.item_id as transaction_item_id, ti.transaction_id, ti.product_id, 
                 COALESCE(p.product_name, ti.product_name_snapshot, 'Produk POS') as product_name,
-                ti.unit_price::float, ti.quantity::float as qty, ti.subtotal::float, ti.discount_amount::float
+                ti.unit_price::float, ti.quantity::float as qty, ti.subtotal::float, ti.discount_amount::float,
+                COALESCE(ti.selected_modifiers, '[]'::jsonb) as selected_modifiers
          FROM transaction_items ti
          LEFT JOIN products p ON ti.product_id = p.product_id`
       );
@@ -30,7 +31,8 @@ export class TransactionItemRepository implements IRepository<TransactionItemEnt
       const res = await pool.query(
         `SELECT ti.item_id as transaction_item_id, ti.transaction_id, ti.product_id, 
                 COALESCE(p.product_name, ti.product_name_snapshot, 'Produk POS') as product_name,
-                ti.unit_price::float, ti.quantity::float as qty, ti.subtotal::float, ti.discount_amount::float
+                ti.unit_price::float, ti.quantity::float as qty, ti.subtotal::float, ti.discount_amount::float,
+                COALESCE(ti.selected_modifiers, '[]'::jsonb) as selected_modifiers
          FROM transaction_items ti
          LEFT JOIN products p ON ti.product_id = p.product_id
          WHERE ti.item_id = $1`,
@@ -50,7 +52,8 @@ export class TransactionItemRepository implements IRepository<TransactionItemEnt
       const res = await pool.query(
         `SELECT ti.item_id as transaction_item_id, ti.transaction_id, ti.product_id, 
                 COALESCE(p.product_name, ti.product_name_snapshot, 'Produk POS') as product_name,
-                ti.unit_price::float, ti.quantity::float as qty, ti.subtotal::float, ti.discount_amount::float
+                ti.unit_price::float, ti.quantity::float as qty, ti.subtotal::float, ti.discount_amount::float,
+                COALESCE(ti.selected_modifiers, '[]'::jsonb) as selected_modifiers
          FROM transaction_items ti
          LEFT JOIN products p ON ti.product_id = p.product_id
          WHERE ti.transaction_id = $1`,
@@ -72,10 +75,11 @@ export class TransactionItemRepository implements IRepository<TransactionItemEnt
     try {
       const res = await pool.query(
         `INSERT INTO transaction_items 
-         (item_id, transaction_id, product_id, product_name_snapshot, unit_name_snapshot, unit_price, quantity, discount_amount, subtotal)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+         (item_id, transaction_id, product_id, product_name_snapshot, unit_name_snapshot, unit_price, quantity, discount_amount, subtotal, selected_modifiers)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
          RETURNING item_id as transaction_item_id, transaction_id, product_id, 
-                   unit_price::float, quantity::float as qty, subtotal::float, discount_amount::float`,
+                   unit_price::float, quantity::float as qty, subtotal::float, discount_amount::float,
+                   COALESCE(selected_modifiers, '[]'::jsonb) as selected_modifiers`,
         [
           item.transaction_item_id,
           item.transaction_id,
@@ -86,6 +90,7 @@ export class TransactionItemRepository implements IRepository<TransactionItemEnt
           item.qty,
           item.discount_amount || 0,
           item.subtotal,
+          JSON.stringify(item.selected_modifiers || []),
         ]
       );
       const created = res.rows[0];

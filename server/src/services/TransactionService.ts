@@ -4,13 +4,14 @@ import { ShiftRepository } from '../repositories/ShiftRepository';
 import { ProductRepository } from '../repositories/ProductRepository';
 import { ShiftUserRepository } from '../repositories/ShiftUserRepository';
 import { StockService } from './StockService';
-import { TransactionEntity, TransactionItemEntity, PaymentMethod, ShiftEntity } from '../types/domain';
+import { TransactionEntity, TransactionItemEntity, PaymentMethod, ShiftEntity, SelectedModifierItem } from '../types/domain';
 import { auditLogRepository, userRepository } from '../repositories/sharedRepositories';
 
 export interface CreateTransactionItemDTO {
   product_id: string;
   qty: number;
   discount_amount?: number;
+  selected_modifiers?: SelectedModifierItem[];
 }
 
 export interface CreateTransactionDTO {
@@ -129,22 +130,63 @@ export class TransactionService {
         }
       }
 
-      const unitPrice = Math.round(product.selling_price);
+      // Validasi stok fisik untuk setiap modifier yang menautkan stok (misal Topping Telur, Sosis, Double Mie)
+      if (itemDto.selected_modifiers && Array.isArray(itemDto.selected_modifiers) && this.stockService) {
+        for (const mod of itemDto.selected_modifiers) {
+          const modStockTargetId = mod.linked_product_id === 'self'
+            ? (product.linked_product_id || product.product_id)
+            : mod.linked_product_id;
+
+          if (modStockTargetId) {
+            const modQtyDeduct = (Number(mod.qty_deduct) || 1) * itemDto.qty;
+            const totalModNeededSoFar = (accumulatedPhysicalDemand.get(modStockTargetId) || 0) + modQtyDeduct;
+            accumulatedPhysicalDemand.set(modStockTargetId, totalModNeededSoFar);
+
+            const stocks = await this.stockService.getAllStocksWithProducts();
+            const modStockItem = stocks.find((s) => s.product_id === modStockTargetId);
+            const etalaseStock = modStockItem?.stock_etalase !== undefined && modStockItem?.stock_etalase !== null
+              ? Number(modStockItem.stock_etalase)
+              : (modStockItem ? Number(modStockItem.current_stock) : 0);
+
+            if (etalaseStock < totalModNeededSoFar) {
+              const modTargetName = modStockItem?.product_name || mod.name;
+              throw new Error(
+                `Stok bahan topping/opsi "${mod.name}" (sumber: "${modTargetName}") tidak mencukupi. Tersedia di etalase: ${etalaseStock} Pcs, total diminta: ${totalModNeededSoFar} Pcs.`
+              );
+            }
+          }
+        }
+      }
+
+      // Hitung harga dasar + total biaya modifier terpilih
+      const modifiersPrice = (itemDto.selected_modifiers || []).reduce(
+        (sum, m) => sum + (Number(m.price) || 0),
+        0
+      );
+      const unitPrice = Math.round(product.selling_price + modifiersPrice);
       const itemDiscount = Math.round(itemDto.discount_amount ?? 0);
       const itemSubtotal = Math.round(unitPrice * itemDto.qty - itemDiscount);
 
       calculatedSubtotal += Math.round(unitPrice * itemDto.qty);
       calculatedDiscount += itemDiscount;
 
+      // Buat label nama produk informatif di nota
+      let displayName = product.product_name;
+      if (itemDto.selected_modifiers && itemDto.selected_modifiers.length > 0) {
+        const modSummary = itemDto.selected_modifiers.map((m) => m.name).join(', ');
+        displayName = `${product.product_name} (${modSummary})`;
+      }
+
       itemEntities.push({
         transaction_item_id: `txi-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
         transaction_id,
         product_id: product.product_id,
-        product_name: product.product_name,
+        product_name: displayName,
         unit_price: unitPrice,
         qty: itemDto.qty,
         subtotal: itemSubtotal,
         discount_amount: itemDiscount,
+        selected_modifiers: itemDto.selected_modifiers || [],
       });
     }
 
@@ -173,11 +215,29 @@ export class TransactionService {
 
     await this.transactionRepository.create(newTransaction);
 
-    // 4. Simpan Item Detail Transaksi & Potong Stok Produk Fisik
-    for (const itemEntity of itemEntities) {
+    // 4. Simpan Item Detail Transaksi & Potong Stok Produk Fisik + Bahan Topping
+    for (let idx = 0; idx < itemEntities.length; idx++) {
+      const itemEntity = itemEntities[idx];
+      const sourceDto = dto.items[idx];
       await this.itemRepository.create(itemEntity);
+
       if (this.stockService) {
+        // Potong stok produk utama
         await this.stockService.deductStock(itemEntity.product_id, itemEntity.qty);
+
+        // Potong stok topping/modifier jika terhubung ke produk fisik
+        if (sourceDto?.selected_modifiers && Array.isArray(sourceDto.selected_modifiers)) {
+          for (const mod of sourceDto.selected_modifiers) {
+            const modStockTargetId = mod.linked_product_id === 'self'
+              ? itemEntity.product_id
+              : mod.linked_product_id;
+
+            if (modStockTargetId) {
+              const modQtyDeduct = (Number(mod.qty_deduct) || 1) * itemEntity.qty;
+              await this.stockService.deductStock(modStockTargetId, modQtyDeduct);
+            }
+          }
+        }
       }
     }
 
@@ -315,7 +375,22 @@ export class TransactionService {
     const items = await this.itemRepository.findByTransactionId(transaction_id);
     if (this.stockService && items) {
       for (const item of items) {
+        // Kembalikan stok produk utama
         await this.stockService.restoreStock(item.product_id, item.qty);
+
+        // Kembalikan stok bahan topping/modifier jika ada
+        if (item.selected_modifiers && Array.isArray(item.selected_modifiers)) {
+          for (const mod of item.selected_modifiers) {
+            const modStockTargetId = mod.linked_product_id === 'self'
+              ? item.product_id
+              : mod.linked_product_id;
+
+            if (modStockTargetId) {
+              const qtyToRestore = (Number(mod.qty_deduct) || 1) * item.qty;
+              await this.stockService.restoreStock(modStockTargetId, qtyToRestore);
+            }
+          }
+        }
       }
     }
 

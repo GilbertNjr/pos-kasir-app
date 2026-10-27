@@ -2,6 +2,29 @@
 
 Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kronologis dalam dokumen ini.
 
+## [v2.0.0] - 2026-10-27 - Sistem Racikan Dinamis & Topping Multiguna (Product Modifiers & Multi-Ingredient Inventory Deduction)
+
+### 🍲 Sistem Racikan Dinamis (Modifiers / Toppings / Cara Saji)
+- **Solusi Masalah Stok Mie Masak vs Mie Biasa & Topping Campuran:**
+  - Menghilangkan kebutuhan membuat entri produk ganda (*Indomie Biasa* & *Indomie Masak*) yang membuat pembukuan stok tidak stabil.
+  - Toko hanya memiliki 1 master stok fisik mie bungkus di rak etalase. Ketika pelanggan memesan mie dimasak, mentah, atau menambahkan topping (telur, sosis, kornet, keju), kasir cukup memilih opsi/topping yang diinginkan.
+- **Skema Database Relasional JSONB Terstruktur:**
+  - Migrasi `009_add_modifiers_to_products.sql`: Menambahkan kolom `modifiers JSONB DEFAULT '[]'::jsonb` pada tabel `products` dengan GIN index untuk pencarian cepat, serta `selected_modifiers JSONB DEFAULT '[]'::jsonb` pada tabel `transaction_items`.
+  - Struktur data menyimpan grup modifier (e.g. `Cara Saji` [SINGLE / Radio], `Topping Tambahan` [MULTIPLE / Checkbox]), harga delta (+Rp), serta tautan pengurangan stok bahan baku (`linked_product_id` & `qty_deduct`).
+- **Kalkulasi & Pemotongan Stok Multi-Bahan Otomatis (`TransactionService.ts`):**
+  - Mengkalkulasi harga satuan dinamis: `selling_price + sum(modifier prices)`.
+  - Memotong stok master mie fisik di rak secara akurat.
+  - Memotong stok bahan baku tambahan (seperti Telur Ayam) dari etalase toko secara otomatis sesuai pilihan pelanggan.
+  - Mengembalikan stok mie dan bahan baku topping saat transaksi dibatalkan (`cancelTransaction`).
+- **Antarmuka Kasir Cepat & Tanpa Friksi (`PosRegister.tsx`, `ProductModifierModal.tsx`):**
+  - Produk tanpa modifier tetap 1-klik instan masuk ke keranjang kasir (zero friction untuk produk ritel biasa seperti ATK, bolpoin, snack, air mineral).
+  - Produk dengan modifier menampilkan popup elegan untuk memilih opsi & topping dengan live subtotal preview.
+  - Keranjang kasir menampilkan rincian racikan di bawah nama item.
+- **Tampilan Struk Cetak Presisi (`TransactionDetailModal.tsx`):**
+  - Format cetak thermal 58mm/80mm maupun invoice A4 menampilkan rincian nama racikan dan topping yang dipesan secara rapi, transparan, dan profesional.
+- **Editor Racikan Dinamis di Kelola Produk (`ProductModifierEditor.tsx`, `ProductsPage.tsx`):**
+  - Owner dapat menambah, mengedit, mengurutkan grup opsi, jenis pilihan (Single/Multiple), status wajib/opsional, selisih harga, serta menautkan pemotongan stok bahan baku langsung dari layar Tambah/Ubah Produk tanpa perlu koding.
+
 ## [v1.9.0] - 2026-09-12 - Fitur Dynamic Linked Stock (Stok Bersama / Shared Inventory Pool)
 
 ### 🔗 Dynamic Linked Stock / Shared Inventory Pool (`ProductService.ts`, `StockService.ts`, `TransactionService.ts`)

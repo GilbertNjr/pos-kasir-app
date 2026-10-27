@@ -103,6 +103,7 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
       product_name: item.product_name || item.name || (matchedProd ? matchedProd.product_name : 'Produk POS'),
       unit_price: Number(item.unit_price || item.price || matchedProd?.selling_price || 0),
       qty: Number(item.qty || item.quantity || 1),
+      selected_modifiers: item.selected_modifiers || [],
     };
   });
 
@@ -155,11 +156,14 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
           const qty = Number(item.qty || item.quantity || 1);
           const price = Number(item.unit_price || 0);
           const sub = Number(item.subtotal || price * qty);
+          const modText = Array.isArray(item.selected_modifiers) && item.selected_modifiers.length > 0
+            ? `<div style="font-size: 11px; color: #475569; margin-top: 2px;">${item.selected_modifiers.map((m: any) => `• ${m.name}${Number(m.price) > 0 ? ` (+${formatRupiah(m.price)})` : ''}`).join('<br/>')}</div>`
+            : '';
 
           return `
           <tr style="border-bottom: 1px solid #e2e8f0;">
             <td style="padding: 10px 12px; text-align: center;">${idx + 1}</td>
-            <td style="padding: 10px 12px; font-weight: 600;">${pName}</td>
+            <td style="padding: 10px 12px; font-weight: 600;">${pName}${modText}</td>
             <td style="padding: 10px 12px; text-align: center;">${qty}</td>
             <td style="padding: 10px 12px; text-align: right;">${formatRupiah(price)}</td>
             <td style="padding: 10px 12px; text-align: right; font-weight: 700;">${formatRupiah(sub)}</td>
@@ -265,10 +269,13 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
         const qty = Number(item.qty || item.quantity || 1);
         const price = Number(item.unit_price || 0);
         const sub = Number(item.subtotal || price * qty);
+        const modText = Array.isArray(item.selected_modifiers) && item.selected_modifiers.length > 0
+          ? item.selected_modifiers.map((m: any) => `<div style="font-size: 10px; color: #334155; padding-left: 6px;">+ ${m.name}${Number(m.price) > 0 ? ` (+${formatRupiah(m.price)})` : ''}</div>`).join('')
+          : '';
 
         return `
         <tr>
-          <td style="padding: 4px 0;">${pName}<br/><span style="font-size: 10px; color: #64748b;">${qty} x ${formatRupiah(price)}</span></td>
+          <td style="padding: 4px 0;">${pName}${modText}<div style="font-size: 10px; color: #64748b; margin-top: 2px;">${qty} x ${formatRupiah(price)}</div></td>
           <td style="padding: 4px 0; text-align: right; vertical-align: top; font-weight: 700;">${formatRupiah(sub)}</td>
         </tr>
       `;
@@ -483,7 +490,29 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
 
                         return (
                           <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '0.5rem 0.2rem 0.5rem 0.4rem', fontWeight: 700, color: '#0f172a', wordBreak: 'break-word', lineHeight: 1.3, fontSize: '0.775rem' }}>{pName}</td>
+                            <td style={{ padding: '0.5rem 0.2rem 0.5rem 0.4rem', fontWeight: 700, color: '#0f172a', wordBreak: 'break-word', lineHeight: 1.3, fontSize: '0.775rem' }}>
+                              {pName}
+                              {Array.isArray(item.selected_modifiers) && item.selected_modifiers.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', marginTop: '0.2rem' }}>
+                                  {item.selected_modifiers.map((m: any, mIdx: number) => (
+                                    <span
+                                      key={mIdx}
+                                      style={{
+                                        fontSize: '0.65rem',
+                                        background: '#eff6ff',
+                                        color: '#1d4ed8',
+                                        padding: '0.08rem 0.3rem',
+                                        borderRadius: '4px',
+                                        border: '1px solid #bfdbfe',
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      {m.name}{Number(m.price) > 0 ? ` (+${formatRupiah(m.price)})` : ''}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
+                            </td>
                             <td style={{ padding: '0.5rem 0.1rem', textAlign: 'center', fontWeight: 700, color: '#475569' }}>{qty}</td>
                             <td style={{ padding: '0.5rem 0.2rem', textAlign: 'right', color: '#64748b', fontSize: '0.7rem', whiteSpace: 'nowrap' }}>{formatRupiah(price)}</td>
                             <td style={{ padding: '0.5rem 0.4rem 0.5rem 0.2rem', textAlign: 'right', fontWeight: 800, color: '#0f172a', fontSize: 'clamp(0.7rem, 2.7vw, 0.775rem)', whiteSpace: 'nowrap' }}>{formatRupiah(sub)}</td>

@@ -1,4 +1,4 @@
-import { User, UserStatus, Category, Product, BusinessUnit, Shift, ShiftCapitalContribution, Transaction, TransactionItem, PaymentMethod, Expense } from '../types';
+import { User, UserStatus, Category, Product, BusinessUnit, Shift, ShiftCapitalContribution, Transaction, TransactionItem, PaymentMethod, Expense, SelectedModifierItem } from '../types';
 import { offlineQueue } from '../utils/offlineQueue';
 
 const API_BASE = '/api';
@@ -20,6 +20,7 @@ export interface CreateTransactionItemDTO {
   product_id: string;
   qty: number;
   discount_amount?: number;
+  selected_modifiers?: SelectedModifierItem[];
 }
 
 export interface CreateTransactionResultData {

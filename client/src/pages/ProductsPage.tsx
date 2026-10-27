@@ -21,7 +21,8 @@ import {
   Trash2,
 } from 'lucide-react';
 import { apiService } from '../services/api';
-import { Product, Category, User, BusinessUnit } from '../types';
+import { Product, Category, User, BusinessUnit, ProductModifierGroup } from '../types';
+import { ProductModifierEditor } from '../components/products/ProductModifierEditor';
 import { formatRupiah } from '../utils/formatters';
 import { RoleGuard } from '../components/RoleGuard';
 import { ActionLoadingModal } from '../components/common/ActionLoadingModal';
@@ -74,6 +75,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   const [newStockMode, setNewStockMode] = useState<'MANUAL' | 'LINKED' | 'NONE'>('MANUAL');
   const [newLinkedProductId, setNewLinkedProductId] = useState('');
   const [newLinkedQtyMultiplier, setNewLinkedQtyMultiplier] = useState<number>(1.0);
+  const [newModifiers, setNewModifiers] = useState<ProductModifierGroup[]>([]);
   const [formLoading, setFormLoading] = useState(false);
 
   // Form State Modal Edit Produk (Owner Only)
@@ -86,6 +88,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
   const [editStockMode, setEditStockMode] = useState<'MANUAL' | 'LINKED' | 'NONE'>('MANUAL');
   const [editLinkedProductId, setEditLinkedProductId] = useState('');
   const [editLinkedQtyMultiplier, setEditLinkedQtyMultiplier] = useState<number>(1.0);
+  const [editModifiers, setEditModifiers] = useState<ProductModifierGroup[]>([]);
 
   // State Modal Hapus Produk (Owner Only)
   const [deleteConfirmItem, setDeleteConfirmItem] = useState<Product | null>(null);
@@ -166,6 +169,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
         manage_stock: newStockMode !== 'NONE',
         linked_product_id: newStockMode === 'LINKED' ? newLinkedProductId : null,
         linked_qty_multiplier: newStockMode === 'LINKED' ? Number(newLinkedQtyMultiplier) || 1.0 : 1.0,
+        modifiers: newModifiers,
         is_active: true,
       });
 
@@ -179,6 +183,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
       setNewStockMode('MANUAL');
       setNewLinkedProductId('');
       setNewLinkedQtyMultiplier(1.0);
+      setNewModifiers([]);
       loadData();
     } catch (err: any) {
       if (onTriggerToast) {
@@ -196,6 +201,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
     setEditCategoryId(product.category_id);
     setEditBusinessUnit(product.business_unit);
     setEditPrice(product.selling_price);
+    setEditModifiers(product.modifiers || []);
     if (product.linked_product_id) {
       setEditStockMode('LINKED');
       setEditLinkedProductId(product.linked_product_id);
@@ -235,6 +241,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
         manage_stock: editStockMode !== 'NONE',
         linked_product_id: editStockMode === 'LINKED' ? editLinkedProductId : null,
         linked_qty_multiplier: editStockMode === 'LINKED' ? Number(editLinkedQtyMultiplier) || 1.0 : 1.0,
+        modifiers: editModifiers,
       });
 
       const beMessage = res?.message || `Perubahan untuk "${editProductName}" berhasil disimpan.`;
@@ -1454,6 +1461,13 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                     </div>
                   </div>
                 )}
+
+                {/* Editor Varian & Topping Dinamis */}
+                <ProductModifierEditor
+                  modifiers={newModifiers}
+                  onChange={setNewModifiers}
+                  availableProducts={products}
+                />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.75rem' }}>
@@ -1643,6 +1657,14 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ currentUser, onTrigg
                     </div>
                   </div>
                 )}
+
+                {/* Editor Varian & Topping Dinamis */}
+                <ProductModifierEditor
+                  modifiers={editModifiers}
+                  onChange={setEditModifiers}
+                  availableProducts={products}
+                  currentProductId={editProductId}
+                />
               </div>
 
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.75rem' }}>

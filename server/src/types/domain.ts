@@ -122,6 +122,32 @@ export interface TransactionEntity {
   items?: TransactionItemEntity[];
 }
 
+export interface ProductModifierOption {
+  id: string;
+  name: string;
+  price: number;
+  linked_product_id?: string | null;
+  qty_deduct?: number;
+}
+
+export interface ProductModifierGroup {
+  id: string;
+  name: string;
+  selection_type: 'SINGLE' | 'MULTIPLE';
+  required: boolean;
+  options: ProductModifierOption[];
+}
+
+export interface SelectedModifierItem {
+  group_id: string;
+  group_name: string;
+  option_id: string;
+  name: string;
+  price: number;
+  linked_product_id?: string | null;
+  qty_deduct?: number;
+}
+
 export interface TransactionItemEntity {
   transaction_item_id: string;
   transaction_id: string;
@@ -131,17 +157,24 @@ export interface TransactionItemEntity {
   qty: number;
   subtotal: number;
   discount_amount: number;
+  selected_modifiers?: SelectedModifierItem[];
 }
 
 export interface ProductEntity {
   product_id: string;
   category_id: string;
+  unit_id?: string;
   product_name: string;
+  sku?: string;
+  type?: 'PRODUCT' | 'SERVICE';
   business_unit: BusinessUnit;
   selling_price: number;
+  cost_price?: number;
   manage_stock: boolean;
   linked_product_id?: string | null;
   linked_qty_multiplier?: number;
+  image_url?: string;
+  modifiers?: ProductModifierGroup[];
   is_active: boolean;
 }
 

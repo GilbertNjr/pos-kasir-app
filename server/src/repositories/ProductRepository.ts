@@ -16,6 +16,7 @@ export interface ProductEntity {
   linked_product_id?: string | null;
   linked_qty_multiplier?: number;
   image_url?: string;
+  modifiers?: any[];
   is_active: boolean;
 }
 
@@ -28,7 +29,7 @@ export class ProductRepository implements IRepository<ProductEntity> {
         `SELECT product_id, category_id, unit_id, product_name, sku, type, business_unit, 
                 selling_price::float, cost_price::float, manage_stock, linked_product_id, 
                 COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, 
-                image_url, is_active 
+                image_url, COALESCE(modifiers, '[]'::jsonb) as modifiers, is_active 
          FROM products 
          WHERE is_active = true
          ORDER BY product_name ASC`
@@ -50,7 +51,7 @@ export class ProductRepository implements IRepository<ProductEntity> {
         `SELECT product_id, category_id, unit_id, product_name, sku, type, business_unit, 
                 selling_price::float, cost_price::float, manage_stock, linked_product_id, 
                 COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, 
-                image_url, is_active 
+                image_url, COALESCE(modifiers, '[]'::jsonb) as modifiers, is_active 
          FROM products 
          ORDER BY product_name ASC`
       );
@@ -67,7 +68,7 @@ export class ProductRepository implements IRepository<ProductEntity> {
         `SELECT product_id, category_id, unit_id, product_name, sku, type, business_unit, 
                 selling_price::float, cost_price::float, manage_stock, linked_product_id, 
                 COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, 
-                image_url, is_active 
+                image_url, COALESCE(modifiers, '[]'::jsonb) as modifiers, is_active 
          FROM products 
          WHERE product_id = $1`,
         [product_id]
@@ -91,11 +92,12 @@ export class ProductRepository implements IRepository<ProductEntity> {
       const unitId = product.unit_id || 'unit-pcs';
       const res = await pool.query(
         `INSERT INTO products 
-         (product_id, category_id, unit_id, product_name, sku, type, business_unit, selling_price, cost_price, manage_stock, linked_product_id, linked_qty_multiplier, image_url, is_active)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+         (product_id, category_id, unit_id, product_name, sku, type, business_unit, selling_price, cost_price, manage_stock, linked_product_id, linked_qty_multiplier, image_url, modifiers, is_active)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
          RETURNING product_id, category_id, unit_id, product_name, sku, type, business_unit, 
                    selling_price::float, cost_price::float, manage_stock, linked_product_id, 
-                   COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, image_url, is_active`,
+                   COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, image_url, 
+                   COALESCE(modifiers, '[]'::jsonb) as modifiers, is_active`,
         [
           product.product_id,
           product.category_id,
@@ -110,6 +112,7 @@ export class ProductRepository implements IRepository<ProductEntity> {
           product.linked_product_id || null,
           product.linked_qty_multiplier || 1.0,
           product.image_url || null,
+          JSON.stringify(product.modifiers || []),
           product.is_active ?? true,
         ]
       );
@@ -141,6 +144,7 @@ export class ProductRepository implements IRepository<ProductEntity> {
       if (item.linked_product_id !== undefined) { fields.push(`linked_product_id = $${idx++}`); values.push(item.linked_product_id); }
       if (item.linked_qty_multiplier !== undefined) { fields.push(`linked_qty_multiplier = $${idx++}`); values.push(item.linked_qty_multiplier); }
       if (item.image_url !== undefined) { fields.push(`image_url = $${idx++}`); values.push(item.image_url); }
+      if (item.modifiers !== undefined) { fields.push(`modifiers = $${idx++}`); values.push(JSON.stringify(item.modifiers || [])); }
       if (item.is_active !== undefined) { fields.push(`is_active = $${idx++}`); values.push(item.is_active); }
 
       fields.push(`updated_at = CURRENT_TIMESTAMP`);
@@ -151,7 +155,8 @@ export class ProductRepository implements IRepository<ProductEntity> {
       const queryStr = `UPDATE products SET ${fields.join(', ')} WHERE product_id = $${idx} 
                         RETURNING product_id, category_id, unit_id, product_name, sku, type, business_unit, 
                                   selling_price::float, cost_price::float, manage_stock, linked_product_id, 
-                                  COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, image_url, is_active`;
+                                  COALESCE(linked_qty_multiplier, 1.0)::float as linked_qty_multiplier, image_url, 
+                                  COALESCE(modifiers, '[]'::jsonb) as modifiers, is_active`;
       const res = await pool.query(queryStr, values);
 
       if (res.rows.length > 0) {

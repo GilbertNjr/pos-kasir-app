@@ -21,11 +21,12 @@ import {
   Loader2,
 } from 'lucide-react';
 import { apiService, CreateTransactionResultData } from '../services/api';
-import { Product, User, PaymentMethod, Category } from '../types';
+import { Product, User, PaymentMethod, Category, SelectedModifierItem } from '../types';
 import { formatRupiah } from '../utils/formatters';
 import { getProductCategoryBucket } from '../utils/categoryUtils';
 import { ActionLoadingModal } from './common/ActionLoadingModal';
 import { TransactionDetailModal } from './common/TransactionDetailModal';
+import { ProductModifierModal } from './pos/ProductModifierModal';
 import { useRealtimeSubscription } from '../services/realtimeService';
 
 export interface HeldOrder {
@@ -43,7 +44,7 @@ export interface OfflineTransactionItem {
   timestamp: string;
   paymentMethod: PaymentMethod;
   cashTendered: number;
-  items: { product_id: string; qty: number; product_name: string; price: number }[];
+  items: { product_id: string; qty: number; product_name: string; price: number; selected_modifiers?: SelectedModifierItem[] }[];
   customerName?: string;
   discountAmount?: number;
 }
@@ -57,9 +58,18 @@ interface PosRegisterProps {
 }
 
 export interface CartItem {
+  cartItemId: string;
   product: Product;
   qty: number;
+  customPrice?: number;
+  selectedModifiers?: SelectedModifierItem[];
 }
+
+export const getCartItemUnitPrice = (item: CartItem): number => {
+  const base = item.customPrice !== undefined ? item.customPrice : item.product.selling_price;
+  const modExtra = (item.selectedModifiers || []).reduce((sum, m) => sum + Number(m.price || 0), 0);
+  return base + modExtra;
+};
 
 export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShiftId, onTransactionComplete, onShiftOpened }) => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -95,6 +105,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   const [recentTransactions, setRecentTransactions] = useState<any[]>([]);
   const [loadingRecentTx, setLoadingRecentTx] = useState(false);
   const [selectedTxForDetail, setSelectedTxForDetail] = useState<any | null>(null);
+  const [modifierModalProduct, setModifierModalProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     try {
@@ -213,9 +224,11 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
           is_active: true,
         };
         return {
+          cartItemId: `${pId || 'item'}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
           product: foundProd,
           qty: Number(item.qty || item.quantity || 1),
           customPrice: item.unit_price ? Number(item.unit_price) : undefined,
+          selectedModifiers: item.selected_modifiers || [],
         };
       });
 
@@ -507,8 +520,21 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     }
   };
 
-  const addToCart = (product: Product) => {
-    const existing = cart.find((item) => item.product.product_id === product.product_id);
+  const addToCart = (
+    product: Product,
+    quantity: number = 1,
+    selectedModifiers: SelectedModifierItem[] = []
+  ) => {
+    const modSig = (selectedModifiers || [])
+      .map((m) => m.option_id)
+      .sort()
+      .join('|');
+
+    const existing = cart.find(
+      (item) =>
+        item.product.product_id === product.product_id &&
+        ((item.selectedModifiers || []).map((m) => m.option_id).sort().join('|') === modSig)
+    );
 
     // Batasi jika produk mengelola stok fisik - HANYA BOLEH MENJUAL STOK ETALASE YANG TERSEDIA
     if (product.manage_stock) {
@@ -556,14 +582,14 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
         ? product.linked_qty_multiplier
         : 1;
 
-      if (currentPhysicalInCart + itemMultiplier > availableEtalase) {
+      if (currentPhysicalInCart + (quantity * itemMultiplier) > availableEtalase) {
         setStockAlert({
           isOpen: true,
           type: 'WARNING',
           title: 'STOK ETALASE TIDAK CUKUP!',
           productName: product.product_name,
           currentStock: availableEtalase,
-          message: `Jumlah permintaan fisik di keranjang kasir (${currentPhysicalInCart + itemMultiplier} Pcs) melebihi stok etalase yang tersedia (${availableEtalase} Pcs tersedia${
+          message: `Jumlah permintaan fisik di keranjang kasir (${currentPhysicalInCart + (quantity * itemMultiplier)} Pcs) melebihi stok etalase yang tersedia (${availableEtalase} Pcs tersedia${
             inHeldQty > 0 ? `, ${inHeldQty} Pcs tertahan di antrean draft` : ''
           }). Gudang memiliki cadangan ${gudangStock} Pcs.`,
           transferProduct: gudangStock > 0 ? product : undefined,
@@ -575,16 +601,32 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     setCart((prev) => {
       if (existing) {
         return prev.map((item) =>
-          item.product.product_id === product.product_id ? { ...item, qty: item.qty + 1 } : item
+          item.cartItemId === existing.cartItemId
+            ? { ...item, qty: item.qty + quantity }
+            : item
         );
       }
-      return [...prev, { product, qty: 1 }];
+      const newItem: CartItem = {
+        cartItemId: `${product.product_id}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        product,
+        qty: quantity,
+        selectedModifiers,
+      };
+      return [...prev, newItem];
     });
   };
 
-  const updateCartQty = (productId: string, delta: number) => {
+  const handleProductClick = (product: Product) => {
+    if (product.modifiers && product.modifiers.length > 0) {
+      setModifierModalProduct(product);
+    } else {
+      addToCart(product, 1, []);
+    }
+  };
+
+  const updateCartQty = (cartItemId: string, delta: number) => {
     if (delta > 0) {
-      const item = cart.find((i) => i.product.product_id === productId);
+      const item = cart.find((i) => i.cartItemId === cartItemId);
       if (item && item.product.manage_stock) {
         const masterId = item.product.linked_product_id || item.product.product_id;
         const etalaseStock = item.product.stock_etalase ?? item.product.stock ?? 0;
@@ -627,7 +669,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     setCart((prev) =>
       prev
         .map((item) => {
-          if (item.product.product_id === productId) {
+          if (item.cartItemId === cartItemId) {
             const newQty = item.qty + delta;
             return newQty > 0 ? { ...item, qty: newQty } : null;
           }
@@ -637,8 +679,8 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
     );
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart((prev) => prev.filter((item) => item.product.product_id !== productId));
+  const removeFromCart = (cartItemId: string) => {
+    setCart((prev) => prev.filter((item) => item.cartItemId !== cartItemId));
   };
 
   const clearCart = () => {
@@ -646,7 +688,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
   };
 
   // Logika Preferensi Toko & Diskon
-  const rawTotal = cart.reduce((sum, item) => sum + item.product.selling_price * item.qty, 0);
+  const rawTotal = cart.reduce((sum, item) => sum + getCartItemUnitPrice(item) * item.qty, 0);
   const discountVal = Number(discountAmount) || 0;
   const subtotalAfterDiscount = Math.max(0, rawTotal - discountVal);
   const totalAmount = storePreferences.total_rounding ? Math.round(subtotalAfterDiscount / 100) * 100 : subtotalAfterDiscount;
@@ -684,7 +726,8 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
           product_id: i.product.product_id,
           qty: i.qty,
           product_name: i.product.product_name,
-          price: i.product.selling_price,
+          price: getCartItemUnitPrice(i),
+          selected_modifiers: i.selectedModifiers || [],
         })),
         customerName: customerName.trim() || undefined,
         discountAmount: discountVal || undefined,
@@ -704,6 +747,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       const itemsDto = cart.map((item) => ({
         product_id: item.product.product_id,
         qty: item.qty,
+        selected_modifiers: item.selectedModifiers || [],
       }));
 
       const result = await apiService.createTransaction(paymentMethod, itemsDto, Number(cashTendered) || 0);
@@ -712,9 +756,26 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
       // Optimistically decrement local products state for instant real-time feel
       setProducts((prev) =>
         prev.map((p) => {
-          const bought = itemsDto.find((it) => it.product_id === p.product_id);
-          if (bought && p.manage_stock) {
-            const newEtalase = Math.max(0, (p.stock_etalase ?? p.stock ?? 0) - bought.qty);
+          let totalDeduct = 0;
+          cart.forEach((cItem) => {
+            const mult = cItem.product.linked_qty_multiplier && cItem.product.linked_qty_multiplier > 0
+              ? cItem.product.linked_qty_multiplier
+              : 1;
+            const itemMasterId = cItem.product.linked_product_id || cItem.product.product_id;
+            if (itemMasterId === p.product_id) {
+              totalDeduct += cItem.qty * mult;
+            }
+            (cItem.selectedModifiers || []).forEach((m) => {
+              if (m.linked_product_id === 'self' && itemMasterId === p.product_id) {
+                totalDeduct += cItem.qty * (m.qty_deduct || 1);
+              } else if (m.linked_product_id === p.product_id) {
+                totalDeduct += cItem.qty * (m.qty_deduct || 1);
+              }
+            });
+          });
+
+          if (totalDeduct > 0 && p.manage_stock) {
+            const newEtalase = Math.max(0, (p.stock_etalase ?? p.stock ?? 0) - totalDeduct);
             return {
               ...p,
               stock: newEtalase,
@@ -1043,7 +1104,7 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                 return (
                   <div
                     key={p.product_id}
-                    onClick={() => !isOutOfStock && addToCart(p)}
+                    onClick={() => !isOutOfStock && handleProductClick(p)}
                     className="card-glass"
                     style={{
                       padding: '0.85rem',
@@ -1199,6 +1260,23 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                             title="Stok fisik bersama (menautkan ke produk induk)"
                           >
                             🔗 Bersama
+                          </span>
+                        )}
+                        {p.modifiers && p.modifiers.length > 0 && (
+                          <span
+                            style={{
+                              fontSize: '0.62rem',
+                              fontWeight: 800,
+                              padding: '0.1rem 0.35rem',
+                              borderRadius: '4px',
+                              background: '#eff6ff',
+                              color: '#1d4ed8',
+                              border: '1px solid #bfdbfe',
+                              display: 'inline-block',
+                            }}
+                            title="Produk memiliki opsi racikan / topping custom"
+                          >
+                            ✨ Opsi/Topping
                           </span>
                         )}
                       </div>
@@ -1415,48 +1493,74 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
               </div>
             ) : (
               <div style={{ maxHeight: '280px', overflowY: 'auto', marginBottom: '1rem' }}>
-                {cart.map((item) => (
-                  <div
-                    key={item.product.product_id}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '0.6rem 0',
-                      borderBottom: '1px solid var(--border-color)',
-                      fontSize: '0.85rem',
-                    }}
-                  >
-                    <div style={{ flex: 1, paddingRight: '0.5rem', minWidth: 0 }}>
-                      <div style={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.35, wordBreak: 'break-word' }}>{item.product.product_name}</div>
-                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                        {formatRupiah(item.product.selling_price)} x {item.qty}
+                {cart.map((item) => {
+                  const unitPrice = getCartItemUnitPrice(item);
+                  return (
+                    <div
+                      key={item.cartItemId || item.product.product_id}
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '0.6rem 0',
+                        borderBottom: '1px solid var(--border-color)',
+                        fontSize: '0.85rem',
+                      }}
+                    >
+                      <div style={{ flex: 1, paddingRight: '0.5rem', minWidth: 0 }}>
+                        <div style={{ fontWeight: 700, color: '#0f172a', lineHeight: 1.35, wordBreak: 'break-word' }}>
+                          {item.product.product_name}
+                        </div>
+                        {item.selectedModifiers && item.selectedModifiers.length > 0 && (
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.2rem' }}>
+                            {item.selectedModifiers.map((m, mIdx) => (
+                              <span
+                                key={mIdx}
+                                style={{
+                                  fontSize: '0.68rem',
+                                  background: '#eff6ff',
+                                  color: '#1d4ed8',
+                                  padding: '0.1rem 0.35rem',
+                                  borderRadius: '4px',
+                                  border: '1px solid #bfdbfe',
+                                  fontWeight: 600,
+                                }}
+                              >
+                                {m.name}
+                                {m.price > 0 ? ` (+${formatRupiah(m.price)})` : ''}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>
+                          {formatRupiah(unitPrice)} x {item.qty} = <strong style={{ color: '#0f172a' }}>{formatRupiah(unitPrice * item.qty)}</strong>
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
+                        <button
+                          onClick={() => updateCartQty(item.cartItemId, -1)}
+                          style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: '#f8fafc', cursor: 'pointer' }}
+                        >
+                          <Minus size={12} />
+                        </button>
+                        <span style={{ fontWeight: 700, minWidth: '20px', textAlign: 'center' }}>{item.qty}</span>
+                        <button
+                          onClick={() => updateCartQty(item.cartItemId, 1)}
+                          style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: '#f8fafc', cursor: 'pointer' }}
+                        >
+                          <Plus size={12} />
+                        </button>
+                        <button
+                          onClick={() => removeFromCart(item.cartItemId)}
+                          style={{ padding: '0.2rem 0.4rem', color: '#991b1b', border: 'none', background: 'none', cursor: 'pointer' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
-
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', flexShrink: 0 }}>
-                      <button
-                        onClick={() => updateCartQty(item.product.product_id, -1)}
-                        style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: '#f8fafc', cursor: 'pointer' }}
-                      >
-                        <Minus size={12} />
-                      </button>
-                      <span style={{ fontWeight: 700, minWidth: '20px', textAlign: 'center' }}>{item.qty}</span>
-                      <button
-                        onClick={() => updateCartQty(item.product.product_id, 1)}
-                        style={{ padding: '0.2rem 0.4rem', borderRadius: '4px', border: '1px solid var(--border-color)', background: '#f8fafc', cursor: 'pointer' }}
-                      >
-                        <Plus size={12} />
-                      </button>
-                      <button
-                        onClick={() => removeFromCart(item.product.product_id)}
-                        style={{ padding: '0.2rem 0.4rem', color: '#991b1b', border: 'none', background: 'none', cursor: 'pointer' }}
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1698,6 +1802,18 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
           </div>
         </div>
       </div>
+
+      {/* Product Modifier / Topping Customization Modal */}
+      {modifierModalProduct && (
+        <ProductModifierModal
+          isOpen={!!modifierModalProduct}
+          onClose={() => setModifierModalProduct(null)}
+          product={modifierModalProduct}
+          onConfirm={(prod, selectedMods, qty) => {
+            addToCart(prod, qty, selectedMods);
+          }}
+        />
+      )}
 
       {/* Struk Digital Modal */}
       {lastReceipt && (

@@ -52,6 +52,7 @@ export class ProductService {
       manage_stock: linkedProductId ? true : (data.manage_stock ?? true),
       linked_product_id: linkedProductId,
       linked_qty_multiplier: linkedMultiplier,
+      modifiers: data.modifiers || [],
       is_active: data.is_active ?? true,
     };
 
