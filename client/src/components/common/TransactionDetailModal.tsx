@@ -4,6 +4,7 @@ import { Transaction, TransactionItem, Product, User } from '../../types';
 import { formatRupiah, formatWaktuIndo } from '../../utils/formatters';
 import { apiService } from '../../services/api';
 import { renderThermalReceiptHeaderHtml, renderFullPageReportHeaderHtml } from '../../utils/storeBrandingHelper';
+import { getModifierBadgeStyle } from '../../utils/modifierBadge';
 
 interface TransactionDetailModalProps {
   isOpen: boolean;
@@ -494,22 +495,25 @@ export const TransactionDetailModal: React.FC<TransactionDetailModalProps> = ({
                               {pName}
                               {Array.isArray(item.selected_modifiers) && item.selected_modifiers.length > 0 && (
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.2rem', marginTop: '0.2rem' }}>
-                                  {item.selected_modifiers.map((m: any, mIdx: number) => (
-                                    <span
-                                      key={mIdx}
-                                      style={{
-                                        fontSize: '0.65rem',
-                                        background: '#eff6ff',
-                                        color: '#1d4ed8',
-                                        padding: '0.08rem 0.3rem',
-                                        borderRadius: '4px',
-                                        border: '1px solid #bfdbfe',
-                                        fontWeight: 600,
-                                      }}
-                                    >
-                                      {m.name}{Number(m.price) > 0 ? ` (+${formatRupiah(m.price)})` : ''}
-                                    </span>
-                                  ))}
+                                  {item.selected_modifiers.map((m: any, mIdx: number) => {
+                                    const badgeStyle = getModifierBadgeStyle(m.name, m.price);
+                                    return (
+                                      <span
+                                        key={mIdx}
+                                        style={{
+                                          fontSize: '0.65rem',
+                                          background: badgeStyle.bg,
+                                          color: badgeStyle.color,
+                                          padding: '0.08rem 0.35rem',
+                                          borderRadius: '4px',
+                                          border: `1px solid ${badgeStyle.border}`,
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        {m.name}{Number(m.price) > 0 ? ` (+${formatRupiah(m.price)})` : ''}
+                                      </span>
+                                    );
+                                  })}
                                 </div>
                               )}
                             </td>

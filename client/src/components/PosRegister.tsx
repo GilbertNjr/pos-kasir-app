@@ -24,6 +24,7 @@ import { apiService, CreateTransactionResultData } from '../services/api';
 import { Product, User, PaymentMethod, Category, SelectedModifierItem } from '../types';
 import { formatRupiah } from '../utils/formatters';
 import { getProductCategoryBucket } from '../utils/categoryUtils';
+import { getModifierBadgeStyle } from '../utils/modifierBadge';
 import { ActionLoadingModal } from './common/ActionLoadingModal';
 import { TransactionDetailModal } from './common/TransactionDetailModal';
 import { ProductModifierModal } from './pos/ProductModifierModal';
@@ -1513,23 +1514,26 @@ export const PosRegister: React.FC<PosRegisterProps> = ({ currentUser, activeShi
                         </div>
                         {item.selectedModifiers && item.selectedModifiers.length > 0 && (
                           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.25rem', marginTop: '0.2rem' }}>
-                            {item.selectedModifiers.map((m, mIdx) => (
-                              <span
-                                key={mIdx}
-                                style={{
-                                  fontSize: '0.68rem',
-                                  background: '#eff6ff',
-                                  color: '#1d4ed8',
-                                  padding: '0.1rem 0.35rem',
-                                  borderRadius: '4px',
-                                  border: '1px solid #bfdbfe',
-                                  fontWeight: 600,
-                                }}
-                              >
-                                {m.name}
-                                {m.price > 0 ? ` (+${formatRupiah(m.price)})` : ''}
-                              </span>
-                            ))}
+                            {item.selectedModifiers.map((m, mIdx) => {
+                              const badgeStyle = getModifierBadgeStyle(m.name, m.price);
+                              return (
+                                <span
+                                  key={mIdx}
+                                  style={{
+                                    fontSize: '0.68rem',
+                                    background: badgeStyle.bg,
+                                    color: badgeStyle.color,
+                                    padding: '0.1rem 0.35rem',
+                                    borderRadius: '4px',
+                                    border: `1px solid ${badgeStyle.border}`,
+                                    fontWeight: 700,
+                                  }}
+                                >
+                                  {m.name}
+                                  {m.price > 0 ? ` (+${formatRupiah(m.price)})` : ''}
+                                </span>
+                              );
+                            })}
                           </div>
                         )}
                         <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>

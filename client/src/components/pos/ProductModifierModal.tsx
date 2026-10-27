@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { X, Check, Plus, Minus, ShoppingBag, Sparkles } from 'lucide-react';
 import { Product, ProductModifierGroup, SelectedModifierItem } from '../../types';
 import { formatRupiah } from '../../utils/formatters';
+import { getModifierBadgeStyle } from '../../utils/modifierBadge';
 
 interface ProductModifierModalProps {
   isOpen: boolean;
@@ -311,6 +312,8 @@ export const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
                       : (selectedMultiple[group.id] || []).includes(opt.id);
 
                     const priceDelta = Number(opt.price) || 0;
+                    const badgeStyle = getModifierBadgeStyle(opt.name, opt.price);
+                    const activeBorderColor = badgeStyle.border === '#a7f3d0' ? '#059669' : badgeStyle.border === '#fde68a' ? '#d97706' : '#2563eb';
 
                     return (
                       <div
@@ -327,9 +330,9 @@ export const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
                           padding: '0.65rem 0.85rem',
                           borderRadius: '10px',
                           border: isSelected
-                            ? '2px solid #2563eb'
+                            ? `2px solid ${activeBorderColor}`
                             : '1px solid #cbd5e1',
-                          background: isSelected ? '#eff6ff' : '#ffffff',
+                          background: isSelected ? badgeStyle.bg : '#ffffff',
                           cursor: 'pointer',
                           transition: 'all 0.15s ease',
                           userSelect: 'none',
@@ -341,8 +344,8 @@ export const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
                               width: '18px',
                               height: '18px',
                               borderRadius: isSingle ? '50%' : '5px',
-                              border: isSelected ? '2px solid #2563eb' : '2px solid #94a3b8',
-                              background: isSelected ? '#2563eb' : '#ffffff',
+                              border: isSelected ? `2px solid ${badgeStyle.color}` : '2px solid #94a3b8',
+                              background: isSelected ? badgeStyle.color : '#ffffff',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
@@ -355,7 +358,7 @@ export const ProductModifierModal: React.FC<ProductModifierModalProps> = ({
                             style={{
                               fontSize: '0.825rem',
                               fontWeight: isSelected ? 800 : 600,
-                              color: isSelected ? '#1e40af' : '#1e293b',
+                              color: isSelected ? badgeStyle.color : '#1e293b',
                               wordBreak: 'break-word',
                             }}
                           >

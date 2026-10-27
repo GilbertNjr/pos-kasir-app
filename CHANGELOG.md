@@ -23,6 +23,13 @@ Seluruh perubahan penting, rilis versi, dan penambahan fitur dicatat secara kron
 - **Tampilan Struk Cetak Presisi (`TransactionDetailModal.tsx` & `shiftReportExporter.ts`):**
   - Format cetak thermal 58mm/80mm maupun invoice A4 menampilkan rincian nama racikan dan topping yang dipesan secara rapi, transparan, dan profesional.
   - Struk Rekapitulasi Shift Kasir ("1. RINCIAN BARANG/JASA TERJUAL") dan Ekspor Excel Shift kini menampilkan rincian cara saji, topping, dan racikan per varian item dengan signature pengelompokan yang akurat.
+- **Pewarnaan Kontekstual Badge Racikan / Cara Saji (`modifierBadge.ts`):**
+  - Memberikan pembeda visual yang jelas dan intuitif pada kartu pesanan, keranjang kasir, dan detail item:
+    - **Hijau Segar (`#ecfdf5` / `#047857`):** Untuk opsi olahan hangat/matang (*Dimasak*, *Matang*, *Goreng*, *Rebus*, *Kuah*, *Panggang*).
+    - **Biru Pastel (`#eff6ff` / `#1d4ed8`):** Untuk opsi mentah/kemasan (*Bungkus*, *Mentah*, *Takeaway*, *Bawa Pulang*).
+    - **Kuning / Amber Hangat (`#fffbeb` / `#b45309`):** Untuk opsi topping tambahan (*+ Telur*, *+ Sosis*, *+ Keju*, atau yang memiliki tambahan harga).
+    - **Cyan / Sky Blue (`#f0f9ff` / `#0284c7`):** Untuk opsi minuman dingin (*Es*, *Dingin*, *Ice*).
+    - **Merah Pedas (`#fef2f2` / `#dc2626`):** Untuk opsi pedas (*Pedas*, *Cabe*, *Level*).
 - **Editor Racikan Dinamis di Kelola Produk & Stok (`ProductModifierEditor.tsx`, `ProductsPage.tsx`, `StockPage.tsx`):**
   - Owner dan Karyawan dapat menambah, mengedit, mengurutkan grup opsi, jenis pilihan (Single/Multiple), status wajib/opsional, selisih harga, serta menautkan pemotongan stok bahan baku langsung dari layar Produk maupun Kelola Stok Barang.
 
